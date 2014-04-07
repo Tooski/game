@@ -1,12 +1,12 @@
 // This game shell was happily copied from Googler Seth Ladd's "Bad Aliens" game and his Google IO talk in 2011
 
-window.requestAnimFrame = (function () {
+window.requestAnimFrame = (function() {
     return window.requestAnimationFrame ||
             window.webkitRequestAnimationFrame ||
             window.mozRequestAnimationFrame ||
             window.oRequestAnimationFrame ||
             window.msRequestAnimationFrame ||
-            function (/* function */ callback, /* DOMElement */ element) {
+            function(/* function */ callback, /* DOMElement */ element) {
                 window.setTimeout(callback, 1000 / 60);
             };
 })();
@@ -18,35 +18,40 @@ function AssetManager() {
     this.downloadQueue = [];
 }
 
-AssetManager.prototype.queueDownload = function (path) {
+AssetManager.prototype.queueDownload = function(path) {
     console.log(path.toString());
     this.downloadQueue.push(path);
 }
 
-AssetManager.prototype.isDone = function () {
+AssetManager.prototype.isDone = function() {
     return (this.downloadQueue.length == this.successCount + this.errorCount);
 }
-AssetManager.prototype.downloadAll = function (callback) {
-    if (this.downloadQueue.length === 0) window.setTimeout(callback, 100);
+AssetManager.prototype.downloadAll = function(callback) {
+    if (this.downloadQueue.length === 0)
+        window.setTimeout(callback, 100);
     for (var i = 0; i < this.downloadQueue.length; i++) {
         var path = this.downloadQueue[i];
         var img = new Image();
         var that = this;
-        img.addEventListener("load", function () {
+        img.addEventListener("load", function() {
             console.log("dun: " + this.src.toString());
             that.successCount += 1;
-            if (that.isDone()) { callback(); }
+            if (that.isDone()) {
+                callback();
+            }
         });
-        img.addEventListener("error", function () {
+        img.addEventListener("error", function() {
             that.errorCount += 1;
-            if (that.isDone()) { callback(); }
+            if (that.isDone()) {
+                callback();
+            }
         });
         img.src = path;
         this.cache[path] = img;
     }
 }
 
-AssetManager.prototype.getAsset = function (path) {
+AssetManager.prototype.getAsset = function(path) {
     //console.log(path.toString());
     return this.cache[path];
 }
@@ -62,8 +67,9 @@ function GameEngine() {
     this.surfaceHeight = null;
 }
 
-GameEngine.prototype.init = function (ctx) {
+GameEngine.prototype.init = function(ctx) {
     this.ctx = ctx;
+
     this.surfaceWidth = this.ctx.canvas.width;
     this.surfaceHeight = this.ctx.canvas.height;
     this.startInput();
@@ -71,7 +77,7 @@ GameEngine.prototype.init = function (ctx) {
     console.log('game initialized');
 }
 
-GameEngine.prototype.start = function () {
+GameEngine.prototype.start = function() {
     console.log("starting game");
     var that = this;
     (function gameLoop() {
@@ -80,10 +86,10 @@ GameEngine.prototype.start = function () {
     })();
 }
 
-GameEngine.prototype.startInput = function () {
+GameEngine.prototype.startInput = function() {
     console.log('Starting input');
 
-    var getXandY = function (e) {
+    var getXandY = function(e) {
         var x = e.clientX - that.ctx.canvas.getBoundingClientRect().left;
         var y = e.clientY - that.ctx.canvas.getBoundingClientRect().top;
 
@@ -92,32 +98,32 @@ GameEngine.prototype.startInput = function () {
             y = Math.floor(y / 32);
         }
 
-        return { x: x, y: y };
+        return {x: x, y: y};
     }
 
     var that = this;
 
-    this.ctx.canvas.addEventListener("click", function (e) {
+    this.ctx.canvas.addEventListener("click", function(e) {
         that.click = getXandY(e);
     }, false);
 
-    this.ctx.canvas.addEventListener("mousemove", function (e) {
+    this.ctx.canvas.addEventListener("mousemove", function(e) {
         that.mouse = getXandY(e);
     }, false);
 
-    this.ctx.canvas.addEventListener("mousewheel", function (e) {
+    this.ctx.canvas.addEventListener("mousewheel", function(e) {
         that.wheel = e;
     }, false);
 
     console.log('Input started');
 }
 
-GameEngine.prototype.addEntity = function (entity) {
+GameEngine.prototype.addEntity = function(entity) {
     console.log('added entity');
     this.entities.push(entity);
 }
 
-GameEngine.prototype.draw = function (drawCallback) {
+GameEngine.prototype.draw = function(drawCallback) {
     this.ctx.clearRect(0, 0, this.ctx.canvas.width, this.ctx.canvas.height);
     this.ctx.save();
     for (var i = 0; i < this.entities.length; i++) {
@@ -129,7 +135,7 @@ GameEngine.prototype.draw = function (drawCallback) {
     this.ctx.restore();
 }
 
-GameEngine.prototype.update = function () {
+GameEngine.prototype.update = function() {
     var entitiesCount = this.entities.length;
 
     for (var i = 0; i < entitiesCount; i++) {
@@ -147,24 +153,26 @@ GameEngine.prototype.update = function () {
     }
 }
 
-GameEngine.prototype.loop = function () {
+GameEngine.prototype.loop = function() {
     this.update();
     this.draw();
     this.click = null;
     this.wheel = null;
 }
 
-function Entity(game, x, y) {
+function Entity(game, x, y, width, height) {
     this.game = game;
     this.x = x;
     this.y = y;
+    this.width = width;
+    this.height = height;
     this.removeFromWorld = false;
 }
 
-Entity.prototype.update = function () {
+Entity.prototype.update = function() {
 }
 
-Entity.prototype.draw = function (ctx) {
+Entity.prototype.draw = function(ctx) {
     if (this.game.showOutlines && this.radius) {
         ctx.beginPath();
         ctx.strokeStyle = "green";
@@ -174,7 +182,7 @@ Entity.prototype.draw = function (ctx) {
     }
 }
 
-Entity.prototype.rotateAndCache = function (image, angle) {
+Entity.prototype.rotateAndCache = function(image, angle) {
     var offscreenCanvas = document.createElement('canvas');
     var size = Math.max(image.width, image.height);
     offscreenCanvas.width = size;
@@ -201,27 +209,202 @@ function GameBoard() {
 GameBoard.prototype = new Entity();
 GameBoard.prototype.constructor = GameBoard;
 
-GameBoard.prototype.update = function () {
+GameBoard.prototype.update = function() {
     Entity.prototype.update.call(this);
 }
 
-GameBoard.prototype.draw = function (ctx) {
+GameBoard.prototype.draw = function(ctx) {
+    ctx.translate(screenOffsetX, screenOffsetY);
 }
+
+// Unit
+function Unit(x, y) {
+    Entity.call(this, null, 0, 0, 16, 16);
+
+    this.x = x;
+    this.y = y;
+}
+Unit.prototype = new Entity();
+Unit.prototype.update = function() {
+    Entity.prototype.update.call(this);
+}
+Unit.prototype.draw = function(ctx) {
+
+       ctx.fillStyle = "#FF0000";
+       ctx.fillRect(this.x - screenOffsetX, this.y - screenOffsetY, this.width, this.height);
+   
+}
+
+
+
+/**
+ * The player class is the player that is being created, allows manipulation of 
+ * the controller which currently has jumping and moving.
+ * Written by: Josef Nosov
+ */
+function Player(x,y) {
+    Entity.call(this, null, 0, 0, 16, 16);
+    this.x = x - this.width/2;
+    this.y = y - this.height/2;
+    groundY = 0;
+    this.moving = false;
+    this.jumping = false;
+    this.velocity_y = 0;
+    this.velocity_x = 0;
+}
+Player.prototype = new Entity();
+Player.prototype.update = function() {
+    Entity.prototype.update.call(this);
+    
+    // Allows the user to jump.
+ 
+    if(!this.jumping && jumpKeyPressed) {
+        this.velocity_y = 5;
+        this.jumping = true;
+    } 
+    if (this.jumping) {
+        if(screenOffsetY - this.velocity_y < groundY) {
+            screenOffsetY -= this.velocity_y;
+            this.velocity_y -= gravity;
+        } else {  
+            this.jumping = false;
+        }
+    } 
+
+    // The code below doesn't allow the camera to follow the user as they jump
+    // change groundY to y in order for this to work properly.
+    /*
+    if(!this.jumping && jumpKeyPressed) {
+        this.velocity_y = 5;
+        this.jumping = true;
+    } 
+    if (this.jumping) {
+        if(this.y - this.velocity_y < groundY) {
+            this.y  -= this.velocity_y;
+            this.velocity_y -= gravity;
+        } else {  
+            this.jumping = false;
+        }
+    } 
+    */
+    
+   
+    if(!this.moving && rightKeyPressed) {
+        this.moving = true;
+        this.velocity_x = -5;
+    } else if (!this.moving && leftKeyPressed) {
+        this.moving = true;
+        this.velocity_x = 5;
+    } else {
+        this.moving = false;
+    }
+    if(this.moving === true) {
+        screenOffsetX += this.velocity_x; // screen moves with the user.
+    }
+        
+}
+Player.prototype.draw = function(ctx) {
+
+    ctx.fillStyle = "#00FF00";
+    ctx.fillRect(this.x - screenOffsetX, this.y - screenOffsetY, this.width, this.height);
+    
+
+}
+
 
 // the "main" code begins here
 
+
+var screenOffsetX = 0;
+var screenOffsetY = 0;
+var gravity = 0.21875;
+var jumpKeyPressed = false;
+var leftKeyPressed = false;
+var rightKeyPressed = false;
+var groundY = 0;
+
+
 var ASSET_MANAGER = new AssetManager();
 
-ASSET_MANAGER.downloadAll(function () {
+ASSET_MANAGER.downloadAll(function() {
     console.log("starting up da sheild");
     var canvas = document.getElementById('gameWorld');
     var ctx = canvas.getContext('2d');
-
     var gameEngine = new GameEngine();
+    canvas.width = 200;
+    canvas.height = 200;
     var gameboard = new GameBoard();
+    var unit = new Player(canvas.width/2, canvas.height/2);
+    for (var i = 0; i < enemy.length; i++) {
 
+        gameEngine.addEntity(new Unit(enemy[i][0],enemy[i][1]));
+    }
     gameEngine.addEntity(gameboard);
-
+    gameEngine.addEntity(unit);
     gameEngine.init(ctx);
     gameEngine.start();
+    contoller(canvas);
+
+
 });
+
+
+
+
+
+
+/**
+ * Will be changed later, this is a controller for the user.
+ * Josef Nosov
+ * @param {type} canvas
+ * @returns {undefined}
+ */
+function contoller(canvas) {
+    canvas.tabIndex = 1;
+    canvas.addEventListener('keydown', function(e) {
+        if (e.keyCode === 37) {
+            rightKeyPressed = true;
+        } else if (e.keyCode === 39) {
+            leftKeyPressed = true;
+        }
+        if (e.keyCode === 32) {
+            jumpKeyPressed = true;
+        }
+    }, false);
+        canvas.addEventListener('keyup', function(e) {
+          if (e.keyCode === 37) {
+            rightKeyPressed = false;
+        } else if (e.keyCode === 39) {
+            leftKeyPressed = false;
+        }
+        if (e.keyCode === 32) {
+            jumpKeyPressed = false;
+        }
+    }, false);
+}
+
+
+
+
+
+
+
+
+var enemy = [
+    [50, 50],
+    [55, 70],
+    [15, 22],
+    [150, 20],
+    [120, 80],
+    [100, 10],
+    [170, 40],
+    [130, 70],
+    [230, 10],
+    [330, 45],
+    [250, 65]
+];
+
+
+
+
+
