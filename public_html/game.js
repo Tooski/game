@@ -123,9 +123,34 @@ GameEngine.prototype.addEntity = function(entity) {
     this.entities.push(entity);
 }
 
+/**
+ * The parallax allows background to move with the user. This is being updated
+ * once a frame.
+ * Written by: Josef Nosov
+ * 
+ * @param {Canvas} ctx the canvas that is being drawn on.
+ * @param {Image} backgroundImage the background image.
+ * @param {double} offsetSpeed the speed offset, smaller value if you want
+ * it to be slower, larger value if you want it to be faster.
+ * @returns {undefined}
+ */
+function parallax(ctx, backgroundImage, offsetSpeed) {
+    for (var w = -screenOffsetX*offsetSpeed; w < canvas.width - screenOffsetX*offsetSpeed; w += backgroundImage.width) {
+        for (var h = -screenOffsetY*offsetSpeed; h < canvas.height - screenOffsetY*offsetSpeed; h  += backgroundImage.height) {
+            ctx.drawImage(backgroundImage, w, h);
+   
+        }
+    }
+}
+
+
 GameEngine.prototype.draw = function(drawCallback) {
     this.ctx.clearRect(0, 0, this.ctx.canvas.width, this.ctx.canvas.height);
     this.ctx.save();
+
+    parallax(this.ctx, ASSET_MANAGER.cache[imagePaths[0]], 1/4);
+    parallax(this.ctx, ASSET_MANAGER.cache[imagePaths[1]], 1/2);
+    
     for (var i = 0; i < this.entities.length; i++) {
         this.entities[i].draw(this.ctx);
     }
@@ -215,6 +240,7 @@ GameBoard.prototype.update = function() {
 
 GameBoard.prototype.draw = function(ctx) {
     ctx.translate(screenOffsetX, screenOffsetY);
+
 }
 
 // Unit
@@ -245,7 +271,7 @@ Unit.prototype.draw = function(ctx) {
 function Player(x,y) {
     Entity.call(this, null, 0, 0, 16, 16);
     this.x = x - this.width/2;
-    this.y = y - this.height/2;
+    this.y = y - this.height;
     groundY = 0;
     this.moving = false;
     this.jumping = false;
@@ -312,33 +338,68 @@ Player.prototype.draw = function(ctx) {
 }
 
 
+
+
+/**
+ * QuadTree is used to create an efficient collision detection.
+ * Splits the canvas into seperate partitions.
+ * @returns {undefined}
+ */
+function QuadTree (boundingBox) {
+    var boundingBox = boundingBox;
+    
+}
+
+
+
+
+
 // the "main" code begins here
 
 
+// The X screen offset based on characters position
 var screenOffsetX = 0;
+
+// The Y screen offset based on characters position
 var screenOffsetY = 0;
+
+// The gravity, changes the gravity when the user jumps. 
 var gravity = 0.21875;
+
+// Key pressed, may be replaced in the future.
 var jumpKeyPressed = false;
 var leftKeyPressed = false;
 var rightKeyPressed = false;
+
+
+// The groundY position. Will be replaced in the future.
 var groundY = 0;
 
+var canvas;
+
+
+// The assets
+var imagePaths = ["assets/backgroundTile.png", "assets/midground-Tile-150x150.png"];
 
 var ASSET_MANAGER = new AssetManager();
 
+for(var i = 0; i < imagePaths.length; i++) {
+    ASSET_MANAGER.queueDownload(imagePaths[i]);
+}
 ASSET_MANAGER.downloadAll(function() {
     console.log("starting up da sheild");
-    var canvas = document.getElementById('gameWorld');
+    canvas = document.getElementById('gameWorld');
     var ctx = canvas.getContext('2d');
     var gameEngine = new GameEngine();
-    canvas.width = 200;
-    canvas.height = 200;
+    canvas.width = window.innerWidth - 20;
+    canvas.height = window.innerHeight -20;
     var gameboard = new GameBoard();
     var unit = new Player(canvas.width/2, canvas.height/2);
     for (var i = 0; i < enemy.length; i++) {
 
         gameEngine.addEntity(new Unit(enemy[i][0],enemy[i][1]));
     }
+
     gameEngine.addEntity(gameboard);
     gameEngine.addEntity(unit);
     gameEngine.init(ctx);
@@ -362,6 +423,7 @@ ASSET_MANAGER.downloadAll(function() {
 function contoller(canvas) {
     canvas.tabIndex = 1;
     canvas.addEventListener('keydown', function(e) {
+        
         if (e.keyCode === 37) {
             rightKeyPressed = true;
         } else if (e.keyCode === 39) {
@@ -382,6 +444,9 @@ function contoller(canvas) {
         }
     }, false);
 }
+
+
+
 
 
 
