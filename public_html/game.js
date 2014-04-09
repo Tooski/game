@@ -135,12 +135,19 @@ GameEngine.prototype.addEntity = function(entity) {
  * @returns {undefined}
  */
 function parallax(ctx, backgroundImage, offsetSpeed) {
-    for (var w = -screenOffsetX*offsetSpeed; w < canvas.width - screenOffsetX*offsetSpeed; w += backgroundImage.width) {
-        for (var h = -screenOffsetY*offsetSpeed; h < canvas.height - screenOffsetY*offsetSpeed; h  += backgroundImage.height) {
+
+    var w = -screenOffsetX*offsetSpeed - backgroundImage.width;
+    var movePositionX =  backgroundImage.width * Math.floor((w / backgroundImage.width) + 1);
+
+    for (w -= movePositionX; w < canvas.width - screenOffsetX*offsetSpeed - movePositionX; w += backgroundImage.width) {
+        var h = -screenOffsetY*offsetSpeed - backgroundImage.height;
+        var movePositionY =  backgroundImage.height * Math.floor((h / backgroundImage.height) + 1);
+        for (h -= movePositionY; h < canvas.height - screenOffsetY*offsetSpeed - movePositionY; h  += backgroundImage.height) {
             ctx.drawImage(backgroundImage, w, h);
-   
+      
         }
     }
+
 }
 
 
@@ -456,17 +463,7 @@ function contoller(canvas) {
 
 
 var enemy = [
-    [50, 50],
-    [55, 70],
-    [15, 22],
-    [150, 20],
-    [120, 80],
-    [100, 10],
-    [170, 40],
-    [130, 70],
-    [230, 10],
-    [330, 45],
-    [250, 65]
+    [10,10], [30,30], [50,50]
 ];
 
 
