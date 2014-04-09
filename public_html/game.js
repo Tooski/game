@@ -251,20 +251,34 @@ GameBoard.prototype.draw = function(ctx) {
 }
 
 // Unit
-function Unit(x, y) {
+function Unit(img, x, y) {
     Entity.call(this, null, 0, 0, 16, 16);
-
+    this.img = img;
     this.x = x;
     this.y = y;
+    this.velocity_y = 5;
+    this.velocity_x = 5;
 }
 Unit.prototype = new Entity();
 Unit.prototype.update = function() {
     Entity.prototype.update.call(this);
 }
-Unit.prototype.draw = function(ctx) {
+Unit.prototype.update = function() {
+        if(this.y - this.velocity_y < groundY) {
+            this.y -= this.velocity_y;
+            this.velocity_y -= gravity;
+        } else {
+            this.y = groundY;
+        }
+    
+}
 
-       ctx.fillStyle = "#FF0000";
-       ctx.fillRect(this.x - screenOffsetX, this.y - screenOffsetY, this.width, this.height);
+
+Unit.prototype.draw = function(ctx) {
+    var image = ASSET_MANAGER.cache[this.img];
+    var width = image.naturalWidth/4;
+    var height = image.naturalHeight/4;
+    ctx.drawImage(image, this.x - screenOffsetX - width/2, this.y - screenOffsetY - height, width, height);
    
 }
 
@@ -275,11 +289,11 @@ Unit.prototype.draw = function(ctx) {
  * the controller which currently has jumping and moving.
  * Written by: Josef Nosov
  */
-function Player(x,y) {
+function Player(image, x,y) {
     Entity.call(this, null, 0, 0, 16, 16);
     this.x = x - this.width/2;
-    this.y = y - this.height;
-    groundY = 0;
+    this.y = y;
+    this.img = image;
     this.moving = false;
     this.jumping = false;
     this.velocity_y = 0;
@@ -296,10 +310,11 @@ Player.prototype.update = function() {
         this.jumping = true;
     } 
     if (this.jumping) {
-        if(screenOffsetY - this.velocity_y < groundY) {
+        if(screenOffsetY - this.velocity_y < groundY - this.y) {
             screenOffsetY -= this.velocity_y;
             this.velocity_y -= gravity;
         } else {  
+            screenOffsetY = groundY - this.y;
             this.jumping = false;
         }
     } 
@@ -337,9 +352,11 @@ Player.prototype.update = function() {
         
 }
 Player.prototype.draw = function(ctx) {
+    var image = ASSET_MANAGER.cache[this.img];
+    var width = image.naturalWidth/4;
+    var height = image.naturalHeight/4;
+    ctx.drawImage(image, this.x - screenOffsetX - width/2, this.y - screenOffsetY - height, width, height);
 
-    ctx.fillStyle = "#00FF00";
-    ctx.fillRect(this.x - screenOffsetX, this.y - screenOffsetY, this.width, this.height);
     
 
 }
@@ -386,7 +403,7 @@ var canvas;
 
 
 // The assets
-var imagePaths = ["assets/backgroundTile.png", "assets/midground-Tile-150x150.png"];
+var imagePaths = ["assets/backgroundTile.png", "assets/midground-Tile-150x150.png", "assets/Megaman8bit.jpg", "assets/enemy.jpg"];
 
 var ASSET_MANAGER = new AssetManager();
 
@@ -400,11 +417,12 @@ ASSET_MANAGER.downloadAll(function() {
     var gameEngine = new GameEngine();
     canvas.width = window.innerWidth - 20;
     canvas.height = window.innerHeight -20;
+    groundY = canvas.height/2;
     var gameboard = new GameBoard();
-    var unit = new Player(canvas.width/2, canvas.height/2);
+    var unit = new Player("assets/Megaman8bit.jpg",canvas.width/2, canvas.height/2);
     for (var i = 0; i < enemy.length; i++) {
 
-        gameEngine.addEntity(new Unit(enemy[i][0],enemy[i][1]));
+        gameEngine.addEntity(new Unit("assets/enemy.jpg", enemy[i][0],enemy[i][1]));
     }
 
     gameEngine.addEntity(gameboard);
