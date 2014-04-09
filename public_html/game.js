@@ -192,44 +192,6 @@ GameEngine.prototype.loop = function() {
     this.wheel = null;
 }
 
-function Entity(game, x, y, width, height) {
-    this.game = game;
-    this.x = x;
-    this.y = y;
-    this.width = width;
-    this.height = height;
-    this.removeFromWorld = false;
-}
-
-Entity.prototype.update = function() {
-}
-
-Entity.prototype.draw = function(ctx) {
-    if (this.game.showOutlines && this.radius) {
-        ctx.beginPath();
-        ctx.strokeStyle = "green";
-        ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2, false);
-        ctx.stroke();
-        ctx.closePath();
-    }
-}
-
-Entity.prototype.rotateAndCache = function(image, angle) {
-    var offscreenCanvas = document.createElement('canvas');
-    var size = Math.max(image.width, image.height);
-    offscreenCanvas.width = size;
-    offscreenCanvas.height = size;
-    var offscreenCtx = offscreenCanvas.getContext('2d');
-    offscreenCtx.save();
-    offscreenCtx.translate(size / 2, size / 2);
-    offscreenCtx.rotate(angle);
-    offscreenCtx.translate(0, 0);
-    offscreenCtx.drawImage(image, -(image.width / 2), -(image.height / 2));
-    offscreenCtx.restore();
-    //offscreenCtx.strokeStyle = "red";
-    //offscreenCtx.strokeRect(0,0,size,size);
-    return offscreenCanvas;
-}
 
 // GameBoard code below
 
@@ -249,118 +211,6 @@ GameBoard.prototype.draw = function(ctx) {
     ctx.translate(screenOffsetX, screenOffsetY);
 
 }
-
-// Unit
-function Unit(img, x, y) {
-    Entity.call(this, null, 0, 0, 16, 16);
-    this.img = img;
-    this.x = x;
-    this.y = y;
-    this.velocity_y = 5;
-    this.velocity_x = 5;
-}
-Unit.prototype = new Entity();
-Unit.prototype.update = function() {
-    Entity.prototype.update.call(this);
-}
-Unit.prototype.update = function() {
-        if(this.y - this.velocity_y < groundY) {
-            this.y -= this.velocity_y;
-            this.velocity_y -= gravity;
-        } else {
-            this.y = groundY;
-        }
-    
-}
-
-
-Unit.prototype.draw = function(ctx) {
-    var image = ASSET_MANAGER.cache[this.img];
-    var width = image.naturalWidth/4;
-    var height = image.naturalHeight/4;
-    ctx.drawImage(image, this.x - screenOffsetX - width/2, this.y - screenOffsetY - height, width, height);
-   
-}
-
-
-
-/**
- * The player class is the player that is being created, allows manipulation of 
- * the controller which currently has jumping and moving.
- * Written by: Josef Nosov
- */
-function Player(image, x,y) {
-    Entity.call(this, null, 0, 0, 16, 16);
-    this.x = x - this.width/2;
-    this.y = y;
-    this.img = image;
-    this.moving = false;
-    this.jumping = false;
-    this.velocity_y = 0;
-    this.velocity_x = 0;
-}
-Player.prototype = new Entity();
-Player.prototype.update = function() {
-    Entity.prototype.update.call(this);
-    
-    // Allows the user to jump.
- 
-    if(!this.jumping && jumpKeyPressed) {
-        this.velocity_y = 5;
-        this.jumping = true;
-    } 
-    if (this.jumping) {
-        if(screenOffsetY - this.velocity_y < groundY - this.y) {
-            screenOffsetY -= this.velocity_y;
-            this.velocity_y -= gravity;
-        } else {  
-            screenOffsetY = groundY - this.y;
-            this.jumping = false;
-        }
-    } 
-
-    // The code below doesn't allow the camera to follow the user as they jump
-    // change groundY to y in order for this to work properly.
-    /*
-    if(!this.jumping && jumpKeyPressed) {
-        this.velocity_y = 5;
-        this.jumping = true;
-    } 
-    if (this.jumping) {
-        if(this.y - this.velocity_y < groundY) {
-            this.y  -= this.velocity_y;
-            this.velocity_y -= gravity;
-        } else {  
-            this.jumping = false;
-        }
-    } 
-    */
-    
-   
-    if(!this.moving && rightKeyPressed) {
-        this.moving = true;
-        this.velocity_x = -5;
-    } else if (!this.moving && leftKeyPressed) {
-        this.moving = true;
-        this.velocity_x = 5;
-    } else {
-        this.moving = false;
-    }
-    if(this.moving === true) {
-        screenOffsetX += this.velocity_x; // screen moves with the user.
-    }
-        
-}
-Player.prototype.draw = function(ctx) {
-    var image = ASSET_MANAGER.cache[this.img];
-    var width = image.naturalWidth/4;
-    var height = image.naturalHeight/4;
-    ctx.drawImage(image, this.x - screenOffsetX - width/2, this.y - screenOffsetY - height, width, height);
-
-    
-
-}
-
 
 
 
@@ -419,14 +269,14 @@ ASSET_MANAGER.downloadAll(function() {
     canvas.height = window.innerHeight -20;
     groundY = canvas.height/2;
     var gameboard = new GameBoard();
-    var unit = new Player("assets/Megaman8bit.jpg",canvas.width/2, canvas.height/2);
+    var player = new Player("assets/Megaman8bit.jpg",canvas.width/2, canvas.height/2);
     for (var i = 0; i < enemy.length; i++) {
 
         gameEngine.addEntity(new Unit("assets/enemy.jpg", enemy[i][0],enemy[i][1]));
     }
 
     gameEngine.addEntity(gameboard);
-    gameEngine.addEntity(unit);
+    gameEngine.addEntity(player);
     gameEngine.init(ctx);
     gameEngine.start();
     contoller(canvas);
@@ -469,15 +319,6 @@ function contoller(canvas) {
         }
     }, false);
 }
-
-
-
-
-
-
-
-
-
 
 
 var enemy = [
