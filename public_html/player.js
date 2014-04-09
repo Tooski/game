@@ -9,14 +9,12 @@
  * the controller which currently has jumping and moving.
  * Written by: Josef Nosov
  */
-
-
 function Player(image, x,y) {
     Entity.call(this, null, 0, 0, 16, 16);
     this.x = x - this.width/2;
     this.y = y;
     this.img = image;
-
+    this.j = "";
     this.velocity_y = 0;
     this.velocity_x = 0;
     
