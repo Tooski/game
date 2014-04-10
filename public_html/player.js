@@ -1,8 +1,8 @@
-/* 
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
+
+
+var debugMode = true;
+
+
 
 /**
  * The player class is the player that is being created, allows manipulation of 
@@ -10,17 +10,25 @@
  * Written by: Josef Nosov
  */
 function Player(image, x,y) {
-    Entity.call(this, null, 0, 0, 16, 16);
+    Entity.call(this, null, 0, 0, -1, -1);
+    
+
     this.x = x - this.width/2;
     this.y = y;
     this.img = image;
-    this.j = "";
+
     this.velocity_y = 0;
     this.velocity_x = 0;
     
     this.moving = false;
     this.jumping = false;
+    this.collider  = new Collider();
+    
+    
 }
+
+
+
 Player.prototype = new Entity();
 Player.prototype.update = function() {
     Entity.prototype.update.call(this);
@@ -75,7 +83,24 @@ Player.prototype.update = function() {
 }
 Player.prototype.draw = function(ctx) {
     var image = ASSET_MANAGER.cache[this.img];
-    var width = image.naturalWidth/4;
-    var height = image.naturalHeight/4;
-    ctx.drawImage(image, this.x - screenOffsetX - width/2, this.y - screenOffsetY - height, width, height);
+    
+    if(this.width === -1)
+        this.width = image.naturalWidth/4;
+    if(this.height  === -1)
+        this.height = image.naturalHeight/4;
+    if(!this.collisionRadius)
+        this.collisionRadius = this.width > this.height ? this.width/2 : this.height/2;
+    ctx.drawImage(image, this.x - screenOffsetX - this.width/2, this.y - screenOffsetY - this.height, this.width, this.height);
+    
+    if(debugMode === true) {
+        ctx.beginPath();
+        
+        this.collider.x = this.x - screenOffsetX;
+        this.collider.y = this.y - screenOffsetY - this.height/2;
+        this.collider.radius = this.collisionRadius;
+        ctx.arc( this.collider.x, this.collider.y, this.collider.radius, 0, 2 * Math.PI, false);
+        ctx.lineWidth = 5;
+        ctx.stroke();
+    }
+    
 }

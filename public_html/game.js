@@ -274,7 +274,10 @@ ASSET_MANAGER.downloadAll(function() {
 
         gameEngine.addEntity(new Unit("assets/enemy.jpg", enemy[i][0],enemy[i][1]));
     }
+    gameEngine.addEntity(new Line(0,100,200,200, player));
+    
 
+   //  gameEngine.addEntity(new BezierCurve(40,100,80,20,150,180,260,100));
     gameEngine.addEntity(gameboard);
     gameEngine.addEntity(player);
     gameEngine.init(ctx);
