@@ -11,14 +11,12 @@ var debugMode = true;
  */
 function Player(image, x,y) {
     Entity.call(this, null, 0, 0, -1, -1);
-    
+
+    this.img = image;
+
 
     this.x = x - this.width/2;
     this.y = y;
-    this.img = image;
-
-    this.velocity_y = 0;
-    this.velocity_x = 0;
     
     this.moving = false;
     this.jumping = false;

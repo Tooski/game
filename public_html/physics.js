@@ -2,14 +2,14 @@
  * The physics engine. These are helper functions used to base the games physics around.
  * May later be extended to support different player characters with different physics properties.
  */
-function physParams(gravity, dragBaseAmt, dragTerminalVelocity, dragExponent) {
+function PhysParams(gravity, dragBaseAmt, dragTerminalVelocity, dragExponent) {
   this.grav = gravity;
   this.dragBase = dragBaseAmt;
   this.dragTV = dragTerminalVelocity;
   this.dragExp = drawExponent;
 }
 
-function controlParams(groundLRaccel, airLRaccel, boostLRvel, boostDownVel, jumpVel, doubleJumpVel) {
+function ControlParams(groundLRaccel, airLRaccel, boostLRvel, boostDownVel, jumpVel, doubleJumpVel) {
   this.groundLRaccel = groundLRaccel;
   this.airLRaccel = airLRaccel;
   this.boostLRvel = boostLRvel;
@@ -19,17 +19,28 @@ function controlParams(groundLRaccel, airLRaccel, boostLRvel, boostDownVel, jump
 }
 
 
+function PlayerModel(controlParams, ballRadius, startPoint, numAirCharges) {     // THIS IS THE PLAYER PHYSICS MODEL, EXTENDABLE FOR DIFFERENT CHARACTER TYPES.
+  this.radius = ballRadius;          //float radius
+  this.airCharges = numAirCharges;   //number of boost / double jumps left in the air.
+  this.controls = controlParams;     //control parameters.
 
-function physEng(physParams, controlParams) {
+  this.position = startPoint;        //vec2 for position!
+  this.velocity = new vec2(0.0, 0.0);//vec2 for velocity!
+
+
+}
+
+
+function PhysEng(physParams, playerModel) {
   this.gravity = new vec2(0, -physParams.grav);
   this.dragBase = physParams.dragBase;
   this.dragTV = physParams.dragTV;
   this.dragExp = physParams.dragExp;
 
-  this.controlParams = controlParams;
+  this.hamster = playerModel; //LAZY FOR NOW.
 }
 
-physEng.prototype.step = function (timeDelta) {
-
+PhysEng.prototype.step = function (timeDelta) {
+  
 }
 
