@@ -3,9 +3,22 @@
  * May later be extended to support different player characters with different physics properties.
  * Author Travis Drake
  */
-PHYS_DEBUG = true;
+var PHYS_DEBUG = true;
+
+
+//INPUT TYPES!
+var inLeft = 0;
+var inRight = 1;
+var inUp = 2;
+var inDown = 3;
+var inJump = 4;
+var inBoost = 5;
+var inLock = 6;
+
+
 
 // this should work in just about any browser, and allows us to use performance.now() successfully no matter the browser.
+// source http://www.sitepoint.com/discovering-the-high-resolution-time-api/
 window.performance = window.performance || {};
 performance.now = (function () {
   return performance.now ||
@@ -27,13 +40,17 @@ function PhysParams(gravity) {
 }
 
 // this thing is just useful for storing potential states in an object.
-function TempState(pos, vel) {
+function TempState(pos, vel, radius, timeDelta) {
   this.pos = pos;
   this.vel = vel;
+  this.radius = radius;
+  this.timeDelta = timeDelta;
 }
-function TempState(px, py, vx, vy) {
+function TempState(px, py, vx, vy, radius, timeDelta) {
   this.pos = vec2(px, py);
   this.vel = vec2(vx, vy);
+  this.radius = radius;
+  this.timeDelta = timeDelta;
 }
 
 // This object contains all the values that are relative to the PLAYER. IE, anything that would be specific to different selectable characters.
@@ -78,6 +95,7 @@ function PhysEng(physParams, playerModel) {
   this.player = playerModel;                        // the players character model
   this.ctrl = playerModel.controlcontrolParameters; // control parameters.
   this.phys = physParams;                           // physics parameters
+  this.activeEvents = [];                           // map of active events. 
 
   if (PHYS_DEBUG) {
     this.printStartState();
@@ -86,23 +104,58 @@ function PhysEng(physParams, playerModel) {
 
 
 // CHECKS FOR COLLISIONS, HANDLES THEIR TIME STEPS, AND THEN CALLS airStep AND / OR groundStep WHERE APPLICABLE
-PhysEng.prototype.step = function (timeDelta) { // ______timeDelta IS ALWAYS A FLOAT REPRESENTING THE FRACTION OF A SECOND ELAPSED, WHERE 1.0 IS ONE FULL SECOND. _____________                           
+// eventList is a list of event objects that occurred since last update, sorted by the order in which they occurred.
+PhysEng.prototype.update = function (timeDelta, eventList) { // ______timeDelta IS ALWAYS A FLOAT REPRESENTING THE FRACTION OF A SECOND ELAPSED, WHERE 1.0 IS ONE FULL SECOND. _____________                           
   if (PHYS_DEBUG) {
     console.log("\nEntered step(timeDelta), timeDelta = %.3f\n", timeDelta);
     this.printState(true, false, false);
   }
 
+  var state = new TempState(player.pos, player.vel, 0.0);   //creates the initial state of the TempPlayer.
+  eventList[eventList.length] = new RenderEvent(timeDelta); //Set up the last event in the array to be our render event, so that the loop completes up to the render time.
 
+  for (i = 0; i < eventList.length; i++) {
+    var event = eventList[i];
+    while (!eventDone) {                   //The physics step loop. Checks for collisions / lockbreaks and discovers the time they occur at. Continues stepping physics until it is caught up to "timeDelta".
+      if (player.airBorne) {               //In the air, call airStep
+        state = this.airStep(state, eventTime);
+      } else {                            //On ground, call groundStep 
+        state = this.groundStep(state, eventTime);
+      }
+    }                                 //COMPLETED TIMESTEP UP TO WHEN EVENT HAPPENS.
+
+    event.handler(this);              // LET THE EVENTS HANDLER DO WHAT IT NEEDS TO TO UPDATE THE PHYSICS STATE.
+  }                                   // PHYSICS ARE UP TO DATE. GO AHEAD AND RENDER.
+
+  Render();                       //________ CALL THE RENDER FUNCTION! __________
 }
 
-PhysEng.prototype.airStep = function (timeDelta) { // Returns the players new position and velocity after an airStep of this length. Does not modify values.
 
+PhysEng.prototype.airStep = function (state, timeDelta) { // Returns the players new position and velocity (in a TempState object) after an airStep of this length. Does not modify values.
+  
+  
+  
+  var collisionData = getCollisions(state);
+  if (!collisionData.collided) {
+    state = stepState;
+  } else {
+    HANDLE COLLISIONS
+  }
 }
 
-PhysEng.prototype.groundStep = function (timeDelta) { // A step while the player is in the ground. Returns the players new position and velocity after a groundStep of this length. Does not modify values.
-
+PhysEng.prototype.groundStep = function (state, timeDelta) { // A step while the player is in the ground. Returns the players new position and velocity (in a TempState object) after a groundStep of this length. Does not modify values.
+  
+  
+  
+  if (!getCollisions(stepState.pos)) {
+    state = stepState;
+  } else {
+    HANDLE COLLISIONS
+  }
 }
 
+
+// Self explanatory. For debug purposes.
 PhysEng.prototype.printState = function (printExtraPlayerDebug, printExtraControlsDebug, printExtraPhysDebug) {
   console.log("Player: ");
   console.log("  pos: %.2f, %.2f", player.pos.x, player.pos.y);
@@ -143,6 +196,7 @@ PhysEng.prototype.printState = function (printExtraPlayerDebug, printExtraContro
 
 }
 
+// Self explanatory. For debug purposes.
 PhysEng.prototype.printStartState = function () {
   console.log("Created PhysEng");
   console.log("Controls: ");
@@ -173,4 +227,93 @@ PhysEng.prototype.printStartState = function () {
   console.log("  groundLocked: %s", player.groundLocked);
   console.log("");
   console.log("");
+}
+
+
+
+
+
+
+// Event class. All events interpreted by the physics engine must extend this, as seen below. 
+// Currently input and render events exist. Physics events will probably follow shortly (for example, when the player passes from one terrain line to another, etc).
+function Event(eventTime) {    //eventTime is the amount of time since last rendered frame that the event occurred at. THIS IS A PARENT CLASS. THERE ARE SUBCLASSES FOR THIS, THIS CLASS IS NEVER ACTUALLY INSTANTIATED.
+  this.time = eventTime;
+  this.handler = function (physEng) { };
+}
+
+
+
+// InputEvent class for input events. These are the events that would be stored in a replay file and consist of any human input to the physics engine (Character control).
+function InputEvent(eventTime, inputType, pressed) {   //
+  Event.apply(this, [eventTime])
+  this.inputType = inputType;
+  this.pressed = pressed;
+}
+InputEvent.prototype = new Event();
+InputEvent.prototype.handler = function(physEng) {          //THIS CODE HANDLES INPUT CHANGES.
+  switch (this.inputType) {
+    case inLeft:
+      if(this.pressed) {  // Input was just pressed down.
+
+      } else {            // Input was just released.
+      
+      }
+      break;
+    case inRight: 
+      if(this.pressed) {  // Input was just pressed down.
+
+      } else {            // Input was just released.
+      
+      }
+      break;
+    case inUp:
+      if(this.pressed) {  // Input was just pressed down.
+
+      } else {            // Input was just released.
+      
+      }
+      break;
+    case inDown: 
+      if(this.pressed) {  // Input was just pressed down.
+
+      } else {            // Input was just released.
+      
+      }
+      break;
+    case inJump:
+      if(this.pressed) {  // Input was just pressed down.
+
+      } else {            // Input was just released.
+      
+      }
+      break;
+    case inBoost:
+      if(this.pressed) {  // Input was just pressed down.
+
+      } else {            // Input was just released.
+      
+      }
+      break;
+    case inLock:
+      if(this.pressed) {  // Input was just pressed down.
+
+      } else {            // Input was just released.
+      
+      }
+      break;
+    default:
+      throw "Wtf bad inputType. Please reference the inName list at the top of physics.js";
+  }
+}
+
+
+
+
+// Event class for the render event. One of these should be the last event in the eventList array passed to update. NOT STORED IN REPLAYS.
+function RenderEvent(eventTime) { // eventTime should be deltaTime since last frame, the time the physics engine should complete up to before rendering.
+  Event.apply(this, [eventTime])
+}
+RenderEvent.prototype = new Event();
+RenderEvent.prototype.handler = function(physEng) {
+  return;
 }
