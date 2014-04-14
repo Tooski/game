@@ -21,29 +21,32 @@ vec2.prototype.plus = function(v)  // add vectors, this + v
 vec2.prototype.minus = function(v)  // subtract vectors, this - v 
 { return vec2( this.x - v.x, this.y - v.y ); }
 
-vec2.prototype.multf = function(s)  // multiply vector by float, this * s           
-{ return vec2( s*this.x, s*this.y ); }
+vec2.prototype.multf = function(f)  // multiply vector by float, this * s           
+{ return vec2( f*this.x, f*this.y ); }
 
 vec2.prototype.multv = function (v) // multiply vectors, this * v
 { return vec2( this.x*v.x, this.y*v.y ); }
 
-vec2.prototype.divf = function (s) // divide vector by float, this / s
-{ return this.multf(1.0 / s); }
+vec2.prototype.divf = function (f) // divide vector by float, this / s
+{ return this.multf(1.0 / f); }
 
 
 
-vec2.prototype.dot = function(v) {  // returns the dot product of this.dot(v)
+vec2.prototype.dot = function(v) {  // returns the dot product of this.dot(v) aka the angle between this vector and v in radians.
   return this.x * v.x + this.y * v.y;
 }
 
 vec2.prototype.length = function() {  // returns the magnitude of the vector. (Or Euclidean length of the vectors line).
-  return Math.sqrt(this.dot(this));
+  return Math.sqrt(this.x * this.x + this.y * this.y);
 }
 
-vec2.prototype.normalize = function(v) { // normalizes a vector so that its length is equal to 1.0. Useful for math.
-  return v.divf(v.length());
+vec2.prototype.normalize = function() { // normalizes a vector so that its length is equal to 1.0. Useful for math.
+  return this.divf(Math.sqrt(this.x * this.x + this.y * this.y));
 }
 
+vec2.prototype.perp = function() { // returns the perpendicular vector to this vector.
+  return vec2(this.y, -this.x);
+}
 
 vec2.prototype.toString = function () {
   return "X: " + this.x + ", Y: " + this.y;
