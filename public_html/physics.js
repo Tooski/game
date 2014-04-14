@@ -16,6 +16,8 @@ var inBoost = 5;
 var inLock = 6;
 
 
+var CONST_DRAG = 0.5;
+
 
 // this should work in just about any browser, and allows us to use performance.now() successfully no matter the browser.
 // source http://www.sitepoint.com/discovering-the-high-resolution-time-api/
@@ -46,7 +48,7 @@ function TempState(pos, vel, radius, timeDelta) {
   this.radius = radius;
   this.timeDelta = timeDelta;
 }
-function TempState(px, py, vx, vy, radius, timeDelta) {
+function TempState(px, py, vx, vy, radius, timeDelta) { //overloaded constructor.
   this.pos = vec2(px, py);
   this.vel = vec2(vx, vy);
   this.radius = radius;
@@ -90,6 +92,30 @@ function PlayerModel(controlParams, ballRadius, startPoint, numAirCharges) {    
   this.airChargeCount = numAirCharges; //number of boosts / double jumps left.
 }
 
+
+function AccelState() {
+  this.groundAccel = vec2(0.0, 0.0);
+  this.airAccel = vec2(0.0, 0.0);
+  
+  this.getAirAccel = function() {return airAccel}
+  this.getGroundAccel = function() {return groundAccel}
+
+  this.updateStates = function(inputState) {
+
+  }
+}
+
+
+function AccelInputState() {
+  this.left = false;
+  this.right = false;
+  this.up = false;
+  this.down = false;
+  this.jump = false;
+  this.boost = false;
+  this.lock = false;
+}
+
 // Physics Engine constructor.
 function PhysEng(physParams, playerModel) {
   this.player = playerModel;                        // the players character model
@@ -127,30 +153,35 @@ PhysEng.prototype.update = function (timeDelta, eventList) { // ______timeDelta 
     event.handler(this);              // LET THE EVENTS HANDLER DO WHAT IT NEEDS TO TO UPDATE THE PHYSICS STATE.
   }                                   // PHYSICS ARE UP TO DATE. GO AHEAD AND RENDER.
 
-  Render();                       //________ CALL THE RENDER FUNCTION! __________
+  Render();                       //________ CALL THE RENDER FUNCTION HERE! ________//
 }
 
 
 PhysEng.prototype.airStep = function (state, timeDelta) { // Returns the players new position and velocity (in a TempState object) after an airStep of this length. Does not modify values.
+  var accelVec = getAccelVec();
+  var lastVel = state.vel;
+  var lastPos = state.pos;
+  var curVel = lastVel.plus(accelVec.multf(timeDelta));
+  var curPos = lastPos.plus(lastVel.plus(curVel).divf(2.0));
   
-  
-  
-  var collisionData = getCollisions(state);
-  if (!collisionData.collided) {
-    state = stepState;
+  var tempState = new TempState(curPos, curVel, player.radius, timeDelta);
+  var collisionData = getCollisions(tempState);
+  if (!collisionData.collided) {  //IF WE DIDNT COLLIDE, THIS SHOULD BE GOOD?
+    this.player.vel = curVel;
+    this.player.pos = curPos;
   } else {
-    HANDLE COLLISIONS
+    //HANDLE COLLISIONS RECURSIVELY OR SOMESHIT
   }
 }
 
 PhysEng.prototype.groundStep = function (state, timeDelta) { // A step while the player is in the ground. Returns the players new position and velocity (in a TempState object) after a groundStep of this length. Does not modify values.
-  
+  // ___+____+____+___ magnitude acceleration along a sloped surface = magnitude of force * sin(angle between force and surface normal)
   
   
   if (!getCollisions(stepState.pos)) {
     state = stepState;
   } else {
-    HANDLE COLLISIONS
+    //HANDLE COLLISIONS RECURSIVELY OR SOMESHIT
   }
 }
 
