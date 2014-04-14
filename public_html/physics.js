@@ -14,22 +14,22 @@ function PhysParams(gravity) {
 }
 
 // This object contains all the values that are relative to the PLAYER. IE, anything that would be specific to different selectable characters.
-function ControlParams(gLRaccel, aLRaccel, aUaccel, aDaccel, gBoostLRvel, aBoostLRvel, boostDownVel, jumpVel, doubleJumpVel, numAirCharges, dragBaseAmt, dragTerminalVelocity, dragExponent) {
-  this.gLRaccel = groundLRaccel;        //x acceleration exerted by holding Left or Right on the ground.
-  this.aLRaccel = airLRaccel;           //x acceleration exerted by holding Left or Right in the air.
-  this.aUaccel = airUaccel;             //y acceleration exerted by holding up in the air.
-  this.aDaccel = airDaccel;             //y acceleration exerted by holding down in the air.
-  this.gBoostLRvel = gBoostLRvel;       //x velocity that a boost on the ground sets.
-  this.aBoostLRvel = aBoostLRvel;       //x velocity that a boost in the air sets.
-  this.boostDownVel = boostDownVel;     //-y velocity that a downboost sets in the air.
-  this.jumpVel = jumpVel;               //y velocity that a ground jump sets.
-  this.doubleJumpVel = doubleJumpVel;   //y velocity that a double jump sets.
+function ControlParams(gLRaccel, aLRaccel, aUaccel, aDaccel, gBoostLRvel, aBoostLRvel, boostDownVel, jumpVel, doubleJumpVel, numAirCharges, dragBaseAmt, dragTerminalVel, dragExponent) {
+  this.gLRaccel = gLRaccel;                 //x acceleration exerted by holding Left or Right on the ground.
+  this.aLRaccel = aLRaccel;                 //x acceleration exerted by holding Left or Right in the air.
+  this.aUaccel = aUaccel;                   //y acceleration exerted by holding up in the air.
+  this.aDaccel = aDaccel;                   //y acceleration exerted by holding down in the air.
+  this.gBoostLRvel = gBoostLRvel;           //x velocity that a boost on the ground sets.
+  this.aBoostLRvel = aBoostLRvel;           //x velocity that a boost in the air sets.
+  this.boostDownVel = boostDownVel;         //-y velocity that a downboost sets in the air.
+  this.jumpVel = jumpVel;                   //y velocity that a ground jump sets.
+  this.doubleJumpVel = doubleJumpVel;       //y velocity that a double jump sets.
 
-  this.numAirCharges = numAirCharges;   //number of boost / double jumps left in the air.
+  this.numAirCharges = numAirCharges;       //number of boost / double jumps left in the air.
 
-  this.dragBase = dragBaseAmt;          //base drag exerted
-  this.dragTV = dragTerminalVelocity;   //the velocity at which drag and gravity will be equal with no other factors present.
-  this.dragExp = drawExponent;          //the exponent used to create the drag curve.
+  this.dragBase = dragBaseAmt;              //base drag exerted
+  this.dragTerminalVel = dragTerminalVel;   //the velocity at which drag and gravity will be equal with no other factors present.
+  this.dragExponent = dragExponent;         //the exponent used to create the drag curve.
 }
 
 
@@ -56,11 +56,15 @@ function PhysEng(physParams, playerModel) {
   this.ctrl = controlParams;    // control parameters.
   this.phys = physParams;       // physics parameters
 
+  if (PHYS_DEBUG) {
+    this.printStartState();
+  }
 }
 
 PhysEng.prototype.step = function (timeDelta) { // CHECKS FOR COLLISIONS, HANDLES THEIR TIME STEPS, AND THEN CALLS airStep AND / OR groundStep WHERE APPLICABLE.
   if (PHYS_DEBUG) {
-
+    console.log("\nEntered step(timeDelta), timeDelta = %.3f\n", timeDelta);
+    this.printState(true, false, false);
   }
 }
 
@@ -70,4 +74,76 @@ PhysEng.prototype.airStep = function (timeDelta) { // Returns the players new po
 
 PhysEng.prototype.groundStep = function (timeDelta) { // A step while the player is in the ground. Returns the players new position and velocity after a groundStep of this length. Does not modify values.
 
+}
+
+PhysEng.prototype.printState = function (printExtraPlayerDebug, printExtraControlsDebug, printExtraPhysDebug) {
+  console.log("Player: ");
+  console.log("  pos: %.2f, %.2f", player.pos.x, player.pos.y);
+  console.log("  vel: %.2f, %.2f", player.vel.x, player.vel.y);
+  if (printExtraPlayerDebug) {
+    console.log("  airBorne:       %s", player.airBorne);
+    console.log("  groundLocked:   %s", player.groundLocked);
+    console.log("  airChargeCount: %d", player.airChargeCount);
+  }
+  console.log("");
+
+  if (printExtraControlsDebug) {
+    console.log("Controls: ");
+    console.log("  gLRaccel: %.2f", ctrl.gLRaccel);
+    console.log("  aLRaccel: %.2f", ctrl.aLRaccel);
+    console.log("  aUaccel: %.2f", ctrl.aUaccel);
+    console.log("  aDaccel: %.2f", ctrl.aDaccel);
+    console.log("  gBoostLRvel: %.2f", ctrl.gBoostLRvel);
+    console.log("  aBoostLRvel: %.2f", ctrl.aBoostLRvel);
+    console.log("  boostDownVel: %.2f", ctrl.boostDownVel);
+    console.log("  jumpVel: %.2f", ctrl.jumpVel);
+    console.log("  doubleJumpVel: %.2f", ctrl.doubleJumpVel);
+    console.log("  numAirCharges: %.2f", ctrl.numAirCharges);
+    console.log("  dragBase: %.2f", ctrl.dragBase);
+    console.log("  dragTerminalVel: %.2f", ctrl.dragTerminalVel);
+    console.log("  dragExponent: %.2f", ctrl.dragExponent);
+    console.log("");
+  }
+
+
+  if (printExtraPhysDebug) {
+
+    console.log("PhysParams: ");
+    console.log("  gravity: %.2f", phys.gravity);
+    console.log("");
+  }
+  console.log("");
+
+}
+
+PhysEng.prototype.printStartState = function () {
+  console.log("Created PhysEng");
+  console.log("Controls: ");
+  console.log("  gLRaccel: %.2f", ctrl.gLRaccel);
+  console.log("  aLRaccel: %.2f", ctrl.aLRaccel);
+  console.log("  aUaccel: %.2f", ctrl.aUaccel);
+  console.log("  aDaccel: %.2f", ctrl.aDaccel);
+  console.log("  gBoostLRvel: %.2f", ctrl.gBoostLRvel);
+  console.log("  aBoostLRvel: %.2f", ctrl.aBoostLRvel);
+  console.log("  boostDownVel: %.2f", ctrl.boostDownVel);
+  console.log("  jumpVel: %.2f", ctrl.jumpVel);
+  console.log("  doubleJumpVel: %.2f", ctrl.doubleJumpVel);
+  console.log("  numAirCharges: %.2f", ctrl.numAirCharges);
+  console.log("  dragBase: %.2f", ctrl.dragBase);
+  console.log("  dragTerminalVel: %.2f", ctrl.dragTerminalVel);
+  console.log("  dragExponent: %.2f", ctrl.dragExponent);
+  console.log("");
+
+  console.log("PhysParams: ");
+  console.log("  gravity: %.2f", phys.gravity);
+  console.log("");
+
+  console.log("Player: ");
+  console.log("  radius: %.2f", player.radius);
+  console.log("  starting pos: %.2f, %.2f", player.pos.x, player, pos.y);
+  console.log("  starting vel: %.2f, %.2f", player.vel.x, player, vel.y);
+  console.log("  airBorne: %s", player.airBorne);
+  console.log("  groundLocked: %s", player.groundLocked);
+  console.log("");
+  console.log("");
 }
