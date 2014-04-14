@@ -5,12 +5,35 @@
  */
 PHYS_DEBUG = true;
 
+// this should work in just about any browser, and allows us to use performance.now() successfully no matter the browser.
+window.performance = window.performance || {};
+performance.now = (function () {
+  return performance.now ||
+         performance.mozNow ||
+         performance.msNow ||
+         performance.oNow ||
+         performance.webkitNow ||
+         function () { return new Date().getTime(); };
+})();
+
+
+
 
 // PhysParams object contains all the physics values. These will not change between characters. 
 // This exists because it will be used later on to implement other terrain types, whose static
 // effect values will be passed in here.
 function PhysParams(gravity) {
   this.gravity = gravity;
+}
+
+// this thing is just useful for storing potential states in an object.
+function TempState(pos, vel) {
+  this.pos = pos;
+  this.vel = vel;
+}
+function TempState(px, py, vx, vy) {
+  this.pos = vec2(px, py);
+  this.vel = vec2(vx, vy);
 }
 
 // This object contains all the values that are relative to the PLAYER. IE, anything that would be specific to different selectable characters.
@@ -50,22 +73,26 @@ function PlayerModel(controlParams, ballRadius, startPoint, numAirCharges) {    
   this.airChargeCount = numAirCharges; //number of boosts / double jumps left.
 }
 
-
+// Physics Engine constructor.
 function PhysEng(physParams, playerModel) {
-  this.player = playerModel;    // the players character model
-  this.ctrl = controlParams;    // control parameters.
-  this.phys = physParams;       // physics parameters
+  this.player = playerModel;                        // the players character model
+  this.ctrl = playerModel.controlcontrolParameters; // control parameters.
+  this.phys = physParams;                           // physics parameters
 
   if (PHYS_DEBUG) {
     this.printStartState();
   }
 }
 
-PhysEng.prototype.step = function (timeDelta) { // CHECKS FOR COLLISIONS, HANDLES THEIR TIME STEPS, AND THEN CALLS airStep AND / OR groundStep WHERE APPLICABLE.
+
+// CHECKS FOR COLLISIONS, HANDLES THEIR TIME STEPS, AND THEN CALLS airStep AND / OR groundStep WHERE APPLICABLE
+PhysEng.prototype.step = function (timeDelta) { // ______timeDelta IS ALWAYS A FLOAT REPRESENTING THE FRACTION OF A SECOND ELAPSED, WHERE 1.0 IS ONE FULL SECOND. _____________                           
   if (PHYS_DEBUG) {
     console.log("\nEntered step(timeDelta), timeDelta = %.3f\n", timeDelta);
     this.printState(true, false, false);
   }
+
+
 }
 
 PhysEng.prototype.airStep = function (timeDelta) { // Returns the players new position and velocity after an airStep of this length. Does not modify values.
