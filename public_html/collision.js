@@ -26,7 +26,7 @@ function CollisionData(collided, collidedWith) {
 
 
 //What I will be calling from physicsEngine. If there were no collisions, return an empty array as the collidedWith field.
-function getCollisions(state) {
+function getCollisionData(state) {
   //state is a TempState object as seen in physics.js. The only parts you will probably care about in collision are:
   //state.pos           a vec2(x position, y position); the center of the circle you're checking collisions against. state.pos.x, state.pos.y
   //state.radius        the radius of the circle you're checking collisions against. 

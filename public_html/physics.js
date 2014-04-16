@@ -4,7 +4,7 @@
  * Author Travis Drake
  */
 var PHYS_DEBUG = true;
-
+var COLLISION_PRECISION_ITERATIONS = 5;
 
 //INPUT TYPES!
 var inLeft = 0;
@@ -16,7 +16,7 @@ var inBoost = 5;
 var inLock = 6;
 
 
-var CONST_DRAG = 0.5;
+//var CONST_DRAG = 0.5;
 
 
 // this should work in just about any browser, and allows us to use performance.now() successfully no matter the browser.
@@ -75,19 +75,19 @@ function ControlParams(gLRaccel, aLRaccel, aUaccel, aDaccel, gBoostLRvel, aBoost
 }
 
 
-function PlayerModel(controlParams, ballRadius, startPoint, numAirCharges) {     // THIS IS THE PLAYER PHYSICS MODEL, EXTENDABLE FOR DIFFERENT CHARACTER TYPES.
+function PlayerModel(controlParams, ballRadius, startPoint, numAirCharges, terrainSurface) {     // THIS IS THE PLAYER PHYSICS MODEL, EXTENDABLE FOR DIFFERENT CHARACTER TYPES.
   // Player properties.
   this.radius = ballRadius;          //float radius
   this.controlParameters = controlParams;
 
   // Movement values.
-  this.pos = startPoint;        //vec2 for position!
-  this.vel = new vec2(0.0, 0.0);//vec2 for velocity!
+  this.pos = startPoint;             //vec2 for position!
+  this.vel = new vec2(0.0, 0.0);     //vec2 for velocity!
 
-
-  // STATE FLAGS! READ THEIR COMMENTS BEFORE USING!
-  this.airBorne = true;           // BE CAREFUL WITH THESE. IF THE PLAYER IS ON THE GROUND, airBorne should ALWAYS be false. 
-  this.groundLocked = false;      // If the player is on the ground but is not holding the lock button, then this should ALSO be false.
+  this.surfaceOn = terrainSurface;
+  // STATE FLAGS! READ THE COMMENTS BELOW BEFORE USING!
+  this.airBorne = true;              // BE CAREFUL WITH THESE. IF THE PLAYER IS ON THE GROUND, airBorne should ALWAYS be false. 
+  this.groundLocked = false;         // If the player is on the ground but is not holding the lock button, then this should ALSO be false.
 
   this.airChargeCount = numAirCharges; //number of boosts / double jumps left.
 }
@@ -124,8 +124,8 @@ function PhysEng(physParams, playerModel) {
   this.player = playerModel;                        // the players character model
   this.ctrl = playerModel.controlcontrolParameters; // control parameters.
   this.phys = physParams;                           // physics parameters
-  this.activeEvents = [];                           // map of active events. 
-
+  //this.activeEvents = [];                           // array of active events. ????
+  this.accelState = new AccelState(this);
   if (PHYS_DEBUG) {
     this.printStartState();
   }
@@ -148,43 +148,52 @@ PhysEng.prototype.update = function (timeDelta, eventList) { // ______timeDelta 
     while (!eventDone) {                   //The physics step loop. Checks for collisions / lockbreaks and discovers the time they occur at. Continues stepping physics until it is caught up to "timeDelta".
       if (player.airBorne) {               //In the air, call airStep
         state = this.airStep(state, eventTime);
-      } else {                            //On ground, call groundStep 
+      } else {                             //On ground, call groundStep 
         state = this.groundStep(state, eventTime);
       }
-    }                                 //COMPLETED TIMESTEP UP TO WHEN EVENT HAPPENS.
+    }                                 //COMPLETED TIMESTEP UP TO WHEN EVENT HAPPENED.
 
     event.handler(this);              // LET THE EVENTS HANDLER DO WHAT IT NEEDS TO TO UPDATE THE PHYSICS STATE.
   }                                   // PHYSICS ARE UP TO DATE. GO AHEAD AND RENDER.
 
-  Render();                       //________ CALL THE RENDER FUNCTION HERE! ________//
+  Render();                       //________ CALL THE RENDER FUNCTION HERE! ________// TODO
 }
 
 
 PhysEng.prototype.airStep = function (state, timeDelta) { // Returns the players new position and velocity (in a TempState object) after an airStep of this length. Does not modify values.
-  var accelVec = getAccelVec();
+  var accelVec = this.accelState.getAirAccel();
   var lastVel = state.vel;
   var lastPos = state.pos;
   var curVel = lastVel.plus(accelVec.multf(timeDelta));
   var curPos = lastPos.plus(lastVel.plus(curVel).divf(2.0));
   
   var tempState = new TempState(curPos, curVel, player.radius, timeDelta);
-  var collisionData = getCollisions(tempState);
+  var collisionData = getCollisionData(tempState);
   if (!collisionData.collided) {  //IF WE DIDNT COLLIDE, THIS SHOULD BE GOOD?
     this.player.vel = curVel;
     this.player.pos = curPos;
-  } else {
-    //HANDLE COLLISIONS RECURSIVELY OR SOMESHIT
+  } else { //HANDLE RECURSIVELY, TODO
+    var minCollisionTime = 0.0;
+    var maxCollisionTime = timeDelta;
+
+    for (var i = 0; i < COLLISION_PRECISION_ITERATIONS; i++) {
+      curVel = lastVel.plus(accelVec.multf(minCollisionTime + (maxCollisionTime - minCollisionTime) / 2.0)); //JUST DONE
+      curPos = lastPos.plus(lastVel.plus(curVel).divf(2.0)); 
+    }
+    
   }
 }
 
 PhysEng.prototype.groundStep = function (state, timeDelta) { // A step while the player is in the ground. Returns the players new position and velocity (in a TempState object) after a groundStep of this length. Does not modify values.
   // ___+____+____+___ magnitude acceleration along a sloped surface = magnitude of force * sin(angle between force and surface normal)
+  var collisionData = getCollisionData(stepState);
   
-  
-  if (!getCollisions(stepState.pos)) {
-    state = stepState;
-  } else {
-    //HANDLE COLLISIONS RECURSIVELY OR SOMESHIT
+  if (!collisionData.collided) {
+                                 // WE ARE NOW IN THE AIR. RECURSIVELY FIND WHERE WE LEFT THE SURFACE, HANDLE THAT, THEN STEP ACCORDINGLY DEPENDING ON WHAT WE'RE ON AFTERWARDS.
+  } else if (collisionData.collidedWith.length === 1 && collisionData.collidedWith[0] === this.player.surfaceOn) {
+                                 // WE ARE STILL ON THE SURFACE WE WERE ON LAST FRAME, NO OTHER COLLISIONS, HANDLE NORMALLY, TODO
+  } else {     
+                                 // WE COLLIDED With SOMEthING NEW, HANDLE COLLISIONS RECURSIVELY OR SOMESHIT, TODO
   }
 }
 
@@ -272,7 +281,7 @@ PhysEng.prototype.printStartState = function () {
 // Currently input and render events exist. Physics events will probably follow shortly (for example, when the player passes from one terrain line to another, etc).
 function Event(eventTime) {    //eventTime is the amount of time since last rendered frame that the event occurred at. THIS IS A PARENT CLASS. THERE ARE SUBCLASSES FOR THIS, THIS CLASS IS NEVER ACTUALLY INSTANTIATED.
   this.time = eventTime;
-  this.handler = function (physEng) { };
+  this.handler = function (physEng) { };     // NEEDS TO BE OVERRIDDEN IN CHILDREN CLASSES
 }
 
 
@@ -281,7 +290,7 @@ function Event(eventTime) {    //eventTime is the amount of time since last rend
 function InputEvent(eventTime, inputType, pressed) {   //
   Event.apply(this, [eventTime])
   this.inputType = inputType;
-  this.pressed = pressed;
+  this.pressed = pressed;       // PRESSED DOWN OR RELEASED
 }
 
 InputEvent.prototype = new Event();
