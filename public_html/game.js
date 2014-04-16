@@ -86,6 +86,21 @@ GameEngine.prototype.start = function() {
     })();
 }
 
+var jumpPressed = false;
+var jumpTime = 0;
+var boostPressed = false;
+var boostTime = 0;
+var leftPressed = false;
+var leftTime = 0;
+var rightPressed = false;
+var rightTime = 0;
+var upPressed = false;
+var upTime = 0;
+var downPressed = false;
+var downTime = 0;
+var lockPressed = false;
+var lockTime = 0;
+
 GameEngine.prototype.startInput = function() {
     console.log('Starting input');
 
@@ -115,6 +130,70 @@ GameEngine.prototype.startInput = function() {
         that.wheel = e;
     }, false);
 
+    this.ctx.canvas.addEventListener("keydown", function (e) {
+        if (e.keyCode == 37){
+            leftPressed = true; //Left
+            leftTime = Date.now();
+        }
+        if (e.keyCode == 38){
+            upPressed = true; //Up
+            upTime = Date.now();
+        }
+        if (e.keyCode == 39){
+            rightPressed = true; //Right
+            rightTime = Date.now();
+        }
+        if (e.keyCode == 40){
+            downPressed = true; //Down
+            downTime = Date.now();
+        }
+        if (e.keyCode == 65){
+            jumpPressed = true; //Jump
+            jumpTime = Date.now();
+        }
+        if (e.keyCode == 83){
+            boostPressed = true; //Boost
+            boostTime = Date.now();
+        }
+        if (e.keyCode == 68){
+            lockPressed =  true; //Lock
+            lockTime = Date.now();
+        }
+        e.preventDefault();
+    }, false);
+    
+    this.ctx.canvas.addEventListener("keyup", function (e) {
+        if (e.keyCode == 37){
+            leftPressed = false; //Left
+            leftTime = Date.now();
+        }
+        if (e.keyCode == 38){
+            upPressed = false; //Up
+            upTime = Date.now();
+        }
+        if (e.keyCode == 39){
+            rightPressed = false; //Right
+            rightTime = Date.now();
+        }
+        if (e.keyCode == 40){
+            downPressed = false; //Down
+            downTime = Date.now();
+        }
+        if (e.keyCode == 65){
+            jumpPressed = false; //Jump
+            jumpTime = Date.now();
+        }
+        if (e.keyCode == 83){
+            boostPressed = false; //Boost
+            boostTime = Date.now();
+        }
+        if (e.keyCode == 68){
+            lockPressed =  false; //Lock
+            lockTime = Date.now();
+        }
+        e.preventDefault();
+    }, false);
+    
     console.log('Input started');
 }
 
