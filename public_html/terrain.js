@@ -32,3 +32,28 @@ TerrainLine.prototype.constructor = TerrainLine;   //Establishes this as having 
 TerrainLine.prototype.getNormalAt = function (ballLocation) {
   return this.normal;
 }
+TerrainLine.prototype.collidesWith = function (point, radius) { // OVERRIDES THE COLLIDEABLE METHOD!!
+  var pA = this.p0;
+  var pB = this.p1;
+  var pC = point;
+
+  var vAB = pB.subtract(pA);
+  var vAC = pC.subtract(pA);
+  var vBC = pC.subtract(pB);
+
+  var vAD = projectVec2(vAC, vAB);
+  var pD = this.p0.add(vAD);
+  var vCD = pC.subtract(pD);
+
+  var collision = false;
+  if (vAD.length() < vAB.length() && vAB.subtract(vAD).length() < vAB.length() && vCD.length() <= radius) { 
+    // THEN THE CENTER OF OUR CIRCLE IS WITHIN THE PERPENDICULAR BOUNDS OF THE LINE SEGMENT, AND CIRCLE IS LESS THAN RADIUS AWAY FROM THE LINE.
+    collision = true;
+  } else if (vAC.length() < radius || vBC.length() < radius) {
+    // WE ARE OFF THE SIDES OF THE PERPENDICULAR BOUNDING BOX, BUT WE STILL COLLIDED WITH THE LINES ENDPOINT.
+    collision = true;
+  } else {
+    // No collision, unless we're missing a case in which add additional detection here.
+  }
+  return collision;
+}

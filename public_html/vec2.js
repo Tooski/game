@@ -48,6 +48,14 @@ vec2.prototype.perp = function() { // returns the perpendicular vector to this v
   return vec2(this.y, -this.x);
 }
 
+//projects vec2 a onto vec2 b.
+function projectVec2(a, b) {
+  //formula: b(dot(a,b)/(|b|^2))
+  var temp = ((a.x*b.x)+(a.y*b.y)) / ((b.x*b.x)+(b.y*b.y)); // temp = dot product / b.length^2
+  return vec2(b.x*temp,b.y*temp);
+}
+
+
 vec2.prototype.toString = function () {
   return "X: " + this.x + ", Y: " + this.y;
 }
