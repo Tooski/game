@@ -51,7 +51,7 @@ function TempState(pos, vel, radius, timeDelta) {
 function TempState(px, py, vx, vy, radius, timeDelta) { //overloaded constructor.
   this.pos = vec2(px, py);
   this.vel = vec2(vx, vy);
-  this.radius = radius;
+  this.radius = radius;                                            
   this.timeDelta = timeDelta;
 }
 
@@ -93,20 +93,22 @@ function PlayerModel(controlParams, ballRadius, startPoint, numAirCharges) {    
 }
 
 
-function AccelState() {
+// The acceleration vector state. Stores the component vectors and resulting vector in order to efficiently return the current acceleration in the air or on the ground without uneccessary calculations.
+function AccelState(physEng) { 
   this.groundAccel = vec2(0.0, 0.0);
   this.airAccel = vec2(0.0, 0.0);
+  this.physEng = physEng;
   
   this.getAirAccel = function() {return airAccel}
   this.getGroundAccel = function() {return groundAccel}
 
-  this.updateStates = function(inputState) {
-
+  this.updateStates = function (inputState) {  // TODO
+    
   }
 }
 
-
-function AccelInputState() {
+// The input state object. May replace later on with however we handle input, but this is how I'm visualizing it for now.
+function InputState() {
   this.left = false;
   this.right = false;
   this.up = false;
@@ -114,6 +116,7 @@ function AccelInputState() {
   this.jump = false;
   this.boost = false;
   this.lock = false;
+  this.lockedTo = null; // The terrain object that the player is locked to. Must extend TerrainObject.
 }
 
 // Physics Engine constructor.
@@ -280,8 +283,9 @@ function InputEvent(eventTime, inputType, pressed) {   //
   this.inputType = inputType;
   this.pressed = pressed;
 }
+
 InputEvent.prototype = new Event();
-InputEvent.prototype.handler = function(physEng) {          //THIS CODE HANDLES INPUT CHANGES.
+InputEvent.prototype.handler = function(physEng) {          //THIS CODE HANDLES INPUT CHANGES.  TODO
   switch (this.inputType) {
     case inLeft:
       if(this.pressed) {  // Input was just pressed down.
@@ -344,6 +348,7 @@ InputEvent.prototype.handler = function(physEng) {          //THIS CODE HANDLES 
 function RenderEvent(eventTime) { // eventTime should be deltaTime since last frame, the time the physics engine should complete up to before rendering.
   Event.apply(this, [eventTime])
 }
+
 RenderEvent.prototype = new Event();
 RenderEvent.prototype.handler = function(physEng) {
   return;
