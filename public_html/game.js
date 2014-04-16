@@ -133,31 +133,31 @@ GameEngine.prototype.startInput = function() {
     this.ctx.canvas.addEventListener("keydown", function (e) {
         if (e.keyCode == 37){
             leftPressed = true; //Left
-            leftTime = Date.now();
+            leftTime = Performance.now();
         }
         if (e.keyCode == 38){
             upPressed = true; //Up
-            upTime = Date.now();
+            upTime = Performance.now();
         }
         if (e.keyCode == 39){
             rightPressed = true; //Right
-            rightTime = Date.now();
+            rightTime = Performance.now();
         }
         if (e.keyCode == 40){
             downPressed = true; //Down
-            downTime = Date.now();
+            downTime = Performance.now();
         }
         if (e.keyCode == 65){
             jumpPressed = true; //Jump
-            jumpTime = Date.now();
+            jumpTime = Performance.now();
         }
         if (e.keyCode == 83){
             boostPressed = true; //Boost
-            boostTime = Date.now();
+            boostTime = Performance.now();
         }
         if (e.keyCode == 68){
             lockPressed =  true; //Lock
-            lockTime = Date.now();
+            lockTime = Performance.now();
         }
         e.preventDefault();
     }, false);
@@ -165,31 +165,31 @@ GameEngine.prototype.startInput = function() {
     this.ctx.canvas.addEventListener("keyup", function (e) {
         if (e.keyCode == 37){
             leftPressed = false; //Left
-            leftTime = Date.now();
+            leftTime = Performance.now();
         }
         if (e.keyCode == 38){
             upPressed = false; //Up
-            upTime = Date.now();
+            upTime = Performance.now();
         }
         if (e.keyCode == 39){
             rightPressed = false; //Right
-            rightTime = Date.now();
+            rightTime = Performance.now();
         }
         if (e.keyCode == 40){
             downPressed = false; //Down
-            downTime = Date.now();
+            downTime = Performance.now();
         }
         if (e.keyCode == 65){
             jumpPressed = false; //Jump
-            jumpTime = Date.now();
+            jumpTime = Performance.now();
         }
         if (e.keyCode == 83){
             boostPressed = false; //Boost
-            boostTime = Date.now();
+            boostTime = Performance.now();
         }
         if (e.keyCode == 68){
             lockPressed =  false; //Lock
-            lockTime = Date.now();
+            lockTime = Performance.now();
         }
         e.preventDefault();
     }, false);
