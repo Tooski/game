@@ -33,17 +33,17 @@ TerrainLine.prototype.getNormalAt = function (ballLocation) {
   return this.normal;
 }
 TerrainLine.prototype.collidesWith = function (point, radius) { // OVERRIDES THE COLLIDEABLE METHOD!!
-  var pA = this.p0;
-  var pB = this.p1;
-  var pC = point;
+  var pA = this.p0;              // TerrainLine point 1
+  var pB = this.p1;              // TerrainLine point 2
+  var pC = point;                // center of the ball
 
-  var vAB = pB.subtract(pA);
-  var vAC = pC.subtract(pA);
-  var vBC = pC.subtract(pB);
+  var vAB = pB.subtract(pA);     // vector from A to B
+  var vAC = pC.subtract(pA);     // vector from A to the ball
+  var vBC = pC.subtract(pB);     // vector from B to the ball
 
-  var vAD = projectVec2(vAC, vAB);
-  var pD = this.p0.add(vAD);
-  var vCD = pC.subtract(pD);
+  var vAD = projectVec2(vAC, vAB); //project the vector to the ball onto the surface.
+  var pD = pA.add(vAD);            // find the perpendicular intersect of the surface.
+  var vCD = pC.subtract(pD);       // find the vector from ball to the perpendicular intersection.
 
   var collision = false;
   if (vAD.length() < vAB.length() && vAB.subtract(vAD).length() < vAB.length() && vCD.length() <= radius) { 
