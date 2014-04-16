@@ -46,7 +46,8 @@ TerrainLine.prototype.collidesWith = function (point, radius) { // OVERRIDES THE
   var vCD = pC.subtract(pD);       // find the vector from ball to the perpendicular intersection.
 
   var collision = false;
-  if (vAD.length() < vAB.length() && vAB.subtract(vAD).length() < vAB.length() && vCD.length() <= radius) { 
+  var vABlen = vAB.length();
+  if (vAD.length() < vABlen && vAB.subtract(vAD).length() < vABlen && vCD.length() <= radius) {
     // THEN THE CENTER OF OUR CIRCLE IS WITHIN THE PERPENDICULAR BOUNDS OF THE LINE SEGMENT, AND CIRCLE IS LESS THAN RADIUS AWAY FROM THE LINE.
     collision = true;
   } else if (vAC.length() <= radius || vBC.length() <= radius) {
