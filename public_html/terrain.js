@@ -49,7 +49,7 @@ TerrainLine.prototype.collidesWith = function (point, radius) { // OVERRIDES THE
   if (vAD.length() < vAB.length() && vAB.subtract(vAD).length() < vAB.length() && vCD.length() <= radius) { 
     // THEN THE CENTER OF OUR CIRCLE IS WITHIN THE PERPENDICULAR BOUNDS OF THE LINE SEGMENT, AND CIRCLE IS LESS THAN RADIUS AWAY FROM THE LINE.
     collision = true;
-  } else if (vAC.length() < radius || vBC.length() < radius) {
+  } else if (vAC.length() <= radius || vBC.length() <= radius) {
     // WE ARE OFF THE SIDES OF THE PERPENDICULAR BOUNDING BOX, BUT WE STILL COLLIDED WITH THE LINES ENDPOINT.
     collision = true;
   } else {
