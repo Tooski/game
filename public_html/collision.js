@@ -6,14 +6,14 @@
 
 
 
-// Collideable parent class for all things collideable with by a collider.
+  // Collideable parent class for all things collideable with by a collider.
 function Collideable() {
-  this.collidesWith = function (collider) { };
+
 }
+Collideable.prototype.collidesWith = function (point, radius) { }; // for now just checks a point and its radius aka the hamster ball's center + radius to see if it collides. 
 
 
-
-// Collision data object to return to physics.
+  // Collision data object to return to physics.
 function CollisionData(collided, collidedWith) {
   // Did we collide with something? True or false.
   this.collided = collided;
@@ -26,18 +26,46 @@ function CollisionData(collided, collidedWith) {
 
 
 //What I will be calling from physicsEngine. If there were no collisions, return an empty array as the collidedWith field.
-function getCollisionData(state) {
+function getCollisionData(ballState) {
   //state is a TempState object as seen in physics.js. The only parts you will probably care about in collision are:
   //state.pos           a vec2(x position, y position); the center of the circle you're checking collisions against. state.pos.x, state.pos.y
   //state.radius        the radius of the circle you're checking collisions against. 
 
-  //code to check for collisions here
 
 
-  var didWeCollide = true;    
-  var stuffWeCollidedWith = [collidable1, collideable2, collideable3, etc];    // IF THE PLAYER IS CURRENTLY ROLLING ON A SURFACE, THAT SURFACE SHOULD STILL BE RETURNED IN THIS LIST UNLESS THE PLAYER HAS LEFT THE SURFACE!
+  //code to check for collisions here. TODO optimize
+  var stuffWeCollidedWith = []; 
+  for (var i = 0; i < LEVEL_COLLIDABLE_LIST.length; i++) {
+    if (LEVEL_COLLIDABLE_LIST[i].collidesWith(ballState.pos, ballState.radius)) {
+      stuffWeCollidedWith.push(LEVEL_COLLIDABLE_LIST[i]);
+    }
+  }
+  var didWeCollide = false;
+  if (stuffWeCollidedWith.length > 0) {
+    didWeCollide = true;
+  }
 
   //create the CollisionData object to return to the physics function.
-  var data = new CollisionData(didWeCollide, collidedWith);
+  var data = new CollisionData(didWeCollide, stuffWeCollidedWith);
+  return data;
+}
+
+
+//What I will be calling in the recursive physics bounds checking function to check the initial collision list.
+function getCollisionDataInList(ballState, collidersToCheck) {
+  //code to check for collisions ONLY WITH THE THINGS IN THE PASSED LIST! Should be about the same as the above method but only searches this specific list, and returns the subset of it that is still being collided with.
+  var stuffWeCollidedWith = [];
+  for (var i = 0; i < collidersToCheck.length; i++) {
+    if (collidersToCheck[i].collidesWith(ballState.pos, ballState.radius)) {
+      stuffWeCollidedWith.push(collidersToCheck[i]);
+    }
+  }
+  var didWeCollide = false;
+  if (stuffWeCollidedWith.length > 0) {
+    didWeCollide = true;
+  }
+
+  //create the CollisionData object to return to the physics function.
+  var data = new CollisionData(didWeCollide, stuffWeCollidedWith);
   return data;
 }

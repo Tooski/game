@@ -5,6 +5,7 @@
  */
 var PHYS_DEBUG = true;
 var COLLISION_PRECISION_ITERATIONS = 5;
+var AUTO_LOCK_ANGLE = 10.0                / 180 * Math.PI;  //ANGLE OF COLLISION BELOW WHICH NOT TO BOUNCE.
 
 //INPUT TYPES!
 var inLeft = 0;
@@ -33,14 +34,6 @@ performance.now = (function () {
 
 
 
-
-// PhysParams object contains all the physics values. These will not change between characters. 
-// This exists because it will be used later on to implement other terrain types, whose static
-// effect values will be passed in here.
-function PhysParams(gravity) {
-  this.gravity = gravity;
-}
-
 // this thing is just useful for storing potential states in an object.
 function TempState(pos, vel, radius, timeDelta) {
   this.pos = pos;
@@ -51,9 +44,20 @@ function TempState(pos, vel, radius, timeDelta) {
 function TempState(px, py, vx, vy, radius, timeDelta) { //overloaded constructor.
   this.pos = vec2(px, py);
   this.vel = vec2(vx, vy);
-  this.radius = radius;                                            
+  this.radius = radius;
   this.timeDelta = timeDelta;
 }
+
+
+
+// PhysParams object contains all the physics values. These will not change between characters. 
+// This exists because it will be used later on to implement other terrain types, whose static
+// effect values will be passed in here.
+function PhysParams(gravity) {
+  this.gravity = gravity;
+}
+
+
 
 // This object contains all the values that are relative to the PLAYER. IE, anything that would be specific to different selectable characters.
 function ControlParams(gLRaccel, aLRaccel, aUaccel, aDaccel, gBoostLRvel, aBoostLRvel, boostDownVel, jumpVel, doubleJumpVel, numAirCharges, dragBaseAmt, dragTerminalVel, dragExponent) {
@@ -75,6 +79,7 @@ function ControlParams(gLRaccel, aLRaccel, aUaccel, aDaccel, gBoostLRvel, aBoost
 }
 
 
+
 function PlayerModel(controlParams, ballRadius, startPoint, numAirCharges, terrainSurface) {     // THIS IS THE PLAYER PHYSICS MODEL, EXTENDABLE FOR DIFFERENT CHARACTER TYPES.
   // Player properties.
   this.radius = ballRadius;          //float radius
@@ -93,6 +98,7 @@ function PlayerModel(controlParams, ballRadius, startPoint, numAirCharges, terra
 }
 
 
+
 // The acceleration vector state. Stores the component vectors and resulting vector in order to efficiently return the current acceleration in the air or on the ground without uneccessary calculations.
 function AccelState(physEng) { 
   this.groundAccel = vec2(0.0, 0.0);
@@ -107,6 +113,8 @@ function AccelState(physEng) {
   }
 }
 
+
+
 // The input state object. May replace later on with however we handle input, but this is how I'm visualizing it for now.
 function InputState() {
   this.left = false;
@@ -119,12 +127,15 @@ function InputState() {
   this.lockedTo = null; // The terrain object that the player is locked to. Must extend TerrainObject.
 }
 
+
+
 // Physics Engine constructor.
 function PhysEng(physParams, playerModel) {
   this.player = playerModel;                        // the players character model
   this.ctrl = playerModel.controlcontrolParameters; // control parameters.
   this.phys = physParams;                           // physics parameters
-  //this.activeEvents = [];                           // array of active events. ????
+  this.inputState = new InputState();
+  //this.activeEvents = [];                           // array of active events. ???? DONT NEED THIS ???? TODO
   this.accelState = new AccelState(this);
   if (PHYS_DEBUG) {
     this.printStartState();
@@ -136,7 +147,7 @@ function PhysEng(physParams, playerModel) {
 // eventList is a list of event objects that occurred since last update, sorted by the order in which they occurred.
 PhysEng.prototype.update = function (timeDelta, eventList) { // ______timeDelta IS ALWAYS A FLOAT REPRESENTING THE FRACTION OF A SECOND ELAPSED, WHERE 1.0 IS ONE FULL SECOND. _____________                           
   if (PHYS_DEBUG) {
-    console.log("\nEntered step(timeDelta), timeDelta = %.3f\n", timeDelta);
+    console.log("\nEntered update(timeDelta), timeDelta = %.3f\n", timeDelta);
     this.printState(true, false, false);
   }
 
@@ -153,36 +164,73 @@ PhysEng.prototype.update = function (timeDelta, eventList) { // ______timeDelta 
       }
     }                                 //COMPLETED TIMESTEP UP TO WHEN EVENT HAPPENED.
 
-    event.handler(this);              // LET THE EVENTS HANDLER DO WHAT IT NEEDS TO TO UPDATE THE PHYSICS STATE.
+    event.handler(this);              // LET THE EVENTS HANDLER DO WHAT IT NEEDS TO TO UPDATE THE PHYSICS STATE, AND CONTINUE ON IN TIME TO THE NEXT EVENT.
   }                                   // PHYSICS ARE UP TO DATE. GO AHEAD AND RENDER.
 
   Render();                       //________ CALL THE RENDER FUNCTION HERE! ________// TODO
 }
 
 
-PhysEng.prototype.airStep = function (state, timeDelta) { // Returns the players new position and velocity (in a TempState object) after an airStep of this length. Does not modify values.
+// Returns the players new position and velocity (in a TempState object) after an airStep of this length. Does not modify values.
+PhysEng.prototype.airStep = function (state, timeDelta) { 
   var accelVec = this.accelState.getAirAccel();
   var lastVel = state.vel;
   var lastPos = state.pos;
   var curVel = lastVel.plus(accelVec.multf(timeDelta));
-  var curPos = lastPos.plus(lastVel.plus(curVel).divf(2.0));
+  var curPos = lastPos.plus(lastVel.plus(curVel).divf(2.0)); 
   
   var tempState = new TempState(curPos, curVel, player.radius, timeDelta);
   var collisionData = getCollisionData(tempState);
   if (!collisionData.collided) {  //IF WE DIDNT COLLIDE, THIS SHOULD BE GOOD?
     this.player.vel = curVel;
     this.player.pos = curPos;
-  } else { //HANDLE RECURSIVELY, TODO
+  } else {                        //HANDLE RECURSIVELY, TODO DONE?
     var minCollisionTime = 0.0;
     var maxCollisionTime = timeDelta;
-
-    for (var i = 0; i < COLLISION_PRECISION_ITERATIONS; i++) {
-      curVel = lastVel.plus(accelVec.multf(minCollisionTime + (maxCollisionTime - minCollisionTime) / 2.0)); //JUST DONE
-      curPos = lastPos.plus(lastVel.plus(curVel).divf(2.0)); 
-    }
     
+    var newDelta = minCollisionTime + (maxCollisionTime - minCollisionTime) / 2.0;
+    var collisions = collisionData.collidedWith;
+    curVel = lastVel.plus(accelVec.multf(newDelta));
+    curPos = lastPos.plus(lastVel.plus(curVel).divf(2.0));
+
+    tempState = new TempState(curPos, curVel, player.radius, newDelta);
+
+
+    for (var i = 0; i < COLLISION_PRECISION_ITERATIONS || collisions.length > 1; i++) { //If we havent narrowed it down to a single collision yet then keep going past the accuracy point.
+
+      collisionData = getCollisionDataInList(tempState, collisions);
+      if (!collisionData.collided) {  // NO COLLISION
+        minCollisionTime = newDelta;
+      } else {                        // COLLIDED
+        maxCollisionTime = newDelta;
+        collisions = collisionData.collidedWith;
+      }
+
+      newDelta = minCollisionTime + (maxCollisionTime - minCollisionTime) / 2.0;
+
+      curVel = lastVel.plus(accelVec.multf(newDelta));
+      curPos = lastPos.plus(lastVel.plus(curVel).divf(2.0));
+
+      tempState = new TempState(curPos, curVel, player.radius, newDelta);
+    }
+    var thingWeCollidedWith = collisions[0];                                              //Optimize by passing directly later, storing in named var for clarities sake for now.
+
+    if (PHYS_DEBUG && collisions.length > 1) {                                            //DEBUG CASE CHECKING, REMOVE WHEN PHYSICS IS BUG FREE.
+      throw "collisions.length shouldnt be > 1 but is, in airStep"
+    }
+
+    if (thingWeCollidedWith instanceof TerrainSurface) {      //Something we should react to hitting.
+      this.handleTerrainCollision(tempState, thingWeCollidedWith);
+    } else if (thingWeCollidedWith instanceof Goal) {         //TODO WE BEAT THE LEVEL, REACT ETC
+      
+    } else if (thingWeCollidedWith instanceof Collectible) {  //TODO HANDLE COLLECTIBLES
+      
+    }
   }
 }
+
+
+
 
 PhysEng.prototype.groundStep = function (state, timeDelta) { // A step while the player is in the ground. Returns the players new position and velocity (in a TempState object) after a groundStep of this length. Does not modify values.
   // ___+____+____+___ magnitude acceleration along a sloped surface = magnitude of force * sin(angle between force and surface normal)
@@ -198,7 +246,18 @@ PhysEng.prototype.groundStep = function (state, timeDelta) { // A step while the
 }
 
 
-// Self explanatory. For debug purposes.
+//This code handles a terrain collision 
+PhysEng.prototype.handleTerrainCollision = function (ballState, thingWeCollidedWith) {
+  if (this.inputState.lock) { // ATTEMPT LOCK CASE CHECK STUFF AND THEN LOCK IF WITHIN BOUNDARIES! TODO
+
+  } else {                    // ATTEMPT TO BOUNCE. Should really lock to surface at low bounce speeds though. TODO USE COLLISION SPEED TO TEST IF WE SHOULD AUTO LOCK. 
+    this.player.vel = getReflectionVector(player.vel, thingWeCollidedWith.getNormalAt(ballState.pos));
+  }
+
+
+}
+  
+  // Self explanatory. For debug purposes.
 PhysEng.prototype.printState = function (printExtraPlayerDebug, printExtraControlsDebug, printExtraPhysDebug) {
   console.log("Player: ");
   console.log("  pos: %.2f, %.2f", player.pos.x, player.pos.y);
@@ -277,6 +336,21 @@ PhysEng.prototype.printStartState = function () {
 
 
 
+
+//GET REFLECTION VECTOR. Really hope this is self explanitory.
+getReflectionVector = function (velVec, normalVec) {
+  // Basically if you have a vector v, which represents the object's velocity, and a normalized normal vector n, 
+  // which is perpendicular to the surface with which the object collides, then the new velocity v' is given by the equation
+  //     v' = 2 * (v . n) * n - v;
+  // Where '*' is the scalar multiplication operator, '.' is the dot product of two vectors, and '-' is the subtraction operator 
+  // for two vectors. v is reflected off of the surface, and gives a reflection vector v' which is used as the new velocity of the object. 
+
+  return normalVec.multf(2.0 * velVec.dot(normalVec)).subtract(velVec);
+}
+
+
+
+
 // Event class. All events interpreted by the physics engine must extend this, as seen below. 
 // Currently input and render events exist. Physics events will probably follow shortly (for example, when the player passes from one terrain line to another, etc).
 function Event(eventTime) {    //eventTime is the amount of time since last rendered frame that the event occurred at. THIS IS A PARENT CLASS. THERE ARE SUBCLASSES FOR THIS, THIS CLASS IS NEVER ACTUALLY INSTANTIATED.
@@ -294,6 +368,7 @@ function InputEvent(eventTime, inputType, pressed) {   //
 }
 
 InputEvent.prototype = new Event();
+InputEvent.prototype.constructor = InputEvent;
 InputEvent.prototype.handler = function(physEng) {          //THIS CODE HANDLES INPUT CHANGES.  TODO
   switch (this.inputType) {
     case inLeft:
@@ -359,6 +434,7 @@ function RenderEvent(eventTime) { // eventTime should be deltaTime since last fr
 }
 
 RenderEvent.prototype = new Event();
+RenderEvent.prototype.constructor = RenderEvent;
 RenderEvent.prototype.handler = function(physEng) {
   return;
 }

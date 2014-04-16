@@ -15,10 +15,10 @@ function vec2(x,y) {
 vec2.prototype.negate = function() // unary minus operator
 { return vec2( -this.x, -this.y ); }
 
-vec2.prototype.plus = function(v)  // add vectors, this + v
+vec2.prototype.add = function(v)  // add vectors, this + v
 { return vec2( this.x + v.x, this.y + v.y ); }
 
-vec2.prototype.minus = function(v)  // subtract vectors, this - v 
+vec2.prototype.subtract = function(v)  // subtract vectors, this - v 
 { return vec2( this.x - v.x, this.y - v.y ); }
 
 vec2.prototype.multf = function(f)  // multiply vector by float, this * s           

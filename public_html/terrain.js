@@ -8,13 +8,14 @@
 // TerrainSurface object is the parent class for all collideable terrain objects. Has a start point and end point (and is therefore a line or curve).
 function TerrainSurface(point0, point1, adjacent0, adjacent1) {
   Collideable.apply(this);    // SET UP TerrainSurface objects' inheritance from Collideable.
-  this.p0 = point0;                                // p0 and p1 are either end of this TerrainSurface.
+  this.p0 = point0;                                   // p0 and p1 are either end of this TerrainSurface.
   this.p1 = point1;
-  this.adjacent0 = adjacent0;                      // THIS IS A LINK TO THE TerrainSurface CONNECTING AT p0. NULL IF p0 SIMPLY ENDS.
-  this.adjacent1 = adjacent1;                      // THIS IS A LINK TO THE TerrainSurface CONNECTING AT p1. NULL IF p1 SIMPLY ENDS.
-  this.getNormal = function (percentageAlongSurface) { }; // percentageAlongSurface is the percentage across the surface to get the normal at. Useful for curves and beziers etc.
+  this.adjacent0 = adjacent0;                         // THIS IS A LINK TO THE TerrainSurface CONNECTING AT p0. NULL IF p0 CONNECTS TO NOTHING.
+  this.adjacent1 = adjacent1;                         // THIS IS A LINK TO THE TerrainSurface CONNECTING AT p1. NULL IF p1 CONNECTS TO NOTHING.
+  this.getNormalAt = function (ballLocation) { };     // ballLocation is simple where the ball currently is, for which we are trying to obtain the normal applicable to the ball. 
 }
-TerrainSurface.prototype = new Collideable();      // Establishes this as a child of Collideable.
+TerrainSurface.prototype = new Collideable();         // Establishes this as a child of Collideable.
+TerrainSurface.prototype.constructor = TerrainSurface;// Establishes this as having its own constructor.
 
 
 
@@ -27,6 +28,7 @@ function TerrainLine(point0, point1, adjacent0, adjacent1, normal) {
   this.normal = normal;
 }
 TerrainLine.prototype = new TerrainSurface();      //Establishes this as a child of TerrainSurface.
-TerrainLine.prototype.getNormal = new function (percentageAlongSurface) {
+TerrainLine.prototype.constructor = TerrainLine;   //Establishes this as having its own constructor.
+TerrainLine.prototype.getNormalAt = function (ballLocation) {
   return this.normal;
 }

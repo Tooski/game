@@ -15,10 +15,10 @@ function vec3(x,y,z) {   // z = 0.0 if vector, 1.0 if 2D point
 vec3.prototype.negate = function() // unary minus operator
 { return vec3( -this.x, -this.y, -this.z ); }
 
-vec3.prototype.plus = function(v) // add a vec3 to this one.
+vec3.prototype.add = function(v) // add a vec3 to this one.
 { return vec3( this.x + v.x, this.y + v.y, this.z + v.z ); }
 
-vec3.prototype.minus = function(v) // subtract a vector from this one.
+vec3.prototype.subtract = function(v) // subtract a vector from this one.
 { return vec3( this.x - v.x, this.y - v.y, this.z - v.z ); }
 
 vec3.prototype.multf = function(f) // multiply the vector times a float.
