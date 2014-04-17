@@ -146,37 +146,37 @@ GameEngine.prototype.startInput = function() {
             if (keyVal = "LEFT"){
                 leftKey = e.keyCode;
                 keyVal = null;
-                editKeys = flase;
+                editKeys = false;
             }
             if (keyVal = "RIGHT"){
                 rightKey = e.keyCode;
                 keyVal = null;
-                editKeys = flase;
+                editKeys = false;
             }
             if (keyVal = "UP"){
                 upKey = e.keyCode;
                 keyVal = null;
-                editKeys = flase;
+                editKeys = false;
             }
             if (keyVal = "DOWN"){
                 downKey = e.keyCode;
                 keyVal = null;
-                editKeys = flase;
+                editKeys = false;
             }
             if (keyVal = "JUMP"){
                 jumpKey = e.keyCode;
                 keyVal = null;
-                editKeys = flase;
+                editKeys = false;
             }
             if (keyVal = "LOCK"){
                 lockKey = e.keyCode;
                 keyVal = null;
-                editKeys = flase;
+                editKeys = false;
             }
             if (keyVal = "BOOST"){
                 boostKey = e.keyCode;
                 keyVal = null;
-                editKeys = flase;
+                editKeys = false;
             }
         }
         else {
