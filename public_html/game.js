@@ -86,6 +86,14 @@ GameEngine.prototype.start = function() {
     })();
 }
 
+var jumpKey = 65;
+var boostKey = 83;
+var leftKey = 37;
+var rightKey = 39;
+var downKey = 40;
+var upKey = 38;
+var lockKey = 68;
+
 var jumpPressed = false;
 var jumpTime = 0;
 var boostPressed = false;
@@ -100,6 +108,9 @@ var downPressed = false;
 var downTime = 0;
 var lockPressed = false;
 var lockTime = 0;
+
+var editKeys = false;
+var keyVal = null;
 
 GameEngine.prototype.startInput = function() {
     console.log('Starting input');
@@ -131,63 +142,102 @@ GameEngine.prototype.startInput = function() {
     }, false);
 
     this.ctx.canvas.addEventListener("keydown", function (e) {
-        if (e.keyCode == 37){
-            leftPressed = true; //Left
-            leftTime = Performance.now();
+        if (editKeys) {
+            if (keyVal = "LEFT"){
+                leftKey = e.keyCode;
+                keyVal = null;
+                editKeys = flase;
+            }
+            if (keyVal = "RIGHT"){
+                rightKey = e.keyCode;
+                keyVal = null;
+                editKeys = flase;
+            }
+            if (keyVal = "UP"){
+                upKey = e.keyCode;
+                keyVal = null;
+                editKeys = flase;
+            }
+            if (keyVal = "DOWN"){
+                downKey = e.keyCode;
+                keyVal = null;
+                editKeys = flase;
+            }
+            if (keyVal = "JUMP"){
+                jumpKey = e.keyCode;
+                keyVal = null;
+                editKeys = flase;
+            }
+            if (keyVal = "LOCK"){
+                lockKey = e.keyCode;
+                keyVal = null;
+                editKeys = flase;
+            }
+            if (keyVal = "BOOST"){
+                boostKey = e.keyCode;
+                keyVal = null;
+                editKeys = flase;
+            }
         }
-        if (e.keyCode == 38){
-            upPressed = true; //Up
-            upTime = Performance.now();
-        }
-        if (e.keyCode == 39){
-            rightPressed = true; //Right
-            rightTime = Performance.now();
-        }
-        if (e.keyCode == 40){
-            downPressed = true; //Down
-            downTime = Performance.now();
-        }
-        if (e.keyCode == 65){
-            jumpPressed = true; //Jump
-            jumpTime = Performance.now();
-        }
-        if (e.keyCode == 83){
-            boostPressed = true; //Boost
-            boostTime = Performance.now();
-        }
-        if (e.keyCode == 68){
-            lockPressed =  true; //Lock
-            lockTime = Performance.now();
+        else {
+            if (e.keyCode == leftKey){
+                leftPressed = true; //Left
+                leftTime = Performance.now();
+            }
+            if (e.keyCode == upKey){
+                upPressed = true; //Up
+                upTime = Performance.now();
+            }
+            if (e.keyCode == rightKey){
+                rightPressed = true; //Right
+                rightTime = Performance.now();
+            }
+            if (e.keyCode == downKey){
+                downPressed = true; //Down
+                downTime = Performance.now();
+            }
+            if (e.keyCode == jumpKey){
+                jumpPressed = true; //Jump
+                jumpTime = Performance.now();
+            }
+            if (e.keyCode == boostKey){
+                boostPressed = true; //Boost
+                boostTime = Performance.now();
+            }
+            if (e.keyCode == lockKey){
+                lockPressed =  true; //Lock
+                lockTime = Performance.now();
+            }
         }
         e.preventDefault();
     }, false);
     
     this.ctx.canvas.addEventListener("keyup", function (e) {
-        if (e.keyCode == 37){
+        if (e.keyCode == leftKey){
             leftPressed = false; //Left
             leftTime = Performance.now();
         }
-        if (e.keyCode == 38){
+        if (e.keyCode == upKey){
             upPressed = false; //Up
             upTime = Performance.now();
         }
-        if (e.keyCode == 39){
+        if (e.keyCode == rightKey){
             rightPressed = false; //Right
             rightTime = Performance.now();
         }
-        if (e.keyCode == 40){
+        if (e.keyCode == downKey){
             downPressed = false; //Down
             downTime = Performance.now();
         }
-        if (e.keyCode == 65){
+        if (e.keyCode == jumpKey){
             jumpPressed = false; //Jump
             jumpTime = Performance.now();
         }
-        if (e.keyCode == 83){
+        if (e.keyCode == boostKey){
             boostPressed = false; //Boost
             boostTime = Performance.now();
         }
-        if (e.keyCode == 68){
+        if (e.keyCode == lockKey){
             lockPressed =  false; //Lock
             lockTime = Performance.now();
         }
@@ -195,6 +245,23 @@ GameEngine.prototype.startInput = function() {
     }, false);
     
     console.log('Input started');
+}
+
+//Function that allows the changing of the control mapping
+GameEngine.prototype.changeKey = function(keyType) {
+    keyVal = keyType;
+    editKeys = true;
+}
+
+//When called resets defaults control settings
+GameEngine.prototype.resetDefaults = function() {
+    jumpKey = 65;
+    boostKey = 83;
+    leftKey = 37;
+    rightKey = 39;
+    downKey = 40;
+    upKey = 38;
+    lockKey = 68;
 }
 
 GameEngine.prototype.addEntity = function(entity) {
