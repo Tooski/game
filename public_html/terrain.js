@@ -54,7 +54,7 @@ TerrainLine.prototype.collidesWith = function (point, radius) { // OVERRIDES THE
     // WE ARE OFF THE SIDES OF THE PERPENDICULAR BOUNDING BOX, BUT WE STILL COLLIDED WITH THE LINES ENDPOINT.
     collision = true;
   } else {
-    // No collision, unless we're missing a case in which add additional detection here.
+    // No collision, unless we're missing a case in which case add additional detection here.
   }
   return collision;
 }
