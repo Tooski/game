@@ -127,6 +127,28 @@ GameEngine.prototype.startInput = function() {
         return {x: x, y: y};
     }
 
+    window.addEventListener("gamepadconnected", function(e) {
+      var gp = navigator.getGamepads()[0];
+      
+      if (gp.buttons[13] == true) {
+          console.log("Down");
+      } else if (gp.buttons[15] == true) {
+          console.log("Right");
+      } else if (gp.buttons[14] == true) {
+          console.log("Left");
+      } else if (gp.buttons[12] == true) {
+          console.log("Up");
+      } else if (gp.buttons[0] == true) {
+          console.log("B");
+      } else if (gp.buttons[1] == true) {
+          console.log("A");
+      } else if (gp.buttons[2] == true) {
+          console.log("Y");
+      } else if (gp.buttons[3] == true) {
+          console.log("X");
+      } 
+    });
+
     var that = this;
 
     this.ctx.canvas.addEventListener("click", function(e) {
