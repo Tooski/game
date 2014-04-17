@@ -5,9 +5,9 @@
  */
 var PHYS_DEBUG = true;
 var COLLISION_PRECISION_ITERATIONS = 5;
-var AUTO_LOCK_ANGLE = 10.0                / 180 * Math.PI;  //ANGLE OF COLLISION BELOW WHICH NOT TO BOUNCE.
+var LOCK_MIN_ANGLE = 45.0                / 180 * Math.PI;  //ANGLE OF COLLISION BELOW WHICH NOT TO BOUNCE.
 
-//INPUT TYPES!
+//INPUT TYPES AND CORRESPONDING INT VALUE
 var inLeft = 0;
 var inRight = 1;
 var inUp = 2;
@@ -61,14 +61,14 @@ function PhysParams(gravity) {
 
 // This object contains all the values that are relative to the PLAYER. IE, anything that would be specific to different selectable characters.
 function ControlParams(gLRaccel, aLRaccel, aUaccel, aDaccel, gBoostLRvel, aBoostLRvel, boostDownVel, jumpVel, doubleJumpVel, numAirCharges, dragBaseAmt, dragTerminalVel, dragExponent) {
-  this.gLRaccel = gLRaccel;                 //x acceleration exerted by holding Left or Right on the ground.
+  this.gLRaccel = gLRaccel;                 //x acceleration exerted by holding Left or Right on the surface.
   this.aLRaccel = aLRaccel;                 //x acceleration exerted by holding Left or Right in the air.
   this.aUaccel = aUaccel;                   //y acceleration exerted by holding up in the air.
   this.aDaccel = aDaccel;                   //y acceleration exerted by holding down in the air.
-  this.gBoostLRvel = gBoostLRvel;           //x velocity that a boost on the ground sets.
+  this.gBoostLRvel = gBoostLRvel;           //x velocity that a boost on the surface sets.
   this.aBoostLRvel = aBoostLRvel;           //x velocity that a boost in the air sets.
   this.boostDownVel = boostDownVel;         //-y velocity that a downboost sets in the air.
-  this.jumpVel = jumpVel;                   //y velocity that a ground jump sets.
+  this.jumpVel = jumpVel;                   //y velocity that a surface jump sets.
   this.doubleJumpVel = doubleJumpVel;       //y velocity that a double jump sets.
 
   this.numAirCharges = numAirCharges;       //number of boost / double jumps left in the air.
@@ -91,22 +91,22 @@ function PlayerModel(controlParams, ballRadius, startPoint, numAirCharges, terra
 
   this.surfaceOn = terrainSurface;
   // STATE FLAGS! READ THE COMMENTS BELOW BEFORE USING!
-  this.airBorne = true;              // BE CAREFUL WITH THESE. IF THE PLAYER IS ON THE GROUND, airBorne should ALWAYS be false. 
-  this.groundLocked = false;         // If the player is on the ground but is not holding the lock button, then this should ALSO be false.
+  this.airBorne = true;              // BE CAREFUL WITH THESE. IF THE PLAYER IS ON THE surface, airBorne should ALWAYS be false. 
+  this.surfaceLocked = false;         // If the player is on the surface but is not holding the lock button, then this should ALSO be false.
 
   this.airChargeCount = numAirCharges; //number of boosts / double jumps left.
 }
 
 
 
-// The acceleration vector state. Stores the component vectors and resulting vector in order to efficiently return the current acceleration in the air or on the ground without uneccessary calculations.
+// The acceleration vector state. Stores the component vectors and resulting vector in order to efficiently return the current acceleration in the air or on the surface without uneccessary calculations.
 function AccelState(physEng) { 
-  this.groundAccel = vec2(0.0, 0.0);
+  this.surfaceAccel = vec2(0.0, 0.0);
   this.airAccel = vec2(0.0, 0.0);
   this.physEng = physEng;
   
   this.getAirAccel = function() {return airAccel}
-  this.getGroundAccel = function() {return groundAccel}
+  this.getsurfaceAccel = function() {return surfaceAccel}
 
   this.updateStates = function (inputState) {  // TODO
     
@@ -143,7 +143,7 @@ function PhysEng(physParams, playerModel) {
 }
 
 
-// CHECKS FOR COLLISIONS, HANDLES THEIR TIME STEPS, AND THEN CALLS airStep AND / OR groundStep WHERE APPLICABLE
+// CHECKS FOR COLLISIONS, HANDLES THEIR TIME STEPS, AND THEN CALLS airStep AND / OR surfaceStep WHERE APPLICABLE
 // eventList is a list of event objects that occurred since last update, sorted by the order in which they occurred.
 PhysEng.prototype.update = function (timeDelta, eventList) { // ______timeDelta IS ALWAYS A FLOAT REPRESENTING THE FRACTION OF A SECOND ELAPSED, WHERE 1.0 IS ONE FULL SECOND. _____________                           
   if (PHYS_DEBUG) {
@@ -159,8 +159,8 @@ PhysEng.prototype.update = function (timeDelta, eventList) { // ______timeDelta 
     while (!eventDone) {                   //The physics step loop. Checks for collisions / lockbreaks and discovers the time they occur at. Continues stepping physics until it is caught up to "timeDelta".
       if (player.airBorne) {               //In the air, call airStep
         state = this.airStep(state, eventTime);
-      } else {                             //On ground, call groundStep 
-        state = this.groundStep(state, eventTime);
+      } else {                             //On surface, call surfaceStep 
+        state = this.surfaceStep(state, eventTime);
       }
     }                                 //COMPLETED TIMESTEP UP TO WHEN EVENT HAPPENED.
 
@@ -220,7 +220,7 @@ PhysEng.prototype.airStep = function (state, timeDelta) {
     }
 
     if (thingWeCollidedWith instanceof TerrainSurface) {      //Something we should react to hitting.
-      this.handleTerrainCollision(tempState, thingWeCollidedWith);
+      this.handleTerrainAirCollision(tempState, thingWeCollidedWith);
     } else if (thingWeCollidedWith instanceof Goal) {         //TODO WE BEAT THE LEVEL, REACT ETC
       
     } else if (thingWeCollidedWith instanceof Collectible) {  //TODO HANDLE COLLECTIBLES
@@ -232,7 +232,7 @@ PhysEng.prototype.airStep = function (state, timeDelta) {
 
 
 
-PhysEng.prototype.groundStep = function (state, timeDelta) { // A step while the player is in the ground. Returns the players new position and velocity (in a TempState object) after a groundStep of this length. Does not modify values.
+PhysEng.prototype.surfaceStep = function (state, timeDelta) { // A step while the player is in the surface. Returns the players new position and velocity (in a TempState object) after a surfaceStep of this length. Does not modify values.
   // ___+____+____+___ magnitude acceleration along a sloped surface = magnitude of force * sin(angle between force and surface normal)
   var collisionData = getCollisionData(stepState);
   
@@ -242,16 +242,47 @@ PhysEng.prototype.groundStep = function (state, timeDelta) { // A step while the
                                  // WE ARE STILL ON THE SURFACE WE WERE ON LAST FRAME, NO OTHER COLLISIONS, HANDLE NORMALLY, TODO
   } else {     
                                  // WE COLLIDED With SOMEthING NEW, HANDLE COLLISIONS RECURSIVELY OR SOMESHIT, TODO
+
   }
 }
 
 
 //This code handles a terrain collision 
-PhysEng.prototype.handleTerrainCollision = function (ballState, thingWeCollidedWith) {
-  if (this.inputState.lock) { // ATTEMPT LOCK CASE CHECK STUFF AND THEN LOCK IF WITHIN BOUNDARIES! TODO
+PhysEng.prototype.handleTerrainAirCollision = function (ballState, thingWeCollidedWith) {
+  var normalBallVel = ballState.vel.normalize();
+  var angleToNormal = Math.acos(thingWeCollidedWith.getNormalAt(ballState.pos).dot(normalBallVel));
+  var COLLISION_GLANCING_ENOUGH_TO_AUTO_LOCK = false; //TODO do some math
+  if (COLLISION_GLANCING_ENOUGH_TO_AUTO_LOCK) {
+    var velocityMag = ballState.vel.length();
+    var surfaceVec = thingWeCollidedWith.getSurfaceAt(ballState.pos);
+    var surfaceAngle = surfaceVec.dot(normalBallVel);
+    var surfaceInvertAngle = surfaceVec.negate().dot(normalBallVel);
 
-  } else {                    // ATTEMPT TO BOUNCE. Should really lock to surface at low bounce speeds though. TODO USE COLLISION SPEED TO TEST IF WE SHOULD AUTO LOCK. 
-    this.player.vel = getReflectionVector(player.vel, thingWeCollidedWith.getNormalAt(ballState.pos));
+    if (surfaceAngle > surfaceInvertAngle) {
+      surfaceVec = surfaceVec.negate();
+    }
+    this.player.pos = ballState.pos;
+    this.player.vel = surfaceVec.multf(velocityMag);
+    this.player.airBorne = false;
+    this.player.surfaceLocked = inputState.lock;
+
+  } else if (this.inputState.lock && (angleToNormal > LOCK_MIN_ANGLE || angleToNormal < -LOCK_MIN_ANGLE)) { // ATTEMPT LOCK CASE CHECK STUFF AND THEN LOCK IF WITHIN BOUNDARIES! TODO IS THE NEGATIVE LOCK_MIN_ANGLE CHECK NEEDED!!!?
+    var velocityMag = ballState.vel.length();
+    var surfaceVec = thingWeCollidedWith.getSurfaceAt(ballState.pos);
+    var surfaceAngle = surfaceVec.dot(normalBallVel);
+    var surfaceInvertAngle = (surfaceVec.negate()).dot(normalBallVel);
+
+    if (surfaceAngle > surfaceInvertAngle) {
+      surfaceVec = surfaceVec.negate();
+    }
+    this.player.pos = ballState.pos;
+    this.player.vel = surfaceVec.multf(velocityMag);
+    this.player.airBorne = false;
+    this.player.surfaceLocked = inputState.lock;
+  } else {                                                          // BOUNCE. TODO implement addition of normalVector * jumpVel to allow jump being held to bounce him higher?        
+    this.player.vel = getReflectionVector(ballState.vel, thingWeCollidedWith.getNormalAt(ballState.pos));
+    this.player.pos = ballState.pos;
+    this.player.airBorne = true;
   }
 
 
@@ -264,7 +295,7 @@ PhysEng.prototype.printState = function (printExtraPlayerDebug, printExtraContro
   console.log("  vel: %.2f, %.2f", player.vel.x, player.vel.y);
   if (printExtraPlayerDebug) {
     console.log("  airBorne:       %s", player.airBorne);
-    console.log("  groundLocked:   %s", player.groundLocked);
+    console.log("  surfaceLocked:   %s", player.surfaceLocked);
     console.log("  airChargeCount: %d", player.airChargeCount);
   }
   console.log("");
@@ -326,7 +357,7 @@ PhysEng.prototype.printStartState = function () {
   console.log("  starting pos: %.2f, %.2f", player.pos.x, player, pos.y);
   console.log("  starting vel: %.2f, %.2f", player.vel.x, player, vel.y);
   console.log("  airBorne: %s", player.airBorne);
-  console.log("  groundLocked: %s", player.groundLocked);
+  console.log("  surfaceLocked: %s", player.surfaceLocked);
   console.log("");
   console.log("");
 }
@@ -337,7 +368,7 @@ PhysEng.prototype.printStartState = function () {
 
 
 
-//GET REFLECTION VECTOR. Really hope this is self explanitory.
+//GET REFLECTION VECTOR. velVec = vector to get the reflection of. normalVec, the normal of the surface that you're reflecting off of. TODO possibly a bug if velVec isnt normalized for the function and then length remultiplied at the end? P sure this is right but if bounces are buggy start here.
 getReflectionVector = function (velVec, normalVec) {
   // Basically if you have a vector v, which represents the object's velocity, and a normalized normal vector n, 
   // which is perpendicular to the surface with which the object collides, then the new velocity v' is given by the equation

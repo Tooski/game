@@ -13,6 +13,7 @@ function TerrainSurface(point0, point1, adjacent0, adjacent1) {
   this.adjacent0 = adjacent0;                         // THIS IS A LINK TO THE TerrainSurface CONNECTING AT p0. NULL IF p0 CONNECTS TO NOTHING.
   this.adjacent1 = adjacent1;                         // THIS IS A LINK TO THE TerrainSurface CONNECTING AT p1. NULL IF p1 CONNECTS TO NOTHING.
   this.getNormalAt = function (ballLocation) { };     // ballLocation is simple where the ball currently is, for which we are trying to obtain the normal applicable to the ball. 
+  this.getSurfaceAt = function (ballLocation) { };    // Gets a normalized surface vector.
 }
 TerrainSurface.prototype = new Collideable();         // Establishes this as a child of Collideable.
 TerrainSurface.prototype.constructor = TerrainSurface;// Establishes this as having its own constructor.
@@ -25,12 +26,15 @@ TerrainSurface.prototype.constructor = TerrainSurface;// Establishes this as hav
 // @param adjacents is an array of terrainObjects where adjacents[0] is connected by p0, and adjacent
 function TerrainLine(point0, point1, adjacent0, adjacent1, normal) {  
   TerrainSurface.apply(this, [point0, point1, adjacent0, adjacent1]); // Sets this up as a child of TerrainSurface and initializes TerrainSurface's fields.
-  this.normal = normal;
+  this.normal = normal.normalize();
 }
 TerrainLine.prototype = new TerrainSurface();      //Establishes this as a child of TerrainSurface.
 TerrainLine.prototype.constructor = TerrainLine;   //Establishes this as having its own constructor.
 TerrainLine.prototype.getNormalAt = function (ballLocation) {
   return this.normal;
+}
+TerrainLine.prototype.getSurfaceAt = function (ballLocation) {
+  return (vec2(this.p1 - this.p0)).normalize();;
 }
 TerrainLine.prototype.collidesWith = function (point, radius) { // OVERRIDES THE COLLIDEABLE METHOD!!
   var pA = this.p0;              // TerrainLine point 1
@@ -47,7 +51,7 @@ TerrainLine.prototype.collidesWith = function (point, radius) { // OVERRIDES THE
 
   var collision = false;
   var vABlen = vAB.length();
-  if (vAD.length() < vABlen && vAB.subtract(vAD).length() < vABlen && vCD.length() <= radius) {
+  if (vCD.length() <= radius && vAD.length() < vABlen && vAB.subtract(vAD).length() < vABlen) {
     // THEN THE CENTER OF OUR CIRCLE IS WITHIN THE PERPENDICULAR BOUNDS OF THE LINE SEGMENT, AND CIRCLE IS LESS THAN RADIUS AWAY FROM THE LINE.
     collision = true;
   } else if (vAC.length() <= radius || vBC.length() <= radius) {
