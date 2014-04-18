@@ -45,7 +45,7 @@ TerrainLine.prototype.collidesWith = function (point, radius ,ctx) { // OVERRIDE
   var vAB = pB.subtract(pA);     // vector from A to B
   var vAC = pC.subtract(pA);     // vector from A to the ball
   var vBC = pC.subtract(pB);     // vector from B to the ball
-  console.log(pA + " " + pB + " " + pC);
+  //console.log(pA + " " + pB + " " + pC);
   var vAD = projectVec2(vAC, vAB); //project the vector to the ball onto the surface.
   var pD = pA.add(vAD);            // find the perpendicular intersect of the surface.
   var vCD = pC.subtract(pD);       // find the vector from ball to the perpendicular intersection.

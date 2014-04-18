@@ -65,23 +65,22 @@ Player.prototype.update = function() {
         }
     } 
     */
-    
    
-    if(!this.moving && rightKey) {
-        
-        this.moving = true;
-        this.velocity_x = -5;
-        this.velocity_y = 0;
-    } else if (!this.moving && leftKey) {
+    if(!this.moving && rightPressed) {
+
         this.moving = true;
         this.velocity_x = 5;
         this.velocity_y = 0;
+    } else if (!this.moving && leftPressed) {
+        this.moving = true;
+        this.velocity_x = -5;
+        this.velocity_y = 0;
 
-    } else  if(!this.moving && upKey) {
+    } else  if(!this.moving && upPressed) {
         this.moving = true;
         this.velocity_x = 0;
         this.velocity_y = -5;
-    } else if (!this.moving && downKey) {
+    } else if (!this.moving && downPressed) {
         this.moving = true;
         this.velocity_x = 0;
         this.velocity_y = 5;
@@ -91,7 +90,7 @@ Player.prototype.update = function() {
     }
     if(this.moving === true) {
           this.position.x += this.velocity_x;
-                  this.position.y += this.velocity_y;
+          this.position.y += this.velocity_y;
 
                  
 //        screenOffsetX = this.velocity_x; // screen moves with the user.

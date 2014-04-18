@@ -131,21 +131,21 @@ GameEngine.prototype.startInput = function() {
     window.addEventListener("gamepadconnected", function(e) {
       var gp = navigator.getGamepads()[0];
       
-      if (gp.buttons[13] == true) {
+      if (gp.buttons[13] === true) {
           console.log("Down");
-      } else if (gp.buttons[15] == true) {
+      } else if (gp.buttons[15] === true) {
           console.log("Right");
-      } else if (gp.buttons[14] == true) {
+      } else if (gp.buttons[14] === true) {
           console.log("Left");
-      } else if (gp.buttons[12] == true) {
+      } else if (gp.buttons[12] === true) {
           console.log("Up");
-      } else if (gp.buttons[0] == true) {
+      } else if (gp.buttons[0] === true) {
           console.log("B");
-      } else if (gp.buttons[1] == true) {
+      } else if (gp.buttons[1] === true) {
           console.log("A");
-      } else if (gp.buttons[2] == true) {
+      } else if (gp.buttons[2] === true) {
           console.log("Y");
-      } else if (gp.buttons[3] == true) {
+      } else if (gp.buttons[3] === true) {
           console.log("X");
       } 
     });
@@ -203,66 +203,68 @@ GameEngine.prototype.startInput = function() {
             }
         }
         else {
-            if (e.keyCode == leftKey){
+            if (e.keyCode === leftKey){
                 leftPressed = true; //Left
-                leftTime = Performance.now();
+           //     leftTime = Performance.now();
             }
-            if (e.keyCode == upKey){
+            if (e.keyCode === upKey){
                 upPressed = true; //Up
-                upTime = Performance.now();
+            //    upTime = Performance.now();
             }
-            if (e.keyCode == rightKey){
+            if (e.keyCode === rightKey){
                 rightPressed = true; //Right
-                rightTime = Performance.now();
+             //   rightTime = Performance.now();
             }
-            if (e.keyCode == downKey){
+            if (e.keyCode === downKey){
                 downPressed = true; //Down
-                downTime = Performance.now();
+             //   downTime = Performance.now();
             }
-            if (e.keyCode == jumpKey){
+            if (e.keyCode === jumpKey){
                 jumpPressed = true; //Jump
-                jumpTime = Performance.now();
+            //    jumpTime = Performance.now();
             }
-            if (e.keyCode == boostKey){
+            if (e.keyCode === boostKey){
                 boostPressed = true; //Boost
-                boostTime = Performance.now();
+             //   boostTime = Performance.now();
             }
-            if (e.keyCode == lockKey){
+            if (e.keyCode === lockKey){
                 lockPressed =  true; //Lock
-                lockTime = Performance.now();
+             //   lockTime = Performance.now();
             }
         }
         e.preventDefault();
     }, false);
     
     this.ctx.canvas.addEventListener("keyup", function (e) {
-        if (e.keyCode == leftKey){
+        if (e.keyCode === leftKey){
             leftPressed = false; //Left
-            leftTime = Performance.now();
+         //   leftTime = Performance.now();
         }
-        if (e.keyCode == upKey){
+        if (e.keyCode === upKey){
             upPressed = false; //Up
-            upTime = Performance.now();
+         //   upTime = Performance.now();
         }
-        if (e.keyCode == rightKey){
+        if (e.keyCode === rightKey){
             rightPressed = false; //Right
-            rightTime = Performance.now();
+            //    console.log('Input started');
+
+         //   rightTime = Performance.now();
         }
-        if (e.keyCode == downKey){
+        if (e.keyCode === downKey){
             downPressed = false; //Down
-            downTime = Performance.now();
+         //   downTime = Performance.now();
         }
-        if (e.keyCode == jumpKey){
+        if (e.keyCode === jumpKey){
             jumpPressed = false; //Jump
-            jumpTime = Performance.now();
+         //   jumpTime = Performance.now();
         }
-        if (e.keyCode == boostKey){
+        if (e.keyCode === boostKey){
             boostPressed = false; //Boost
-            boostTime = Performance.now();
+         //   boostTime = Performance.now();
         }
-        if (e.keyCode == lockKey){
+        if (e.keyCode === lockKey){
             lockPressed =  false; //Lock
-            lockTime = Performance.now();
+         //   lockTime = Performance.now();
         }
         e.preventDefault();
     }, false);
@@ -320,9 +322,10 @@ function parallax(ctx, backgroundImage, offsetSpeed, position) {
 
 GameEngine.prototype.draw = function(drawCallback) {
     this.ctx.clearRect(0, 0, this.ctx.canvas.width, this.ctx.canvas.height);
+        this.ctx.save();
+
      this.ctx.translate(-this.player.position.x + this.ctx.canvas.width / 2, -this.player.position.y + this.ctx.canvas.height / 2);
 
-    this.ctx.save();
 
     parallax(this.ctx, ASSET_MANAGER.cache[imagePaths[0]], 1/4, this.player.position);
     parallax(this.ctx, ASSET_MANAGER.cache[imagePaths[1]], 1/2, this.player.position);
@@ -402,10 +405,6 @@ function QuadTree (boundingBox) {
 // The gravity, changes the gravity when the user jumps. 
 var gravity = 0.21875;
 
-// Key pressed, may be replaced in the future.
-var jumpKeyPressed = false;
-var leftKeyPressed = false;
-var rightKeyPressed = false;
 
 
 // The groundY position. Will be replaced in the future.
@@ -427,6 +426,7 @@ ASSET_MANAGER.downloadAll(function() {
     canvas = document.getElementById('gameWorld');
     var ctx = canvas.getContext('2d');
         var player = new Player("assets/Megaman8bit.jpg",canvas.width/2, canvas.height/2);
+    canvas.tabIndex = 1;
 
     var gameEngine = new GameEngine(player);
     canvas.width = window.innerWidth - 20;
@@ -445,46 +445,13 @@ ASSET_MANAGER.downloadAll(function() {
     gameEngine.addEntity(player);
     gameEngine.init(ctx);
     gameEngine.start();
-    contoller(canvas);
+   // gameEngine.startInput();
 
 
 });
 
 
 
-
-
-
-/**
- * Will be changed later, this is a controller for the user.
- * Josef Nosov
- * @param {type} canvas
- * @returns {undefined}
- */
-function contoller(canvas) {
-    canvas.tabIndex = 1;
-    canvas.addEventListener('keydown', function(e) {
-        
-        if (e.keyCode === 37) {
-            rightKeyPressed = true;
-        } else if (e.keyCode === 39) {
-            leftKeyPressed = true;
-        }
-        if (e.keyCode === 32) {
-            jumpKeyPressed = true;
-        }
-    }, false);
-        canvas.addEventListener('keyup', function(e) {
-          if (e.keyCode === 37) {
-            rightKeyPressed = false;
-        } else if (e.keyCode === 39) {
-            leftKeyPressed = false;
-        }
-        if (e.keyCode === 32) {
-            jumpKeyPressed = false;
-        }
-    }, false);
-}
 
 
 var enemy = [
