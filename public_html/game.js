@@ -94,6 +94,7 @@ var rightKey = 39;
 var downKey = 40;
 var upKey = 38;
 var lockKey = 68;
+var pauseKey = 80;
 
 var jumpPressed = false;
 var jumpTime = 0;
@@ -131,21 +132,21 @@ GameEngine.prototype.startInput = function() {
     window.addEventListener("gamepadconnected", function(e) {
       var gp = navigator.getGamepads()[0];
       
-      if (gp.buttons[13] === true) {
+      if (gp.buttons[13].pressed === true) {
           console.log("Down");
-      } else if (gp.buttons[15] === true) {
+      } else if (gp.buttons[15].pressed === true) {
           console.log("Right");
-      } else if (gp.buttons[14] === true) {
+      } else if (gp.buttons[14].pressed === true) {
           console.log("Left");
-      } else if (gp.buttons[12] === true) {
+      } else if (gp.buttons[12].pressed === true) {
           console.log("Up");
-      } else if (gp.buttons[0] === true) {
+      } else if (gp.buttons[0].pressed === true) {
           console.log("B");
-      } else if (gp.buttons[1] === true) {
+      } else if (gp.buttons[1].pressed === true) {
           console.log("A");
-      } else if (gp.buttons[2] === true) {
+      } else if (gp.buttons[2].pressed === true) {
           console.log("Y");
-      } else if (gp.buttons[3] === true) {
+      } else if (gp.buttons[3].pressed === true) {
           console.log("X");
       } 
     });
@@ -238,6 +239,9 @@ GameEngine.prototype.startInput = function() {
                 lockTime = performance.now();
                 console.log("Lock");
             }
+			if (e.keyCode === pauseKey){
+				console.log("Pause");
+			}
         }
         e.preventDefault();
     }, false);
