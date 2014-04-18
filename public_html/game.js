@@ -130,7 +130,7 @@ GameEngine.prototype.startInput = function() {
     }
 
     window.addEventListener("gamepadconnected", function(e) {
-      var gp = navigator.getGamepads()[0];
+      var gp = navigator.webkitGetGamepads()[0];
       
       if (gp.buttons[13].pressed === true) {
           console.log("Down");
