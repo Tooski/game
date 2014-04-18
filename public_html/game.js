@@ -206,30 +206,37 @@ GameEngine.prototype.startInput = function() {
             if (e.keyCode === leftKey){
                 leftPressed = true; //Left
                 leftTime = performance.now();
+                console.log("Left");
             }
             if (e.keyCode === upKey){
                 upPressed = true; //Up
                 upTime = performance.now();
+                console.log("Up");
             }
             if (e.keyCode === rightKey){
                 rightPressed = true; //Right
                 rightTime = performance.now();
+                console.log("Right");
             }
             if (e.keyCode === downKey){
                 downPressed = true; //Down
                 downTime = performance.now();
+                console.log("Down");
             }
             if (e.keyCode === jumpKey){
                 jumpPressed = true; //Jump
                 jumpTime = performance.now();
+                console.log("Jump");
             }
             if (e.keyCode === boostKey){
                 boostPressed = true; //Boost
                 boostTime = performance.now();
+                console.log("Boost");
             }
             if (e.keyCode === lockKey){
                 lockPressed =  true; //Lock
                 lockTime = performance.now();
+                console.log("Lock");
             }
         }
         e.preventDefault();
@@ -246,7 +253,6 @@ GameEngine.prototype.startInput = function() {
         }
         if (e.keyCode === rightKey){
             rightPressed = false; //Right
-            //    console.log('Input started');
             rightTime = performance.now();
         }
         if (e.keyCode === downKey){
