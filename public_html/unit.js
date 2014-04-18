@@ -33,6 +33,6 @@ Unit.prototype.draw = function(ctx) {
     var image = ASSET_MANAGER.cache[this.img];
     var width = image.naturalWidth/4;
     var height = image.naturalHeight/4;
-    ctx.drawImage(image, this.x - screenOffsetX - width/2, this.y - screenOffsetY - height, width, height);
+    ctx.drawImage(image, this.x  - width/2, this.y  - height, width, height);
    
 }
