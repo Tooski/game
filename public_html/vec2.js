@@ -13,19 +13,19 @@ function vec2(x,y) {
 
 
 vec2.prototype.negate = function() // unary minus operator
-{ return vec2( -this.x, -this.y ); }
+{ return new vec2( -this.x, -this.y ); }
 
 vec2.prototype.add = function(v)  // add vectors, this + v
-{ return vec2( this.x + v.x, this.y + v.y ); }
+{ return new vec2( this.x + v.x, this.y + v.y ); }
 
 vec2.prototype.subtract = function(v)  // subtract vectors, this - v 
-{ return vec2( this.x - v.x, this.y - v.y ); }
+{ return new vec2( this.x - v.x, this.y - v.y ); }
 
 vec2.prototype.multf = function(f)  // multiply vector by float, this * s           
-{ return vec2( f*this.x, f*this.y ); }
+{ return new vec2( f*this.x, f*this.y ); }
 
 vec2.prototype.multv = function (v) // multiply vectors, this * v
-{ return vec2( this.x*v.x, this.y*v.y ); }
+{ return new vec2( this.x*v.x, this.y*v.y ); }
 
 vec2.prototype.divf = function (f) // divide vector by float, this / s
 { return this.multf(1.0 / f); }
@@ -45,14 +45,14 @@ vec2.prototype.normalize = function() { // normalizes a vector so that its lengt
 }
 
 vec2.prototype.perp = function() { // returns the perpendicular vector to this vector.
-  return vec2(this.y, -this.x);
+  return new vec2(this.y, -this.x);
 }
 
 //projects vec2 a onto vec2 b.
 function projectVec2(a, b) {
   //formula: b(dot(a,b)/(|b|^2))
   var temp = ((a.x*b.x)+(a.y*b.y)) / ((b.x*b.x)+(b.y*b.y)); // temp = dot product / b.length^2
-  return vec2(b.x*temp,b.y*temp);
+  return new vec2(b.x*temp,b.y*temp);
 }
 
 

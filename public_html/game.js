@@ -57,7 +57,7 @@ AssetManager.prototype.getAsset = function(path) {
 }
 
 
-function GameEngine() {
+function GameEngine(player) {
     this.entities = [];
     this.ctx = null;
     this.click = null;
@@ -65,6 +65,7 @@ function GameEngine() {
     this.wheel = null;
     this.surfaceWidth = null;
     this.surfaceHeight = null;
+    this.player = player;
 }
 
 GameEngine.prototype.init = function(ctx) {
@@ -127,6 +128,28 @@ GameEngine.prototype.startInput = function() {
         return {x: x, y: y};
     }
 
+    window.addEventListener("gamepadconnected", function(e) {
+      var gp = navigator.getGamepads()[0];
+      
+      if (gp.buttons[13] === true) {
+          console.log("Down");
+      } else if (gp.buttons[15] === true) {
+          console.log("Right");
+      } else if (gp.buttons[14] === true) {
+          console.log("Left");
+      } else if (gp.buttons[12] === true) {
+          console.log("Up");
+      } else if (gp.buttons[0] === true) {
+          console.log("B");
+      } else if (gp.buttons[1] === true) {
+          console.log("A");
+      } else if (gp.buttons[2] === true) {
+          console.log("Y");
+      } else if (gp.buttons[3] === true) {
+          console.log("X");
+      } 
+    });
+
     var that = this;
 
     this.ctx.canvas.addEventListener("click", function(e) {
@@ -180,66 +203,68 @@ GameEngine.prototype.startInput = function() {
             }
         }
         else {
-            if (e.keyCode == leftKey){
+            if (e.keyCode === leftKey){
                 leftPressed = true; //Left
-                leftTime = Performance.now();
+           //     leftTime = Performance.now();
             }
-            if (e.keyCode == upKey){
+            if (e.keyCode === upKey){
                 upPressed = true; //Up
-                upTime = Performance.now();
+            //    upTime = Performance.now();
             }
-            if (e.keyCode == rightKey){
+            if (e.keyCode === rightKey){
                 rightPressed = true; //Right
-                rightTime = Performance.now();
+             //   rightTime = Performance.now();
             }
-            if (e.keyCode == downKey){
+            if (e.keyCode === downKey){
                 downPressed = true; //Down
-                downTime = Performance.now();
+             //   downTime = Performance.now();
             }
-            if (e.keyCode == jumpKey){
+            if (e.keyCode === jumpKey){
                 jumpPressed = true; //Jump
-                jumpTime = Performance.now();
+            //    jumpTime = Performance.now();
             }
-            if (e.keyCode == boostKey){
+            if (e.keyCode === boostKey){
                 boostPressed = true; //Boost
-                boostTime = Performance.now();
+             //   boostTime = Performance.now();
             }
-            if (e.keyCode == lockKey){
+            if (e.keyCode === lockKey){
                 lockPressed =  true; //Lock
-                lockTime = Performance.now();
+             //   lockTime = Performance.now();
             }
         }
         e.preventDefault();
     }, false);
     
     this.ctx.canvas.addEventListener("keyup", function (e) {
-        if (e.keyCode == leftKey){
+        if (e.keyCode === leftKey){
             leftPressed = false; //Left
-            leftTime = Performance.now();
+         //   leftTime = Performance.now();
         }
-        if (e.keyCode == upKey){
+        if (e.keyCode === upKey){
             upPressed = false; //Up
-            upTime = Performance.now();
+         //   upTime = Performance.now();
         }
-        if (e.keyCode == rightKey){
+        if (e.keyCode === rightKey){
             rightPressed = false; //Right
-            rightTime = Performance.now();
+            //    console.log('Input started');
+
+         //   rightTime = Performance.now();
         }
-        if (e.keyCode == downKey){
+        if (e.keyCode === downKey){
             downPressed = false; //Down
-            downTime = Performance.now();
+         //   downTime = Performance.now();
         }
-        if (e.keyCode == jumpKey){
+        if (e.keyCode === jumpKey){
             jumpPressed = false; //Jump
-            jumpTime = Performance.now();
+         //   jumpTime = Performance.now();
         }
-        if (e.keyCode == boostKey){
+        if (e.keyCode === boostKey){
             boostPressed = false; //Boost
-            boostTime = Performance.now();
+         //   boostTime = Performance.now();
         }
-        if (e.keyCode == lockKey){
+        if (e.keyCode === lockKey){
             lockPressed =  false; //Lock
-            lockTime = Performance.now();
+         //   lockTime = Performance.now();
         }
         e.preventDefault();
     }, false);
@@ -280,29 +305,32 @@ GameEngine.prototype.addEntity = function(entity) {
  * it to be slower, larger value if you want it to be faster.
  * @returns {undefined}
  */
-function parallax(ctx, backgroundImage, offsetSpeed) {
-
-    var w = -screenOffsetX*offsetSpeed - backgroundImage.width;
-    var movePositionX =  backgroundImage.width * Math.floor((w / backgroundImage.width) + 1);
-
-    for (w -= movePositionX; w < canvas.width - screenOffsetX*offsetSpeed - movePositionX; w += backgroundImage.width) {
-        var h = -screenOffsetY*offsetSpeed - backgroundImage.height;
-        var movePositionY =  backgroundImage.height * Math.floor((h / backgroundImage.height) + 1);
-        for (h -= movePositionY; h < canvas.height - screenOffsetY*offsetSpeed - movePositionY; h  += backgroundImage.height) {
-            ctx.drawImage(backgroundImage, w, h);
-      
+function parallax(ctx, backgroundImage, offsetSpeed, position) {
+    var w = -position.x*offsetSpeed - backgroundImage.width ;
+    var movePositionX =  backgroundImage.width * Math.floor((w / backgroundImage.width) + 1)  - position.x;
+    var scale = canvas.width/ prevDimensions.x;
+    for (w -= movePositionX; w < canvas.width / scale - position.x*offsetSpeed - movePositionX; w += backgroundImage.width) {
+        var h = -canvas.height * scale/2-position.y*offsetSpeed - backgroundImage.height;
+        var movePositionY =  backgroundImage.height * Math.floor((h / backgroundImage.height) + 1) -  position.y;
+        for (h -= movePositionY; h < canvas.height / scale - position.y*offsetSpeed - movePositionY; h  += backgroundImage.height) {
+            ctx.drawImage(backgroundImage, w - canvas.width / scale/2,  h-canvas.height / scale/2);
         }
     }
-
 }
 
+var initScale;
 
 GameEngine.prototype.draw = function(drawCallback) {
+  
     this.ctx.clearRect(0, 0, this.ctx.canvas.width, this.ctx.canvas.height);
-    this.ctx.save();
+        this.ctx.save();
 
-    parallax(this.ctx, ASSET_MANAGER.cache[imagePaths[0]], 1/4);
-    parallax(this.ctx, ASSET_MANAGER.cache[imagePaths[1]], 1/2);
+     this.ctx.translate( (this.ctx.canvas.width/2 - this.player.position.x),  -this.player.position.y + this.ctx.canvas.height/2);
+
+
+
+    parallax(this.ctx, ASSET_MANAGER.cache[imagePaths[0]], 1/4, this.player.position);
+    parallax(this.ctx, ASSET_MANAGER.cache[imagePaths[1]], 1/2, this.player.position);
     
     for (var i = 0; i < this.entities.length; i++) {
         this.entities[i].draw(this.ctx);
@@ -354,7 +382,6 @@ GameBoard.prototype.update = function() {
 }
 
 GameBoard.prototype.draw = function(ctx) {
-    ctx.translate(screenOffsetX, screenOffsetY);
 
 }
 
@@ -377,27 +404,18 @@ function QuadTree (boundingBox) {
 // the "main" code begins here
 
 
-// The X screen offset based on characters position
-var screenOffsetX = 0;
-
-// The Y screen offset based on characters position
-var screenOffsetY = 0;
-
 // The gravity, changes the gravity when the user jumps. 
 var gravity = 0.21875;
 
-// Key pressed, may be replaced in the future.
-var jumpKeyPressed = false;
-var leftKeyPressed = false;
-var rightKeyPressed = false;
 
 
 // The groundY position. Will be replaced in the future.
 var groundY = 0;
 
 var canvas;
-
-
+var prevDimensions;
+var ctx;
+var initScale;
 // The assets
 var imagePaths = ["assets/backgroundTile.png", "assets/midground-Tile-150x150.png", "assets/Megaman8bit.jpg", "assets/enemy.jpg"];
 
@@ -409,18 +427,23 @@ for(var i = 0; i < imagePaths.length; i++) {
 ASSET_MANAGER.downloadAll(function() {
     console.log("starting up da sheild");
     canvas = document.getElementById('gameWorld');
-    var ctx = canvas.getContext('2d');
-    var gameEngine = new GameEngine();
-    canvas.width = window.innerWidth - 20;
-    canvas.height = window.innerHeight -20;
+     ctx = canvas.getContext('2d');
+    var player = new Player("assets/Megaman8bit.jpg",canvas.width/2, canvas.height/2);
+    canvas.tabIndex = 1;
+   
+    prevDimensions = new vec2(canvas.width = window.innerWidth, canvas.height = window.innerHeight);
+     
+   
+     
+    var gameEngine = new GameEngine(player);
+
     groundY = canvas.height/2;
     var gameboard = new GameBoard();
-    var player = new Player("assets/Megaman8bit.jpg",canvas.width/2, canvas.height/2);
     for (var i = 0; i < enemy.length; i++) {
 
         gameEngine.addEntity(new Unit("assets/enemy.jpg", enemy[i][0],enemy[i][1]));
     }
-    gameEngine.addEntity(new Line(0,100,200,200, player));
+        gameEngine.addEntity(new TerrainLine(new vec2(200,200+50), new vec2(200+250,200+150), player));
     
 
    //  gameEngine.addEntity(new BezierCurve(40,100,80,20,150,180,260,100));
@@ -428,46 +451,21 @@ ASSET_MANAGER.downloadAll(function() {
     gameEngine.addEntity(player);
     gameEngine.init(ctx);
     gameEngine.start();
-    contoller(canvas);
+   // gameEngine.startInput();
 
 
 });
 
 
 
+window.addEventListener('resize', function(e){
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
 
+    ctx.scale( canvas.width/ prevDimensions.x, canvas.width/ prevDimensions.x);
+  
+});
 
-
-/**
- * Will be changed later, this is a controller for the user.
- * Josef Nosov
- * @param {type} canvas
- * @returns {undefined}
- */
-function contoller(canvas) {
-    canvas.tabIndex = 1;
-    canvas.addEventListener('keydown', function(e) {
-        
-        if (e.keyCode === 37) {
-            rightKeyPressed = true;
-        } else if (e.keyCode === 39) {
-            leftKeyPressed = true;
-        }
-        if (e.keyCode === 32) {
-            jumpKeyPressed = true;
-        }
-    }, false);
-        canvas.addEventListener('keyup', function(e) {
-          if (e.keyCode === 37) {
-            rightKeyPressed = false;
-        } else if (e.keyCode === 39) {
-            leftKeyPressed = false;
-        }
-        if (e.keyCode === 32) {
-            jumpKeyPressed = false;
-        }
-    }, false);
-}
 
 
 var enemy = [
