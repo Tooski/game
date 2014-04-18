@@ -35,17 +35,19 @@ performance.now = (function () {
 
 
 // this thing is just useful for storing potential states in an object.
-function TempState(pos, vel, radius, timeDelta) {
+function TempState(pos, vel, radius, timeDelta, eventList) {
   this.pos = pos;
   this.vel = vel;
   this.radius = radius;
   this.timeDelta = timeDelta;
+  this.eventList = eventList;
 }
-function TempState(px, py, vx, vy, radius, timeDelta) { //overloaded constructor.
-  this.pos = vec2(px, py);
-  this.vel = vec2(vx, vy);
+function TempState(pos, vel, radius, timeDelta) { // overloaded constructor
+  this.pos = pos;
+  this.vel = vel;
   this.radius = radius;
   this.timeDelta = timeDelta;
+  this.eventList = [];
 }
 
 
@@ -89,6 +91,8 @@ function PlayerModel(controlParams, ballRadius, startPoint, numAirCharges, terra
   this.pos = startPoint;             //vec2 for position!
   this.vel = new vec2(0.0, 0.0);     //vec2 for velocity!
 
+  this.timeDelta = 0.0;
+
   this.surfaceOn = terrainSurface;
   // STATE FLAGS! READ THE COMMENTS BELOW BEFORE USING!
   this.airBorne = true;              // BE CAREFUL WITH THESE. IF THE PLAYER IS ON THE surface, airBorne should ALWAYS be false. 
@@ -124,7 +128,7 @@ function InputState() {
   this.jump = false;
   this.boost = false;
   this.lock = false;
-  this.lockedTo = null; // The terrain object that the player is locked to. Must extend TerrainObject.
+  this.surfaceOn = null; // The terrain object that the player is locked to. Must extend TerrainObject.
 }
 
 
@@ -151,42 +155,37 @@ PhysEng.prototype.update = function (timeDelta, eventList) { // ______timeDelta 
     this.printState(true, false, false);
   }
 
-  var state = new TempState(player.pos, player.vel, 0.0);   //creates the initial state of the TempPlayer.
-  eventList[eventList.length] = new RenderEvent(timeDelta); //Set up the last event in the array to be our render event, so that the loop completes up to the render time.
+  var state = new TempState(this.player.pos, this.player.vel, 0.0);   //creates the initial state of the TempPlayer.
+  eventList.push(new RenderEvent(timeDelta)); //Set up the last event in the array to be our render event, so that the loop completes up to the render time.
 
-  for (i = 0; i < eventList.length; i++) {
+  var timeCompleted = 0.0;
+  for (i = 0; i < eventList.length; i++) { //Handle all the events that have happened since last frame at their respective times.
     var event = eventList[i];
-    while (!eventDone) {                   //The physics step loop. Checks for collisions / lockbreaks and discovers the time they occur at. Continues stepping physics until it is caught up to "timeDelta".
-      if (player.airBorne) {               //In the air, call airStep
-        state = this.airStep(state, eventTime);
-      } else {                             //On surface, call surfaceStep 
-        state = this.surfaceStep(state, eventTime);
-      }
-    }                                 //COMPLETED TIMESTEP UP TO WHEN EVENT HAPPENED.
-
-    event.handler(this);              // LET THE EVENTS HANDLER DO WHAT IT NEEDS TO TO UPDATE THE PHYSICS STATE, AND CONTINUE ON IN TIME TO THE NEXT EVENT.
+    var newState = stepToAndProcessEvent(state, event); // Guarantees time has completed up to the event.
   }                                   // PHYSICS ARE UP TO DATE. GO AHEAD AND RENDER.
 
-  Render();                       //________ CALL THE RENDER FUNCTION HERE! ________// TODO
+  this.player.timeDelta = 0.0;
+  //Render();                       //________ CALL THE RENDER FUNCTION HERE! ________// TODO
 }
 
 
 // Returns the players new position and velocity (in a TempState object) after an airStep of this length. Does not modify values.
-PhysEng.prototype.airStep = function (state, timeDelta) { 
+PhysEng.prototype.airStep = function (state, timeGoal) { 
   var accelVec = this.accelState.getAirAccel();
   var lastVel = state.vel;
   var lastPos = state.pos;
   var curVel = lastVel.plus(accelVec.multf(timeDelta));
-  var curPos = lastPos.plus(lastVel.plus(curVel).divf(2.0)); 
-  
-  var tempState = new TempState(curPos, curVel, player.radius, timeDelta);
+  var curPos = lastPos.plus(lastVel.plus(curVel).divf(2.0));
+
+  var startTime = state.timeAt;
+  var tempState = new TempState(curPos, curVel, player.radius, timeGoal);
   var collisionData = getCollisionData(tempState);
-  if (!collisionData.collided) {  //IF WE DIDNT COLLIDE, THIS SHOULD BE GOOD?
-    this.player.vel = curVel;
-    this.player.pos = curPos;
+  var returnState;
+  if (!collisionData.collided) {  //IF WE DIDNT COLLIDE, THIS SHOULD BE GOOD? TODO CHECK TO MAKE SURE WE DIDNT MOVE MORE THAN RADIUS IN THIS STEP.
+    returnState = new TempState(curPos, curVel, player.Radius, timeGoal)
   } else {                        //HANDLE RECURSIVELY, TODO DONE?
-    var minCollisionTime = 0.0;
-    var maxCollisionTime = timeDelta;
+    var minCollisionTime = startTime;
+    var maxCollisionTime = timeGoal;
     
     var newDelta = minCollisionTime + (maxCollisionTime - minCollisionTime) / 2.0;
     var collisions = collisionData.collidedWith;
@@ -195,9 +194,8 @@ PhysEng.prototype.airStep = function (state, timeDelta) {
 
     tempState = new TempState(curPos, curVel, player.radius, newDelta);
 
-
-    for (var i = 0; i < COLLISION_PRECISION_ITERATIONS || collisions.length > 1; i++) { //If we havent narrowed it down to a single collision yet then keep going past the accuracy point.
-
+    //If we havent narrowed it down to a single collision yet then keep going past the accuracy point.
+    for (var i = 0; i < COLLISION_PRECISION_ITERATIONS || collisions.length > 1; i++) { //find collision point
       collisionData = getCollisionDataInList(tempState, collisions);
       if (!collisionData.collided) {  // NO COLLISION
         minCollisionTime = newDelta;
@@ -212,28 +210,63 @@ PhysEng.prototype.airStep = function (state, timeDelta) {
       curPos = lastPos.plus(lastVel.plus(curVel).divf(2.0));
 
       tempState = new TempState(curPos, curVel, player.radius, newDelta);
-    }
-    var thingWeCollidedWith = collisions[0];                                              //Optimize by passing directly later, storing in named var for clarities sake for now.
-
+    }   // tempstate is collision point.                                              //Optimize by passing directly later, storing in named var for clarities sake for now.
+    returnState = tempState;
+    returnState.eventList = collisions; // TODO IMPLEMENT EVENT TYPE TO BE RETURNED IN THE CASE OF A COLLISION.
     if (PHYS_DEBUG && collisions.length > 1) {                                            //DEBUG CASE CHECKING, REMOVE WHEN PHYSICS IS BUG FREE.
-      throw "collisions.length shouldnt be > 1 but is, in airStep"
+      console.log("collisions.length() shouldnt be > 1 but is, in airStep");
     }
 
-    if (thingWeCollidedWith instanceof TerrainSurface) {      //Something we should react to hitting.
-      this.handleTerrainAirCollision(tempState, thingWeCollidedWith);
-    } else if (thingWeCollidedWith instanceof Goal) {         //TODO WE BEAT THE LEVEL, REACT ETC
-      
-    } else if (thingWeCollidedWith instanceof Collectible) {  //TODO HANDLE COLLECTIBLES
-      
+  } // done with stepping
+  return returnState;
+
+}
+// Steps to the end of the event and handles any intermediate events recursively.
+PhysEng.prototype.stepToEndOfEvent = function(state, event) {
+  //while (!eventDone) {                   //The physics step loop. Checks for collisions / lockbreaks and discovers the time they occur at. Continues stepping physics until it is caught up to "timeDelta".
+  var newEvents = [];
+  if (this.player.airBorne) {               //In the air, call airStep
+    state = this.airStep(state, event.time); // TODO STATE SHOULD HAVE EVENTS NOT TerrainSurfaces.
+    for (var k = 0; k < state.eventList.length; k++) {
+      newEvents.push() = state.eventList;
+    }
+
+  } else {                             //On surface, call surfaceStep 
+    state = this.surfaceStep(state, event.time);
+    for (var k = 0; k < state.eventList.length; k++) {
+      newEvents.push() = state.eventList;
     }
   }
+
+  var newTerrainEvents = [];
+  if (newEvents.length > 0) { // WE DIDNT FINISH, A NEW EVENT HAPPENED. ALT state.timeDelta < event.time
+
+    for (var j = 0; j < newEvents.length; j++) {         //THESE SHOULD BE EVENTS THAT CONTAIN TERRAIN COLLISIONS.
+      if (newEvents[j] instanceof TerrainSurface) {      //Something we should react to hitting.
+        newTerrainEvents.push(newEvents[j]);
+      } else if (newEvents[j] instanceof Goal) {         //TODO WE BEAT THE LEVEL, REACT ETC
+
+      } else if (newEvents[j] instanceof Collectible) {  //TODO HANDLE COLLECTIBLES
+
+      }
+    }
+  } else {                           // WE DID FINISH
+
+  }
+  if (newTerrainEvents.length > 0);
+  this.handleTerrainAirCollision(tempState, newTerrainEvents[j]);
+  //}                                 //COMPLETED TIMESTEP UP TO WHEN EVENT HAPPENED.
+
+  event.handler(this);              // LET THE EVENTS HANDLER DO WHAT IT NEEDS TO TO UPDATE THE PHYSICS STATE, AND CONTINUE ON IN TIME TO THE NEXT EVENT.
+
 }
 
 
 
-
-PhysEng.prototype.surfaceStep = function (state, timeDelta) { // A step while the player is in the surface. Returns the players new position and velocity (in a TempState object) after a surfaceStep of this length. Does not modify values.
+// A step while the player is in the surface. Returns the players new position and velocity and time and any events that happened (in a TempState object) after attempting surfaceStep of this length. Does not modify values.
+PhysEng.prototype.surfaceStep = function (state, timeDelta) { 
   // ___+____+____+___ magnitude acceleration along a sloped surface = magnitude of force * sin(angle between force and surface normal)
+
   var collisionData = getCollisionData(stepState);
   
   if (!collisionData.collided) {
@@ -244,6 +277,8 @@ PhysEng.prototype.surfaceStep = function (state, timeDelta) { // A step while th
                                  // WE COLLIDED With SOMEthING NEW, HANDLE COLLISIONS RECURSIVELY OR SOMESHIT, TODO
 
   }
+
+  // REMEMBER TO UPDATE this.player.timeDelta to the state where the surfaceStep ended.
 }
 
 
@@ -279,42 +314,43 @@ PhysEng.prototype.handleTerrainAirCollision = function (ballState, thingWeCollid
     this.player.vel = surfaceVec.multf(velocityMag);
     this.player.airBorne = false;
     this.player.surfaceLocked = inputState.lock;
+    this.player.surfaceOn = thingWeCollidedWith;
   } else {                                                          // BOUNCE. TODO implement addition of normalVector * jumpVel to allow jump being held to bounce him higher?        
     this.player.vel = getReflectionVector(ballState.vel, thingWeCollidedWith.getNormalAt(ballState.pos));
     this.player.pos = ballState.pos;
     this.player.airBorne = true;
+    //this.player.surfaceOn = null;      //TODO remove. This shouldnt be necessary as should be set when a player leaves a surface.
   }
-
-
+  this.player.timeDelta = ballState.timeDelta;
 }
-  
+
   // Self explanatory. For debug purposes.
 PhysEng.prototype.printState = function (printExtraPlayerDebug, printExtraControlsDebug, printExtraPhysDebug) {
   console.log("Player: ");
-  console.log("  pos: %.2f, %.2f", player.pos.x, player.pos.y);
-  console.log("  vel: %.2f, %.2f", player.vel.x, player.vel.y);
+  console.log("  pos: %.2f, %.2f", this.player.pos.x, this.player.pos.y);
+  console.log("  vel: %.2f, %.2f", this.player.vel.x, this.player.vel.y);
   if (printExtraPlayerDebug) {
-    console.log("  airBorne:       %s", player.airBorne);
-    console.log("  surfaceLocked:   %s", player.surfaceLocked);
-    console.log("  airChargeCount: %d", player.airChargeCount);
+    console.log("  airBorne:       %s", this.player.airBorne);
+    console.log("  surfaceLocked:   %s", this.player.surfaceLocked);
+    console.log("  airChargeCount: %d", this.player.airChargeCount);
   }
   console.log("");
 
   if (printExtraControlsDebug) {
     console.log("Controls: ");
-    console.log("  gLRaccel: %.2f", ctrl.gLRaccel);
-    console.log("  aLRaccel: %.2f", ctrl.aLRaccel);
-    console.log("  aUaccel: %.2f", ctrl.aUaccel);
-    console.log("  aDaccel: %.2f", ctrl.aDaccel);
-    console.log("  gBoostLRvel: %.2f", ctrl.gBoostLRvel);
-    console.log("  aBoostLRvel: %.2f", ctrl.aBoostLRvel);
-    console.log("  boostDownVel: %.2f", ctrl.boostDownVel);
-    console.log("  jumpVel: %.2f", ctrl.jumpVel);
-    console.log("  doubleJumpVel: %.2f", ctrl.doubleJumpVel);
-    console.log("  numAirCharges: %.2f", ctrl.numAirCharges);
-    console.log("  dragBase: %.2f", ctrl.dragBase);
-    console.log("  dragTerminalVel: %.2f", ctrl.dragTerminalVel);
-    console.log("  dragExponent: %.2f", ctrl.dragExponent);
+    console.log("  gLRaccel: %.2f", this.player.controlParameters.gLRaccel);
+    console.log("  aLRaccel: %.2f", this.player.controlParameters.aLRaccel);
+    console.log("  aUaccel: %.2f", this.player.controlParameters.aUaccel);
+    console.log("  aDaccel: %.2f", this.player.controlParameters.aDaccel);
+    console.log("  gBoostLRvel: %.2f", this.player.controlParameters.gBoostLRvel);
+    console.log("  aBoostLRvel: %.2f", this.player.controlParameters.aBoostLRvel);
+    console.log("  boostDownVel: %.2f", this.player.controlParameters.boostDownVel);
+    console.log("  jumpVel: %.2f", this.player.controlParameters.jumpVel);
+    console.log("  doubleJumpVel: %.2f", this.player.controlParameters.doubleJumpVel);
+    console.log("  numAirCharges: %.2f", this.player.controlParameters.numAirCharges);
+    console.log("  dragBase: %.2f", this.player.controlParameters.dragBase);
+    console.log("  dragTerminalVel: %.2f", this.player.controlParameters.dragTerminalVel);
+    console.log("  dragExponent: %.2f", this.player.controlParameters.dragExponent);
     console.log("");
   }
 
@@ -322,7 +358,7 @@ PhysEng.prototype.printState = function (printExtraPlayerDebug, printExtraContro
   if (printExtraPhysDebug) {
 
     console.log("PhysParams: ");
-    console.log("  gravity: %.2f", phys.gravity);
+    console.log("  gravity: %.2f", this.phys.gravity);
     console.log("");
   }
   console.log("");
@@ -333,31 +369,31 @@ PhysEng.prototype.printState = function (printExtraPlayerDebug, printExtraContro
 PhysEng.prototype.printStartState = function () {
   console.log("Created PhysEng");
   console.log("Controls: ");
-  console.log("  gLRaccel: %.2f", ctrl.gLRaccel);
-  console.log("  aLRaccel: %.2f", ctrl.aLRaccel);
-  console.log("  aUaccel: %.2f", ctrl.aUaccel);
-  console.log("  aDaccel: %.2f", ctrl.aDaccel);
-  console.log("  gBoostLRvel: %.2f", ctrl.gBoostLRvel);
-  console.log("  aBoostLRvel: %.2f", ctrl.aBoostLRvel);
-  console.log("  boostDownVel: %.2f", ctrl.boostDownVel);
-  console.log("  jumpVel: %.2f", ctrl.jumpVel);
-  console.log("  doubleJumpVel: %.2f", ctrl.doubleJumpVel);
-  console.log("  numAirCharges: %.2f", ctrl.numAirCharges);
-  console.log("  dragBase: %.2f", ctrl.dragBase);
-  console.log("  dragTerminalVel: %.2f", ctrl.dragTerminalVel);
-  console.log("  dragExponent: %.2f", ctrl.dragExponent);
+  console.log("  gLRaccel: %.2f", this.player.controlParameters.gLRaccel);
+  console.log("  aLRaccel: %.2f", this.player.controlParameters.aLRaccel);
+  console.log("  aUaccel: %.2f", this.player.controlParameters.aUaccel);
+  console.log("  aDaccel: %.2f", this.player.controlParameters.aDaccel);
+  console.log("  gBoostLRvel: %.2f", this.player.controlParameters.gBoostLRvel);
+  console.log("  aBoostLRvel: %.2f", this.player.controlParameters.aBoostLRvel);
+  console.log("  boostDownVel: %.2f", this.player.controlParameters.boostDownVel);
+  console.log("  jumpVel: %.2f", this.player.controlParameters.jumpVel);
+  console.log("  doubleJumpVel: %.2f", this.player.controlParameters.doubleJumpVel);
+  console.log("  numAirCharges: %.2f", this.player.controlParameters.numAirCharges);
+  console.log("  dragBase: %.2f", this.player.controlParameters.dragBase);
+  console.log("  dragTerminalVel: %.2f", this.player.controlParameters.dragTerminalVel);
+  console.log("  dragExponent: %.2f", this.player.controlParameters.dragExponent);
   console.log("");
 
   console.log("PhysParams: ");
-  console.log("  gravity: %.2f", phys.gravity);
+  console.log("  gravity: %.2f", this.phys.gravity);
   console.log("");
 
   console.log("Player: ");
-  console.log("  radius: %.2f", player.radius);
-  console.log("  starting pos: %.2f, %.2f", player.pos.x, player, pos.y);
-  console.log("  starting vel: %.2f, %.2f", player.vel.x, player, vel.y);
-  console.log("  airBorne: %s", player.airBorne);
-  console.log("  surfaceLocked: %s", player.surfaceLocked);
+  console.log("  radius: %.2f", this.player.radius);
+  console.log("  starting pos: %.2f, %.2f", this.player.pos.x, this.player.pos.y);
+  console.log("  starting vel: %.2f, %.2f", this.player.vel.x, this.player.vel.y);
+  console.log("  airBorne: %s", this.player.airBorne);
+  console.log("  surfaceLocked: %s", this.player.surfaceLocked);
   console.log("");
   console.log("");
 }
@@ -469,3 +505,22 @@ RenderEvent.prototype.constructor = RenderEvent;
 RenderEvent.prototype.handler = function(physEng) {
   return;
 }
+
+
+
+
+
+
+
+
+
+// MAIN CODE TESTING BS HERE
+var physParams = new PhysParams(0.2);
+var controlParams = new ControlParams(0.1, 0.08, 0.04, 0.04, 2.0, 2.0, 2.0, 4.0, 3.0, 1, 0.0, 10.0, 2.0);
+var playerModel = new PlayerModel(controlParams, 0.5, new vec2(10, 10), 1, null);
+var physeng = new PhysEng(physParams, playerModel);
+physeng.update(0.001, []);
+physeng.update(0.001, []);
+physeng.update(0.001, []);
+physeng.update(0.001, []);
+physeng.update(0.001, []);
