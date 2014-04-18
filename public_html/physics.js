@@ -239,25 +239,39 @@ PhysEng.prototype.stepToEndOfEvent = function(state, event) {
   }
 
   var newTerrainEvents = [];
+  var newCollectibleEvents = [];
+  var goal = false;
+  var collectibles = false;
   if (newEvents.length > 0) { // WE DIDNT FINISH, A NEW EVENT HAPPENED. ALT state.timeDelta < event.time
 
     for (var j = 0; j < newEvents.length; j++) {         //THESE SHOULD BE EVENTS THAT CONTAIN TERRAIN COLLISIONS.
       if (newEvents[j] instanceof TerrainSurface) {      //Something we should react to hitting.
         newTerrainEvents.push(newEvents[j]);
-      } else if (newEvents[j] instanceof Goal) {         //TODO WE BEAT THE LEVEL, REACT ETC
-
-      } else if (newEvents[j] instanceof Collectible) {  //TODO HANDLE COLLECTIBLES
-
+      } else if (newEvents[j] instanceof GoalEvent) {         
+        goal = true;
+      } else if (newEvents[j] instanceof CollectibleEvent) {
+        collectibles = true;
+        newCollectibleEvents.push(newEvents[j]);
       }
     }
+
+
+    if (goal) {
+                        // TODO HANDLE GOAL
+    }  else if (collectibles) {
+                      // TODO HANDLE COLLECTIBLES
+    } else if (newTerrainEvents.length > 0) {
+      this.handleTerrainAirCollision(tempState, newTerrainEvents); // TODO REFACTOR TO PASS COLLISION OBJECT WITH ADDITIONAL DATA. SEE handleTerrainAirCollision COMMENTS FOR MORE INFO.
+    }
+
+    
   } else {                           // WE DID FINISH
 
+    event.handler(this);              // LET THE EVENTS HANDLER DO WHAT IT NEEDS TO TO UPDATE THE PHYSICS STATE, AND CONTINUE ON IN TIME TO THE NEXT EVENT.
   }
-  if (newTerrainEvents.length > 0);
-  this.handleTerrainAirCollision(tempState, newTerrainEvents[j]);
+
   //}                                 //COMPLETED TIMESTEP UP TO WHEN EVENT HAPPENED.
 
-  event.handler(this);              // LET THE EVENTS HANDLER DO WHAT IT NEEDS TO TO UPDATE THE PHYSICS STATE, AND CONTINUE ON IN TIME TO THE NEXT EVENT.
 
 }
 
@@ -282,14 +296,26 @@ PhysEng.prototype.surfaceStep = function (state, timeDelta) {
 }
 
 
-//This code handles a terrain collision 
-PhysEng.prototype.handleTerrainAirCollision = function (ballState, thingWeCollidedWith) {
+//This code handles a terrain collision. TODO REFACTOR TO TAKE A COLLISION OBJECT THAT HAS A NORMAL OF COLLISION, AND A SINGLE SURFACE THAT MAY BE LOCKED TO, IF ANY. THIS WILL COVER MULTICOLLISIONS AND CORNERS / ENDPOINT CASES.
+// RETURNS NOTHING, SIMPLY SETS STATES.
+PhysEng.prototype.handleTerrainAirCollision = function (ballState, stuffWeCollidedWith) {
   var normalBallVel = ballState.vel.normalize();
-  var angleToNormal = Math.acos(thingWeCollidedWith.getNormalAt(ballState.pos).dot(normalBallVel));
+  var angleToNormal;
+  if (stuffWeCollidedWith.length > 1) {
+    var collisionNormal = stuffWeCollidedWith[0].getNormalAt(ballState.pos);
+    for (var i = 1; i < stuffWeCollidedWith.length; i++) {
+      collisionNormal = collisionNormal.add(stuffWeCollidedWith[i]);
+    }
+    angleToNormal = Math.acos(collisionNormal.normalize().dot(normalBallVel));
+  } else {
+    angleToNormal = Math.acos(stuffWeCollidedWith[0].getNormalAt(ballState.pos).dot(normalBallVel));
+  }
+
+
   var COLLISION_GLANCING_ENOUGH_TO_AUTO_LOCK = false; //TODO do some math
   if (COLLISION_GLANCING_ENOUGH_TO_AUTO_LOCK) {
     var velocityMag = ballState.vel.length();
-    var surfaceVec = thingWeCollidedWith.getSurfaceAt(ballState.pos);
+    var surfaceVec = stuffWeCollidedWith[0].getSurfaceAt(ballState.pos);      //TODO OHGOD REFACTOR TO THIS METHOD TAKING A COLLISION OBJECT THAT STORES NORMALS AND THE SINGLE SURFACE TO LOCK TO
     var surfaceAngle = surfaceVec.dot(normalBallVel);
     var surfaceInvertAngle = surfaceVec.negate().dot(normalBallVel);
 
@@ -303,7 +329,7 @@ PhysEng.prototype.handleTerrainAirCollision = function (ballState, thingWeCollid
 
   } else if (this.inputState.lock && (angleToNormal > LOCK_MIN_ANGLE || angleToNormal < -LOCK_MIN_ANGLE)) { // ATTEMPT LOCK CASE CHECK STUFF AND THEN LOCK IF WITHIN BOUNDARIES! TODO IS THE NEGATIVE LOCK_MIN_ANGLE CHECK NEEDED!!!?
     var velocityMag = ballState.vel.length();
-    var surfaceVec = thingWeCollidedWith.getSurfaceAt(ballState.pos);
+    var surfaceVec = stuffWeCollidedWith[0].getSurfaceAt(ballState.pos); // REFACTOR TO USE NEW COLLISION OBJECT
     var surfaceAngle = surfaceVec.dot(normalBallVel);
     var surfaceInvertAngle = (surfaceVec.negate()).dot(normalBallVel);
 
@@ -314,9 +340,9 @@ PhysEng.prototype.handleTerrainAirCollision = function (ballState, thingWeCollid
     this.player.vel = surfaceVec.multf(velocityMag);
     this.player.airBorne = false;
     this.player.surfaceLocked = inputState.lock;
-    this.player.surfaceOn = thingWeCollidedWith;
+    this.player.surfaceOn = stuffWeCollidedWith[0]; // TODO REFACTOR TO USE NEW COLLISION OBJECT
   } else {                                                          // BOUNCE. TODO implement addition of normalVector * jumpVel to allow jump being held to bounce him higher?        
-    this.player.vel = getReflectionVector(ballState.vel, thingWeCollidedWith.getNormalAt(ballState.pos));
+    this.player.vel = getReflectionVector(ballState.vel, stuffWeCollidedWith[0].getNormalAt(ballState.pos)); //TODO REFACTOR TO USE NEW COLLISION OBJECT
     this.player.pos = ballState.pos;
     this.player.airBorne = true;
     //this.player.surfaceOn = null;      //TODO remove. This shouldnt be necessary as should be set when a player leaves a surface.
@@ -495,6 +521,34 @@ InputEvent.prototype.handler = function(physEng) {          //THIS CODE HANDLES 
 
 
 
+// Event class for the Collectible Event when the player runs into a collectible. 
+function CollectibleEvent(eventTime) {
+  Event.apply(this, [eventTime])
+}
+
+CollectibleEvent.prototype = new Event();
+CollectibleEvent.prototype.constructor = CollectibleEvent;
+CollectibleEvent.prototype.handler = function (physEng) {
+  return;
+}
+
+
+
+
+// Event class for the Goal Event. TODO IMPLEMENT, NEEDS TO STORE WHICH GOAL AND ANY OTHER RELEVENT VICTORY INFORMATION.
+function GoalEvent(eventTime) { // eventTime is deltaTime since last frame.
+  Event.apply(this, [eventTime])
+}
+
+GoalEvent.prototype = new Event();
+GoalEvent.prototype.constructor = GoalEvent;
+GoalEvent.prototype.handler = function (physEng) {
+  return;
+}
+
+
+
+
 // Event class for the render event. One of these should be the last event in the eventList array passed to update. NOT STORED IN REPLAYS.
 function RenderEvent(eventTime) { // eventTime should be deltaTime since last frame, the time the physics engine should complete up to before rendering.
   Event.apply(this, [eventTime])
@@ -502,7 +556,7 @@ function RenderEvent(eventTime) { // eventTime should be deltaTime since last fr
 
 RenderEvent.prototype = new Event();
 RenderEvent.prototype.constructor = RenderEvent;
-RenderEvent.prototype.handler = function(physEng) {
+RenderEvent.prototype.handler = function (physEng) {
   return;
 }
 
@@ -515,12 +569,12 @@ RenderEvent.prototype.handler = function(physEng) {
 
 
 // MAIN CODE TESTING BS HERE
-var physParams = new PhysParams(0.2);
-var controlParams = new ControlParams(0.1, 0.08, 0.04, 0.04, 2.0, 2.0, 2.0, 4.0, 3.0, 1, 0.0, 10.0, 2.0);
-var playerModel = new PlayerModel(controlParams, 0.5, new vec2(10, 10), 1, null);
-var physeng = new PhysEng(physParams, playerModel);
-physeng.update(0.001, []);
-physeng.update(0.001, []);
-physeng.update(0.001, []);
-physeng.update(0.001, []);
-physeng.update(0.001, []);
+//var physParams = new PhysParams(0.2);
+//var controlParams = new ControlParams(0.1, 0.08, 0.04, 0.04, 2.0, 2.0, 2.0, 4.0, 3.0, 1, 0.0, 10.0, 2.0);
+//var playerModel = new PlayerModel(controlParams, 0.5, new vec2(10, 10), 1, null);
+//var physeng = new PhysEng(physParams, playerModel);
+//physeng.update(0.001, []);
+//physeng.update(0.001, []);
+//physeng.update(0.001, []);
+//physeng.update(0.001, []);
+//physeng.update(0.001, []);
