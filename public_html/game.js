@@ -308,23 +308,25 @@ GameEngine.prototype.addEntity = function(entity) {
 function parallax(ctx, backgroundImage, offsetSpeed, position) {
     var w = -position.x*offsetSpeed - backgroundImage.width ;
     var movePositionX =  backgroundImage.width * Math.floor((w / backgroundImage.width) + 1)  - position.x;
-
-    for (w -= movePositionX; w < canvas.width - position.x*offsetSpeed - movePositionX; w += backgroundImage.width) {
-        var h = -canvas.height/2-position.y*offsetSpeed - backgroundImage.height;
+    var scale = canvas.width/ prevDimensions.x;
+    for (w -= movePositionX; w < canvas.width / scale - position.x*offsetSpeed - movePositionX; w += backgroundImage.width) {
+        var h = -canvas.height * scale/2-position.y*offsetSpeed - backgroundImage.height;
         var movePositionY =  backgroundImage.height * Math.floor((h / backgroundImage.height) + 1) -  position.y;
-        for (h -= movePositionY; h < canvas.height - position.y*offsetSpeed - movePositionY; h  += backgroundImage.height) {
-            ctx.drawImage(backgroundImage, w - canvas.width/2,  h-canvas.height/2);
+        for (h -= movePositionY; h < canvas.height / scale - position.y*offsetSpeed - movePositionY; h  += backgroundImage.height) {
+            ctx.drawImage(backgroundImage, w - canvas.width / scale/2,  h-canvas.height / scale/2);
         }
     }
 }
 
-
+var initScale;
 
 GameEngine.prototype.draw = function(drawCallback) {
+  
     this.ctx.clearRect(0, 0, this.ctx.canvas.width, this.ctx.canvas.height);
         this.ctx.save();
 
-     this.ctx.translate(-this.player.position.x + this.ctx.canvas.width / 2, -this.player.position.y + this.ctx.canvas.height / 2);
+     this.ctx.translate( (this.ctx.canvas.width/2 - this.player.position.x),  -this.player.position.y + this.ctx.canvas.height/2);
+
 
 
     parallax(this.ctx, ASSET_MANAGER.cache[imagePaths[0]], 1/4, this.player.position);
@@ -411,8 +413,9 @@ var gravity = 0.21875;
 var groundY = 0;
 
 var canvas;
-
-
+var prevDimensions;
+var ctx;
+var initScale;
 // The assets
 var imagePaths = ["assets/backgroundTile.png", "assets/midground-Tile-150x150.png", "assets/Megaman8bit.jpg", "assets/enemy.jpg"];
 
@@ -424,13 +427,16 @@ for(var i = 0; i < imagePaths.length; i++) {
 ASSET_MANAGER.downloadAll(function() {
     console.log("starting up da sheild");
     canvas = document.getElementById('gameWorld');
-    var ctx = canvas.getContext('2d');
-        var player = new Player("assets/Megaman8bit.jpg",canvas.width/2, canvas.height/2);
+     ctx = canvas.getContext('2d');
+    var player = new Player("assets/Megaman8bit.jpg",canvas.width/2, canvas.height/2);
     canvas.tabIndex = 1;
-
+   
+    prevDimensions = new vec2(canvas.width = window.innerWidth, canvas.height = window.innerHeight);
+     
+   
+     
     var gameEngine = new GameEngine(player);
-    canvas.width = window.innerWidth - 20;
-    canvas.height = window.innerHeight -20;
+
     groundY = canvas.height/2;
     var gameboard = new GameBoard();
     for (var i = 0; i < enemy.length; i++) {
@@ -451,6 +457,14 @@ ASSET_MANAGER.downloadAll(function() {
 });
 
 
+
+window.addEventListener('resize', function(e){
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+
+    ctx.scale( canvas.width/ prevDimensions.x, canvas.width/ prevDimensions.x);
+  
+});
 
 
 
