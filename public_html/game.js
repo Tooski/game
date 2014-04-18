@@ -205,31 +205,31 @@ GameEngine.prototype.startInput = function() {
         else {
             if (e.keyCode === leftKey){
                 leftPressed = true; //Left
-           //     leftTime = Performance.now();
+                leftTime = performance.now();
             }
             if (e.keyCode === upKey){
                 upPressed = true; //Up
-            //    upTime = Performance.now();
+                upTime = performance.now();
             }
             if (e.keyCode === rightKey){
                 rightPressed = true; //Right
-             //   rightTime = Performance.now();
+                rightTime = performance.now();
             }
             if (e.keyCode === downKey){
                 downPressed = true; //Down
-             //   downTime = Performance.now();
+                downTime = performance.now();
             }
             if (e.keyCode === jumpKey){
                 jumpPressed = true; //Jump
-            //    jumpTime = Performance.now();
+                jumpTime = performance.now();
             }
             if (e.keyCode === boostKey){
                 boostPressed = true; //Boost
-             //   boostTime = Performance.now();
+                boostTime = performance.now();
             }
             if (e.keyCode === lockKey){
                 lockPressed =  true; //Lock
-             //   lockTime = Performance.now();
+                lockTime = performance.now();
             }
         }
         e.preventDefault();
@@ -238,33 +238,32 @@ GameEngine.prototype.startInput = function() {
     this.ctx.canvas.addEventListener("keyup", function (e) {
         if (e.keyCode === leftKey){
             leftPressed = false; //Left
-         //   leftTime = Performance.now();
+            leftTime = performance.now();
         }
         if (e.keyCode === upKey){
             upPressed = false; //Up
-         //   upTime = Performance.now();
+            upTime = performance.now();
         }
         if (e.keyCode === rightKey){
             rightPressed = false; //Right
             //    console.log('Input started');
-
-         //   rightTime = Performance.now();
+            rightTime = performance.now();
         }
         if (e.keyCode === downKey){
             downPressed = false; //Down
-         //   downTime = Performance.now();
+            downTime = performance.now();
         }
         if (e.keyCode === jumpKey){
             jumpPressed = false; //Jump
-         //   jumpTime = Performance.now();
+            jumpTime = performance.now();
         }
         if (e.keyCode === boostKey){
             boostPressed = false; //Boost
-         //   boostTime = Performance.now();
+            boostTime = performance.now();
         }
         if (e.keyCode === lockKey){
             lockPressed =  false; //Lock
-         //   lockTime = Performance.now();
+            lockTime = performance.now();
         }
         e.preventDefault();
     }, false);
