@@ -165,7 +165,7 @@ GameEngine.prototype.startInput = function() {
     }, false);
 
     this.ctx.canvas.addEventListener("keydown", function (e) {
-        if (!editKeys) {
+        if (editKeys) {
             if (keyVal = "LEFT"){
                 leftKey = e.keyCode;
                 keyVal = null;
