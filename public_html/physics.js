@@ -105,17 +105,17 @@ function PlayerModel(controlParams, ballRadius, startPoint, numAirCharges, terra
 
 // The acceleration vector state. Stores the component vectors and resulting vector in order to efficiently return the current acceleration in the air or on the surface without uneccessary calculations.
 function AccelState(physEng) { 
-  this.surfaceAccel = vec2(0.0, 0.0);
-  this.airAccel = vec2(0.0, 0.0);
+  this.surfaceAccel = new vec2(0.0, 0.0);
+  this.airAccel = new vec2(0.0, 0.0);
   this.physEng = physEng;
   
-  this.getAirAccel = function() {return airAccel}
-  this.getsurfaceAccel = function() {return surfaceAccel}
 
   this.updateStates = function (inputState) {  // TODO
     
   }
 }
+AccelState.prototype.getAirAccel = function () { return this.airAccel }
+AccelState.prototype.getSurfaceAccel = function () { return this.surfaceAccel }
 
 
 
@@ -155,13 +155,13 @@ PhysEng.prototype.update = function (timeDelta, eventList) { // ______timeDelta 
     this.printState(true, false, false);
   }
 
-  var state = new TempState(this.player.pos, this.player.vel, 0.0);   //creates the initial state of the TempPlayer.
+  var state = new TempState(this.player.pos, this.player.vel, 0.0, 0.0);   //creates the initial state of the TempPlayer.
   eventList.push(new RenderEvent(timeDelta)); //Set up the last event in the array to be our render event, so that the loop completes up to the render time.
 
   var timeCompleted = 0.0;
   for (i = 0; i < eventList.length; i++) { //Handle all the events that have happened since last frame at their respective times.
     var event = eventList[i];
-    var newState = stepToAndProcessEvent(state, event); // Guarantees time has completed up to the event.
+    var state = this.stepToEndOfEvent(state, event); // Guarantees time has completed up to the event and the event has been handled.
   }                                   // PHYSICS ARE UP TO DATE. GO AHEAD AND RENDER.
 
   this.player.timeDelta = 0.0;
@@ -169,28 +169,93 @@ PhysEng.prototype.update = function (timeDelta, eventList) { // ______timeDelta 
 }
 
 
+
+
+// Steps to the end of the event and handles any intermediate events recursively.
+PhysEng.prototype.stepToEndOfEvent = function (state, event) {
+  //while (!eventDone) {                   //The physics step loop. Checks for collisions / lockbreaks and discovers the time they occur at. Continues stepping physics until it is caught up to "timeDelta".
+  console.log("START stepToEndOfEvent");
+  var newEvents = [];
+  if (this.player.airBorne) {               //In the air, call airStep
+    console.log("player airborne");
+    state = this.airStep(state, event.time); // TODO STATE SHOULD HAVE EVENTS NOT TerrainSurfaces.
+    for (var k = 0; k < state.eventList.length; k++) {
+      newEvents.push(state.eventList[k]); 
+    }
+
+  } else {                             //On surface, call surfaceStep 
+    console.log("player NOT airborne");
+    state = this.surfaceStep(state, event.time);
+    for (var k = 0; k < state.eventList.length; k++) {
+      newEvents.push(state.eventList[k]);
+    }
+  }
+
+  var newTerrainEvents = [];
+  var newCollectibleEvents = [];
+  var goal = false;
+  var collectibles = false;
+  if (newEvents.length > 0) { // WE DIDNT FINISH, A NEW EVENT HAPPENED. ALT state.timeDelta < event.time
+    console.log("newEvents.length > 0");
+    for (var j = 0; j < newEvents.length; j++) {         //THESE SHOULD BE EVENTS THAT CONTAIN TERRAIN COLLISIONS.
+      if (newEvents[j] instanceof TerrainSurface) {      //Something we should react to hitting.
+        newTerrainEvents.push(newEvents[j]);
+      } else if (newEvents[j] instanceof GoalEvent) {
+        goal = true;
+      } else if (newEvents[j] instanceof CollectibleEvent) {
+        collectibles = true;
+        newCollectibleEvents.push(newEvents[j]);
+      }
+    }
+
+
+    if (goal) {
+      // TODO HANDLE GOAL
+      return;
+    } else if (collectibles) {
+      // TODO HANDLE COLLECTIBLES
+    } else if (newTerrainEvents.length > 0) {
+      console.log("newTerrainEvents.length > 0");
+      this.handleTerrainAirCollision(tempState, newTerrainEvents); // TODO REFACTOR TO PASS COLLISION OBJECT WITH ADDITIONAL DATA. SEE handleTerrainAirCollision COMMENTS FOR MORE INFO.
+    }
+    var tempState = new TempState(this.player.pos, this.player.vel, this.player.radius, this.player.timeDelta);
+    this.stepToEndOfEvent(tempState, event);
+  } else {                           // WE DID FINISH
+
+    event.handler(this);              // LET THE EVENTS HANDLER DO WHAT IT NEEDS TO TO UPDATE THE PHYSICS STATE, AND CONTINUE ON IN TIME TO THE NEXT EVENT.
+  }
+
+  //}                                 //COMPLETED TIMESTEP UP TO WHEN EVENT HAPPENED.
+
+
+}
+
+
 // Returns the players new position and velocity (in a TempState object) after an airStep of this length. Does not modify values.
-PhysEng.prototype.airStep = function (state, timeGoal) { 
+PhysEng.prototype.airStep = function (state, timeGoal) {
+  var startTime = state.timeDelta;
+  console.log("timeGoal: %3.3, startTime: %3.3", timeGoal, startTime);
   var accelVec = this.accelState.getAirAccel();
   var lastVel = state.vel;
   var lastPos = state.pos;
-  var curVel = lastVel.plus(accelVec.multf(timeDelta));
-  var curPos = lastPos.plus(lastVel.plus(curVel).divf(2.0));
+  var multed = accelVec.multf(timeGoal - startTime);
+  console.log("lastVel: ", lastVel);
+  var curVel = lastVel.add(multed);
+  var curPos = lastPos.add(lastVel.add(curVel).divf(2.0));
 
-  var startTime = state.timeAt;
-  var tempState = new TempState(curPos, curVel, player.radius, timeGoal);
+  var tempState = new TempState(curPos, curVel, this.player.radius, timeGoal);
   var collisionData = getCollisionData(tempState);
   var returnState;
   if (!collisionData.collided) {  //IF WE DIDNT COLLIDE, THIS SHOULD BE GOOD? TODO CHECK TO MAKE SURE WE DIDNT MOVE MORE THAN RADIUS IN THIS STEP.
-    returnState = new TempState(curPos, curVel, player.Radius, timeGoal)
+    returnState = new TempState(curPos, curVel, this.player.Radius, timeGoal)
   } else {                        //HANDLE RECURSIVELY, TODO DONE?
     var minCollisionTime = startTime;
     var maxCollisionTime = timeGoal;
     
     var newDelta = minCollisionTime + (maxCollisionTime - minCollisionTime) / 2.0;
     var collisions = collisionData.collidedWith;
-    curVel = lastVel.plus(accelVec.multf(newDelta));
-    curPos = lastPos.plus(lastVel.plus(curVel).divf(2.0));
+    curVel = lastVel.add(accelVec.multf(newDelta));
+    curPos = lastPos.add(lastVel.add(curVel).divf(2.0));
 
     tempState = new TempState(curPos, curVel, player.radius, newDelta);
 
@@ -206,8 +271,8 @@ PhysEng.prototype.airStep = function (state, timeGoal) {
 
       newDelta = minCollisionTime + (maxCollisionTime - minCollisionTime) / 2.0;
 
-      curVel = lastVel.plus(accelVec.multf(newDelta));
-      curPos = lastPos.plus(lastVel.plus(curVel).divf(2.0));
+      curVel = lastVel.add(accelVec.multf(newDelta));
+      curPos = lastPos.add(lastVel.add(curVel).divf(2.0));
 
       tempState = new TempState(curPos, curVel, player.radius, newDelta);
     }   // tempstate is collision point.                                              //Optimize by passing directly later, storing in named var for clarities sake for now.
@@ -219,59 +284,6 @@ PhysEng.prototype.airStep = function (state, timeGoal) {
 
   } // done with stepping
   return returnState;
-
-}
-// Steps to the end of the event and handles any intermediate events recursively.
-PhysEng.prototype.stepToEndOfEvent = function(state, event) {
-  //while (!eventDone) {                   //The physics step loop. Checks for collisions / lockbreaks and discovers the time they occur at. Continues stepping physics until it is caught up to "timeDelta".
-  var newEvents = [];
-  if (this.player.airBorne) {               //In the air, call airStep
-    state = this.airStep(state, event.time); // TODO STATE SHOULD HAVE EVENTS NOT TerrainSurfaces.
-    for (var k = 0; k < state.eventList.length; k++) {
-      newEvents.push() = state.eventList;
-    }
-
-  } else {                             //On surface, call surfaceStep 
-    state = this.surfaceStep(state, event.time);
-    for (var k = 0; k < state.eventList.length; k++) {
-      newEvents.push() = state.eventList;
-    }
-  }
-
-  var newTerrainEvents = [];
-  var newCollectibleEvents = [];
-  var goal = false;
-  var collectibles = false;
-  if (newEvents.length > 0) { // WE DIDNT FINISH, A NEW EVENT HAPPENED. ALT state.timeDelta < event.time
-
-    for (var j = 0; j < newEvents.length; j++) {         //THESE SHOULD BE EVENTS THAT CONTAIN TERRAIN COLLISIONS.
-      if (newEvents[j] instanceof TerrainSurface) {      //Something we should react to hitting.
-        newTerrainEvents.push(newEvents[j]);
-      } else if (newEvents[j] instanceof GoalEvent) {         
-        goal = true;
-      } else if (newEvents[j] instanceof CollectibleEvent) {
-        collectibles = true;
-        newCollectibleEvents.push(newEvents[j]);
-      }
-    }
-
-
-    if (goal) {
-                        // TODO HANDLE GOAL
-    }  else if (collectibles) {
-                      // TODO HANDLE COLLECTIBLES
-    } else if (newTerrainEvents.length > 0) {
-      this.handleTerrainAirCollision(tempState, newTerrainEvents); // TODO REFACTOR TO PASS COLLISION OBJECT WITH ADDITIONAL DATA. SEE handleTerrainAirCollision COMMENTS FOR MORE INFO.
-    }
-
-    
-  } else {                           // WE DID FINISH
-
-    event.handler(this);              // LET THE EVENTS HANDLER DO WHAT IT NEEDS TO TO UPDATE THE PHYSICS STATE, AND CONTINUE ON IN TIME TO THE NEXT EVENT.
-  }
-
-  //}                                 //COMPLETED TIMESTEP UP TO WHEN EVENT HAPPENED.
-
 
 }
 
@@ -299,6 +311,7 @@ PhysEng.prototype.surfaceStep = function (state, timeDelta) {
 //This code handles a terrain collision. TODO REFACTOR TO TAKE A COLLISION OBJECT THAT HAS A NORMAL OF COLLISION, AND A SINGLE SURFACE THAT MAY BE LOCKED TO, IF ANY. THIS WILL COVER MULTICOLLISIONS AND CORNERS / ENDPOINT CASES.
 // RETURNS NOTHING, SIMPLY SETS STATES.
 PhysEng.prototype.handleTerrainAirCollision = function (ballState, stuffWeCollidedWith) {
+  console.log("START handleTerrainAirCollision");
   var normalBallVel = ballState.vel.normalize();
   var angleToNormal;
   if (stuffWeCollidedWith.length > 1) {

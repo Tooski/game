@@ -21,11 +21,12 @@ vec2.prototype.add = function(v)  // add vectors, this + v
 vec2.prototype.subtract = function(v)  // subtract vectors, this - v 
 { return new vec2( this.x - v.x, this.y - v.y ); }
 
-vec2.prototype.multf = function(f)  // multiply vector by float, this * s           
-{ return new vec2( f*this.x, f*this.y ); }
 
 vec2.prototype.multv = function (v) // multiply vectors, this * v
 { return new vec2( this.x*v.x, this.y*v.y ); }
+
+vec2.prototype.multf = function (f)  // multiply vector by float, this * s           
+{ return new vec2(f * this.x, f * this.y); }
 
 vec2.prototype.divf = function (f) // divide vector by float, this / s
 { return this.multf(1.0 / f); }
@@ -59,3 +60,6 @@ function projectVec2(a, b) {
 vec2.prototype.toString = function () {
   return "X: " + this.x + ", Y: " + this.y;
 }
+
+
+console.log("vec2(2.0, 1.0).multf(3.0), %2.2f, %2.2f", (new vec2(2.0, 1.0).multf(3.0)).x, (new vec2(2.0, 1.0).multf(3.0)).y);
