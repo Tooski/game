@@ -51,24 +51,8 @@ TerrainLine.prototype.collidesWith = function (point, radius ,ctx) { // OVERRIDE
   var vCD = pC.subtract(pD);       // find the vector from ball to the perpendicular intersection.
   
   
+ 
   
-        var context = ctx;
-      var centerX = point.x ;
-      var centerY = point.y  ;
-      context.beginPath();
-      context.arc(centerX  , centerY , radius, 0, 2 * Math.PI, false);
-
-
-    ctx.moveTo(point.x  , point.y );
-    ctx.lineTo(pB.x , pB.y );
-    
-    ctx.moveTo(point.x  , point.y );
-    ctx.lineTo(pA.x , pA.y );
-    
-    ctx.moveTo(point.x  , point.y );
-    ctx.lineTo(pD.x  , pD .y  );
-
-    ctx.stroke();
 
 
   
@@ -84,6 +68,29 @@ TerrainLine.prototype.collidesWith = function (point, radius ,ctx) { // OVERRIDE
   } else {
     // No collision, unless we're missing a case in which case add additional detection here.
   }
+  
+     if(ctx) {
+        
+        ctx.strokeStyle = collision ? "Red" : "Black";
+        
+      var centerX = point.x ;
+      var centerY = point.y  ;
+      ctx.beginPath();
+      ctx.arc(centerX  , centerY , radius, 0, 2 * Math.PI, false);
+
+
+    ctx.moveTo(point.x  , point.y );
+    ctx.lineTo(pB.x , pB.y );
+    
+    ctx.moveTo(point.x  , point.y );
+    ctx.lineTo(pA.x , pA.y );
+    
+    ctx.moveTo(point.x  , point.y );
+    ctx.lineTo(pD.x  , pD .y  );
+
+    ctx.stroke();
+  }
+  
   return collision;
 }
 
@@ -91,7 +98,8 @@ TerrainLine.prototype.collidesWith = function (point, radius ,ctx) { // OVERRIDE
 
 
 TerrainLine.prototype.draw = function(ctx) {
-    
+        ctx.lineWidth=10;
+
     ctx.moveTo(this.p0.x  , this.p0.y  );
     ctx.lineTo(this.p1.x  , this.p1.y  );
     ctx.stroke();

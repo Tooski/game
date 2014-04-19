@@ -110,6 +110,16 @@ Player.prototype.draw = function(ctx) {
     if(!this.collisionRadius)
         this.collisionRadius = this.width > this.height ? this.width/2 : this.height/2;
     ctx.drawImage(image, this.position.x - this.width/2,  this.position.y -this.height/2, this.width, this.height);
+    
+        
+    /// We are basing all units from the player. So we need to make sure the player takes up only
+    // 1/16th of the screen and scale everything accordingly.
+    if(initScale === 0) {
+        initScale = initWidth / 16 / this.width;
+    }
+    
+    
+    
 //    
 //    if(debugMode === true) {
 //        ctx.beginPath();

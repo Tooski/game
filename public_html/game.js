@@ -303,6 +303,7 @@ GameEngine.prototype.addEntity = function(entity) {
     this.entities.push(entity);
 }
 
+
 /**
  * The parallax allows background to move with the user. This is being updated
  * once a frame.
@@ -317,7 +318,9 @@ GameEngine.prototype.addEntity = function(entity) {
 function parallax(ctx, backgroundImage, offsetSpeed, position) {
     var w = -position.x*offsetSpeed - backgroundImage.width ;
     var movePositionX =  backgroundImage.width * Math.floor((w / backgroundImage.width) + 1)  - position.x;
-    var scale = canvas.width/ prevDimensions.x;
+   
+   
+    var scale =  canvas.width/ initWidth * (initScale !== 0 ? initScale : 1) ;
     for (w -= movePositionX; w < canvas.width / scale - position.x*offsetSpeed - movePositionX; w += backgroundImage.width) {
         var h = -canvas.height * scale/2-position.y*offsetSpeed - backgroundImage.height;
         var movePositionY =  backgroundImage.height * Math.floor((h / backgroundImage.height) + 1) -  position.y;
@@ -327,14 +330,28 @@ function parallax(ctx, backgroundImage, offsetSpeed, position) {
     }
 }
 
-var initScale;
 
 GameEngine.prototype.draw = function(drawCallback) {
   
     this.ctx.clearRect(0, 0, this.ctx.canvas.width, this.ctx.canvas.height);
-        this.ctx.save();
+    this.ctx.save();
 
-     this.ctx.translate( (this.ctx.canvas.width/2 - this.player.position.x),  -this.player.position.y + this.ctx.canvas.height/2);
+    if(initScale !== 0) {
+    
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        // initScale is the window's width / 16 / player width. this should allow everything to scale down
+        // the player will be 1/16 the width of the window at all times and everything will scale with him.
+        ctx.scale(initScale * canvas.width / initWidth, initScale * canvas.width / initWidth);
+  
+  
+        // Adjusts the canvas' move position as well as the post scaling.
+        this.ctx.translate(
+        (initWidth/this.ctx.canvas.width) * this.ctx.canvas.width / initScale / 2 - this.player.position.x,  
+        (initWidth/this.ctx.canvas.width) * this.ctx.canvas.height / initScale / 2 - this.player.position.y);
+        parallax(this.ctx, ASSET_MANAGER.cache[imagePaths[0]], 1/4, this.player.position);
+        parallax(this.ctx, ASSET_MANAGER.cache[imagePaths[1]], 1/2, this.player.position);
+    }
 
 
 
@@ -422,9 +439,9 @@ var gravity = 0.21875;
 var groundY = 0;
 
 var canvas;
-var prevDimensions;
+var initWidth;
 var ctx;
-var initScale;
+var initScale = 0;
 // The assets
 var imagePaths = ["assets/backgroundTile.png", "assets/midground-Tile-150x150.png", "assets/Megaman8bit.jpg", "assets/enemy.jpg"];
 
@@ -440,8 +457,9 @@ ASSET_MANAGER.downloadAll(function() {
     var player = new Player("assets/Megaman8bit.jpg",canvas.width/2, canvas.height/2);
     canvas.tabIndex = 1;
    
-    prevDimensions = new vec2(canvas.width = window.innerWidth, canvas.height = window.innerHeight);
-     
+    canvas.height = window.innerHeight;
+    initWidth = canvas.width = window.innerWidth;
+
    
      
     var gameEngine = new GameEngine(player);
@@ -466,14 +484,6 @@ ASSET_MANAGER.downloadAll(function() {
 });
 
 
-
-window.addEventListener('resize', function(e){
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
-
-    ctx.scale( canvas.width/ prevDimensions.x, canvas.width/ prevDimensions.x);
-  
-});
 
 
 
