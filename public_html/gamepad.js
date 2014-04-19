@@ -53,7 +53,7 @@ var gamepadSupport = {
     if (!gamepadSupportAvailable) {
       // It doesn’t seem Gamepad API is available – show a message telling
       // the visitor about it.
-      tester.showNotSupported();
+      console.log("Gamepad not supported");
     } else {
       // Check and see if gamepadconnected/gamepaddisconnected is supported.
       // If so, listen for those events and don't start polling until a gamepad
@@ -77,9 +77,6 @@ var gamepadSupport = {
     // Add the new gamepad on the list of gamepads to look after.
     gamepadSupport.gamepads.push(event.gamepad);
 
-    // Ask the tester to update the screen to show more gamepads.
-    tester.updateGamepads(gamepadSupport.gamepads);
-
     // Start the polling loop to monitor button changes.
     gamepadSupport.startPolling();
   },
@@ -100,9 +97,6 @@ var gamepadSupport = {
     if (gamepadSupport.gamepads.length == 0) {
       gamepadSupport.stopPolling();
     }
-
-    // Ask the tester to update the screen to remove the gamepad.
-    tester.updateGamepads(gamepadSupport.gamepads);
   },
 
   /**
@@ -212,73 +206,8 @@ var gamepadSupport = {
           gamepadSupport.gamepads.push(rawGamepads[i]);
         }
       }
-
-      // Ask the tester to refresh the visual representations of gamepads
-      // on the screen.
-      if (gamepadsChanged) {
-        tester.updateGamepads(gamepadSupport.gamepads);
-      }
     }
   },
-
-  // Call the tester with new state and ask it to update the visual
-  // representation of a given gamepad.
-  updateDisplay: function(gamepadId) {
-    var gamepad = gamepadSupport.gamepads[gamepadId];
-
-    // Update all the buttons (and their corresponding labels) on screen.
-    tester.updateButton(gamepad.buttons[0], gamepadId, 'button-1');
-    tester.updateButton(gamepad.buttons[1], gamepadId, 'button-2');
-    tester.updateButton(gamepad.buttons[2], gamepadId, 'button-3');
-    tester.updateButton(gamepad.buttons[3], gamepadId, 'button-4');
-
-    tester.updateButton(gamepad.buttons[4], gamepadId,
-        'button-left-shoulder-top');
-    tester.updateButton(gamepad.buttons[6], gamepadId,
-        'button-left-shoulder-bottom');
-    tester.updateButton(gamepad.buttons[5], gamepadId,
-        'button-right-shoulder-top');
-    tester.updateButton(gamepad.buttons[7], gamepadId,
-        'button-right-shoulder-bottom');
-
-    tester.updateButton(gamepad.buttons[8], gamepadId, 'button-select');
-    tester.updateButton(gamepad.buttons[9], gamepadId, 'button-start');
-
-    tester.updateButton(gamepad.buttons[10], gamepadId, 'stick-1');
-    tester.updateButton(gamepad.buttons[11], gamepadId, 'stick-2');
-
-    tester.updateButton(gamepad.buttons[12], gamepadId, 'button-dpad-top');
-    tester.updateButton(gamepad.buttons[13], gamepadId, 'button-dpad-bottom');
-    tester.updateButton(gamepad.buttons[14], gamepadId, 'button-dpad-left');
-    tester.updateButton(gamepad.buttons[15], gamepadId, 'button-dpad-right');
-
-    // Update all the analogue sticks.
-    tester.updateAxis(gamepad.axes[0], gamepadId,
-        'stick-1-axis-x', 'stick-1', true);
-    tester.updateAxis(gamepad.axes[1], gamepadId,
-        'stick-1-axis-y', 'stick-1', false);
-    tester.updateAxis(gamepad.axes[2], gamepadId,
-        'stick-2-axis-x', 'stick-2', true);
-    tester.updateAxis(gamepad.axes[3], gamepadId,
-        'stick-2-axis-y', 'stick-2', false);
-
-    // Update extraneous buttons.
-    var extraButtonId = gamepadSupport.TYPICAL_BUTTON_COUNT;
-    while (typeof gamepad.buttons[extraButtonId] != 'undefined') {
-      tester.updateButton(gamepad.buttons[extraButtonId], gamepadId,
-          'extra-button-' + extraButtonId);
-
-      extraButtonId++;
-    }
-
-    // Update extraneous axes.
-    var extraAxisId = gamepadSupport.TYPICAL_AXIS_COUNT;
-    while (typeof gamepad.axes[extraAxisId] != 'undefined') {
-      tester.updateAxis(gamepad.axes[extraAxisId], gamepadId,
-          'extra-axis-' + extraAxisId);
-
-      extraAxisId++;
-    }
 
   }
 };
