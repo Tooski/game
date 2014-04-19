@@ -98,7 +98,7 @@ TerrainLine.prototype.collidesWith = function (point, radius ,ctx) { // OVERRIDE
 
 
 TerrainLine.prototype.draw = function(ctx) {
-        ctx.lineWidth=10;
+        ctx.lineWidth=5;
 
     ctx.moveTo(this.p0.x  , this.p0.y  );
     ctx.lineTo(this.p1.x  , this.p1.y  );
