@@ -75,6 +75,7 @@ GameEngine.prototype.init = function(ctx) {
     this.surfaceHeight = this.ctx.canvas.height;
     this.startInput();
 
+	gamepadSupport.init(); //Initialize gamepad support
     console.log('game initialized');
 }
 
