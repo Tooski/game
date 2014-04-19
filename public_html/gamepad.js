@@ -209,5 +209,32 @@ var gamepadSupport = {
     }
   },
 
-  
+  // Call game.js with new state and ask it to update the screen
+  updateDisplay: function(gamepadId) {
+    var gamepad = gamepadSupport.gamepads[gamepadId];
+	if (gamepad.buttons[13].pressed === true) {
+        game.setDown(true,performance.now())
+		console.log("Down");
+    } else if (gamepad.buttons[15].pressed === true) {
+        game.setRight(true,performance.now())
+		console.log("Right");
+    } else if (gamepad.buttons[14].pressed === true) {
+        game.setLeft(true,performance.now())
+		console.log("Left");
+    } else if (gamepad.buttons[12].pressed === true) {
+        game.setUp(true,performance.now())
+		console.log("Up");
+    } else if (gamepad.buttons[0].pressed === true) {
+        game.setLock(true,performance.now())
+		console.log("Lock");
+    } else if (gamepad.buttons[1].pressed === true) {
+        game.setJump(true,performance.now())
+		console.log("Jump");
+    } else if (gamepad.buttons[2].pressed === true) {
+        game.setBoost(true,performance.now())
+		console.log("Boost");
+    } else if (gamepad.buttons[3].pressed === true) {
+        console.log("X");
+    } 
+  }
 };

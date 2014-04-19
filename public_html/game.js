@@ -281,6 +281,42 @@ GameEngine.prototype.startInput = function() {
     console.log('Input started');
 }
 
+//Setter functions to allow gamepad functionality
+GameEngine.prototype.setUp = function(pressed,time) {
+	upPressed = pressed;
+	upTime = time;
+}
+
+GameEngine.prototype.setDown = function(pressed,time) {
+	downPressed = pressed;
+	downTime = time;
+}
+
+GameEngine.prototype.setLeft = function(pressed,time) {
+	leftPressed = pressed;
+	leftTime = time;
+}
+
+GameEngine.prototype.setRight = function(pressed,time) {
+	rightPressed = pressed;
+	rightTime = time;
+}
+
+GameEngine.prototype.setJump = function(pressed,time) {
+	jumpPressed = pressed;
+	jumpTime = time;
+}
+
+GameEngine.prototype.setLock = function(pressed,time) {
+	lockPressed = pressed;
+	lockTime = time;
+}
+
+GameEngine.prototype.setBoost = function(pressed,time) {
+	boostPressed = pressed;
+	boostTime = time;
+}
+
 //Function that allows the changing of the control mapping
 GameEngine.prototype.changeKey = function(keyType) {
     keyVal = keyType;
