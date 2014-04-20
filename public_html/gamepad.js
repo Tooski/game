@@ -61,6 +61,7 @@ var gamepadSupport = {
       // If so, listen for those events and don't start polling until a gamepad
       // has been connected.
       if ('ongamepadconnected' in window) {
+        console.log("ongamepadconnected supported, still in init: ");
         window.addEventListener('gamepadconnected',
                               gamepadSupport.onGamepadConnect, false);
         window.addEventListener('gamepaddisconnected',
@@ -161,8 +162,9 @@ var gamepadSupport = {
     // only on Chrome.
     gamepadSupport.pollGamepads();
 
-    for (var i in gamepadSupport.gamepads) {
+    for (var i = 0; i < gamepadSupport.gamepads.length; i++) {
       var gamepad = gamepadSupport.gamepads[i];
+      console.log(gamepad.buttons);
 
       // Don’t do anything if the current timestamp is the same as previous
       // one, which means that the state of the gamepad hasn’t changed.
@@ -220,28 +222,28 @@ var gamepadSupport = {
   updateDisplay: function(gamepadId) {
     var gamepad = gamepadSupport.gamepads[gamepadId];
     console.log("In gamepad updateDisplay: function");
-	  if (gamepad.buttons[13].pressed === true) {
+	  if (gamepad.buttons[13] === 1) {
         game.setDown(true,performance.now());
 		console.log("Down");
-    } else if (gamepad.buttons[15].pressed === true) {
+    } else if (gamepad.buttons[15] === 1) {
         game.setRight(true,performance.now());
 		console.log("Right");
-    } else if (gamepad.buttons[14].pressed === true) {
+    } else if (gamepad.buttons[14] === 1) {
         game.setLeft(true,performance.now());
 		console.log("Left");
-    } else if (gamepad.buttons[12].pressed === true) {
+    } else if (gamepad.buttons[12] === 1) {
         game.setUp(true,performance.now());
 		console.log("Up");
-    } else if (gamepad.buttons[0].pressed === true) {
+    } else if (gamepad.buttons[0] === 1) {
         game.setLock(true,performance.now());
 		console.log("Lock");
-    } else if (gamepad.buttons[1].pressed === true) {
+    } else if (gamepad.buttons[1] === 1) {
         game.setJump(true,performance.now());
 		console.log("Jump");
-    } else if (gamepad.buttons[2].pressed === true) {
+    } else if (gamepad.buttons[2] === 1) {
         game.setBoost(true,performance.now());
 		console.log("Boost");
-    } else if (gamepad.buttons[3].pressed === true) {
+    } else if (gamepad.buttons[3] === 1) {
         console.log("X");
     } 
   }
