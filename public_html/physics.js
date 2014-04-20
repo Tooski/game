@@ -62,7 +62,7 @@ function TempState(pos, vel, radius, timeDelta) { // overloaded constructor
 // HEIGHT = 1080 UNITS
 var DFLT_gravity = 450;        // FORCE EXERTED BY GRAVITY IS 400 ADDITIONAL UNITS OF VELOCITY DOWNWARD PER SECOND. 
 
-var DFLT_JUMP_HOLD_TIME = 0.15; // To jump full height, jump must be held for this long. Anything less creates a fraction of the jump height based on the fraction of the full time the button was held. 
+var DFLT_JUMP_HOLD_TIME = 0.15; // To jump full height, jump must be held for this long. Anything less creates a fraction of the jump height based on the fraction of the full time the button was held. TODO implement.
 
 // CONST ACCEL INPUTS
 var DFLT_gLRaccel = 300;
@@ -205,8 +205,8 @@ function AccelState(physParams, controlParams, playerModel) {  // DO WE NEED A R
       var surfaceDir = this.player.vel;
       this.accelVec = projectVec2(baseForceVec, surfaceDir);
       //var angleToSurface = Math.acos(surfaceVec.normalize().dot(baseForceNormalized));
-    } else {        
-      console.log("we are being pushed AWAY the surface we are on. Simply calling updateAirStates.");
+    } else {                                                                    // we are being pushed away from teh surface we are on. Updating states to have left the ground, and then calling updateAirStates.
+      console.log("we are being pushed AWAY from the surface we are on. Simply calling updateAirStates.");
       inputState.surfaceOn = null;
       this.player.leaveGround();
       this.updateAirStates(inputState);
@@ -216,6 +216,7 @@ function AccelState(physParams, controlParams, playerModel) {  // DO WE NEED A R
 
   // updates the accel vector based in the provided inputs based on the character being in the air state.
   this.updateAir = function (inputState) {  // DONE? TEST
+    console.log("in updateAir(), setting accelVec: ");
     var baseForceX = 0.0;
     var baseForceY = this.physParams.gravity;
 
@@ -237,6 +238,7 @@ function AccelState(physParams, controlParams, playerModel) {  // DO WE NEED A R
       baseForceVec = baseForceVec.add(inputState.additionalVec);
     }
     this.accelVec = baseForceVec;
+    console.log(this.accelVec);
   }
 }
 
@@ -261,8 +263,9 @@ function PhysEng(physParams, playerModel) {
   this.ctrl = playerModel.controlParameters;        // control parameters.
   this.phys = physParams;                           // physics parameters
   this.inputState = new InputState();
-  //this.activeEvents = [];                           // array of active events. ???? DONT NEED THIS ???? TODO
-  this.accelState = new AccelState(this);
+  //this.activeEvents = [];                           // array of active events. ???? DONT NEED THIS, REFACTORED INTO EVENT HANDLING???? ???? 
+  this.accelState = new AccelState(this.phys, this.ctrl, this.player);
+  this.accelState.updateAir(this.inputState);
   if (PHYS_DEBUG) {
     this.printStartState();
   }
@@ -277,17 +280,19 @@ PhysEng.prototype.update = function (timeDelta, eventList) { // ______timeDelta 
     this.printState(true, false, false);
   }
 
-  var state = new TempState(this.player.pos, this.player.vel, 0.0, 0.0);   //creates the initial state of the TempPlayer.
+  var state = new TempState(this.player.pos, this.player.vel, this.player.radius, 0.0);   //creates the initial state of the TempPlayer.
   eventList.push(new RenderEvent(timeDelta)); //Set up the last event in the array to be our render event, so that the loop completes up to the render time.
 
   var timeCompleted = 0.0;
   for (i = 0; i < eventList.length; i++) { //Handle all the events that have happened since last frame at their respective times.
+    console.log(i);
     var event = eventList[i];
-    var state = this.stepToEndOfEvent(state, event); // Guarantees time has completed up to the event and the event has been handled.
+    this.stepToEndOfEvent(state, event); // Guarantees time has completed up to the event and the event has been handled.
+    state = new TempState(this.player.pos, this.player.vel, this.player.radius, 0.0);
   }                                   // PHYSICS ARE UP TO DATE. GO AHEAD AND RENDER.
 
   this.player.timeDelta = 0.0;
-  //Render();                       //________ CALL THE RENDER FUNCTION HERE! ________// TODO
+  // WE ARE NOW DONE WITH THE ENTIRE UPDATE. HOPEFULLY NOTHING WENT WRONG.
 }
 
 
@@ -298,18 +303,19 @@ PhysEng.prototype.stepToEndOfEvent = function (state, event) {
   //while (!eventDone) {                   //The physics step loop. Checks for collisions / lockbreaks and discovers the time they occur at. Continues stepping physics until it is caught up to "timeDelta".
   console.log("START stepToEndOfEvent");
   var newEvents = [];
+  var stepState;
   if (this.player.surfaceOn === null) {               //In the air, call airStep
-    console.log("player airborne");
-    state = this.airStep(state, event.time); // TODO STATE SHOULD HAVE EVENTS NOT TerrainSurfaces.
-    for (var k = 0; k < state.eventList.length; k++) {
-      newEvents.push(state.eventList[k]); 
+    console.log("player airborne, event.time: ", event.time);
+    stepState = this.airStep(state, event.time); // TODO STATE SHOULD HAVE EVENTS NOT TerrainSurfaces.
+    for (var k = 0; k < stepState.eventList.length; k++) {
+      newEvents.push(stepState.eventList[k]);
     }
 
   } else {                             //On surface, call surfaceStep 
-    console.log("player NOT airborne");
-    state = this.surfaceStep(state, event.time);
-    for (var k = 0; k < state.eventList.length; k++) {
-      newEvents.push(state.eventList[k]);
+    console.log("player NOT airborne, event.time: ", event.time);
+    stepState = this.surfaceStep(state, event.time);
+    for (var k = 0; k < stepState.eventList.length; k++) {
+      newEvents.push(stepState.eventList[k]);
     }
   }
 
@@ -342,8 +348,10 @@ PhysEng.prototype.stepToEndOfEvent = function (state, event) {
     }
     var tempState = new TempState(this.player.pos, this.player.vel, this.player.radius, this.player.timeDelta);
     this.stepToEndOfEvent(tempState, event);
-  } else {                           // WE DID FINISH
-
+  } else {                           // newEvents.length < 0, and WE DID FINISH
+    this.player.pos = stepState.pos;
+    this.player.vel = stepState.vel;
+    this.player.timeDelta = stepState.timeDelta;
     event.handler(this);              // LET THE EVENTS HANDLER DO WHAT IT NEEDS TO TO UPDATE THE PHYSICS STATE, AND CONTINUE ON IN TIME TO THE NEXT EVENT.
   }
 
@@ -356,8 +364,10 @@ PhysEng.prototype.stepToEndOfEvent = function (state, event) {
 // Returns the players new position and velocity (in a TempState object) after an airStep of this length. Does not modify values.
 PhysEng.prototype.airStep = function (state, timeGoal) {
   var startTime = state.timeDelta;
-  console.log("in airStep. timeGoal: %3.3, startTime: %3.3", timeGoal, startTime);
+  console.log("in airStep. timeGoal: ", timeGoal);
+  console.log("startTime: ", startTime);
   var accelVec = this.accelState.accelVec;
+  console.log("accelVec before adding: ", accelVec);
   var lastVel = state.vel;
   var lastPos = state.pos;
   var multed = accelVec.multf(timeGoal - startTime);
@@ -605,7 +615,8 @@ function InputEvent(eventTime, inputType, pressed) {   //
 
 InputEvent.prototype = new Event();
 InputEvent.prototype.constructor = InputEvent;
-InputEvent.prototype.handler = function(physEng) {          //THIS CODE HANDLES INPUT CHANGES.  TODO
+InputEvent.prototype.handler = function (physEng) {          //THIS CODE HANDLES INPUT CHANGES.  TODO
+  console.log("in InputEvent.handler() fk yeah this is working?");
   switch (this.inputType) {
     case inLeft:
       if(this.pressed) {  // Input was just pressed down.
@@ -717,7 +728,9 @@ RenderEvent.prototype.handler = function (physEng) {
 //var playerModel = new PlayerModel(controlParams, DFLT_radius, new vec2(800, -400), null);
 //var physeng = new PhysEng(physParams, playerModel);
 //physeng.update(0.001, []);
-//physeng.update(0.001, []);
-//physeng.update(0.001, []);
-//physeng.update(0.001, []);
-//physeng.update(0.001, []);
+//physeng.update(0.002, []);
+//physeng.update(0.005, []);
+//physeng.update(0.010, [new InputEvent(0.005, inRight, true)]);
+//physeng.update(0.050, [new InputEvent(0.005, inRight, false), new InputEvent(0.010, inLeft, true)]);
+//physeng.update(0.200, []);
+//physeng.update(0.001, [new InputEvent(0.0005, inLeft, false)]);
