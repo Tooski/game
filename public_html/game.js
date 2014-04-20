@@ -497,8 +497,8 @@ ASSET_MANAGER.downloadAll(function() {
     canvas.height = window.innerHeight;
     initWidth = canvas.width = window.innerWidth;
 
-   
-     
+    initScale = initWidth / 1920;
+
     var gameEngine = new GameEngine(player);
 
     groundY = canvas.height/2;
