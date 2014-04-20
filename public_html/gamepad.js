@@ -42,14 +42,18 @@ var gamepadSupport = {
   // as last time).
   prevTimestamps: [],
 
+  //GameEngine object to call from
+  engine: null,
+
   /**
    * Initialize support for Gamepad API.
    */
-  init: function() {
+  init: function(GameEngine) {
     var gamepadSupportAvailable = navigator.getGamepads ||
         !!navigator.webkitGetGamepads ||
         !!navigator.webkitGamepads;
 
+	engine = GameEngine;
     console.log("in gamepad init: function()");
     if (!gamepadSupportAvailable) {
       // It doesn’t seem Gamepad API is available – show a message telling
@@ -223,25 +227,25 @@ var gamepadSupport = {
     var gamepad = gamepadSupport.gamepads[gamepadId];
     console.log("In gamepad updateDisplay: function");
 	  if (gamepad.buttons[13] === 1) {
-        game.setDown(true,performance.now());
+        engine.setDown(true,performance.now());
 		console.log("Down");
     } else if (gamepad.buttons[15] === 1) {
-        game.setRight(true,performance.now());
+        engine.setRight(true,performance.now());
 		console.log("Right");
     } else if (gamepad.buttons[14] === 1) {
-        game.setLeft(true,performance.now());
+        engine.setLeft(true,performance.now());
 		console.log("Left");
     } else if (gamepad.buttons[12] === 1) {
-        game.setUp(true,performance.now());
+        engine.setUp(true,performance.now());
 		console.log("Up");
     } else if (gamepad.buttons[0] === 1) {
-        game.setLock(true,performance.now());
+        engine.setLock(true,performance.now());
 		console.log("Lock");
     } else if (gamepad.buttons[1] === 1) {
-        game.setJump(true,performance.now());
+        engine.setJump(true,performance.now());
 		console.log("Jump");
     } else if (gamepad.buttons[2] === 1) {
-        game.setBoost(true,performance.now());
+        engine.setBoost(true,performance.now());
 		console.log("Boost");
     } else if (gamepad.buttons[3] === 1) {
         console.log("X");
