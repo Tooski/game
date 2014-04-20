@@ -50,11 +50,13 @@ var gamepadSupport = {
         !!navigator.webkitGetGamepads ||
         !!navigator.webkitGamepads;
 
+    console.log("in gamepad init: function()");
     if (!gamepadSupportAvailable) {
       // It doesn’t seem Gamepad API is available – show a message telling
       // the visitor about it.
       console.log("Gamepad not supported");
     } else {
+      console.log("Gamepads supported, still in init: ");
       // Check and see if gamepadconnected/gamepaddisconnected is supported.
       // If so, listen for those events and don't start polling until a gamepad
       // has been connected.
@@ -73,7 +75,8 @@ var gamepadSupport = {
   /**
    * React to the gamepad being connected.
    */
-  onGamepadConnect: function(event) {
+  onGamepadConnect: function (event) {
+    console.log("In gamepad onGamepadConnect");
     // Add the new gamepad on the list of gamepads to look after.
     gamepadSupport.gamepads.push(event.gamepad);
 
@@ -84,7 +87,8 @@ var gamepadSupport = {
   /**
    * React to the gamepad being disconnected.
    */
-  onGamepadDisconnect: function(event) {
+  onGamepadDisconnect: function (event) {
+    console.log("In gamepad onGamePadDisconnect");
     // Remove the gamepad from the list of gamepads to monitor.
     for (var i in gamepadSupport.gamepads) {
       if (gamepadSupport.gamepads[i].index == event.gamepad.index) {
@@ -127,7 +131,8 @@ var gamepadSupport = {
     gamepadSupport.scheduleNextTick();
   },
 
-  scheduleNextTick: function() {
+  scheduleNextTick: function () {
+    //console.log("In gamepad scheduleNextTick");
     // Only schedule the next frame if we haven’t decided to stop via
     // stopPolling() before.
     if (gamepadSupport.ticking) {
@@ -150,7 +155,8 @@ var gamepadSupport = {
    * to update the display accordingly. Should run as close to 60 frames per
    * second as possible.
    */
-  pollStatus: function() {
+  pollStatus: function () {
+    //console.log("In gamepad pollStatus");
     // Poll to see if gamepads are connected or disconnected. Necessary
     // only on Chrome.
     gamepadSupport.pollGamepads();
@@ -176,7 +182,8 @@ var gamepadSupport = {
   // This function is called only on Chrome, which does not yet support
   // connection/disconnection events, but requires you to monitor
   // an array for changes.
-  pollGamepads: function() {
+  pollGamepads: function () {
+    //console.log("In gamepad pollGamepads: ");
     // Get the array of gamepads – the first method (getGamepads)
     // is the most modern one and is supported by Firefox 28+ and
     // Chrome 35+. The second one (webkitGetGamepads) is a deprecated method
@@ -212,7 +219,8 @@ var gamepadSupport = {
   // Call game.js with new state and ask it to update the screen
   updateDisplay: function(gamepadId) {
     var gamepad = gamepadSupport.gamepads[gamepadId];
-	if (gamepad.buttons[13].pressed === true) {
+    console.log("In gamepad updateDisplay: function");
+	  if (gamepad.buttons[13].pressed === true) {
         game.setDown(true,performance.now());
 		console.log("Down");
     } else if (gamepad.buttons[15].pressed === true) {

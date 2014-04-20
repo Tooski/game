@@ -201,8 +201,9 @@ function AccelState(physParams, controlParams, playerModel) {  // DO WE NEED A R
     var baseForceNormalized = baseForceVec.normalize();
     var angleToNormal = Math.acos(surface.getNormalAt(this.player.pos).dot(baseForceNormalized));
     if (angleToNormal > HALF_PI || angleToNormal < -HALF_PI) {          // If the baseForceVec is pushing us towards the surface we're on:
+      // WE ASSUME PLAYER'S VELOCITY VECTOR IS ALREADY ALIGNED WITH THE SURFACE.
       // ___+____+____+___ magnitude acceleration along a sloped surface = magnitude of force * sin(angle between force and surface normal)
-      var surfaceVec = surface.p1.subtract(surface.p0);
+      var surfaceDir = this.player.vel.normalize();
       var angleToSurface = Math.acos(surfaceVec.normalize().dot(baseForceNormalized));
       this.accelVec = baseForceVec.length()
     } else {                                                            // We're being pushed away from the surface. TODO HANDLE?
@@ -216,8 +217,6 @@ function AccelState(physParams, controlParams, playerModel) {  // DO WE NEED A R
     this.airAccel = new vec2(0.0, 0.0);
   }
 }
-AccelState.prototype.getAirAccel = function () { return this.airAccel }
-AccelState.prototype.getSurfaceAccel = function () { return this.surfaceAccel }
 
 
 
@@ -229,6 +228,7 @@ function InputState() {
   this.down = false;
   this.lock = false;
   this.surfaceOn = null; // The terrain object that the player is locked to. Must extend TerrainObject or be null.
+  this.surfaceVec = null;
   this.additionalVec = null;
 }
 
@@ -237,7 +237,7 @@ function InputState() {
 // Physics Engine constructor.
 function PhysEng(physParams, playerModel) {
   this.player = playerModel;                        // the players character model
-  this.ctrl = playerModel.controlcontrolParameters; // control parameters.
+  this.ctrl = playerModel.controlParameters;        // control parameters.
   this.phys = physParams;                           // physics parameters
   this.inputState = new InputState();
   //this.activeEvents = [];                           // array of active events. ???? DONT NEED THIS ???? TODO
