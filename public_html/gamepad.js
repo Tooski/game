@@ -222,33 +222,68 @@ var gamepadSupport = {
     }
   },
 
+//Button mappings, can be modified
+var dUp = "UP";
+var dDown = "DOWN";
+var dLeft = "LEFT";
+var dRight = "RIGHT";
+var face1 = "JUMP";
+var face2 = "BOOST";
+var face3 = "LOCK";
+
   // Call game.js with new state and ask it to update the screen
   updateDisplay: function(gamepadId) {
     var gamepad = gamepadSupport.gamepads[gamepadId];
     console.log("In gamepad updateDisplay: function");
-	  if (gamepad.buttons[13] === 1) {
-        engine.setDown(true,performance.now());
-		console.log("Down");
+    if (gamepad.buttons[13] === 1) {
+    	//engine.setDown(true,performance.now());
+    	controlFunc(dDown);
+    	console.log("Down");
     } else if (gamepad.buttons[15] === 1) {
-        engine.setRight(true,performance.now());
-		console.log("Right");
+        //engine.setRight(true,performance.now());
+        controlFunc(dRight);
+        console.log("Right");
     } else if (gamepad.buttons[14] === 1) {
-        engine.setLeft(true,performance.now());
-		console.log("Left");
+        //engine.setLeft(true,performance.now());
+        controlFunc(dLeft);
+        console.log("Left");
     } else if (gamepad.buttons[12] === 1) {
-        engine.setUp(true,performance.now());
-		console.log("Up");
+        //engine.setUp(true,performance.now());
+        controlFunc(dUp);
+        console.log("Up");
     } else if (gamepad.buttons[0] === 1) {
-        engine.setLock(true,performance.now());
-		console.log("Lock");
+        //engine.setLock(true,performance.now());
+        controlFunc(face3);
+        console.log("Lock");
     } else if (gamepad.buttons[1] === 1) {
-        engine.setJump(true,performance.now());
-		console.log("Jump");
+        //engine.setJump(true,performance.now());
+        controlFunc(face1);
+        console.log("Jump");
     } else if (gamepad.buttons[2] === 1) {
-        engine.setBoost(true,performance.now());
-		console.log("Boost");
+        //engine.setBoost(true,performance.now());
+        controlFunc(face2);
+        console.log("Boost");
     } else if (gamepad.buttons[3] === 1) {
         console.log("X");
     } 
   }
+  
+  //Allows for remapping of controls
+  controlFunc: function(controlValue) {
+  	if (controlValue === "UP"){
+  		engine.setUp(true,performance.now());
+  	} else if (controlValue === "DOWN"){
+  		engine.setDown(true,performance.now());
+  	} else if (controlValue === "LEFT"){
+  		engine.setLeft(true,performance.now());
+  	} else if (controlValue === "RIGHT"){
+  		engine.setRight(true,performance.now());
+  	} else if (controlValue === "JUMP"){
+  		engine.setJump(true,performance.now());
+  	} else if (controlValue === "BOOST"){
+  		engine.setBoost(true,performance.now());
+  	} else if (controlValue === "LOCK"){
+  		engine.setLock(true,performance.now());
+  	}
+  } 
 };
