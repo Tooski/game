@@ -9,7 +9,7 @@ var debugMode = true;
  * the controller which currently has jumping and moving.
  * Written by: Josef Nosov
  */
-function Player(image, x,y) {
+function Player(image, x,y, inputObject) {
     Entity.call(this, null, 0, 0, -1, -1);
     
 
@@ -24,6 +24,8 @@ function Player(image, x,y) {
     this.moving = false;
     this.jumping = false;
     this.hasCollided = false;
+
+    this.inputs = inputObject;
     
 }
 
@@ -66,21 +68,21 @@ Player.prototype.update = function() {
     } 
     */
    
-    if(!this.moving && rightPressed) {
+    if (!this.moving && this.inputs.rightPressed) {
 
         this.moving = true;
         this.velocity_x = 5;
         this.velocity_y = 0;
-    } else if (!this.moving && leftPressed) {
+    } else if (!this.moving && this.inputs.leftPressed) {
         this.moving = true;
         this.velocity_x = -5;
         this.velocity_y = 0;
 
-    } else  if(!this.moving && upPressed) {
+    } else if (!this.moving && this.inputs.upPressed) {
         this.moving = true;
         this.velocity_x = 0;
         this.velocity_y = -5;
-    } else if (!this.moving && downPressed) {
+    } else if (!this.moving && this.inputs.downPressed) {
         this.moving = true;
         this.velocity_x = 0;
         this.velocity_y = 5;

@@ -15,7 +15,22 @@
  *
  * @author mwichary@google.com (Marcin Wichary)
  */
- 
+
+function GamepadState(gamepad) {
+  this.buttons = [];
+  this.axis = [];
+  for (var i = 0; i < gamepad.buttons.length; i++) {
+    this.buttons.push(gamepad.buttons[i]);
+  }
+  for (var i = 0; i < gamepad.axis.length; i++) {
+    this.buttons.push(gamepad.axis[i]);
+  }
+}
+
+
+var AXIS_THRESHHOLD = 0.3;
+
+
 var gamepadSupport = {
   // A number of typical buttons recognized by Gamepad API and mapped to
   // standard controls. Any extraneous buttons will have larger indexes.
@@ -77,8 +92,6 @@ var gamepadSupport = {
 
 
   //Button mapping. I'm implementing them as a bitmask, so multiple buttons can map to this.
-  bStart: 9,
-
   bUp: 12,
   bDown: 13,
   bLeft: 14,
@@ -87,6 +100,8 @@ var gamepadSupport = {
   bJump: 0,
   bBoost: 4,
   bLock: 7,
+
+  bPause: 9,
 
   axisUpDown: 1,
   axisLeftRight: 0,
@@ -130,6 +145,7 @@ var gamepadSupport = {
     console.log("In gamepad onGamepadConnect");
     // Add the new gamepad on the list of gamepads to look after.
     gamepadSupport.gamepads.push(event.gamepad);
+    gamepadSupport.gamepadsLastStates.push(event.gamepad);
 
     // Start the polling loop to monitor button changes.
     gamepadSupport.startPolling();
@@ -271,56 +287,57 @@ var gamepadSupport = {
   // Call game.js with new state and ask it to update the screen
   updateDisplay: function(gamepadId) {
     var gamepad = gamepadSupport.gamepads[gamepadId];
+    var gamepadLastState = gamepadSupport.gamepadsLastStates[gamepadId];
     console.log("In gamepad updateDisplay: function");
 
-    if (gamepad.buttons[gamepadSupport.bUp] === 1) {
-      engine.setUp(true, performance.now());
-    } else if (gamepad.buttons[gamepadSupport.bDown] === 1) {
-      engine.setDown(true, performance.now());
-    } else if (gamepad.buttons[gamepadSupport.bLeft] === 1) {
-      engine.setLeft(true, performance.now());
-    } else if (gamepad.buttons[gamepadSupport.bRight] === 1) {
-      engine.setRight(true, performance.now());
-    } else if (gamepad.buttons[gamepadSupport.bJump] === 1) {
-      engine.setJump(true, performance.now());
-    } else if (gamepad.buttons[gamepadSupport.bBoost] === 1) {
-      engine.setBoost(true, performance.now());
-    } else if (gamepad.buttons[gamepadSupport.bLock] === 1) {
-      engine.setLock(true, performance.now());
-    } else if (gamepad.buttons[gamepadSupport.bStart] === 1) {
-      engine.setStart(true, 
+    var timeStamp = performance.now();
+    if (gamepad.buttons[gamepadSupport.bUp] !== gamepadLastState.buttons[gamepadSupport.bUp]) {
+      gamepadSupport.engine.setUp((gamepad.buttons[gamepadSupport.bUp] === 1.0 ? true : false), timeStamp);
+    }
+    if (gamepad.buttons[gamepadSupport.bDown] !== gamepadLastState.buttons[gamepadSupport.bDown]) {
+      gamepadSupport.engine.setDown((gamepad.buttons[gamepadSupport.bDown] === 1.0 ? true : false), timeStamp);
+    }
+    if (gamepad.buttons[gamepadSupport.bLeft] !== gamepadLastState.buttons[gamepadSupport.bLeft]) {
+      gamepadSupport.engine.setLeft((gamepad.buttons[gamepadSupport.bLeft] === 1.0 ? true : false), timeStamp);
+    }
+    if (gamepad.buttons[gamepadSupport.bRight] !== gamepadLastState.buttons[gamepadSupport.bRight]) {
+      gamepadSupport.engine.setRight((gamepad.buttons[gamepadSupport.bRight] === 1.0 ? true : false), timeStamp);
+    }
+    if (gamepad.buttons[gamepadSupport.bJump] !== gamepadLastState.buttons[gamepadSupport.bJump]) {
+      gamepadSupport.engine.setJump((gamepad.buttons[gamepadSupport.bJump] === 1.0 ? true : false), timeStamp);
+    }
+    if (gamepad.buttons[gamepadSupport.bBoost] !== gamepadLastState.buttons[gamepadSupport.bBoost]) {
+      gamepadSupport.engine.setBoost((gamepad.buttons[gamepadSupport.bBoost] === 1.0 ? true : false), timeStamp);
+    }
+    if (gamepad.buttons[gamepadSupport.bLock] !== gamepadLastState.buttons[gamepadSupport.bLock]) {
+      gamepadSupport.engine.setLock((gamepad.buttons[gamepadSupport.bLock] === 1.0 ? true : false), timeStamp);
+    }
+    if (gamepad.buttons[gamepadSupport.bPause] !== gamepadLastState.buttons[gamepadSupport.bPause]) {
+      gamepadSupport.engine.setPause((gamepad.buttons[gamepadSupport.bPause] === 1.0 ? true : false), timeStamp);
     }
 
-    if (gamepad.buttons[13] === 1) {
-    	//engine.setDown(true,performance.now());
-      gamepadSupport.controlFunc(dDown);
-    	console.log("Down");
-    } else if (gamepad.buttons[15] === 1) {
-        //engine.setRight(true,performance.now());
-      gamepadSupport.controlFunc(dRight);
-      console.log("Right");
-    } else if (gamepad.buttons[14] === 1) {
-        //engine.setLeft(true,performance.now());
-      gamepadSupport.controlFunc(dLeft);
-      console.log("Left");
-    } else if (gamepad.buttons[12] === 1) {
-        //engine.setUp(true,performance.now());
-      gamepadSupport.controlFunc(dUp);
-      console.log("Up");
-    } else if (gamepad.buttons[0] === 1) {
-        //engine.setLock(true,performance.now());
-      gamepadSupport.controlFunc(face3);
-      console.log("Lock");
-    } else if (gamepad.buttons[1] === 1) {
-        //engine.setJump(true,performance.now());
-      gamepadSupport.controlFunc(face1);
-      console.log("Jump");
-    } else if (gamepad.buttons[2] === 1) {
-        //engine.setBoost(true,performance.now());
-      gamepadSupport.controlFunc(face2);
-      console.log("Boost");
-    } else if (gamepad.buttons[3] === 1) {
-      console.log("X");
-    } 
+    
+    if (gamepad.axis[gamepadSupport.axisLeftRight] != gamepadLastState.axis[gamepadSupport.axisLeftRight]) {  // test analog stick X axis
+      if (gamepad.axis[gamepadSupport.axisLeftRight] <= - AXIS_THRESHHOLD) {
+        gamepadSupport.engine.setLeft(true, timeStamp);
+      } else if (gamepad.axis[gamepadSupport.axisLeftRight] >= AXIS_THRESHHOLD) {
+        gamepadSupport.engine.setRight(true, timeStamp);
+      } else {
+        gamepadSupport.engine.setLeft(false, timeStamp);
+        gamepadSupport.engine.setRight(false, timeStamp);
+      }
+    }
+
+    if (gamepad.axis[gamepadSupport.axisUpDown] !== gamepadLastState.axis[gamepadSupport.axisUpDown]) {     // test analog stick Y axis
+      if (gamepad.axis[gamepadSupport.axisUpDown] <= - AXIS_THRESHHOLD) {
+        gamepadSupport.engine.setUp(true, timeStamp);
+      } else if (gamepad.axis[gamepadSupport.axisUpDown] >= AXIS_THRESHHOLD) {
+        gamepadSupport.engine.setDown(true, timeStamp);
+      } else {
+        gamepadSupport.engine.setUp(false, timeStamp);
+        gamepadSupport.engine.setDown(false, timeStamp);
+      }
+    }
+
   },
 };

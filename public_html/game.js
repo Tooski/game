@@ -57,6 +57,39 @@ AssetManager.prototype.getAsset = function(path) {
 }
 
 
+
+function InputObject() {
+  this.jumpKey = 65;
+  this.boostKey = 83;
+  this.leftKey = 37;
+  this.rightKey = 39;
+  this.downKey = 40;
+  this.upKey = 38;
+  this.lockKey = 68;
+  this.pauseKey = 80;
+
+  this.jumpPressed = false;
+  this.jumpPressedTimestamp = 0;
+  this.boostPressed = false;
+  this.boostPressedTimestamp = 0;
+  this.leftPressed = false;
+  this.leftPressedTimestamp = 0;
+  this.rightPressed = false;
+  this.rightPressedTimestamp = 0;
+  this.upPressed = false;
+  this.upPressedTimestamp = 0;
+  this.downPressed = false;
+  this.downPressedTimestamp = 0;
+  this.lockPressed = false;
+  this.lockPressedTimestamp = 0;
+  this.pausePressed = false;
+  this.pausePressedTimestamp = 0;
+
+  this.editKeys = false;
+  this.keyVal = null;
+}
+
+
 function GameEngine(player) {
     this.entities = [];
     this.ctx = null;
@@ -66,6 +99,8 @@ function GameEngine(player) {
     this.surfaceWidth = null;
     this.surfaceHeight = null;
     this.player = player;
+    this.input = new InputObject;
+    this.player.inputs = this.input;
 }
 
 GameEngine.prototype.init = function(ctx) {
@@ -88,32 +123,7 @@ GameEngine.prototype.start = function() {
     })();
 }
 
-var jumpKey = 65;
-var boostKey = 83;
-var leftKey = 37;
-var rightKey = 39;
-var downKey = 40;
-var upKey = 38;
-var lockKey = 68;
-var pauseKey = 80;
 
-var jumpPressed = false;
-var jumpTime = 0;
-var boostPressed = false;
-var boostTime = 0;
-var leftPressed = false;
-var leftTime = 0;
-var rightPressed = false;
-var rightTime = 0;
-var upPressed = false;
-var upTime = 0;
-var downPressed = false;
-var downTime = 0;
-var lockPressed = false;
-var lockTime = 0;
-
-var editKeys = false;
-var keyVal = null;
 
 GameEngine.prototype.startInput = function() {
     console.log('Starting input');
@@ -130,28 +140,6 @@ GameEngine.prototype.startInput = function() {
         return {x: x, y: y};
     }
 
-    window.addEventListener("gamepadconnected", function(e) {
-      var gp = navigator.webkitGetGamepads()[0];
-      
-      if (gp.buttons[13].pressed === true) {
-          console.log("Down");
-      } else if (gp.buttons[15].pressed === true) {
-          console.log("Right");
-      } else if (gp.buttons[14].pressed === true) {
-          console.log("Left");
-      } else if (gp.buttons[12].pressed === true) {
-          console.log("Up");
-      } else if (gp.buttons[0].pressed === true) {
-          console.log("B");
-      } else if (gp.buttons[1].pressed === true) {
-          console.log("A");
-      } else if (gp.buttons[2].pressed === true) {
-          console.log("Y");
-      } else if (gp.buttons[3].pressed === true) {
-          console.log("X");
-      } 
-    });
-
     var that = this;
 
     this.ctx.canvas.addEventListener("click", function(e) {
@@ -167,172 +155,183 @@ GameEngine.prototype.startInput = function() {
     }, false);
 
     this.ctx.canvas.addEventListener("keydown", function (e) {
-        if (editKeys) {
-            if (keyVal = "LEFT"){
-                leftKey = e.keyCode;
-                keyVal = null;
-                editKeys = false;
-            }
-            if (keyVal = "RIGHT"){
-                rightKey = e.keyCode;
-                keyVal = null;
-                editKeys = false;
-            }
-            if (keyVal = "UP"){
-                upKey = e.keyCode;
-                keyVal = null;
-                editKeys = false;
-            }
-            if (keyVal = "DOWN"){
-                downKey = e.keyCode;
-                keyVal = null;
-                editKeys = false;
-            }
-            if (keyVal = "JUMP"){
-                jumpKey = e.keyCode;
-                keyVal = null;
-                editKeys = false;
-            }
-            if (keyVal = "LOCK"){
-                lockKey = e.keyCode;
-                keyVal = null;
-                editKeys = false;
-            }
-            if (keyVal = "BOOST"){
-                boostKey = e.keyCode;
-                keyVal = null;
-                editKeys = false;
-            }
+        if (gameEngine.input.editKeys) {  
+          if (gameEngine.input.selectedKeyVal === "LEFT") {
+            gameEngine.input.leftKey = e.keyCode;
+            gameEngine.input.selectedKeyVal = null;
+            gameEngine.input.editKeys = false;
+          } else if (gameEngine.input.selectedKeyVal === "RIGHT") {
+            gameEngine.input.rightKey = e.keyCode;
+            gameEngine.input.selectedKeyVal = null;
+            gameEngine.input.editKeys = false;
+          } else if (gameEngine.input.selectedKeyVal === "UP") {
+            gameEngine.input.upKey = e.keyCode;
+            gameEngine.input.selectedKeyVal = null;
+            gameEngine.input.editKeys = false;
+          } else if (gameEngine.input.selectedKeyVal === "DOWN") {
+            gameEngine.input.downKey = e.keyCode;
+            gameEngine.input.selectedKeyVal = null;
+            gameEngine.input.editKeys = false;
+          } else if (gameEngine.input.selectedKeyVal === "JUMP") {
+            gameEngine.input.jumpKey = e.keyCode;
+            gameEngine.input.selectedKeyVal = null;
+            gameEngine.input.editKeys = false;
+          } else if (gameEngine.input.selectedKeyVal === "LOCK") {
+            gameEngine.input.lockKey = e.keyCode;
+            gameEngine.input.selectedKeyVal = null;
+            gameEngine.input.editKeys = false;
+          } else if (gameEngine.input.selectedKeyVal === "BOOST") {
+            gameEngine.input.boostKey = e.keyCode;
+            gameEngine.input.selectedKeyVal = null;
+            gameEngine.input.editKeys = false;
+          } else if (gameEngine.input.selectedKeyVal === "PAUSE") {
+            gameEngine.input.pauseKey = e.keyCode;
+            gameEngine.input.selectedKeyVal = null;
+            gameEngine.input.editKeys = false;
+          }
+        } else {
+          if (e.keyCode === gameEngine.input.leftKey && gameEngine.input.leftPressed === false) {
+            gameEngine.input.leftPressed = true; //Left
+            gameEngine.input.leftPressedTimestamp = performance.now();
+            console.log("Left pressed");
+          } else if (e.keyCode === gameEngine.input.upKey && gameEngine.input.upPressed === false) {
+            gameEngine.input.upPressed = true; //Up
+            gameEngine.input.upPressedTimestamp = performance.now();
+            console.log("Up pressed");
+          } else if (e.keyCode === gameEngine.input.rightKey && gameEngine.input.rightPressed === false) {
+            gameEngine.input.rightPressed = true; //Right
+            gameEngine.input.rightPressedTimestamp = performance.now();
+            console.log("Right pressed");
+          } else if (e.keyCode === gameEngine.input.downKey && gameEngine.input.downPressed === false) {
+            gameEngine.input.downPressed = true; //Down
+            gameEngine.input.downPressedTimestamp = performance.now();
+            console.log("Down pressed");
+          } else if (e.keyCode === gameEngine.input.jumpKey && gameEngine.input.jumpPressed === false) {
+            gameEngine.input.jumpPressed = true; //Jump
+            gameEngine.input.jumpPressedTimestamp = performance.now();
+            console.log("Jump pressed");
+          } else if (e.keyCode === gameEngine.input.boostKey && gameEngine.input.boostPressed === false) {
+            gameEngine.input.boostPressed = true; //Boost
+            gameEngine.input.boostPressedTimestamp = performance.now();
+            console.log("Boost pressed");
+          } else if (e.keyCode === gameEngine.input.lockKey && gameEngine.input.lockPressed === false) {
+            gameEngine.input.lockPressed = true; //Lock
+            gameEngine.input.lockPressedTimestamp = performance.now();
+            console.log("Lock pressed");
+          } else if (e.keyCode === gameEngine.input.pauseKey && gameEngine.input.pausePressed === false) {
+            gameEngine.input.pausePressed = true; //Lock
+            gameEngine.input.pausePressedTimestamp = performance.now();
+            console.log("Pause pressed");
+			    }
         }
-        else {
-            if (e.keyCode === leftKey){
-                leftPressed = true; //Left
-                leftTime = performance.now();
-                console.log("Left");
-            }
-            if (e.keyCode === upKey){
-                upPressed = true; //Up
-                upTime = performance.now();
-                console.log("Up");
-            }
-            if (e.keyCode === rightKey){
-                rightPressed = true; //Right
-                rightTime = performance.now();
-                console.log("Right");
-            }
-            if (e.keyCode === downKey){
-                downPressed = true; //Down
-                downTime = performance.now();
-                console.log("Down");
-            }
-            if (e.keyCode === jumpKey){
-                jumpPressed = true; //Jump
-                jumpTime = performance.now();
-                console.log("Jump");
-            }
-            if (e.keyCode === boostKey){
-                boostPressed = true; //Boost
-                boostTime = performance.now();
-                console.log("Boost");
-            }
-            if (e.keyCode === lockKey){
-                lockPressed =  true; //Lock
-                lockTime = performance.now();
-                console.log("Lock");
-            }
-			if (e.keyCode === pauseKey){
-				console.log("Pause");
-			}
-        }
-        e.preventDefault();
+        //e.preventDefault();
     }, false);
     
     this.ctx.canvas.addEventListener("keyup", function (e) {
-        if (e.keyCode === leftKey){
-            leftPressed = false; //Left
-            leftTime = performance.now();
-        }
-        if (e.keyCode === upKey){
-            upPressed = false; //Up
-            upTime = performance.now();
-        }
-        if (e.keyCode === rightKey){
-            rightPressed = false; //Right
-            rightTime = performance.now();
-        }
-        if (e.keyCode === downKey){
-            downPressed = false; //Down
-            downTime = performance.now();
-        }
-        if (e.keyCode === jumpKey){
-            jumpPressed = false; //Jump
-            jumpTime = performance.now();
-        }
-        if (e.keyCode === boostKey){
-            boostPressed = false; //Boost
-            boostTime = performance.now();
-        }
-        if (e.keyCode === lockKey){
-            lockPressed =  false; //Lock
-            lockTime = performance.now();
-        }
-        e.preventDefault();
+      if (e.keyCode === gameEngine.input.leftKey && gameEngine.input.leftPressed === true) {
+        gameEngine.input.leftPressed = false; //Left
+        gameEngine.input.leftPressedTimestamp = performance.now();
+      } else if (e.keyCode === gameEngine.input.upKey && gameEngine.input.upPressed === true) {
+        gameEngine.input.upPressed = false; //Up
+        gameEngine.input.upPressedTimestamp = performance.now();
+      } else if (e.keyCode === gameEngine.input.rightKey && gameEngine.input.rightPressed === true) {
+        gameEngine.input.rightPressed = false; //Right
+        gameEngine.input.rightPressedTimestamp = performance.now();
+      } else if (e.keyCode === gameEngine.input.downKey && gameEngine.input.downPressed === true) {
+        gameEngine.input.downPressed = false; //Down
+        gameEngine.input.downPressedTimestamp = performance.now();
+      } else if (e.keyCode === gameEngine.input.jumpKey && gameEngine.input.jumpPressed === true) {
+        gameEngine.input.jumpPressed = false; //Jump
+        gameEngine.input.jumpPressedTimestamp = performance.now();
+      } else if (e.keyCode === gameEngine.input.boostKey && gameEngine.input.boostPressed === true) {
+        gameEngine.input.boostPressed = false; //Boost
+        gameEngine.input.boostPressedTimestamp = performance.now();
+      } else if (e.keyCode === gameEngine.input.lockKey && gameEngine.input.lockPressed === true) {
+        gameEngine.input.lockPressed = false; //Lock
+        gameEngine.input.lockPressedTimestamp = performance.now();
+      } else if (e.keyCode === gameEngine.input.pauseKey && gameEngine.input.pausePressed === true) {
+        gameEngine.input.pausePressed = false; //Pause
+        gameEngine.input.pausePressedTimestamp = performance.now();
+      }
+      //e.preventDefault();
     }, false);
     
     console.log('Input started');
 }
 
 //Setter functions to allow gamepad functionality
-GameEngine.prototype.setUp = function(pressed,time) {
-	upPressed = pressed;
-	upTime = time;
+GameEngine.prototype.setUp = function (upOrDown, time) {
+  if (this.input.upPressed !== upOrDown) {
+    this.input.upPressed = upOrDown;
+    this.input.upPressedTimestamp = time;
+  }
 }
 
-GameEngine.prototype.setDown = function(pressed,time) {
-	downPressed = pressed;
-	downTime = time;
+GameEngine.prototype.setDown = function (upOrDown, time) {
+  if (this.input.upPressed !== upOrDown) {
+    this.input.downPressed = upOrDown;
+    this.input.downPressedTimestamp = time;
+  }
 }
 
-GameEngine.prototype.setLeft = function(pressed,time) {
-	leftPressed = pressed;
-	leftTime = time;
+GameEngine.prototype.setLeft = function (upOrDown, time) {
+  if (this.input.upPressed !== upOrDown) {
+    this.input.leftPressed = upOrDown;
+    this.input.leftPressedTimestamp = time;
+  } 
 }
 
-GameEngine.prototype.setRight = function(pressed,time) {
-	rightPressed = pressed;
-	rightTime = time;
+GameEngine.prototype.setRight = function (upOrDown, time) {
+  if (this.input.upPressed !== upOrDown) {
+    this.input.rightPressed = upOrDown;
+    this.input.rightPressedTimestamp = time;
+  } 
 }
 
-GameEngine.prototype.setJump = function(pressed,time) {
-	jumpPressed = pressed;
-	jumpTime = time;
+GameEngine.prototype.setJump = function (upOrDown, time) {
+  if (this.input.upPressed !== upOrDown) {
+    this.input.jumpPressed = upOrDown;
+    this.input.jumpPressedTimestamp = time;
+  } 
 }
 
-GameEngine.prototype.setLock = function(pressed,time) {
-	lockPressed = pressed;
-	lockTime = time;
+GameEngine.prototype.setLock = function (upOrDown, time) {
+  if (this.input.upPressed !== upOrDown) {
+    this.input.lockPressed = upOrDown;
+    this.input.lockPressedTimestamp = time;
+  } 
 }
 
-GameEngine.prototype.setBoost = function(pressed,time) {
-	boostPressed = pressed;
-	boostTime = time;
+GameEngine.prototype.setBoost = function (upOrDown, time) {
+  if (this.input.upPressed !== upOrDown) {
+    this.input.boostPressed = upOrDown;
+    this.input.boostPressedTimestamp = time;
+  } 
+}
+
+GameEngine.prototype.setPause = function (upOrDown, time) {
+  if (this.input.pausePressed !== upOrDown) {
+    this.input.pausePressed = pressed;
+    this.input.pausePressedTimestamp = time;
+  } 
 }
 
 //Function that allows the changing of the control mapping
 GameEngine.prototype.changeKey = function(keyType) {
-    keyVal = keyType;
-    editKeys = true;
+    this.input.selectedKeyVal = keyType;
+    this.input.editKeys = true;
 }
 
 //When called resets defaults control settings
 GameEngine.prototype.resetDefaults = function() {
-    jumpKey = 65;
-    boostKey = 83;
-    leftKey = 37;
-    rightKey = 39;
-    downKey = 40;
-    upKey = 38;
-    lockKey = 68;
+  this.input.jumpKey = 65;
+  this.input.boostKey = 83;
+  this.input.leftKey = 37;
+  this.input.rightKey = 39;
+  this.input.downKey = 40;
+  this.input.upKey = 38;
+  this.input.lockKey = 68;
+  this.pauseKey = 80;
 }
 
 GameEngine.prototype.addEntity = function(entity) {
@@ -483,7 +482,7 @@ var initScale = 0;
 var imagePaths = ["assets/backgroundTile.png", "assets/midground-Tile-150x150.png", "assets/Megaman8bit.jpg", "assets/enemy.jpg"];
 
 var ASSET_MANAGER = new AssetManager();
-
+var gameEngine;
 for(var i = 0; i < imagePaths.length; i++) {
     ASSET_MANAGER.queueDownload(imagePaths[i]);
 }
@@ -499,7 +498,7 @@ ASSET_MANAGER.downloadAll(function() {
 
     initScale = initWidth / 1920;
 
-    var gameEngine = new GameEngine(player);
+    gameEngine = new GameEngine(player);
 
     groundY = canvas.height/2;
     var gameboard = new GameBoard();

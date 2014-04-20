@@ -12,7 +12,6 @@ function Collideable() {
 }
 Collideable.prototype = new Entity();
 Collideable.prototype.collidesWith = function (point, radius) { }; // for now just checks a point and its radius aka the hamster ball's center + radius to see if it collides. 
-Collideable.prototype = new Entity();
 Collideable.constructor = Collideable;
 
   // Collision data object to return to physics.
