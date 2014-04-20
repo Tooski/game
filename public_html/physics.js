@@ -4,8 +4,11 @@
  * Author Travis Drake
  */
 var PHYS_DEBUG = true;
+
+var HALF_PI = Math.PI / 2.0;
+
 var COLLISION_PRECISION_ITERATIONS = 5;
-var LOCK_MIN_ANGLE = 45.0                / 180 * Math.PI;  //ANGLE OF COLLISION BELOW WHICH NOT TO BOUNCE.
+var LOCK_MIN_ANGLE = 45.0 / 180 * Math.PI;  //ANGLE OF COLLISION BELOW WHICH NOT TO BOUNCE.
 
 //INPUT TYPES AND CORRESPONDING INT VALUE
 var inLeft = 0;
@@ -52,6 +55,41 @@ function TempState(pos, vel, radius, timeDelta) { // overloaded constructor
 
 
 
+
+
+//DEFAULT PHYSICS VALS, TWEAK HERE
+// WIDTH  = 1920 UNITS
+// HEIGHT = 1080 UNITS
+var DFLT_gravity = 450;        // FORCE EXERTED BY GRAVITY IS 400 ADDITIONAL UNITS OF VELOCITY DOWNWARD PER SECOND. 
+
+var DFLT_JUMP_HOLD_TIME = 0.15; // To jump full height, jump must be held for this long. Anything less creates a fraction of the jump height based on the fraction of the full time the button was held. 
+
+// CONST ACCEL INPUTS
+var DFLT_gLRaccel = 300;
+var DFLT_aLRaccel = 200;
+var DFLT_aUaccel = 50;
+var DFLT_aDaccel = 100;
+var DFLT_gUaccel = 50;
+var DFLT_gDaccel = 100;
+var DFLT_gBoostLRvel = 700;
+var DFLT_aBoostLRvel = 700;
+var DFLT_aBoostDownVel = 500;
+
+// CONST PULSE INPUTS
+var DFLT_jumpVelNormPulse = 800;
+var DFLT_doubleJumpVelYPulse = 600;
+var DFLT_doubleJumpVelYMin = 600;
+
+// OTHER CHAR DEFAULTS
+var DFLT_numAirCharges = 1;
+
+// CONST RATIOS
+var DFLT_jumpSurfaceSpeedLossRatio = 0.7;   // When jumping from the ground, the characters velocity vector is decreased by this ratio before jump pulse is added. 
+
+
+
+
+
 // PhysParams object contains all the physics values. These will not change between characters. 
 // This exists because it will be used later on to implement other terrain types, whose static
 // effect values will be passed in here.
@@ -61,57 +99,121 @@ function PhysParams(gravity) {
 
 
 
+
 // This object contains all the values that are relative to the PLAYER. IE, anything that would be specific to different selectable characters.
-function ControlParams(gLRaccel, aLRaccel, aUaccel, aDaccel, gBoostLRvel, aBoostLRvel, boostDownVel, jumpVel, doubleJumpVel, numAirCharges, dragBaseAmt, dragTerminalVel, dragExponent) {
+function ControlParams(gLRaccel, aLRaccel, aUaccel, aDaccel, gUaccel, gDaccel, gBoostLRvel, aBoostLRvel, aBoostDownVel, jumpVelNormPulse, doubleJumpVelYPulse, doubleJumpVelYMin, numAirCharges, dragBaseAmt, dragTerminalVel, dragExponent, jumpSurfaceSpeedLossRatio) {
   this.gLRaccel = gLRaccel;                 //x acceleration exerted by holding Left or Right on the surface.
   this.aLRaccel = aLRaccel;                 //x acceleration exerted by holding Left or Right in the air.
   this.aUaccel = aUaccel;                   //y acceleration exerted by holding up in the air.
   this.aDaccel = aDaccel;                   //y acceleration exerted by holding down in the air.
+  this.gUaccel = gUaccel;                   //y acceleration exerted by holding up on a surface.
+  this.gDaccel = gDaccel;                   //y acceleration exerted by holding down on a surface.
   this.gBoostLRvel = gBoostLRvel;           //x velocity that a boost on the surface sets.
   this.aBoostLRvel = aBoostLRvel;           //x velocity that a boost in the air sets.
   this.boostDownVel = boostDownVel;         //-y velocity that a downboost sets in the air.
-  this.jumpVel = jumpVel;                   //y velocity that a surface jump sets.
-  this.doubleJumpVel = doubleJumpVel;       //y velocity that a double jump sets.
+  this.jumpVelNormPulse = jumpVelNormPulse;             //velocity that a surface jump sets from the normal.
+  this.doubleJumpVelYPulse = doubleJumpVelYPulse;       //y velocity that a double jump adds.
+  this.doubleJumpVelYMin = doubleJumpVelYMin;           //min y velocity that a double jump must result in.
+  this.jumpSurfaceSpeedLossRatio = jumpSurfaceSpeedLossRatio;   // When jumping from the ground, the characters velocity vector is decreased by this ratio before jump pulse is added. 
 
   this.numAirCharges = numAirCharges;       //number of boost / double jumps left in the air.
 
   this.dragBase = dragBaseAmt;              //base drag exerted
   this.dragTerminalVel = dragTerminalVel;   //the velocity at which drag and gravity will be equal with no other factors present.
   this.dragExponent = dragExponent;         //the exponent used to create the drag curve.
+
 }
 
 
 
-function PlayerModel(controlParams, ballRadius, startPoint, numAirCharges, terrainSurface) {     // THIS IS THE PLAYER PHYSICS MODEL, EXTENDABLE FOR DIFFERENT CHARACTER TYPES.
+function PlayerModel(controlParams, ballRadius, startPoint, surfaceOrNull) {     // THIS IS THE PLAYER PHYSICS MODEL, EXTENDABLE FOR DIFFERENT CHARACTER TYPES.
   // Player properties.
   this.radius = ballRadius;          //float radius
   this.controlParameters = controlParams;
-
+  this.state = new PlayerState(terrainSurface, numAirCharges);
   // Movement values.
   this.pos = startPoint;             //vec2 for position!
   this.vel = new vec2(0.0, 0.0);     //vec2 for velocity!
 
   this.timeDelta = 0.0;
 
-  this.surfaceOn = terrainSurface;
-  // STATE FLAGS! READ THE COMMENTS BELOW BEFORE USING!
-  this.airBorne = true;              // BE CAREFUL WITH THESE. IF THE PLAYER IS ON THE surface, airBorne should ALWAYS be false. 
-  this.surfaceLocked = false;         // If the player is on the surface but is not holding the lock button, then this should ALSO be false.
+  // PLAYER STATE
+  this.surfaceOn = surfaceOrNull;   // what surface is the player on?
+  this.onGround = true;     // is the player on the ground?
+  this.gLocked = false;     // is the player locked to the ground?
+  if (surfaceOrNull === null) {
+    this.onGround = false;
+  }
+  this.gBoosting = false;   // is the player in the ground boost state?
+  this.aBoosting = false;   // is the player in the air boost state?
+  this.gJumping = false;    // is the player jumping from the ground?
+  this.aJumping = false;    // is the player air jumping?
 
-  this.airChargeCount = numAirCharges; //number of boosts / double jumps left.
+  this.airChargeCount = controlParams.numAirCharges; //number of boosts / double jumps left.
 }
 
 
 
 // The acceleration vector state. Stores the component vectors and resulting vector in order to efficiently return the current acceleration in the air or on the surface without uneccessary calculations.
-function AccelState(physEng) { 
-  this.surfaceAccel = new vec2(0.0, 0.0);
-  this.airAccel = new vec2(0.0, 0.0);
-  this.physEng = physEng;
+function AccelState(physParams, controlParams, playerModel) {  // DO WE NEED A REFERENCE TO PhysEng?
+  this.accelVec = new vec2(0.0, 0.0);
+  //this.physEng = physEng;
+  this.player = playerModel;
+  this.controlParams = controlParams;
+  this.physParams = physParams;
+
+
+  /*
+  this.gLRaccel = gLRaccel;                 //x acceleration exerted by holding Left or Right on the surface.
+  this.aLRaccel = aLRaccel;                 //x acceleration exerted by holding Left or Right in the air.
+  this.aUaccel = aUaccel;                   //y acceleration exerted by holding up in the air.
+  this.aDaccel = aDaccel;                   //y acceleration exerted by holding down in the air.
+  this.gUaccel = gUaccel;                   //y acceleration exerted by holding up on a surface.
+  this.gDaccel = gDaccel;                   //y acceleration exerted by holding down on a surface.
+  this.gBoostLRvel = gBoostLRvel;           //x velocity that a boost on the surface sets.
+  this.aBoostLRvel = aBoostLRvel;           //x velocity that a boost in the air sets.
+  this.boostDownVel = boostDownVel;         //-y velocity that a downboost sets in the air.
+  */
+
+  this.updateGround = function (inputState) {  // TODO
+    var baseForceX = 0.0;
+    var baseForceY = this.physParams.gravity;
+
+    if (inputState.up) {
+      baseForceY -= this.controlParams.gUaccel;
+    } else if (inputState.down) {
+      baseForceY += this.controlParams.gDaccel;
+    }
+
+    if (inputState.left) {
+      baseForceX -= this.controlParams.gLRaccel;
+    } else if (inputState.down) {
+      baseForceX += this.controlParams.gLRaccel;
+    }
+
+
+    var baseForceVec = new vec2(baseForceX, baseForceY);
+    if (inputState.additionalVec !== null) {                          // if theres an additional vector of force to consider
+      baseForceVec = baseForceVec.add(inputState.additionalVec);
+    }
+
+    var surface = inputState.surfaceOn;
+    var baseForceNormalized = baseForceVec.normalize();
+    var angleToNormal = Math.acos(surface.getNormalAt(this.player.pos).dot(baseForceNormalized));
+    if (angleToNormal > HALF_PI || angleToNormal < -HALF_PI) {          // If the baseForceVec is pushing us towards the surface we're on:
+      // ___+____+____+___ magnitude acceleration along a sloped surface = magnitude of force * sin(angle between force and surface normal)
+      var surfaceVec = surface.p1.subtract(surface.p0);
+      var angleToSurface = Math.acos(surfaceVec.normalize().dot(baseForceNormalized));
+      this.accelVec = baseForceVec.length()
+    } else {                                                            // We're being pushed away from the surface. TODO HANDLE?
+
+    }
+    this.accelVec = surfacebaseForceVec;
+  }
   
 
-  this.updateStates = function (inputState) {  // TODO
-    
+  this.updateAirStates = function (inputState) {  // TODO
+    this.airAccel = new vec2(0.0, 0.0);
   }
 }
 AccelState.prototype.getAirAccel = function () { return this.airAccel }
@@ -125,10 +227,9 @@ function InputState() {
   this.right = false;
   this.up = false;
   this.down = false;
-  this.jump = false;
-  this.boost = false;
   this.lock = false;
-  this.surfaceOn = null; // The terrain object that the player is locked to. Must extend TerrainObject.
+  this.surfaceOn = null; // The terrain object that the player is locked to. Must extend TerrainObject or be null.
+  this.additionalVec = null;
 }
 
 
@@ -291,7 +392,6 @@ PhysEng.prototype.airStep = function (state, timeGoal) {
 
 // A step while the player is in the surface. Returns the players new position and velocity and time and any events that happened (in a TempState object) after attempting surfaceStep of this length. Does not modify values.
 PhysEng.prototype.surfaceStep = function (state, timeDelta) { 
-  // ___+____+____+___ magnitude acceleration along a sloped surface = magnitude of force * sin(angle between force and surface normal)
 
   var collisionData = getCollisionData(stepState);
   

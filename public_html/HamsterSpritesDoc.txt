@@ -1,0 +1,21 @@
+Spritesheet specs. 3900px by 3900px (for now, and this will allow 13 seperate animations each with 13 distinct frames each).
+
+Hamster sprite bounds are completely centered in an array of 300px squares. 
+	This means that centering those 300px on the middle of the hamster ball and then 
+	scaling / rotating as needed should produce the desired results without any hacky tweaking.
+Each specific inimation is on its own line for now, and are (again) currently spaced at 300px.
+		*Write modular code to handle a possible change in sprite size in the future.
+
+row 0: Standing still animation. (Currently only 1 frame, make sure you handle that case accordingly).
+row 1: Walking animation (running animation will come later) for both left and right running. Physics.js will provide an angle of rotation at some point for orienting the animation based on the speed.
+row 2: Running animation. Uses walking animation for now.
+row 3: Boosting on ground animation. Angle will eventually be passed in, but we will worry about that later.
+row 4: Animation for jumping. Angles will eventually be passed in.
+row 5: Boost in the air. Uses Boost animation for now.
+row 6: AirJump. Uses Jump animation for now.
+row 7: Collision with the ground.
+row 8: Collision with a ceiling.
+row 9: Collision with a wall.
+row 10: NONE YET.
+row 11: NONE YET.
+row 12: NONE YET.
