@@ -32,6 +32,9 @@ var gamepadSupport = {
   // starting at [0]) and unified between Firefox and Chrome.
   gamepads: [],
 
+  //Contain a list of gamepads. States are copies of the button and axis arrays.
+  gamepadsLastStates: [],
+
   // Remembers the connected gamepads at the last check; used in Chrome
   // to figure out when gamepads get connected or disconnected, since no
   // events are fired.
@@ -44,6 +47,49 @@ var gamepadSupport = {
 
   //GameEngine object to call from
   engine: null,
+
+  /*    CONTROLLER BUTTON REFERENCE LIST
+  buttons[x]
+  0   A / X
+  1   B / O
+  2   X / Square
+  3   Y / Triangle
+  4   LB / L1
+  5   RB / R1
+  6   LT / L2
+  7   RT / R2
+  8   Select / Back
+  9   Start / Forward
+  10  LS click
+  11  RS click
+  12  up dpad
+  13  down dpad
+  14  left dpad
+  15  right dpad
+  16  middle button (between start and select)
+
+  axes[x]
+  0   Left stick X axis, negative left, positive right
+  1   Left stick Y axis, negative up, positive down
+  2   right stick X axis, negative left, positive right
+  3   right stick Y axis, negative up, positive down
+  */
+
+
+  //Button mapping. I'm implementing them as a bitmask, so multiple buttons can map to this.
+  bStart: 9,
+
+  bUp: 12,
+  bDown: 13,
+  bLeft: 14,
+  bRight: 15,
+
+  bJump: 0,
+  bBoost: 4,
+  bLock: 7,
+
+  axisUpDown: 1,
+  axisLeftRight: 0,
 
   /**
    * Initialize support for Gamepad API.
@@ -222,68 +268,59 @@ var gamepadSupport = {
     }
   },
 
-//Button mappings, can be modified
-var dUp = "UP";
-var dDown = "DOWN";
-var dLeft = "LEFT";
-var dRight = "RIGHT";
-var face1 = "JUMP";
-var face2 = "BOOST";
-var face3 = "LOCK";
-
   // Call game.js with new state and ask it to update the screen
   updateDisplay: function(gamepadId) {
     var gamepad = gamepadSupport.gamepads[gamepadId];
     console.log("In gamepad updateDisplay: function");
+
+    if (gamepad.buttons[gamepadSupport.bUp] === 1) {
+      engine.setUp(true, performance.now());
+    } else if (gamepad.buttons[gamepadSupport.bDown] === 1) {
+      engine.setDown(true, performance.now());
+    } else if (gamepad.buttons[gamepadSupport.bLeft] === 1) {
+      engine.setLeft(true, performance.now());
+    } else if (gamepad.buttons[gamepadSupport.bRight] === 1) {
+      engine.setRight(true, performance.now());
+    } else if (gamepad.buttons[gamepadSupport.bJump] === 1) {
+      engine.setJump(true, performance.now());
+    } else if (gamepad.buttons[gamepadSupport.bBoost] === 1) {
+      engine.setBoost(true, performance.now());
+    } else if (gamepad.buttons[gamepadSupport.bLock] === 1) {
+      engine.setLock(true, performance.now());
+    } else if (gamepad.buttons[gamepadSupport.bStart] === 1) {
+      engine.setStart(true, 
+    }
+
     if (gamepad.buttons[13] === 1) {
     	//engine.setDown(true,performance.now());
-    	controlFunc(dDown);
+      gamepadSupport.controlFunc(dDown);
     	console.log("Down");
     } else if (gamepad.buttons[15] === 1) {
         //engine.setRight(true,performance.now());
-        controlFunc(dRight);
-        console.log("Right");
+      gamepadSupport.controlFunc(dRight);
+      console.log("Right");
     } else if (gamepad.buttons[14] === 1) {
         //engine.setLeft(true,performance.now());
-        controlFunc(dLeft);
-        console.log("Left");
+      gamepadSupport.controlFunc(dLeft);
+      console.log("Left");
     } else if (gamepad.buttons[12] === 1) {
         //engine.setUp(true,performance.now());
-        controlFunc(dUp);
-        console.log("Up");
+      gamepadSupport.controlFunc(dUp);
+      console.log("Up");
     } else if (gamepad.buttons[0] === 1) {
         //engine.setLock(true,performance.now());
-        controlFunc(face3);
-        console.log("Lock");
+      gamepadSupport.controlFunc(face3);
+      console.log("Lock");
     } else if (gamepad.buttons[1] === 1) {
         //engine.setJump(true,performance.now());
-        controlFunc(face1);
-        console.log("Jump");
+      gamepadSupport.controlFunc(face1);
+      console.log("Jump");
     } else if (gamepad.buttons[2] === 1) {
         //engine.setBoost(true,performance.now());
-        controlFunc(face2);
-        console.log("Boost");
+      gamepadSupport.controlFunc(face2);
+      console.log("Boost");
     } else if (gamepad.buttons[3] === 1) {
-        console.log("X");
+      console.log("X");
     } 
-  }
-  
-  //Allows for remapping of controls
-  controlFunc: function(controlValue) {
-  	if (controlValue === "UP"){
-  		engine.setUp(true,performance.now());
-  	} else if (controlValue === "DOWN"){
-  		engine.setDown(true,performance.now());
-  	} else if (controlValue === "LEFT"){
-  		engine.setLeft(true,performance.now());
-  	} else if (controlValue === "RIGHT"){
-  		engine.setRight(true,performance.now());
-  	} else if (controlValue === "JUMP"){
-  		engine.setJump(true,performance.now());
-  	} else if (controlValue === "BOOST"){
-  		engine.setBoost(true,performance.now());
-  	} else if (controlValue === "LOCK"){
-  		engine.setLock(true,performance.now());
-  	}
-  } 
+  },
 };
