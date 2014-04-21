@@ -11,6 +11,8 @@ function Entity(game, x, y, width, height) {
     this.width = width;
     this.height = height;
     this.removeFromWorld = false;
+    this.id = generateID(this);
+
 }
 
 Entity.prototype.update = function() {
@@ -42,4 +44,19 @@ Entity.prototype.rotateAndCache = function(image, angle) {
     //offscreenCtx.strokeRect(0,0,size,size);
     return offscreenCanvas;
 }
+
+
+var generateID = (function () {
+    var k = 'id';
+
+    return function generateID(o) {
+        var t = Math.random().toString(36).substr(2, 9);
+        Object.prototype.__defineGetter__.call(o, k,
+            function () {
+                return this === o ? t : generateID(this, k);
+            }
+        );
+        return t;
+    };
+}());
 

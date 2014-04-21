@@ -483,6 +483,7 @@ var imagePaths = ["assets/backgroundTile.png", "assets/midground-Tile-150x150.pn
 
 var ASSET_MANAGER = new AssetManager();
 var gameEngine;
+var player;
 for(var i = 0; i < imagePaths.length; i++) {
     ASSET_MANAGER.queueDownload(imagePaths[i]);
 }
@@ -490,7 +491,7 @@ ASSET_MANAGER.downloadAll(function() {
     console.log("starting up da sheild");
     canvas = document.getElementById('gameWorld');
      ctx = canvas.getContext('2d');
-    var player = new Player("assets/Megaman8bit.jpg",canvas.width/2, canvas.height/2);
+     player = new Player("assets/Megaman8bit.jpg",canvas.width/2, canvas.height/2);
     canvas.tabIndex = 1;
    
     canvas.height = window.innerHeight;
@@ -506,9 +507,9 @@ ASSET_MANAGER.downloadAll(function() {
 
         gameEngine.addEntity(new Unit("assets/enemy.jpg", enemy[i][0],enemy[i][1]));
     }
-        gameEngine.addEntity(new TerrainLine(new vec2(200,200+50), new vec2(200+250,200+150), player));
+    //    gameEngine.addEntity(new TerrainLine(new vec2(200,200+50), new vec2(200+250,200+150), player));
     
-
+ gameEngine.addEntity(new MapEditor());
    //  gameEngine.addEntity(new BezierCurve(40,100,80,20,150,180,260,100));
     gameEngine.addEntity(gameboard);
     gameEngine.addEntity(player);
@@ -517,6 +518,28 @@ ASSET_MANAGER.downloadAll(function() {
    // gameEngine.startInput();
 
 
+
+
+  
+    var selectedItem;
+    canvas.addEventListener('mousedown', function(e) {
+        selectedItem = collides( e.offsetX, e.offsetY);
+        if (selectedItem && selectedItem.onClick) {
+            selectedItem.onClick(e);
+        }
+    }, false);
+    canvas.addEventListener("mousemove", function(e){
+        if (selectedItem && selectedItem.onDrag) {
+            selectedItem.onDrag(e);
+        }
+    }, false);
+    canvas.addEventListener("mouseup", function(e){
+        if (selectedItem && selectedItem.onRelease) {
+            selectedItem.onRelease(e);
+        }
+        selectedItem = null;
+    }, false);
+    
 });
 
 
