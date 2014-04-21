@@ -261,6 +261,7 @@ GameEngine.prototype.startInput = function() {
 
 //Setter functions to allow gamepad functionality
 GameEngine.prototype.setUp = function (upOrDown, time) {
+  console.log('   setUp');
   if (this.input.upPressed !== upOrDown) {
     this.input.upPressed = upOrDown;
     this.input.upPressedTimestamp = time;
@@ -268,42 +269,42 @@ GameEngine.prototype.setUp = function (upOrDown, time) {
 }
 
 GameEngine.prototype.setDown = function (upOrDown, time) {
-  if (this.input.upPressed !== upOrDown) {
+  if (this.input.downPressed !== upOrDown) {
     this.input.downPressed = upOrDown;
     this.input.downPressedTimestamp = time;
   }
 }
 
 GameEngine.prototype.setLeft = function (upOrDown, time) {
-  if (this.input.upPressed !== upOrDown) {
+  if (this.input.leftPressed !== upOrDown) {
     this.input.leftPressed = upOrDown;
     this.input.leftPressedTimestamp = time;
   } 
 }
 
 GameEngine.prototype.setRight = function (upOrDown, time) {
-  if (this.input.upPressed !== upOrDown) {
+  if (this.input.rightPressed !== upOrDown) {
     this.input.rightPressed = upOrDown;
     this.input.rightPressedTimestamp = time;
   } 
 }
 
 GameEngine.prototype.setJump = function (upOrDown, time) {
-  if (this.input.upPressed !== upOrDown) {
+  if (this.input.jumpPressed !== upOrDown) {
     this.input.jumpPressed = upOrDown;
     this.input.jumpPressedTimestamp = time;
   } 
 }
 
 GameEngine.prototype.setLock = function (upOrDown, time) {
-  if (this.input.upPressed !== upOrDown) {
+  if (this.input.lockPressed !== upOrDown) {
     this.input.lockPressed = upOrDown;
     this.input.lockPressedTimestamp = time;
   } 
 }
 
 GameEngine.prototype.setBoost = function (upOrDown, time) {
-  if (this.input.upPressed !== upOrDown) {
+  if (this.input.boostPressed !== upOrDown) {
     this.input.boostPressed = upOrDown;
     this.input.boostPressedTimestamp = time;
   } 

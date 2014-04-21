@@ -115,8 +115,8 @@ var gamepadSupport = {
         !!navigator.webkitGamepads;
 
 	gamepadSupport.engine = gameEngine;
-	console.log("in gamepad init: function(), engine: ");
-	console.log(gamepadSupport.engine);
+	//console.log("in gamepad init: function(), engine: ");
+	//console.log(gamepadSupport.engine);
     if (!gamepadSupportAvailable) {
       // It doesn’t seem Gamepad API is available – show a message telling
       // the visitor about it.
@@ -293,8 +293,8 @@ var gamepadSupport = {
   updateDisplay: function(gamepadId) {
     var gamepad = gamepadSupport.gamepads[gamepadId];
     var gamepadLastState = gamepadSupport.gamepadsLastStates[gamepadId];
-    console.log("In gamepad updateDisplay: function. gamePadLastStates = ");
-    console.log(gamepadLastState);
+    //console.log("In gamepad updateDisplay: function. gamePadLastStates = ");
+    //console.log(gamepadLastState);
 
     var timeStamp = performance.now();
     if (gamepad.buttons[gamepadSupport.bUp] !== gamepadLastState.buttons[gamepadSupport.bUp]) {

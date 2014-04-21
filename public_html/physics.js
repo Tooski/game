@@ -367,6 +367,7 @@ PhysEng.prototype.stepToEndOfEvent = function (state, event) {
     this.player.pos = stepState.pos;
     this.player.vel = stepState.vel;
     this.player.timeDelta = stepState.timeDelta;
+    console.log("CALLING EVENTS HANDLER!!!!!!!");
     event.handler(this);              // LET THE EVENTS HANDLER DO WHAT IT NEEDS TO TO UPDATE THE PHYSICS STATE, AND CONTINUE ON IN TIME TO THE NEXT EVENT.
   }
 
@@ -380,14 +381,15 @@ PhysEng.prototype.stepToEndOfEvent = function (state, event) {
 PhysEng.prototype.airStep = function (state, timeGoal) {
   var startTime = state.timeDelta;
   console.log("in airStep. timeGoal: ", timeGoal);
-  console.log("startTime: ", startTime);
+  //console.log("startTime: ", startTime);
   this.accelState.update(this.inputState);
   var accelVec = this.accelState.accelVec;
   console.log("accelVec before adding: ", accelVec);
   var lastVel = state.vel;
   var lastPos = state.pos;
   var multed = accelVec.multf(timeGoal - startTime);
-  console.log("lastVel: ", lastVel);
+  //console.log("lastVel: ", lastVel);
+  console.log("this.inputState: ", this.inputState);
   var newVel = lastVel.add(multed);
   var newPos = lastPos.add(lastVel.add(newVel).divf(2.0));
 
@@ -407,7 +409,6 @@ PhysEng.prototype.airStep = function (state, timeGoal) {
 
     tempState = new TempState(newPos, newVel, player.radius, newDelta);
 
-    //If we havent narrowed it down to a single collision yet then keep going past the accuracy point.
     for (var i = 0; i < COLLISION_PRECISION_ITERATIONS; i++) { //find collision point
       collisionData = getCollisionDataInList(tempState, collisions);
       if (!collisionData.collided) {  // NO COLLISION
