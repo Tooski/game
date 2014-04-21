@@ -18,12 +18,12 @@
 
 function GamepadState(gamepad) {
   this.buttons = [];
-  this.axis = [];
+  this.axes = [];
   for (var i = 0; i < gamepad.buttons.length; i++) {
     this.buttons.push(gamepad.buttons[i]);
   }
-  for (var i = 0; i < gamepad.axis.length; i++) {
-    this.buttons.push(gamepad.axis[i]);
+  for (var i = 0; i < gamepad.axes.length; i++) {
+    this.buttons.push(gamepad.axes[i]);
   }
 }
 
@@ -109,13 +109,14 @@ var gamepadSupport = {
   /**
    * Initialize support for Gamepad API.
    */
-  init: function(GameEngine) {
+  init: function(gameEngine) {
     var gamepadSupportAvailable = navigator.getGamepads ||
         !!navigator.webkitGetGamepads ||
         !!navigator.webkitGamepads;
 
-	engine = GameEngine;
-    console.log("in gamepad init: function()");
+	gamepadSupport.engine = gameEngine;
+	console.log("in gamepad init: function(), engine: ");
+	console.log(gamepadSupport.engine);
     if (!gamepadSupportAvailable) {
       // It doesn’t seem Gamepad API is available – show a message telling
       // the visitor about it.
@@ -145,7 +146,7 @@ var gamepadSupport = {
     console.log("In gamepad onGamepadConnect");
     // Add the new gamepad on the list of gamepads to look after.
     gamepadSupport.gamepads.push(event.gamepad);
-    gamepadSupport.gamepadsLastStates.push(event.gamepad);
+    gamepadSupport.gamepadsLastStates.push(new GamepadState(event.gamepad));
 
     // Start the polling loop to monitor button changes.
     gamepadSupport.startPolling();
@@ -230,7 +231,11 @@ var gamepadSupport = {
 
     for (var i = 0; i < gamepadSupport.gamepads.length; i++) {
       var gamepad = gamepadSupport.gamepads[i];
-      console.log(gamepad.buttons);
+      if (!gamepadSupport.gamepadsLastStates[i]) {
+        gamepadSupport.gamepadsLastStates[i] = new GamepadState(gamepad);
+      }
+      //console.log(gamepad.buttons);
+
 
       // Don’t do anything if the current timestamp is the same as previous
       // one, which means that the state of the gamepad hasn’t changed.
@@ -288,7 +293,8 @@ var gamepadSupport = {
   updateDisplay: function(gamepadId) {
     var gamepad = gamepadSupport.gamepads[gamepadId];
     var gamepadLastState = gamepadSupport.gamepadsLastStates[gamepadId];
-    console.log("In gamepad updateDisplay: function");
+    console.log("In gamepad updateDisplay: function. gamePadLastStates = ");
+    console.log(gamepadLastState);
 
     var timeStamp = performance.now();
     if (gamepad.buttons[gamepadSupport.bUp] !== gamepadLastState.buttons[gamepadSupport.bUp]) {
@@ -317,27 +323,27 @@ var gamepadSupport = {
     }
 
     
-    if (gamepad.axis[gamepadSupport.axisLeftRight] != gamepadLastState.axis[gamepadSupport.axisLeftRight]) {  // test analog stick X axis
-      if (gamepad.axis[gamepadSupport.axisLeftRight] <= - AXIS_THRESHHOLD) {
-        gamepadSupport.engine.setLeft(true, timeStamp);
-      } else if (gamepad.axis[gamepadSupport.axisLeftRight] >= AXIS_THRESHHOLD) {
-        gamepadSupport.engine.setRight(true, timeStamp);
-      } else {
-        gamepadSupport.engine.setLeft(false, timeStamp);
-        gamepadSupport.engine.setRight(false, timeStamp);
-      }
-    }
+    //if (gamepad.axes[gamepadSupport.axisLeftRight] != gamepadLastState.axes[gamepadSupport.axisLeftRight]) {  // test analog stick X axis
+    //  if (gamepad.axes[gamepadSupport.axisLeftRight] <= - AXIS_THRESHHOLD) {
+    //    gamepadSupport.engine.setLeft(true, timeStamp);
+    //  } else if (gamepad.axes[gamepadSupport.axisLeftRight] >= AXIS_THRESHHOLD) {
+    //    gamepadSupport.engine.setRight(true, timeStamp);
+    //  } else {
+    //    gamepadSupport.engine.setLeft(false, timeStamp);
+    //    gamepadSupport.engine.setRight(false, timeStamp);
+    //  }
+    //}
 
-    if (gamepad.axis[gamepadSupport.axisUpDown] !== gamepadLastState.axis[gamepadSupport.axisUpDown]) {     // test analog stick Y axis
-      if (gamepad.axis[gamepadSupport.axisUpDown] <= - AXIS_THRESHHOLD) {
-        gamepadSupport.engine.setUp(true, timeStamp);
-      } else if (gamepad.axis[gamepadSupport.axisUpDown] >= AXIS_THRESHHOLD) {
-        gamepadSupport.engine.setDown(true, timeStamp);
-      } else {
-        gamepadSupport.engine.setUp(false, timeStamp);
-        gamepadSupport.engine.setDown(false, timeStamp);
-      }
-    }
-
+    //if (gamepad.axes[gamepadSupport.axisUpDown] !== gamepadLastState.axes[gamepadSupport.axisUpDown]) {     // test analog stick Y axis
+    //  if (gamepad.axes[gamepadSupport.axisUpDown] <= - AXIS_THRESHHOLD) {
+    //    gamepadSupport.engine.setUp(true, timeStamp);
+    //  } else if (gamepad.axes[gamepadSupport.axisUpDown] >= AXIS_THRESHHOLD) {
+    //    gamepadSupport.engine.setDown(true, timeStamp);
+    //  } else {
+    //    gamepadSupport.engine.setUp(false, timeStamp);
+    //    gamepadSupport.engine.setDown(false, timeStamp);
+    //  }
+    //}
+    gamepadSupport.gamepadsLastStates[gamepadId] = new GamepadState(gamepad);
   },
 };
