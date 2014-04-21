@@ -370,7 +370,11 @@ function parallax(ctx, backgroundImage, offsetSpeed, position) {
 
 GameEngine.prototype.draw = function(drawCallback) {
   
-    this.ctx.clearRect(0, 0, this.ctx.canvas.width, this.ctx.canvas.height);
+  this.ctx.clearRect(0, 0, this.ctx.canvas.width, this.ctx.canvas.height);
+  ctx.lineCap = "round";
+
+  ctx.lineJoin = "round";
+  ctx.miterLimit = 2;
     this.ctx.save();
 
     if(initScale !== 0) {
@@ -396,9 +400,6 @@ GameEngine.prototype.draw = function(drawCallback) {
     for (var i = 0; i < this.entities.length; i++) {
         this.entities[i].draw(this.ctx);
     }
-    if (drawCallback) {
-        drawCallback(this);
-    }
        
     for(var i = 0; i < buttonList.length; i++) {
             if(!mouseCollidable[i].onEditMode || (mouseCollidable[i].onEditMode && editMode)) {
@@ -419,6 +420,9 @@ GameEngine.prototype.draw = function(drawCallback) {
     }
     } 
     this.ctx.restore();
+    if (drawCallback) {
+      drawCallback(this);
+    }
 }
 
 GameEngine.prototype.update = function() {

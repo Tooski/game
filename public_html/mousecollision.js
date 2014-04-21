@@ -26,28 +26,24 @@ MouseCollideable.onClick = function(e) {  };
 MouseCollideable.onRelease = function(e) { };
 
 function collides(x, y) {
-    var isCollision = false;
+  var isCollision = false;
     
-    for (var i = 0; i < mouseCollidable.length; i++) {
-    if(!mouseCollidable[i].onEditMode || (mouseCollidable[i].onEditMode && editMode))
-        if (collidedWith(mouseCollidable[i], x, y)) {
-            isCollision = mouseCollidable[i];
-        }
+  for (var i = 0; i < mouseCollidable.length; i++) {
+    if ((editMode && mouseCollidable[i].onEditMode) || !mouseCollidable[i].onEditMode) {
+      if (collidedWith(mouseCollidable[i], x, y)) {
+        isCollision = mouseCollidable[i];
+      }
     }
-    return isCollision;
+  }
+  return isCollision;
 }
 
 function collidedWith(value, x, y) {
-    return (x/ initScale - 
-                    (initWidth/ctx.canvas.width) * ctx.canvas.width / initScale / 2 
-                    + player.position.x  <= value.x + value.w &&
-                x/ initScale - 
-                    (initWidth/ctx.canvas.width) * ctx.canvas.width / initScale / 2 
-                    + player.position.x  >= value.x && 
-                y/ initScale - 
-                    (initWidth/ctx.canvas.width) * ctx.canvas.height / initScale / 2 
-                    + player.position.y <= value.y + value.h  && 
-                y/ initScale - 
-                    (initWidth/ctx.canvas.width) * ctx.canvas.height / initScale / 2 
-                    + player.position.y >= value.y );
+  var calc =  (initWidth/ctx.canvas.width) / initScale / 2;
+  var xInit = x / initScale + player.position.x;
+  var yInit = y / initScale + player.position.y;
+  return (xInit - calc * ctx.canvas.width <= value.x + value.w &&
+            xInit - calc * ctx.canvas.width >= value.x &&
+            yInit - calc * ctx.canvas.height <= value.y + value.h &&
+            yInit - calc * ctx.canvas.height >= value.y);
 }

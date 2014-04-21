@@ -113,123 +113,136 @@ TerrainSurface.prototype.constructor = TerrainSurface;// Establishes this as hav
 function TerrainLine(point0, point1, player, adjacent0, adjacent1, normal) {  
    
     TerrainSurface.apply(this, [point0, point1, adjacent0, adjacent1,player]); // Sets this up as a child of TerrainSurface and initializes TerrainSurface's fields.
-  this.normal = normal;//.normalize();
+    this.normal = normal;//.normalize();
+
+
+    this.getNormalAt = function (ballLocation, radius) {
+      var pA = this.p0;              // TerrainLine point 1
+      var pB = this.p1;              // TerrainLine point 2
+      var pC = ballLocation;                // center of the ball
+      var vAC = pC.subtract(pA);     // vector from A to the ball
+      var vBC = pC.subtract(pB);     // vector from B to the ball
+      if (vAC.length() <= radius) {
+        return vAC.normalize();
+      } else if (vBC.length() <= radius) {
+        // WE ARE OFF THE SIDES OF THE PERPENDICULAR BOUNDING BOX, BUT WE STILL COLLIDED WITH THE LINES ENDPOINT.
+        return vBC.normalize();
+      } else {
+        return this.normal;
+      }
+    }
+
+    this.getSurfaceAt = function (ballLocation) {
+      return (vec2(this.p1 - this.p0)).normalize();
+    }
+
+    this.collidesWith = function (point, radius, ctx) { // OVERRIDES THE COLLIDEABLE METHOD!!
+      var pA = this.p0;              // TerrainLine point 1
+      var pB = this.p1;              // TerrainLine point 2
+      var pC = point;                // center of the ball
+
+      var vAB = pB.subtract(pA);     // vector from A to B
+      var vAC = pC.subtract(pA);     // vector from A to the ball
+      var vBC = pC.subtract(pB);     // vector from B to the ball
+      //console.log(pA + " " + pB + " " + pC);
+      var vAD = projectVec2(vAC, vAB); //project the vector to the ball onto the surface.
+      var pD = pA.add(vAD);            // find the perpendicular intersect of the surface.
+      var vCD = pC.subtract(pD);       // find the vector from ball to the perpendicular intersection.
+
+      var collision = false;
+      var vABlen = vAB.length();
+      if (vCD.length() <= radius && vAD.length() < vABlen && vAB.subtract(vAD).length() < vABlen) {
+        // THEN THE CENTER OF OUR CIRCLE IS WITHIN THE PERPENDICULAR BOUNDS OF THE LINE SEGMENT, AND CIRCLE IS LESS THAN RADIUS AWAY FROM THE LINE.
+        collision = true;
+      } else if (vAC.length() <= radius || vBC.length() <= radius) {
+        // WE ARE OFF THE SIDES OF THE PERPENDICULAR BOUNDING BOX, BUT WE STILL COLLIDED WITH THE LINES ENDPOINT.
+        collision = true;
+      } else {
+        // No collision, unless we're missing a case in which case add additional detection here.
+      }
+      if (DEBUG_TERRAIN && ctx) {
+        //ctx.strokeStyle = collision ? "Red" : "Black";
+
+
+
+        //ctx.lineWidth = 3;
+
+        //ctx.moveTo(point.x, point.y);
+        //ctx.lineTo(pB.x, pB.y);
+
+        //ctx.moveTo(point.x, point.y);
+        //ctx.lineTo(pA.x, pA.y);
+
+        //ctx.moveTo(point.x, point.y);
+        //ctx.lineTo(pD.x, pD.y);
+
+        //ctx.stroke();
+      }
+
+      return collision;
+    }
 }
 TerrainLine.prototype = new TerrainSurface();      //Establishes this as a child of TerrainSurface.
 TerrainLine.prototype.constructor = TerrainLine;   //Establishes this as having its own constructor.
-TerrainLine.prototype.getNormalAt = function (ballLocation, radius) {
-  var pA = this.p0;              // TerrainLine point 1
-  var pB = this.p1;              // TerrainLine point 2
-  var pC = ballLocation;                // center of the ball
-  var vAC = pC.subtract(pA);     // vector from A to the ball
-  var vBC = pC.subtract(pB);     // vector from B to the ball
-  if (vAC.length() <= radius) {
-    return vAC.normalize();
-  } else if (vBC.length() <= radius) {
-    // WE ARE OFF THE SIDES OF THE PERPENDICULAR BOUNDING BOX, BUT WE STILL COLLIDED WITH THE LINES ENDPOINT.
-    return vBC.normalize();
-  } else {
-    return this.normal;
-  }
-}
-TerrainLine.prototype.getSurfaceAt = function (ballLocation) {
-  return (vec2(this.p1 - this.p0)).normalize();
-}
-TerrainLine.prototype.collidesWith = function (point, radius ,ctx) { // OVERRIDES THE COLLIDEABLE METHOD!!
-  var pA = this.p0;              // TerrainLine point 1
-  var pB = this.p1;              // TerrainLine point 2
-  var pC = point;                // center of the ball
-
-  var vAB = pB.subtract(pA);     // vector from A to B
-  var vAC = pC.subtract(pA);     // vector from A to the ball
-  var vBC = pC.subtract(pB);     // vector from B to the ball
-  //console.log(pA + " " + pB + " " + pC);
-  var vAD = projectVec2(vAC, vAB); //project the vector to the ball onto the surface.
-  var pD = pA.add(vAD);            // find the perpendicular intersect of the surface.
-  var vCD = pC.subtract(pD);       // find the vector from ball to the perpendicular intersection.
-  
-  var collision = false;
-  var vABlen = vAB.length();
-  if (vCD.length() <= radius && vAD.length() < vABlen && vAB.subtract(vAD).length() < vABlen) {
-    // THEN THE CENTER OF OUR CIRCLE IS WITHIN THE PERPENDICULAR BOUNDS OF THE LINE SEGMENT, AND CIRCLE IS LESS THAN RADIUS AWAY FROM THE LINE.
-    collision = true;
-  } else if (vAC.length() <= radius || vBC.length() <= radius) {
-    // WE ARE OFF THE SIDES OF THE PERPENDICULAR BOUNDING BOX, BUT WE STILL COLLIDED WITH THE LINES ENDPOINT.
-    collision = true;
-  } else {
-    // No collision, unless we're missing a case in which case add additional detection here.
-  }
-  if (DEBUG_TERRAIN && ctx) {
-    ctx.strokeStyle = collision ? "Red" : "Black";
 
 
 
-    ctx.lineWidth = 3;
+TerrainLine.prototype.draw = function (ctx) {
 
-    ctx.moveTo(point.x, point.y);
-    ctx.lineTo(pB.x, pB.y);
+  ctx.beginPath();
+  ctx.lineWidth = 6;
+    ctx.lineCap = "round";
 
-    ctx.moveTo(point.x, point.y);
-    ctx.lineTo(pA.x, pA.y);
-
-    ctx.moveTo(point.x, point.y);
-    ctx.lineTo(pD.x, pD.y);
-
-    ctx.stroke();
-  }
-  
-  return collision;
-}
-TerrainLine.prototype.draw = function(ctx) {
-  ctx.lineWidth=5;
-
+  ctx.lineJoin = "round";
+  ctx.miterLimit = 3;
+  ctx.strokeStyle = "#000000";
   ctx.moveTo(this.p0.x, this.p0.y);
   ctx.lineTo(this.p1.x, this.p1.y);
-  ctx.stroke();
-  
-  
+
+
   //// CODE BELOW ONLY SHOWS IF EDIT MODE IS ENABLED FOR MAP EDITOR!
-      if(editMode) {
-        ctx.beginPath();
-        ctx.arc(this.p0.x  , this.p0.y , 10, 0, 2 * Math.PI, false);
-        ctx.fillStyle = 'green';
-        ctx.fill();
-        ctx.stroke();
+  if (editMode) {
+    //ctx.beginPath();
+    ctx.moveTo(this.p0.x, this.p0.y);
+    ctx.arc(this.p0.x, this.p0.y, 4, 0, 2 * Math.PI, false);
+    //ctx.fillStyle = 'green';
+    //ctx.fill();
+    ctx.moveTo(this.p1.x, this.p1.y);
+    ctx.arc(this.p1.x, this.p1.y, 4, 0, 2 * Math.PI, false);
+    //ctx.fillStyle = 'red';
+    ctx.fill();
 
-        ctx.beginPath();
-        ctx.arc(this.p1.x  , this.p1.y , 10, 0, 2 * Math.PI, false);
-        ctx.fillStyle = 'red';
-        ctx.fill();
-        ctx.stroke();
+    if (this.normal) {
 
-        if(this.normal) {
-          
-            var midPoint = this.p0.add(this.p1).divf(2.0);
-            
-            
-            this.normalPosVec = midPoint.add(this.normal.multf(20));
-            
-            this.normalPosCol.x = this.normalPosVec.x - this.normalPosCol.w/2;
-            this.normalPosCol.y = this.normalPosVec.y - this.normalPosCol.h/2;
+      var midPoint = this.p0.add(this.p1).divf(2.0);
+      //ctx.beginPath();
+      //ctx.strokeStyle = "#001133";
+      //ctx.lineWidth = 4;
+      this.normalPosVec = midPoint.add(this.normal.multf(16));
 
-            ctx.moveTo(midPoint.x  , midPoint.y  );
-            ctx.lineTo(this.normalPosVec.x  , this.normalPosVec.y  );
-            ctx.stroke();
-            ctx.beginPath();
+      this.normalPosCol.x = this.normalPosVec.x - this.normalPosCol.w / 2;
+      this.normalPosCol.y = this.normalPosVec.y - this.normalPosCol.h / 2;
 
-            ctx.arc(this.normalPosVec.x  , this.normalPosVec.y , this.normalPosCol.w/2, 0, 2 * Math.PI, false);
-            ctx.fillStyle = 'orange';
-            ctx.fill();
-            ctx.stroke();
-        
-        }
+      ctx.moveTo(midPoint.x, midPoint.y);
+      ctx.lineTo(this.normalPosVec.x, this.normalPosVec.y);
+      ctx.stroke();
+      //ctx.beginPath();
+
+      //ctx.arc(this.normalPosVec.x  , this.normalPosVec.y , this.normalPosCol.w/2, 0, 2 * Math.PI, false);
+      //ctx.fillStyle = 'orange';
+      //ctx.fill();
+      //ctx.stroke();
+
+    } else {
+
+      ctx.stroke();
     }
-  
-  
-  
-  if (DEBUG_TERRAIN) {
-    this.collidesWith(this.player.position, 25, ctx);
-  } 
+    if (DEBUG_TERRAIN) {
+      this.collidesWith(this.player.position, 25, ctx);
+    }
+  } else {
+    ctx.stroke();
+  }
 }
 
 function findNormalByMouse(e, line) {
