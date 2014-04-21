@@ -391,8 +391,6 @@ GameEngine.prototype.draw = function(drawCallback) {
 
 
 
-    parallax(this.ctx, ASSET_MANAGER.cache[imagePaths[0]], 1/4, this.player.position);
-    parallax(this.ctx, ASSET_MANAGER.cache[imagePaths[1]], 1/2, this.player.position);
     
     for (var i = 0; i < this.entities.length; i++) {
         this.entities[i].draw(this.ctx);
@@ -400,6 +398,25 @@ GameEngine.prototype.draw = function(drawCallback) {
     if (drawCallback) {
         drawCallback(this);
     }
+       
+    for(var i = 0; i < buttonList.length; i++) {
+            if(!mouseCollidable[i].onEditMode || (mouseCollidable[i].onEditMode && editMode)) {
+       buttonList[i].collider.x = buttonList[i].x =  buttonList[i].ix/ initScale - 
+                    (initWidth/ctx.canvas.width) * ctx.canvas.width / initScale / 2 
+                    + player.position.x;
+        buttonList[i].collider.y = buttonList[i].y =  buttonList[i].iy/ initScale - 
+                    (initWidth/ctx.canvas.width) * ctx.canvas.height / initScale / 2 
+                    + player.position.y;
+
+        this.ctx.fillStyle = buttonList[i].isSelected ? "#00FF00" : "#FF0000";
+        this.ctx.fillRect(buttonList[i].x,buttonList[i].y, buttonList[i].w, buttonList[i].h);
+        var size = 16;
+        this.ctx.fillStyle = "black";
+        this.ctx.font = "bold "+size+"px Arial";
+        this.ctx.textAlign="center"; 
+        this.ctx.fillText(buttonList[i].name, buttonList[i].x +  buttonList[i].w/2, buttonList[i].y  + buttonList[i].h/2 + size/2);
+    }
+    } 
     this.ctx.restore();
 }
 

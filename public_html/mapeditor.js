@@ -15,12 +15,12 @@ function MapEditorButton(name, x, y, w, h) {
     this.iy = y;
     this.x = x;
     this.y = y;
-    this.w = w;
-    this.h = h;
+    this.w = w/initScale;
+    this.h = h/initScale;
     this.isSelected = false;
-
+    this.collider = new MouseCollideable("button", this.x,this.y,this.w,this.h);
     var that = this;
-    new MouseCollideable("button", this.x,this.y,this.w,this.h).onClick = function(e) {
+    this.collider.onClick = function(e) {
         if(button !== that) {
             that.isSelected = button ? !(button.isSelected = false) : true;
             button = that;
@@ -43,11 +43,12 @@ MapEditorButton.onDrag = function(e){};
 MapEditorButton.onRelease = function(e){};
 
 function MapEditor() {
+    createEditModeButton();
     createLineButton();
     createEraseButton();
     createLoadButton();
     createSaveButton();
-    createEditModeButton();
+    
 
 
 //    var t1 = new TerrainLine(new vec2(200,200+50), new vec2(200+250,200+150));
@@ -105,22 +106,11 @@ MapEditor.prototype.draw = function(ctx) {
     terrainList.forEach (function(ter) {
         ter.draw(ctx);
     });
-    if(editMode) {
-    for(var i = 0; i < buttonList.length; i++) {
 
-        ctx.fillStyle = buttonList[i].isSelected ? "#00FF00" : "#FF0000";
-        ctx.fillRect(buttonList[i].x,buttonList[i].y, buttonList[i].w, buttonList[i].h);
-        var size = 16;
-        ctx.fillStyle = "black";
-        ctx.font = "bold "+size+"px Arial";
-        ctx.textAlign="center"; 
-        ctx.fillText(buttonList[i].name, buttonList[i].x +  buttonList[i].w/2, buttonList[i].y  + buttonList[i].h/2 + size/2);
-    }
-    }
 };
 
 function createLineButton() {
-    var line = new MapEditorButton("Lines", 0, 0, buttonSize, buttonSize);
+    var line = new MapEditorButton("Lines", 0, (buttonSize + 5) , buttonSize, buttonSize);
 
     line.onClick = function(e) {
         if(!this.line && !this.normal) {
@@ -144,7 +134,8 @@ function createLineButton() {
             }
             this.line = null;
         } else if (!this.line && this.normal) {
-            button = this.normal = null;
+            this.normal = null;
+            button.isSelected = true;
         }
     };
     line.onDrag = function(e) {
@@ -178,7 +169,7 @@ function createLineButton() {
 }
 
 function createEraseButton() {
-    var erase = new MapEditorButton("Erase", 0, buttonSize + 5, buttonSize, buttonSize);
+    var erase = new MapEditorButton("Erase", 0, (buttonSize + 5) * 2, buttonSize, buttonSize);
 
     erase.onClick = function(e) {
         var position = new vec2(e.offsetX/ initScale - 
@@ -197,7 +188,7 @@ function createEraseButton() {
 }
 
 function createLoadButton() {
-    var erase = new MapEditorButton("Load", 0, (buttonSize + 5) * 2, buttonSize, buttonSize);
+    var erase = new MapEditorButton("Load", 0, (buttonSize + 5) * 3, buttonSize, buttonSize);
 
      erase.onRelease = function(e) {
         terrainList = [];
@@ -218,7 +209,7 @@ function createLoadButton() {
 
 
 function createSaveButton() {
-    var save = new MapEditorButton("Save", 0, (buttonSize + 5) * 3, buttonSize, buttonSize);
+    var save = new MapEditorButton("Save", 0, (buttonSize + 5) * 4, buttonSize, buttonSize);
     
     save.onRelease = function(e) {
         var terrain = [];
@@ -245,8 +236,8 @@ function createSaveButton() {
 }
 
 function createEditModeButton() {
-     var editmode = new MapEditorButton("Edit Mode", 0, (buttonSize + 5) * 4, buttonSize, buttonSize);
-    
+    var editmode = new MapEditorButton("Edit Mode", 0, 0, buttonSize, buttonSize);
+    editmode.collider.onEditMode = false;
     editmode.onRelease = function(e) {
         editMode = !editMode;
         this.isSelected = button = null;
