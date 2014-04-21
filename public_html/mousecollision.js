@@ -26,7 +26,7 @@ MouseCollideable.onRelease = function(e) { };
 
 function collides(x, y) {
     var isCollision = false;
-
+    if(editMode)
     for (var i = 0; i < mouseCollidable.length; i++) {
         if (collidedWith(mouseCollidable[i], x, y)) {
             isCollision = mouseCollidable[i];

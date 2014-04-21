@@ -47,7 +47,7 @@ function MapEditor() {
     createEraseButton();
     createLoadButton();
     createSaveButton();
-
+    createEditModeButton();
 
 
 //    var t1 = new TerrainLine(new vec2(200,200+50), new vec2(200+250,200+150));
@@ -105,7 +105,7 @@ MapEditor.prototype.draw = function(ctx) {
     terrainList.forEach (function(ter) {
         ter.draw(ctx);
     });
-
+    if(editMode) {
     for(var i = 0; i < buttonList.length; i++) {
 
         ctx.fillStyle = buttonList[i].isSelected ? "#00FF00" : "#FF0000";
@@ -116,7 +116,7 @@ MapEditor.prototype.draw = function(ctx) {
         ctx.textAlign="center"; 
         ctx.fillText(buttonList[i].name, buttonList[i].x +  buttonList[i].w/2, buttonList[i].y  + buttonList[i].h/2 + size/2);
     }
-
+    }
 };
 
 function createLineButton() {
@@ -242,6 +242,16 @@ function createSaveButton() {
 
     };
 
+}
+
+function createEditModeButton() {
+     var editmode = new MapEditorButton("Edit Mode", 0, (buttonSize + 5) * 4, buttonSize, buttonSize);
+    
+    editmode.onRelease = function(e) {
+        editMode = !editMode;
+        this.isSelected = button = null;
+
+    };
 }
 
 var graceSize = 20;
