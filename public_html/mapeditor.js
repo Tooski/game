@@ -31,7 +31,7 @@ function MapEditorButton(name, x, y, w, h) {
     };
     if(buttonListStart.x > this.x) buttonListStart.x = this.x;
     if(buttonListEnd.x < this.x + this.w) buttonListEnd.x = this.x + this.w;
-    if(buttonListStart.y > this.y) buttonListStart.x = this.x;
+    if(buttonListStart.y > this.y) buttonListStart.y = this.y;
     if(buttonListEnd.y < this.y + this.h) buttonListEnd.y = this.y + this.h;
     buttonList.push(this);
 }
