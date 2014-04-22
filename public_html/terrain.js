@@ -19,8 +19,8 @@ function TerrainSurface(point0, point1, adjacent0, adjacent1, pl) {
       this.p0edit = new MouseCollideable("point", this.p0.x - wh, this.p0.y - wh, wh*2, wh*2);
       
       this.p0edit.onDrag = function(e) {
-        var xOffset = e.offsetX/ initScale - (initWidth/ctx.canvas.width) * ctx.canvas.width / initScale / 2 + player.position.x;
-        var yOffset = e.offsetY/ initScale - (initWidth/ctx.canvas.width) * ctx.canvas.height / initScale / 2 + player.position.y;
+        var xOffset = e.offsetX / initScale - (initWidth / ctx.canvas.width) * ctx.canvas.width / initScale / 2 + player.model.pos.x;
+        var yOffset = e.offsetY / initScale - (initWidth / ctx.canvas.width) * ctx.canvas.height / initScale / 2 + player.model.pos.y;
 
         this.x = (that.p0.x = xOffset) - wh;
         this.y = (that.p0.y = yOffset) - wh;
@@ -42,8 +42,8 @@ function TerrainSurface(point0, point1, adjacent0, adjacent1, pl) {
       };
       this.p1edit = new MouseCollideable("point", this.p1.x - wh, this.p1.y - wh, wh*2, wh*2);
       this.p1edit.onDrag = function(e) {
-        var xOffset = e.offsetX/ initScale - (initWidth/ctx.canvas.width) * ctx.canvas.width / initScale / 2 + player.position.x;
-        var yOffset = e.offsetY/ initScale - (initWidth/ctx.canvas.width) * ctx.canvas.height / initScale / 2 + player.position.y;
+        var xOffset = e.offsetX / initScale - (initWidth / ctx.canvas.width) * ctx.canvas.width / initScale / 2 + player.model.pos.x;
+        var yOffset = e.offsetY / initScale - (initWidth / ctx.canvas.width) * ctx.canvas.height / initScale / 2 + player.model.pos.y;
  
           
         this.x = (that.p1.x = xOffset) - wh;
@@ -238,7 +238,7 @@ TerrainLine.prototype.draw = function (ctx) {
       ctx.stroke();
     }
     if (DEBUG_TERRAIN) {
-      this.collidesWith(this.player.position, 25, ctx);
+      this.collidesWith(this.player.model.pos, 25, ctx);
     }
   } else {
     ctx.stroke();
