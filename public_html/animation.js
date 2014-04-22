@@ -39,12 +39,12 @@ function Animation(spriteSheet, startX, startY, frameWidth, frameHeight, frameDu
 //@param x - up/down location of frame
 //@param y - forward/backword location of frame
 //@param scaleBy - the scale of frame
-Animation.prototype.drawFrame = function (tick, ctx, x, y, scaleBy, rotateBy) {
+Animation.prototype.drawFrame = function (tick, ctx, x, y, scaleBy, flip, rotateBy) {
     
     
     
     var scaleBy = scaleBy || 1;
-    
+    var flip = flip ? -1 : 1;
     //track each change in step
     this.elapsedTime += tick;
     
@@ -77,18 +77,19 @@ Animation.prototype.drawFrame = function (tick, ctx, x, y, scaleBy, rotateBy) {
     var offset = vindex === 0 ? this.startX : 0;
 
     if(rotateBy) { 
-        ctx.translate(this.frameWidth/2, this.frameHeight/2);
+        //ctx.translate(this.frameWidth, this.frameHeight);
         ctx.rotate(rotateBy); }
-
+    ctx.save();
+    ctx.scale(flip, 1);
     ctx.drawImage(this.spriteSheet,
-                  index * this.frameWidth + offset, vindex*this.frameHeight + this.startY,  // source from sheet
+                  index * this.frameWidth  + offset , vindex*this.frameHeight + this.startY,  // source from sheet
                   this.frameWidth, this.frameHeight,
-                  locX, locY,
+                  locX  * flip - (flip === -1 ? this.frameWidth/2 : 0) , locY,
                   this.frameWidth * scaleBy,
                   this.frameHeight * scaleBy);
-                  
+    ctx.restore();
     if(rotateBy) { 
-        ctx.translate(-this.frameWidth/2, -this.frameHeight/2);
+     //   ctx.translate(-this.frameWidth/2, -this.frameHeight/2);
         ctx.rotate(-rotateBy);}
 };
 

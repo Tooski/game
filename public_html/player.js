@@ -75,7 +75,7 @@ Player.prototype.update = function() {
     if (this.inputs.rightPressed) {
         this.moveRight();
         if(this.inputs.rightPressed){
-          this.movingAnimation.reverse = true;
+          this.movingAnimation.reverse = false;
         }
     } else if (this.inputs.leftPressed) {
         this.moveLeft();
@@ -124,9 +124,13 @@ Player.prototype.draw = function(ctx) {
         this.movingAnimation.drawFrame(this.timer.gameDelta
                 , ctx, this.position.x - this.jumpAnimation.frameWidth / 2 * scaleFactor, this.position.y - this.jumpAnimation.frameHeight / 2 * scaleFactor, scaleFactor);
     }
-    else if (this.moving) {
+    else if (this.moving && this.inputs.rightPressed) {
         this.movingAnimation.drawFrame(this.timer.gameDelta
-                , ctx, this.position.x - this.movingAnimation.frameWidth / 2 * scaleFactor, this.position.y - this.movingAnimation.frameHeight / 2 * scaleFactor, scaleFactor);
+                , ctx, this.position.x - this.movingAnimation.frameWidth / 2 * scaleFactor, this.position.y - this.movingAnimation.frameHeight / 2 * scaleFactor, scaleFactor, true);
+    } else if (this.moving && this.inputs.leftPressed) {
+         this.movingAnimation.drawFrame(this.timer.gameDelta
+                , ctx, this.position.x - this.movingAnimation.frameWidth / 2 * scaleFactor, this.position.y - this.movingAnimation.frameHeight / 2 * scaleFactor, scaleFactor, false);
+   
     }
     else {
         this.movingAnimation.drawFrame(0
