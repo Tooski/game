@@ -129,7 +129,11 @@ function createLineButton() {
 
             this.normal = this.line;
             if(!this.normal.normal) {
-                this.normal.normal = new vec2(0,0);
+              this.normal.normal = new vec2(0, 0);
+              if (this.line.length() !== 1.0) {
+                console.log("normal length: ", this.line.length());
+                throw "ERRORRRRRRRRRRR";
+              }
             }
             this.line = null;
         } else if (!this.line && this.normal) {
@@ -158,7 +162,11 @@ function createLineButton() {
 
                 this.normal = this.line;
                 if(!this.normal.normal) {
-                    this.normal.normal = new vec2(0,0);
+                  this.normal.normal = new vec2(0, 0);
+                  if (this.line.length() !== 1.0) {
+                    console.log("normal length: ", this.line.length());
+                    throw "ERRORRRRRRRRRRR";
+                  }
                 }
              } 
             this.line = null;

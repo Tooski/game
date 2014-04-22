@@ -2,9 +2,8 @@
  * collision.js, currently skeleton class explaining what the physics engine needs collision-wise.
  * 
  */
-var LEVEL_COLLIDABLE_LIST = [];
-
-
+var PRINT_EVERY = 240;
+var COLLISION_TEST_COUNT = 0;
 
   // Collideable parent class for all things collideable with by a collider.
 function Collideable() {
@@ -27,18 +26,22 @@ function CollisionData(collided, collidedWith) {
 
 
 //What I will be calling from physicsEngine. If there were no collisions, return an empty array as the collidedWith field.
-function getCollisionData(ballState) {
+function getCollisionData(ballState, LevelList, doNotCheck) {
   //state is a TempState object as seen in physics.js. The only parts you will probably care about in collision are:
   //state.pos           a vec2(x position, y position); the center of the circle you're checking collisions against. state.pos.x, state.pos.y
   //state.radius        the radius of the circle you're checking collisions against. 
-
+  COLLISION_TEST_COUNT++;
 
 
   //code to check for collisions here. TODO optimize
-  var stuffWeCollidedWith = []; 
-  for (var i = 0; i < LEVEL_COLLIDABLE_LIST.length; i++) {
-    if (LEVEL_COLLIDABLE_LIST[i].collidesWith(ballState.pos, ballState.radius)) {
-      stuffWeCollidedWith.push(LEVEL_COLLIDABLE_LIST[i]);
+  if (COLLISION_TEST_COUNT = PRINT_EVERY) {
+    //console.log("checking collisions");
+  }
+  var stuffWeCollidedWith = [];
+  for (var i = 0; i < LevelList.length; i++) {
+    if (LevelList[i].collidesWith(ballState.pos, ballState.radius) && !contains(doNotCheck, LevelList[i].id)) {
+      
+      stuffWeCollidedWith.push(LevelList[i]);
     }
   }
   var didWeCollide = false;
@@ -48,6 +51,12 @@ function getCollisionData(ballState) {
 
   //create the CollisionData object to return to the physics function.
   var data = new CollisionData(didWeCollide, stuffWeCollidedWith);
+
+  if (COLLISION_TEST_COUNT = PRINT_EVERY) {
+    COLLISION_TEST_COUNT = 0;
+  }
+
+
   return data;
 }
 

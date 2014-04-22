@@ -7,7 +7,7 @@ var PHYS_DEBUG = true;
 
 var HALF_PI = Math.PI / 2.0;
 
-var COLLISION_PRECISION_ITERATIONS = 5;
+var COLLISION_PRECISION_ITERATIONS = 6;
 var LOCK_MIN_ANGLE = 45.0 / 180 * Math.PI;  //ANGLE OF COLLISION BELOW WHICH NOT TO BOUNCE.
 var PRINTEVERY = 240;
 var FRAMECOUNTER = 0;
@@ -88,6 +88,7 @@ var DFLT_radius = 1920 / 32;
 
 // CONST RATIOS
 var DFLT_jumpSurfaceSpeedLossRatio = 0.7;   // When jumping from the ground, the characters velocity vector is decreased by this ratio before jump pulse is added. 
+var DFLT_bounceSpeedLossRatio = 0.8;
 
 
 
@@ -282,6 +283,7 @@ function PhysEng(physParams, playerModel) {
   //this.activeEvents = [];                           // array of active events. ???? DONT NEED THIS, REFACTORED INTO EVENT HANDLING???? ???? 
   this.accelState = new AccelState(this.phys, this.ctrl, this.player);
   this.accelState.updateAir(this.inputState);
+  //this.checkedThisUpdate = [];
   if (PHYS_DEBUG) {
     this.printStartState();
   }
@@ -306,7 +308,8 @@ PhysEng.prototype.update = function (timeDelta, eventList) { // ______timeDelta 
     if (!eventList[i] instanceof RenderEvent) {
       //console.log("about to stepToEndOfEvent. Event: ", event);
     }
-    this.stepToEndOfEvent(state, event); // Guarantees time has completed up to the event and the event has been handled.
+    var terrainNotToCheck = [];
+    this.stepToEndOfEvent(state, event, terrainNotToCheck); // Guarantees time has completed up to the event and the event has been handled.
     state = new TempState(this.player.pos, this.player.vel, this.player.radius, 0.0);
   }                                   // PHYSICS ARE UP TO DATE. GO AHEAD AND RENDER.
 
@@ -322,24 +325,28 @@ PhysEng.prototype.update = function (timeDelta, eventList) { // ______timeDelta 
 
 
 // Step normally until the end of the event and then handles any intermediate events recursively before handling the event.
-PhysEng.prototype.stepToEndOfEvent = function (state, event) {
+PhysEng.prototype.stepToEndOfEvent = function (state, event, doNotCheck) {
   //while (!eventDone) {                   //The physics step loop. Checks for collisions / lockbreaks and discovers the time they occur at. Continues stepping physics until it is caught up to "timeDelta".
   //console.log("START stepToEndOfEvent");
   var newEvents = [];
-  var stepState;
+  var stepState; var indexContained
   if (this.player.surfaceOn === null) {               //In the air, call airStep
     //console.log("player airborne, event.time: ", event.time);
-    stepState = this.airStep(state, event.time); // TODO STATE SHOULD HAVE EVENTS NOT TerrainSurfaces.
+    stepState = this.airStep(state, event.time, doNotCheck); // TODO STATE SHOULD HAVE EVENTS NOT TerrainSurfaces.
     for (var k = 0; k < stepState.eventList.length; k++) {
       //console.log("new events added in stepToEndOfEvent, ", stepState.eventList.length);
-      newEvents.push(stepState.eventList[k]);
+
+        newEvents.push(stepState.eventList[k]);              
+
     }
 
   } else {                             //On surface, call surfaceStep 
-    //console.log("player NOT airborne, event.time: ", event.time);
-    stepState = this.surfaceStep(state, event.time);
+    console.log("player NOT airborne, event.time: ", event.time);
+    stepState = this.surfaceStep(state, event.time, doNotCheck);
     for (var k = 0; k < stepState.eventList.length; k++) {
-      newEvents.push(stepState.eventList[k]);
+
+        newEvents.push(stepState.eventList[k]);            
+
     }
   }
 
@@ -348,7 +355,7 @@ PhysEng.prototype.stepToEndOfEvent = function (state, event) {
   var goal = false;
   var collectibles = false;
   if (newEvents.length > 0) { // WE DIDNT FINISH, A NEW EVENT HAPPENED. ALT state.timeDelta < event.time
-    console.log("newEvents.length > 0");
+    //console.log("newEvents.length > 0");
     for (var j = 0; j < newEvents.length; j++) {         //THESE SHOULD BE EVENTS THAT CONTAIN TERRAIN COLLISIONS.
       if (newEvents[j] instanceof TerrainSurface) {      //Something we should react to hitting.
         newTerrainEvents.push(newEvents[j]);
@@ -368,10 +375,13 @@ PhysEng.prototype.stepToEndOfEvent = function (state, event) {
       // TODO HANDLE COLLECTIBLES
     } else if (newTerrainEvents.length > 0) {
       //console.log("newTerrainEvents.length > 0");
-      this.handleTerrainAirCollision(tempState, newTerrainEvents); // TODO REFACTOR TO PASS COLLISION OBJECT WITH ADDITIONAL DATA. SEE handleTerrainAirCollision COMMENTS FOR MORE INFO.
+      for (var k = 0; k < newTerrainEvents.length; k++) {
+        doNotCheck.push(newTerrainEvents[k].id);
+      }
+      this.handleTerrainAirCollision(stepState, newTerrainEvents); // TODO REFACTOR TO PASS COLLISION OBJECT WITH ADDITIONAL DATA. SEE handleTerrainAirCollision COMMENTS FOR MORE INFO.
     }
-    var tempState = new TempState(this.player.pos, this.player.vel, this.player.radius, this.player.timeDelta);
-    this.stepToEndOfEvent(tempState, event);
+    var stepState = new TempState(this.player.pos, this.player.vel, this.player.radius, this.player.timeDelta);
+    this.stepToEndOfEvent(stepState, event, doNotCheck);
   } else {                           // newEvents.length < 0, and WE DID FINISH
     this.player.pos = stepState.pos;
     this.player.vel = stepState.vel;
@@ -387,7 +397,7 @@ PhysEng.prototype.stepToEndOfEvent = function (state, event) {
 
 
 // Returns the players new position and velocity (in a TempState object) after an airStep of this length. Does not modify values.
-PhysEng.prototype.airStep = function (state, timeGoal) {
+PhysEng.prototype.airStep = function (state, timeGoal, doNotCheck) {
   var startTime = state.timeDelta;
   //console.log("in airStep. timeGoal: ", timeGoal);
   //console.log("startTime: ", startTime);
@@ -403,7 +413,7 @@ PhysEng.prototype.airStep = function (state, timeGoal) {
   var newPos = lastPos.add(lastVel.add(newVel).divf(2.0));
 
   var tempState = new TempState(newPos, newVel, this.player.radius, timeGoal);
-  var collisionData = getCollisionData(tempState);
+  var collisionData = getCollisionData(tempState, terrainList, doNotCheck);
   var returnState;
   if (!collisionData.collided) {  //IF WE DIDNT COLLIDE, THIS SHOULD BE GOOD? TODO CHECK TO MAKE SURE WE DIDNT MOVE MORE THAN RADIUS IN THIS STEP.
     returnState = tempState;
@@ -417,9 +427,8 @@ PhysEng.prototype.airStep = function (state, timeGoal) {
     newPos = lastPos.add(lastVel.add(newVel).divf(2.0));
 
     tempState = new TempState(newPos, newVel, player.radius, newDelta);
-
-    for (var i = 0; i < COLLISION_PRECISION_ITERATIONS; i++) { //find collision point
-      collisionData = getCollisionDataInList(tempState, collisions);
+    for (var i = 1; i < COLLISION_PRECISION_ITERATIONS && collisionData.collided === false; i++) { //find collision point
+      
       if (!collisionData.collided) {  // NO COLLISION
         minCollisionTime = newDelta;
       } else {                        // COLLIDED
@@ -433,14 +442,32 @@ PhysEng.prototype.airStep = function (state, timeGoal) {
       newPos = lastPos.add(lastVel.add(newVel).divf(2.0));
 
       tempState = new TempState(newPos, newVel, player.radius, newDelta);
+      collisionData = getCollisionDataInList(tempState, collisions);
     }   // tempstate is collision point.                                              //Optimize by passing directly later, storing in named var for clarities sake for now.
+
+    if (!collisionData.collided) {  // NO COLLISION
+      minCollisionTime = newDelta;
+    } else {                        // COLLIDED
+      maxCollisionTime = newDelta;
+      collisions = collisionData.collidedWith;
+    }
+
+    newDelta = minCollisionTime + (maxCollisionTime - minCollisionTime) / 2.0;
+
+    newVel = lastVel.add(accelVec.multf(newDelta));
+    newPos = lastPos.add(lastVel.add(newVel).divf(2.0));
+
+    tempState = new TempState(newPos, newVel, player.radius, newDelta);
+
+
     returnState = tempState;
     returnState.eventList = collisions; // TODO IMPLEMENT EVENT TYPE TO BE RETURNED IN THE CASE OF A COLLISION.
     if (PHYS_DEBUG && collisions.length > 1) {                                            //DEBUG CASE CHECKING, REMOVE WHEN PHYSICS IS BUG FREE.
-      console.log("collisions.length() shouldnt be > 1 if we didnt collide with a corner");
+      //console.log("collisions.length() shouldnt be > 1 if we didnt collide with a corner");
     }
 
   } // done with stepping
+  //console.log(returnState);
   return returnState;
 
 }
@@ -448,9 +475,9 @@ PhysEng.prototype.airStep = function (state, timeGoal) {
 
 
 // A step while the player is in the surface. Returns the players new position and velocity and time and any events that happened (in a TempState object) after attempting surfaceStep of this length. Does not modify values.
-PhysEng.prototype.surfaceStep = function (state, timeDelta) { 
+PhysEng.prototype.surfaceStep = function (state, timeGoal, doNotCheck) {
   console.log("in unimplemented surfaceStep.");
-  var collisionData = getCollisionData(state);
+  var collisionData = getCollisionData(state, terrainList, [this.player.surfaceOn.id]);
   
   if (!collisionData.collided) {
                                  // WE ARE NOW IN THE AIR. RECURSIVELY FIND WHERE WE LEFT THE SURFACE, HANDLE THAT, THEN STEP ACCORDINGLY DEPENDING ON WHAT WE'RE ON AFTERWARDS.
@@ -471,48 +498,71 @@ PhysEng.prototype.handleTerrainAirCollision = function (ballState, stuffWeCollid
   //console.log("START handleTerrainAirCollision");
   var normalBallVel = ballState.vel.normalize();
   var angleToNormal;
-  if (stuffWeCollidedWith.length > 1) {
-    var collisionNormal = stuffWeCollidedWith[0].getNormalAt(ballState.pos);
+  var collisionVec;
+  //if (stuffWeCollidedWith.length > 1) {
+  collisionVec = stuffWeCollidedWith[0].getNormalAt(ballState.pos);
+  //console.log(collisionVec);
     for (var i = 1; i < stuffWeCollidedWith.length; i++) {
-      collisionNormal = collisionNormal.add(stuffWeCollidedWith[i]);
+      collisionVec = collisionVec.add(stuffWeCollidedWith[i].getNormalAt(ballState.pos));
+      //console.log("dealing with a multiple thing collision...");
     }
-    angleToNormal = Math.acos(collisionNormal.normalize().dot(normalBallVel));
-  } else {
-    angleToNormal = Math.acos(stuffWeCollidedWith[0].getNormalAt(ballState.pos).dot(normalBallVel));
-  }
+    angleToNormal = Math.acos(collisionVec.normalize().dot(normalBallVel));
+    var collisionVecNorm = collisionVec.normalize();
+  //} else {
+    //angleToNormal = Math.acos(collisionVec.getNormalAt(ballState.pos).dot(normalBallVel));
+  //}
 
 
   var COLLISION_GLANCING_ENOUGH_TO_AUTO_LOCK = false; //TODO do some math
   if (COLLISION_GLANCING_ENOUGH_TO_AUTO_LOCK) {
-    var velocityMag = ballState.vel.length();
-    var surfaceVec = stuffWeCollidedWith[0].getSurfaceAt(ballState.pos);      //TODO OHGOD REFACTOR TO THIS METHOD TAKING A COLLISION OBJECT THAT STORES NORMALS AND THE SINGLE SURFACE TO LOCK TO
-    var surfaceAngle = surfaceVec.dot(normalBallVel);
-    var surfaceInvertAngle = surfaceVec.negate().dot(normalBallVel);
+    console.log("auto locked!?!?");
+    throw "AUTO LOCKED";
+    var surfaceVecNorm = collisionVecNorm.perp();      //TODO OHGOD REFACTOR TO THIS METHOD TAKING A COLLISION OBJECT THAT STORES NORMALS AND THE SINGLE SURFACE TO LOCK TO
+    var surfaceAngle = surfaceVecNorm.dot(normalBallVel);
 
-    if (surfaceAngle > surfaceInvertAngle) {
-      surfaceVec = surfaceVec.negate();
-    }
+    //var velocityMag = ballState.vel.length();                     // DISABLED FOR REALISTIC PHYSICS
+    //var surfaceInvertAngle = surfaceVec.negate().dot(normalBallVel);
+
+    //if (surfaceAngle > surfaceInvertAngle) {
+    //  surfaceVec = surfaceVec.negate();
+    //}
+    //this.player.vel = surfaceVec.multf(velocityMag);              // END DISABLED FOR REALISTIC PHYSICS
+
     this.player.pos = ballState.pos;
-    this.player.vel = surfaceVec.multf(velocityMag);
+    this.player.vel = projectVec2(ballState.vel, surfaceVecNorm);
     this.player.airBorne = false;
     this.player.surfaceLocked = inputState.lock;
 
-  } else if (this.inputState.lock && (angleToNormal > LOCK_MIN_ANGLE || angleToNormal < -LOCK_MIN_ANGLE)) { // ATTEMPT LOCK CASE CHECK STUFF AND THEN LOCK IF WITHIN BOUNDARIES! TODO IS THE NEGATIVE LOCK_MIN_ANGLE CHECK NEEDED!!!?
-    var velocityMag = ballState.vel.length();
-    var surfaceVec = stuffWeCollidedWith[0].getSurfaceAt(ballState.pos); // REFACTOR TO USE NEW COLLISION OBJECT
-    var surfaceAngle = surfaceVec.dot(normalBallVel);
-    var surfaceInvertAngle = (surfaceVec.negate()).dot(normalBallVel);
 
-    if (surfaceAngle > surfaceInvertAngle) {
-      surfaceVec = surfaceVec.negate();
-    }
+    // IF PLAYER IS HOLDING LOCK, ATTEMP TO LOCK IF WITHIN BOUNDARIES! TODO IS THE NEGATIVE LOCK_MIN_ANGLE CHECK NEEDED!!!?
+  } else if (this.inputState.lock && (angleToNormal > LOCK_MIN_ANGLE || angleToNormal < -LOCK_MIN_ANGLE)) {
+    console.log("locked!?!?");
+    throw "LOCKED";
+    //var velocityMag = ballState.vel.length();                 // COMMENTED OUT FOR REALISTIC PHYSICS
+    //var surfaceVecNorm = stuffWeCollidedWith[0].getSurfaceAt(ballState.pos); // REFACTOR TO USE NEW COLLISION OBJECT
+    //var surfaceAngle = surfaceVecNorm.dot(normalBallVel);
+    //var surfaceInvertAngle = (surfaceVec.negate()).dot(normalBallVel);
+
+    //if (surfaceAngle > surfaceInvertAngle) {
+    //  surfaceVec = surfaceVec.negate();
+    //}
+    //this.player.vel = surfaceVec.multf(velocityMag);          // END COMMENTED OUT FOR REALISTIC PHYSICS
+
+
+    var surfaceVecNorm = collisionVecNorm.perp();       // REALISTIC ADDITIONS START
+    this.player.vel = projectVec2(ballState.vel, surfaceVecNorm);                                             // TODO DOES NOT TAKE INTO ACCOUNT TOUCHING THE END OF A LINE.
+                                                                // REALISTIC ADDITIONS END
     this.player.pos = ballState.pos;
-    this.player.vel = surfaceVec.multf(velocityMag);
     this.player.airBorne = false;
     this.player.surfaceLocked = inputState.lock;
     this.player.surfaceOn = stuffWeCollidedWith[0]; // TODO REFACTOR TO USE NEW COLLISION OBJECT
-  } else {                                                          // BOUNCE. TODO implement addition of normalVector * jumpVel to allow jump being held to bounce him higher?        
-    this.player.vel = getReflectionVector(ballState.vel, stuffWeCollidedWith[0].getNormalAt(ballState.pos)); //TODO REFACTOR TO USE NEW COLLISION OBJECT
+
+
+    // BOUNCE. TODO implement addition of normalVector * jumpVel to allow jump being held to bounce him higher?   perhaps just buffer jump events.      
+  } else {
+    //throw "BOUNCE";
+    //console.log(collisionVec.normalize());
+    this.player.vel = getReflectionVector(ballState.vel, collisionVec.normalize()).multf(DFLT_bounceSpeedLossRatio); //TODO REFACTOR TO USE NEW COLLISION OBJECT
     this.player.pos = ballState.pos;
     this.player.airBorne = true;
     //this.player.surfaceOn = null;      //TODO remove. This shouldnt be necessary as should be set when a player leaves a surface.
@@ -617,11 +667,26 @@ getReflectionVector = function (velVec, normalVec) {
   // Basically if you have a vector v, which represents the object's velocity, and a normalized normal vector n, 
   // which is perpendicular to the surface with which the object collides, then the new velocity v' is given by the equation
   //     v' = 2 * (v . n) * n - v;
+  //     v' = ((2 * (v . n)) * n) - v;
   // Where '*' is the scalar multiplication operator, '.' is the dot product of two vectors, and '-' is the subtraction operator 
   // for two vectors. v is reflected off of the surface, and gives a reflection vector v' which is used as the new velocity of the object. 
 
-  return normalVec.multf(2.0 * velVec.dot(normalVec)).subtract(velVec);
+      //STEP BY STEP
+  //var vdnx2 = 2 * velVec.dot(normalVec);          //   v' = (vdnx2 * n) - v;
+  //var normMult = normalVec.multf(vdnx2);          //   v' = normMult - v;
+  //return velVec.subtract(normMult);
+
+     // SINGLE LINE OPTIMIZED
+  return (velVec).subtract(normalVec.multf(2.0 * velVec.dot(normalVec)));
+  //return normalVec.multf(2.0 * velVec.dot(normalVec)).subtract(velVec);                OLD
 }
+
+
+
+//TEST REFLECTION
+//var toReflect = new vec2(19, 31);   //moving down and right
+//var theNormal = new vec2(-1, .5).normalize();    //normal facing straight up
+//console.log(getReflectionVector(toReflect, theNormal));
 
 
 
@@ -935,6 +1000,17 @@ function solveSurfaceExitTime(distanceToSurfaceEnd, currentVelocity, acceleratio
   }
 }
 
+
+
+function contains(a, obj) {
+  var i = a.length;
+  while (i--) {
+    if (a[i] === obj) {
+      return i;
+    }
+  }
+  return null;
+}
 
 
 // MAIN CODE TESTING BS HERE

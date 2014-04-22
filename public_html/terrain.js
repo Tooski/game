@@ -218,13 +218,13 @@ TerrainLine.prototype.draw = function (ctx) {
       //ctx.beginPath();
       //ctx.strokeStyle = "#001133";
       //ctx.lineWidth = 4;
-      this.normalPosVec = midPoint.add(this.normal.multf(16));
+      var pNormalPosEnd = midPoint.add(this.normal.multf(20));
 
-      this.normalPosCol.x = this.normalPosVec.x - this.normalPosCol.w / 2;
-      this.normalPosCol.y = this.normalPosVec.y - this.normalPosCol.h / 2;
+      //this.normalPosCol.x = pNormalPosEnd.x - this.normalPosCol.w / 2;
+      //this.normalPosCol.y = pNormalPosEnd.y - this.normalPosCol.h / 2;
 
       ctx.moveTo(midPoint.x, midPoint.y);
-      ctx.lineTo(this.normalPosVec.x, this.normalPosVec.y);
+      ctx.lineTo(pNormalPosEnd.x, pNormalPosEnd.y);
       ctx.stroke();
       //ctx.beginPath();
 
@@ -238,7 +238,7 @@ TerrainLine.prototype.draw = function (ctx) {
       ctx.stroke();
     }
     if (DEBUG_TERRAIN) {
-      this.collidesWith(this.player.model.pos, 25, ctx);
+      this.collidesWith(this.player.model.pos, DFLT_radius, ctx);
     }
   } else {
     ctx.stroke();
