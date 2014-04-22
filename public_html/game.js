@@ -135,7 +135,7 @@ function GameEngine(player) {
     this.controlParams = new ControlParams(DFLT_gLRaccel, DFLT_aLRaccel, DFLT_aUaccel, DFLT_aDaccel, DFLT_gUaccel, DFLT_gDaccel, DFLT_gBoostLRvel, DFLT_aBoostLRvel, DFLT_aBoostDownVel, DFLT_jumpVelNormPulse, DFLT_doubleJumpVelYPulse, DFLT_doubleJumpVelYMin, DFLT_numAirCharges, 0.0, 100000000, 2, DFLT_jumpSurfaceSpeedLossRatio);
     this.playerModel = new PlayerModel(this.controlParams, DFLT_radius, new vec2(800, -400), null);
     this.physEng = new PhysEng(this.physParams, this.playerModel);
-    this.player.model = playerModel;              // backwards add a playerModel to player.
+    this.player.model = this.playerModel;              // backwards add a playerModel to player.
     this.eventsSinceLastFrame = [];
     this.lastFrameTime = performance.now();
 }
@@ -423,10 +423,10 @@ GameEngine.prototype.draw = function(drawCallback) {
   
         // Adjusts the canvas' move position as well as the post scaling.
         this.ctx.translate(
-        (initWidth/this.ctx.canvas.width) * this.ctx.canvas.width / initScale / 2 - this.player.position.x,  
-        (initWidth/this.ctx.canvas.width) * this.ctx.canvas.height / initScale / 2 - this.player.position.y);
-        parallax(this.ctx, ASSET_MANAGER.cache[imagePaths[0]], 1/4, this.player.position);
-        parallax(this.ctx, ASSET_MANAGER.cache[imagePaths[1]], 1/2, this.player.position);
+        (initWidth/this.ctx.canvas.width) * this.ctx.canvas.width / initScale / 2 - this.player.model.pos.x,  
+        (initWidth/this.ctx.canvas.width) * this.ctx.canvas.height / initScale / 2 - this.player.model.pos.y);
+        parallax(this.ctx, ASSET_MANAGER.cache[imagePaths[0]], 1 / 4, this.player.model.pos);
+        parallax(this.ctx, ASSET_MANAGER.cache[imagePaths[1]], 1 / 2, this.player.model.pos);
     }
 
 
@@ -440,10 +440,10 @@ GameEngine.prototype.draw = function(drawCallback) {
             if(!mouseCollidable[i].onEditMode || (mouseCollidable[i].onEditMode && editMode)) {
        buttonList[i].collider.x = buttonList[i].x =  buttonList[i].ix/ initScale - 
                     (initWidth/ctx.canvas.width) * ctx.canvas.width / initScale / 2 
-                    + player.position.x;
+                    + player.model.pos.x;
         buttonList[i].collider.y = buttonList[i].y =  buttonList[i].iy/ initScale - 
                     (initWidth/ctx.canvas.width) * ctx.canvas.height / initScale / 2 
-                    + player.position.y;
+                    + player.model.pos.y;
 
         this.ctx.fillStyle = buttonList[i].isSelected ? "#00FF00" : "#FF0000";
         this.ctx.fillRect(buttonList[i].x,buttonList[i].y, buttonList[i].w, buttonList[i].h);

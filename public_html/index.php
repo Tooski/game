@@ -1,5 +1,4 @@
 
-<!DOCTYPE html>
 <html>
 <head>
 <style> 
@@ -10,7 +9,7 @@ canvas { display:block; } /* To remove the scrollbars */
 </style>
     <meta charset="utf-8" />
     <title>Game Project Shell</title>
-    <script type="text/javascript" src="jquery-1.11.0.min.js"></script>
+    <script type="text/javascript" src="./jquery-1.11.0.min.js"></script>
     <script type="text/javascript" src="./settings.js"></script>
     <script type="text/javascript" src="./entity.js"></script>
     <script type="text/javascript" src="./timer.js"></script>
@@ -28,6 +27,7 @@ canvas { display:block; } /* To remove the scrollbars */
 
 </head>
 <body>
+
     <canvas id="gameWorld" style="border: 0px solid brown; background: white"></canvas>
 </body>
 </html>
