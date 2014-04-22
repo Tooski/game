@@ -1,5 +1,33 @@
 // This game shell was happily copied from Googler Seth Ladd's "Bad Aliens" game and his Google IO talk in 2011
 
+/*
+var DFLT_gravity = 450;        // FORCE EXERTED BY GRAVITY IS 400 ADDITIONAL UNITS OF VELOCITY DOWNWARD PER SECOND. 
+
+var DFLT_JUMP_HOLD_TIME = 0.15; // To jump full height, jump must be held for this long. Anything less creates a fraction of the jump height based on the fraction of the full time the button was held. TODO implement.
+
+// CONST ACCEL INPUTS
+var DFLT_gLRaccel = 500;
+var DFLT_aLRaccel = 300;
+var DFLT_aUaccel = 50;
+var DFLT_aDaccel = 100;
+var DFLT_gUaccel = 75;
+var DFLT_gDaccel = 100;
+var DFLT_gBoostLRvel = 700;
+var DFLT_aBoostLRvel = 700;
+var DFLT_aBoostDownVel = 500;
+
+// CONST PULSE INPUTS
+var DFLT_jumpVelNormPulse = 900;
+var DFLT_doubleJumpVelYPulse = 900;
+var DFLT_doubleJumpVelYMin = 900;
+
+// OTHER CHAR DEFAULTS
+var DFLT_numAirCharges = 1;
+var DFLT_radius = 1920 / 16;
+
+// CONST RATIOS
+var DFLT_jumpSurfaceSpeedLossRatio = 0.7;   // When jumping from the ground, the characters velocity vector is decreased by this ratio before jump pulse is added. 
+*/
 window.requestAnimFrame = (function() {
     return window.requestAnimationFrame ||
             window.webkitRequestAnimationFrame ||
@@ -101,6 +129,15 @@ function GameEngine(player) {
     this.player = player;
     this.input = new InputObject;
     this.player.inputs = this.input;
+
+
+    this.physParams = new PhysParams(DFLT_gravity);
+    this.controlParams = new ControlParams(DFLT_gLRaccel, DFLT_aLRaccel, DFLT_aUaccel, DFLT_aDaccel, DFLT_gUaccel, DFLT_gDaccel, DFLT_gBoostLRvel, DFLT_aBoostLRvel, DFLT_aBoostDownVel, DFLT_jumpVelNormPulse, DFLT_doubleJumpVelYPulse, DFLT_doubleJumpVelYMin, DFLT_numAirCharges, 0.0, 100000000, 2, DFLT_jumpSurfaceSpeedLossRatio);
+    this.playerModel = new PlayerModel(this.controlParams, DFLT_radius, new vec2(800, -400), null);
+    this.physEng = new PhysEng(this.physParams, this.playerModel);
+    this.player.model = playerModel;              // backwards add a playerModel to player.
+    this.eventsSinceLastFrame = [];
+    this.lastFrameTime = performance.now();
 }
 
 GameEngine.prototype.init = function(ctx) {
@@ -155,7 +192,9 @@ GameEngine.prototype.startInput = function() {
     }, false);
 
     this.ctx.canvas.addEventListener("keydown", function (e) {
-        if (gameEngine.input.editKeys) {  
+      console.log("keydown, ", e);
+      if (gameEngine.input.editKeys) {
+        console.log("why are we editing?");
           if (gameEngine.input.selectedKeyVal === "LEFT") {
             gameEngine.input.leftKey = e.keyCode;
             gameEngine.input.selectedKeyVal = null;
@@ -189,82 +228,70 @@ GameEngine.prototype.startInput = function() {
             gameEngine.input.selectedKeyVal = null;
             gameEngine.input.editKeys = false;
           }
-        } else {
-          if (e.keyCode === gameEngine.input.leftKey && gameEngine.input.leftPressed === false) {
-            gameEngine.input.leftPressed = true; //Left
-            gameEngine.input.leftPressedTimestamp = performance.now();
-            console.log("Left pressed");
+      } else {
+        //console.log(e.keyCode);
+        //console.log(gameEngine.input);
+        if (e.keyCode === gameEngine.input.leftKey && gameEngine.input.leftPressed === false) {
+            gameEngine.setLeft(true, performance.now());
+            //console.log("Left pressed");
           } else if (e.keyCode === gameEngine.input.upKey && gameEngine.input.upPressed === false) {
-            gameEngine.input.upPressed = true; //Up
-            gameEngine.input.upPressedTimestamp = performance.now();
-            console.log("Up pressed");
+            gameEngine.setUp(true, performance.now());
+            //console.log("Up pressed");
           } else if (e.keyCode === gameEngine.input.rightKey && gameEngine.input.rightPressed === false) {
-            gameEngine.input.rightPressed = true; //Right
-            gameEngine.input.rightPressedTimestamp = performance.now();
-            console.log("Right pressed");
+            gameEngine.setRight(true, performance.now());
+            //console.log("Right pressed");
           } else if (e.keyCode === gameEngine.input.downKey && gameEngine.input.downPressed === false) {
-            gameEngine.input.downPressed = true; //Down
-            gameEngine.input.downPressedTimestamp = performance.now();
-            console.log("Down pressed");
+            gameEngine.setDown(true, performance.now());
+            //console.log("Down pressed");
           } else if (e.keyCode === gameEngine.input.jumpKey && gameEngine.input.jumpPressed === false) {
-            gameEngine.input.jumpPressed = true; //Jump
-            gameEngine.input.jumpPressedTimestamp = performance.now();
-            console.log("Jump pressed");
+            gameEngine.setJump(true, performance.now());
+            //console.log("Jump pressed");
           } else if (e.keyCode === gameEngine.input.boostKey && gameEngine.input.boostPressed === false) {
-            gameEngine.input.boostPressed = true; //Boost
-            gameEngine.input.boostPressedTimestamp = performance.now();
-            console.log("Boost pressed");
+            gameEngine.setBoost(true, performance.now());
+            //console.log("Boost pressed");
           } else if (e.keyCode === gameEngine.input.lockKey && gameEngine.input.lockPressed === false) {
-            gameEngine.input.lockPressed = true; //Lock
-            gameEngine.input.lockPressedTimestamp = performance.now();
-            console.log("Lock pressed");
+            gameEngine.setLock(true, performance.now());
+            //console.log("Lock pressed");
           } else if (e.keyCode === gameEngine.input.pauseKey && gameEngine.input.pausePressed === false) {
-            gameEngine.input.pausePressed = true; //Lock
-            gameEngine.input.pausePressedTimestamp = performance.now();
-            console.log("Pause pressed");
+            gameEngine.setPause(true, performance.now());
+            //console.log("Pause pressed");
 			    }
         }
         //e.preventDefault();
     }, false);
     
     this.ctx.canvas.addEventListener("keyup", function (e) {
+      console.log("keyup", e);
       if (e.keyCode === gameEngine.input.leftKey && gameEngine.input.leftPressed === true) {
-        gameEngine.input.leftPressed = false; //Left
-        gameEngine.input.leftPressedTimestamp = performance.now();
+        gameEngine.setLeft(false, performance.now());
       } else if (e.keyCode === gameEngine.input.upKey && gameEngine.input.upPressed === true) {
-        gameEngine.input.upPressed = false; //Up
-        gameEngine.input.upPressedTimestamp = performance.now();
+        gameEngine.setUp(false, performance.now());
       } else if (e.keyCode === gameEngine.input.rightKey && gameEngine.input.rightPressed === true) {
-        gameEngine.input.rightPressed = false; //Right
-        gameEngine.input.rightPressedTimestamp = performance.now();
+        gameEngine.setRight(false, performance.now());
       } else if (e.keyCode === gameEngine.input.downKey && gameEngine.input.downPressed === true) {
-        gameEngine.input.downPressed = false; //Down
-        gameEngine.input.downPressedTimestamp = performance.now();
+        gameEngine.setDown(false, performance.now());
       } else if (e.keyCode === gameEngine.input.jumpKey && gameEngine.input.jumpPressed === true) {
-        gameEngine.input.jumpPressed = false; //Jump
-        gameEngine.input.jumpPressedTimestamp = performance.now();
+        gameEngine.setJump(false, performance.now());
       } else if (e.keyCode === gameEngine.input.boostKey && gameEngine.input.boostPressed === true) {
-        gameEngine.input.boostPressed = false; //Boost
-        gameEngine.input.boostPressedTimestamp = performance.now();
+        gameEngine.setBoost(false, performance.now());
       } else if (e.keyCode === gameEngine.input.lockKey && gameEngine.input.lockPressed === true) {
-        gameEngine.input.lockPressed = false; //Lock
-        gameEngine.input.lockPressedTimestamp = performance.now();
+        gameEngine.setLock(false, performance.now());
       } else if (e.keyCode === gameEngine.input.pauseKey && gameEngine.input.pausePressed === true) {
-        gameEngine.input.pausePressed = false; //Pause
-        gameEngine.input.pausePressedTimestamp = performance.now();
+        gameEngine.setPause(false, performance.now());
       }
       //e.preventDefault();
     }, false);
     
-    console.log('Input started');
+    //console.log('Input started');
 }
 
 //Setter functions to allow gamepad functionality
 GameEngine.prototype.setUp = function (upOrDown, time) {
-  console.log('   setUp');
+  //console.log('   setUp');
   if (this.input.upPressed !== upOrDown) {
     this.input.upPressed = upOrDown;
     this.input.upPressedTimestamp = time;
+    this.eventsSinceLastFrame.push(new InputEventUp((time - this.lastFrameTime) / 1000, upOrDown));
   }
 }
 
@@ -272,13 +299,16 @@ GameEngine.prototype.setDown = function (upOrDown, time) {
   if (this.input.downPressed !== upOrDown) {
     this.input.downPressed = upOrDown;
     this.input.downPressedTimestamp = time;
+    this.eventsSinceLastFrame.push(new InputEventDown((time - this.lastFrameTime) / 1000, upOrDown));
   }
 }
 
 GameEngine.prototype.setLeft = function (upOrDown, time) {
   if (this.input.leftPressed !== upOrDown) {
+    console.log("setLeft");
     this.input.leftPressed = upOrDown;
     this.input.leftPressedTimestamp = time;
+    this.eventsSinceLastFrame.push(new InputEventLeft((time - this.lastFrameTime) / 1000, upOrDown));
   } 
 }
 
@@ -286,6 +316,7 @@ GameEngine.prototype.setRight = function (upOrDown, time) {
   if (this.input.rightPressed !== upOrDown) {
     this.input.rightPressed = upOrDown;
     this.input.rightPressedTimestamp = time;
+    this.eventsSinceLastFrame.push(new InputEventRight((time - this.lastFrameTime) / 1000, upOrDown));
   } 
 }
 
@@ -293,6 +324,7 @@ GameEngine.prototype.setJump = function (upOrDown, time) {
   if (this.input.jumpPressed !== upOrDown) {
     this.input.jumpPressed = upOrDown;
     this.input.jumpPressedTimestamp = time;
+    this.eventsSinceLastFrame.push(new InputEventJump((time - this.lastFrameTime) / 1000, upOrDown));
   } 
 }
 
@@ -300,6 +332,7 @@ GameEngine.prototype.setLock = function (upOrDown, time) {
   if (this.input.lockPressed !== upOrDown) {
     this.input.lockPressed = upOrDown;
     this.input.lockPressedTimestamp = time;
+    this.eventsSinceLastFrame.push(new InputEventLock((time - this.lastFrameTime) / 1000, upOrDown));
   } 
 }
 
@@ -307,6 +340,7 @@ GameEngine.prototype.setBoost = function (upOrDown, time) {
   if (this.input.boostPressed !== upOrDown) {
     this.input.boostPressed = upOrDown;
     this.input.boostPressedTimestamp = time;
+    this.eventsSinceLastFrame.push(new InputEventBoost((time - this.lastFrameTime) / 1000, upOrDown));
   } 
 }
 
@@ -314,6 +348,7 @@ GameEngine.prototype.setPause = function (upOrDown, time) {
   if (this.input.pausePressed !== upOrDown) {
     this.input.pausePressed = pressed;
     this.input.pausePressedTimestamp = time;
+    this.eventsSinceLastFrame.push(new InputEventPause((time - this.lastFrameTime) / 1000, upOrDown));
   } 
 }
 
@@ -332,7 +367,7 @@ GameEngine.prototype.resetDefaults = function() {
   this.input.downKey = 40;
   this.input.upKey = 38;
   this.input.lockKey = 68;
-  this.pauseKey = 80;
+  this.input.pauseKey = 80;
 }
 
 GameEngine.prototype.addEntity = function(entity) {
@@ -427,7 +462,16 @@ GameEngine.prototype.draw = function(drawCallback) {
 
 GameEngine.prototype.update = function() {
     var entitiesCount = this.entities.length;
+    var thisFrameTime = performance.now();
+    var timeDelta = thisFrameTime - this.lastFrameTime;
+    this.lastFrameTime = thisFrameTime;
+  //console.log("");
+    if (this.eventsSinceLastFrame.length > 0) {
+      console.log("we have events");
+    }
+    this.physEng.update(timeDelta / 1000, this.eventsSinceLastFrame);
 
+    this.eventsSinceLastFrame = [];
     for (var i = 0; i < entitiesCount; i++) {
         var entity = this.entities[i];
 

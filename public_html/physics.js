@@ -9,6 +9,8 @@ var HALF_PI = Math.PI / 2.0;
 
 var COLLISION_PRECISION_ITERATIONS = 5;
 var LOCK_MIN_ANGLE = 45.0 / 180 * Math.PI;  //ANGLE OF COLLISION BELOW WHICH NOT TO BOUNCE.
+var PRINTEVERY = 240;
+var FRAMECOUNTER = 0;
 
 //INPUT TYPES AND CORRESPONDING INT VALUE
 //var inLeft = 0;
@@ -168,7 +170,7 @@ function AccelState(physParams, controlParams, playerModel) {  // DO WE NEED A R
   this.physParams = physParams;
 
   this.update = function (inputState) {
-    console.log(" in AccelState update function. inputState ", inputState);
+    //console.log(" in AccelState update function. inputState ", inputState);
     if (this.player.surfaceOn === null) {
       //console.log("    Calling updateAir, player.surfaceOn === null.");
       this.updateAir(inputState);
@@ -180,7 +182,7 @@ function AccelState(physParams, controlParams, playerModel) {  // DO WE NEED A R
 
   // UPDATES THE ACCELVEC BASED ON THE CURRENT INPUT STATE AND ITS EFFECTS ON THE GROUND.
   this.updateGround = function (inputState) {  // DONE? TEST
-    console.log("  in AccelState.updateGround(), setting accelVec. ");
+    //console.log("  in AccelState.updateGround(), setting accelVec. ");
     var baseForceX = 0.0;
     var baseForceY = this.physParams.gravity;
 
@@ -207,11 +209,11 @@ function AccelState(physParams, controlParams, playerModel) {  // DO WE NEED A R
     var angleToNormal = Math.acos(surface.getNormalAt(this.player.pos).dot(baseForceNormalized));
 
     if (inputState.lock) {                                                     // If we are locked to the surface we are on.
-      console.log("   we are being locked to the surface we are on.");
+      //console.log("   we are being locked to the surface we are on.");
       var surfaceDir = this.player.vel;
       this.accelVec = projectVec2(baseForceVec, surfaceDir);
     } else if (angleToNormal > HALF_PI || angleToNormal < -HALF_PI) {          // If the baseForceVec is pushing us towards the surface we're on:
-      console.log("   we are being pushed towards the surface we are on.");
+      //console.log("   we are being pushed towards the surface we are on.");
       // WE ASSUME PLAYER'S VELOCITY VECTOR IS ALREADY ALIGNED WITH THE SURFACE.
       // ___+____+____+___ magnitude acceleration along a sloped surface = magnitude of force * sin(angle between force and surface normal)
       var surfaceDir = this.player.vel;
@@ -232,18 +234,18 @@ function AccelState(physParams, controlParams, playerModel) {  // DO WE NEED A R
     var baseForceY = this.physParams.gravity;
 
     if (inputState.up) {
-      console.log("   inputState.up true");
+      //console.log("   inputState.up true");
       baseForceY -= this.controlParams.aUaccel;
     } else if (inputState.down) {
-      console.log("   inputState.down true");
+      //console.log("   inputState.down true");
       baseForceY += this.controlParams.aDaccel;
     }
 
     if (inputState.left) {
-      console.log("   inputState.left true");
+      //console.log("   inputState.left true");
       baseForceX -= this.controlParams.aLRaccel;
-    } else if (inputState.down) {
-      console.log("   inputState.right true");
+    } else if (inputState.right) {
+      //console.log("   inputState.right true");
       baseForceX += this.controlParams.aLRaccel;
     }
 
@@ -253,7 +255,7 @@ function AccelState(physParams, controlParams, playerModel) {  // DO WE NEED A R
       baseForceVec = baseForceVec.add(inputState.additionalVec);
     }
     this.accelVec = baseForceVec;
-    console.log(this.accelVec);
+    //console.log(this.accelVec);
   }
 }
 
@@ -289,8 +291,9 @@ function PhysEng(physParams, playerModel) {
 // CHECKS FOR COLLISIONS, HANDLES THEIR TIME STEPS, AND THEN CALLS airStep AND / OR surfaceStep WHERE APPLICABLE
 // eventList is a list of event objects that occurred since last update, sorted by the order in which they occurred.
 PhysEng.prototype.update = function (timeDelta, eventList) { // ______timeDelta IS ALWAYS A FLOAT REPRESENTING THE FRACTION OF A SECOND ELAPSED, WHERE 1.0 IS ONE FULL SECOND. _____________                           
+  FRAMECOUNTER++;
   if (PHYS_DEBUG) {
-    console.log("\nEntered update(timeDelta), timeDelta = ", timeDelta);
+    //console.log("\nEntered update(timeDelta), timeDelta = ", timeDelta);
     this.printState(true, false, false);
   }
 
@@ -300,13 +303,19 @@ PhysEng.prototype.update = function (timeDelta, eventList) { // ______timeDelta 
   var timeCompleted = 0.0;
   for (i = 0; i < eventList.length; i++) { //Handle all the events that have happened since last frame at their respective times.
     var event = eventList[i];
-    console.log("about to stepToEndOfEvent. Event: ", event);
+    if (!eventList[i] instanceof RenderEvent) {
+      console.log("about to stepToEndOfEvent. Event: ", event);
+    }
     this.stepToEndOfEvent(state, event); // Guarantees time has completed up to the event and the event has been handled.
     state = new TempState(this.player.pos, this.player.vel, this.player.radius, 0.0);
   }                                   // PHYSICS ARE UP TO DATE. GO AHEAD AND RENDER.
 
   this.player.timeDelta = 0.0;
   // WE ARE NOW DONE WITH THE ENTIRE UPDATE. HOPEFULLY NOTHING WENT WRONG.
+
+  if (FRAMECOUNTER === PRINTEVERY) {
+    FRAMECOUNTER = 0;
+  }
 }
 
 
@@ -319,15 +328,15 @@ PhysEng.prototype.stepToEndOfEvent = function (state, event) {
   var newEvents = [];
   var stepState;
   if (this.player.surfaceOn === null) {               //In the air, call airStep
-    console.log("player airborne, event.time: ", event.time);
+    //console.log("player airborne, event.time: ", event.time);
     stepState = this.airStep(state, event.time); // TODO STATE SHOULD HAVE EVENTS NOT TerrainSurfaces.
     for (var k = 0; k < stepState.eventList.length; k++) {
-      console.log("new events added in stepToEndOfEvent, ", stepState.eventList.length);
+      //console.log("new events added in stepToEndOfEvent, ", stepState.eventList.length);
       newEvents.push(stepState.eventList[k]);
     }
 
   } else {                             //On surface, call surfaceStep 
-    console.log("player NOT airborne, event.time: ", event.time);
+    //console.log("player NOT airborne, event.time: ", event.time);
     stepState = this.surfaceStep(state, event.time);
     for (var k = 0; k < stepState.eventList.length; k++) {
       newEvents.push(stepState.eventList[k]);
@@ -358,7 +367,7 @@ PhysEng.prototype.stepToEndOfEvent = function (state, event) {
     } else if (collectibles) {
       // TODO HANDLE COLLECTIBLES
     } else if (newTerrainEvents.length > 0) {
-      console.log("newTerrainEvents.length > 0");
+      //console.log("newTerrainEvents.length > 0");
       this.handleTerrainAirCollision(tempState, newTerrainEvents); // TODO REFACTOR TO PASS COLLISION OBJECT WITH ADDITIONAL DATA. SEE handleTerrainAirCollision COMMENTS FOR MORE INFO.
     }
     var tempState = new TempState(this.player.pos, this.player.vel, this.player.radius, this.player.timeDelta);
@@ -367,7 +376,7 @@ PhysEng.prototype.stepToEndOfEvent = function (state, event) {
     this.player.pos = stepState.pos;
     this.player.vel = stepState.vel;
     this.player.timeDelta = stepState.timeDelta;
-    console.log("CALLING EVENTS HANDLER!!!!!!!", event);
+    //console.log("CALLING EVENTS HANDLER!!!!!!!", event);
     event.handler(this);              // LET THE EVENTS HANDLER DO WHAT IT NEEDS TO TO UPDATE THE PHYSICS STATE, AND CONTINUE ON IN TIME TO THE NEXT EVENT.
   }
 
@@ -382,9 +391,9 @@ PhysEng.prototype.airStep = function (state, timeGoal) {
   var startTime = state.timeDelta;
   //console.log("in airStep. timeGoal: ", timeGoal);
   //console.log("startTime: ", startTime);
-  this.accelState.update(this.inputState);
+  //this.accelState.update(this.inputState);
   var accelVec = this.accelState.accelVec;
-  console.log("accelVec before adding: ", accelVec);
+  //console.log("accelVec before adding: ", accelVec);
   var lastVel = state.vel;
   var lastPos = state.pos;
   var multed = accelVec.multf(timeGoal - startTime);
@@ -459,7 +468,7 @@ PhysEng.prototype.surfaceStep = function (state, timeDelta) {
 //This code handles a terrain collision. TODO REFACTOR TO TAKE A COLLISION OBJECT THAT HAS A NORMAL OF COLLISION, AND A SINGLE SURFACE THAT MAY BE LOCKED TO, IF ANY. THIS WILL COVER MULTICOLLISIONS AND CORNERS / ENDPOINT CASES.
 // RETURNS NOTHING, SIMPLY SETS STATES.
 PhysEng.prototype.handleTerrainAirCollision = function (ballState, stuffWeCollidedWith) {
-  console.log("START handleTerrainAirCollision");
+  //console.log("START handleTerrainAirCollision");
   var normalBallVel = ballState.vel.normalize();
   var angleToNormal;
   if (stuffWeCollidedWith.length > 1) {
@@ -513,48 +522,51 @@ PhysEng.prototype.handleTerrainAirCollision = function (ballState, stuffWeCollid
 
   // Self explanatory. For debug purposes.
 PhysEng.prototype.printState = function (printExtraPlayerDebug, printExtraControlsDebug, printExtraPhysDebug) {
-  console.log("Player: ");
-  console.log("  pos: %.2f, %.2f", this.player.pos.x, this.player.pos.y);
-  console.log("  vel: %.2f, %.2f", this.player.vel.x, this.player.vel.y);
-  if (printExtraPlayerDebug) {
-    //console.log("  radius: %.2f", this.player.radius);
-    console.log("  onGround: %s", this.player.onGround);
-    console.log("  gLocked: %s", this.player.gLocked);
-    console.log("  surfaceOn: %s", this.player.surfaceOn);
-  }
-  console.log("");
+  if (FRAMECOUNTER === PRINTEVERY)
+  {
 
-  if (printExtraControlsDebug) {
-    console.log("Controls: ");
+    console.log("Player: ");
+    console.log("  pos: %.2f, %.2f", this.player.pos.x, this.player.pos.y);
+    console.log("  vel: %.2f, %.2f", this.player.vel.x, this.player.vel.y);
+    if (printExtraPlayerDebug) {
+      //console.log("  radius: %.2f", this.player.radius);
+      console.log("  onGround: %s", this.player.onGround);
+      console.log("  gLocked: %s", this.player.gLocked);
+      console.log("  surfaceOn: %s", this.player.surfaceOn);
+    }
+    console.log("");
 
-    console.log("  gLRaccel: %.2f", this.player.controlParameters.gLRaccel);
-    console.log("  aLRaccel: %.2f", this.player.controlParameters.aLRaccel);
-    console.log("  gUaccel: %.2f", this.player.controlParameters.gUaccel);
-    console.log("  gDaccel: %.2f", this.player.controlParameters.gDaccel);
-    console.log("  aUaccel: %.2f", this.player.controlParameters.aUaccel);
-    console.log("  aDaccel: %.2f", this.player.controlParameters.aDaccel);
-    console.log("  gBoostLRvel: %.2f", this.player.controlParameters.gBoostLRvel);
-    console.log("  aBoostLRvel: %.2f", this.player.controlParameters.aBoostLRvel);
-    console.log("  aBoostDownVel: %.2f", this.player.controlParameters.aBoostDownVel);
-    console.log("  jumpVelNormPulse: %.2f", this.player.controlParameters.jumpVelNormPulse);
-    console.log("  doubleJumpVelYPulse: %.2f", this.player.controlParameters.doubleJumpVelYPulse);
-    console.log("  doubleJumpVelYMin: %.2f", this.player.controlParameters.doubleJumpVelYMin);
-    console.log("  numAirCharges: %.2f", this.player.controlParameters.numAirCharges);
-    console.log("  dragBase: %.2f", this.player.controlParameters.dragBase);
-    console.log("  dragTerminalVel: %.2f", this.player.controlParameters.dragTerminalVel);
-    console.log("  dragExponent: %.2f", this.player.controlParameters.dragExponent);
+    if (printExtraControlsDebug) {
+      console.log("Controls: ");
+
+      console.log("  gLRaccel: %.2f", this.player.controlParameters.gLRaccel);
+      console.log("  aLRaccel: %.2f", this.player.controlParameters.aLRaccel);
+      console.log("  gUaccel: %.2f", this.player.controlParameters.gUaccel);
+      console.log("  gDaccel: %.2f", this.player.controlParameters.gDaccel);
+      console.log("  aUaccel: %.2f", this.player.controlParameters.aUaccel);
+      console.log("  aDaccel: %.2f", this.player.controlParameters.aDaccel);
+      console.log("  gBoostLRvel: %.2f", this.player.controlParameters.gBoostLRvel);
+      console.log("  aBoostLRvel: %.2f", this.player.controlParameters.aBoostLRvel);
+      console.log("  aBoostDownVel: %.2f", this.player.controlParameters.aBoostDownVel);
+      console.log("  jumpVelNormPulse: %.2f", this.player.controlParameters.jumpVelNormPulse);
+      console.log("  doubleJumpVelYPulse: %.2f", this.player.controlParameters.doubleJumpVelYPulse);
+      console.log("  doubleJumpVelYMin: %.2f", this.player.controlParameters.doubleJumpVelYMin);
+      console.log("  numAirCharges: %.2f", this.player.controlParameters.numAirCharges);
+      console.log("  dragBase: %.2f", this.player.controlParameters.dragBase);
+      console.log("  dragTerminalVel: %.2f", this.player.controlParameters.dragTerminalVel);
+      console.log("  dragExponent: %.2f", this.player.controlParameters.dragExponent);
+      console.log("");
+    }
+
+
+    if (printExtraPhysDebug) {
+
+      console.log("PhysParams: ");
+      console.log("  gravity: %.2f", this.phys.gravity);
+      console.log("");
+    }
     console.log("");
   }
-
-
-  if (printExtraPhysDebug) {
-
-    console.log("PhysParams: ");
-    console.log("  gravity: %.2f", this.phys.gravity);
-    console.log("");
-  }
-  console.log("");
-
 }
 
 // Self explanatory. For debug purposes.
@@ -645,7 +657,7 @@ function InputEventRight(eventTime, pressed) {   //
     if (this.pressed && (!curInputState.right)) {  // Input was just pressed down.
       curInputState.right = true;
       physEng.accelState.update(curInputState);
-    } else if (!this.pressed && (curInputState.right)) {            // Input was just released.
+    } else if ((!this.pressed) && (curInputState.right)) {            // Input was just released.
       curInputState.right = false;
       physEng.accelState.update(curInputState);
     } else {
@@ -776,7 +788,7 @@ InputEventBoost.prototype = new InputEvent();
 function InputEventLock(eventTime, pressed) {   //
   InputEvent.apply(this, [eventTime, pressed]);
   this.handler = function (physEng) {          //THIS CODE HANDLES LOCK CHANGES.  TODO DONE????
-    console.log("Handling input lock event. pressed = ", this.pressed);
+    //console.log("Handling input lock event. pressed = ", this.pressed);
     var curInputState = physEng.inputState;
     if (this.pressed && (!curInputState.lock)) {  // Input was just pressed down.
       curInputState.lock = true;
@@ -807,7 +819,7 @@ InputEventLock.prototype = new InputEvent();
 function InputEventPause(eventTime, pressed) {   //
   InputEvent.apply(this, [eventTime, pressed]);
   this.handler = function (physEng) {          //THIS CODE HANDLES INPUT CHANGES.  TODO handle later, who needs pausing anyway?
-    console.log("Handling input pause event. pressed = ", this.pressed);
+    //console.log("Handling input pause event. pressed = ", this.pressed);
     var curInputState = physEng.inputState;
     if (this.pressed && (!curInputState.pause)) {  // Input was just pressed down.
       curInputState.pause = true;
@@ -926,18 +938,18 @@ function solveSurfaceExitTime(distanceToSurfaceEnd, currentVelocity, acceleratio
 
 
 // MAIN CODE TESTING BS HERE
-var physParams = new PhysParams(DFLT_gravity);
-var controlParams = new ControlParams(DFLT_gLRaccel, DFLT_aLRaccel, DFLT_aUaccel, DFLT_aDaccel, DFLT_gUaccel, DFLT_gDaccel, DFLT_gBoostLRvel, DFLT_aBoostLRvel, DFLT_aBoostDownVel, DFLT_jumpVelNormPulse, DFLT_doubleJumpVelYPulse, DFLT_doubleJumpVelYMin, DFLT_numAirCharges, 0.0, 100000000, 2, DFLT_jumpSurfaceSpeedLossRatio);
-var playerModel = new PlayerModel(controlParams, DFLT_radius, new vec2(800, -400), null);
-var physeng = new PhysEng(physParams, playerModel);
-physeng.update(0.001, []);
-physeng.update(0.002, []);
-physeng.update(0.005, []);
-physeng.update(0.010, [new InputEventRight(0.005, true)]);
-physeng.update(0.050, [new InputEventRight(0.005, false), new InputEventLeft(0.010, true)]);
-physeng.update(0.200, [new InputEventUp(0.084, true)]);
-physeng.update(0.010, [new InputEventLeft(0.0005, false)]);
-physeng.update(0.035, [new InputEventUp(0.03, false)]);
+//var physParams = new PhysParams(DFLT_gravity);
+//var controlParams = new ControlParams(DFLT_gLRaccel, DFLT_aLRaccel, DFLT_aUaccel, DFLT_aDaccel, DFLT_gUaccel, DFLT_gDaccel, DFLT_gBoostLRvel, DFLT_aBoostLRvel, DFLT_aBoostDownVel, DFLT_jumpVelNormPulse, DFLT_doubleJumpVelYPulse, DFLT_doubleJumpVelYMin, DFLT_numAirCharges, 0.0, 100000000, 2, DFLT_jumpSurfaceSpeedLossRatio);
+//var playerModel = new PlayerModel(controlParams, DFLT_radius, new vec2(800, -400), null);
+//var physeng = new PhysEng(physParams, playerModel);
+//physeng.update(0.001, []);
+//physeng.update(0.002, []);
+//physeng.update(0.005, []);
+//physeng.update(0.010, [new InputEventRight(0.005, true)]);
+//physeng.update(0.050, [new InputEventRight(0.005, false), new InputEventLeft(0.010, true)]);
+//physeng.update(0.200, [new InputEventUp(0.084, true)]);
+//physeng.update(0.010, [new InputEventLeft(0.0005, false)]);
+//physeng.update(0.035, [new InputEventUp(0.03, false)]);
 
 
 
