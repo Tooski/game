@@ -86,15 +86,18 @@ Player.prototype.update = function() {
 //    }
 
 };
+
+
+var SPRITE_WIDTH_AND_HEIGHT_IN_PX = 300;
 Player.prototype.draw = function (ctx) {
-  var scaleFactor = this.model.radius * 2 / 360;
+  var scaleFactor = this.model.radius * 2 / SPRITE_WIDTH_AND_HEIGHT_IN_PX;
   ctx.save();
     if (!this.ctx)
         this.ctx = ctx;
     //var centerX = this.position.x;
     //var centerY = this.position.y;
     ctx.beginPath();
-    ctx.lineWidth = 10;
+    ctx.lineWidth = 8;
     ctx.arc(this.model.pos.x, this.model.pos.y, this.model.radius, 0, 2 * Math.PI, false);
     ctx.stroke();
     if (this.inputs.upPressed || this.inputs.downPressed) {
