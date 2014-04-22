@@ -97,19 +97,19 @@ Player.prototype.draw = function (ctx) {
     ctx.lineWidth = 10;
     ctx.arc(this.model.pos.x, this.model.pos.y, this.model.radius, 0, 2 * Math.PI, false);
     ctx.stroke();
-    if (this.jumping) {
+    if (this.inputs.upPressed || this.inputs.downPressed) {
         this.jumpAnimation.drawFrame(this.timer.gameDelta
                 , ctx, this.model.pos.x - this.jumpAnimation.frameWidth / 2 * scaleFactor, this.model.pos.y - this.jumpAnimation.frameHeight / 2 * scaleFactor, scaleFactor, this.facing);
     }
-    else if (!this.moving && this.jumping) {
-        this.movingAnimation.drawFrame(this.timer.gameDelta
-                , ctx, this.model.pos.x - this.jumpAnimation.frameWidth / 2 * scaleFactor, this.model.pos.y - this.jumpAnimation.frameHeight / 2 * scaleFactor, scaleFactor, this.facing);
-    }
-    else if (this.moving && this.inputs.rightPressed) {
+//    else if () {
+//        this.movingAnimation.drawFrame(this.timer.gameDelta
+//                , ctx, this.model.pos.x - this.jumpAnimation.frameWidth / 2 * scaleFactor, this.model.pos.y - this.jumpAnimation.frameHeight / 2 * scaleFactor, scaleFactor, this.facing);
+//    }
+    else if ( this.inputs.rightPressed) {
         this.facing = true;
         this.movingAnimation.drawFrame(this.timer.gameDelta
                 , ctx, this.model.pos.x - this.movingAnimation.frameWidth / 2 * scaleFactor, this.model.pos.y - this.movingAnimation.frameHeight / 2 * scaleFactor, scaleFactor, true);
-    } else if (this.moving && this.inputs.leftPressed) {
+    } else if ( this.inputs.leftPressed) {
         this.facing = false;
         this.movingAnimation.drawFrame(this.timer.gameDelta
                 , ctx, this.model.pos.x - this.movingAnimation.frameWidth / 2 * scaleFactor, this.model.pos.y - this.movingAnimation.frameHeight / 2 * scaleFactor, scaleFactor, false);
