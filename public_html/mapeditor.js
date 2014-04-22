@@ -84,9 +84,10 @@ function getMousePos( evt) {
         return { 
             x: (evt.clientX - rect.left)/ initScale - 
                     (initWidth/ctx.canvas.width) * ctx.canvas.width / initScale / 2 
-                    + player.position.x, y: (evt.clientY - rect.top)/ initScale - 
+                    + player.model.pos.x, y: (evt.clientY - rect.top)/ initScale - 
                     (initWidth/ctx.canvas.width) * ctx.canvas.height / initScale / 2 
-                    + player.position.y};
+                    + player.model.pos.y
+        };
       }
 
 MapEditor.prototype = new Entity();
@@ -114,13 +115,13 @@ function createLineButton() {
         if(!this.line && !this.normal) {
             this.line = new TerrainLine(new vec2(e.offsetX/ initScale - 
                     (initWidth/ctx.canvas.width) * ctx.canvas.width / initScale / 2 
-                    + player.position.x ,e.offsetY/ initScale - 
+                    + player.model.pos.x, e.offsetY / initScale -
                     (initWidth/ctx.canvas.width) * ctx.canvas.height / initScale / 2 
-                    + player.position.y), new vec2(e.offsetX/ initScale - 
+                    + player.model.pos.y), new vec2(e.offsetX / initScale -
                     (initWidth/ctx.canvas.width) * ctx.canvas.width / initScale / 2 
-                    + player.position.x,e.offsetY/ initScale - 
+                    + player.model.pos.x, e.offsetY / initScale -
                     (initWidth/ctx.canvas.width) * ctx.canvas.height / initScale / 2 
-                    + player.position.y));
+                    + player.model.pos.y));
             pushTerrain(this.line);
             button.isSelected = false;
         } else if (this.line && !this.normal) {
@@ -172,9 +173,9 @@ function createEraseButton() {
     erase.onClick = function(e) {
         var position = new vec2(e.offsetX/ initScale - 
                     (initWidth/ctx.canvas.width) * ctx.canvas.width / initScale / 2 
-                    + player.position.x, e.offsetY/ initScale - 
+                    + player.model.pos.x, e.offsetY / initScale -
                     (initWidth/ctx.canvas.width) * ctx.canvas.height / initScale / 2 
-                    + player.position.y);
+                    + player.model.pos.y);
         for(var i = 0; i < terrainList.length; i++) {
             if(terrainList[i].collidesWith(position, 10)) {
                 removeFrom(terrainList[i]);

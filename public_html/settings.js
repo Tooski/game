@@ -10,7 +10,7 @@
                  "post" : function(data){
                           console.log(data);
                      $.post(baseUrl, data, function (data) {
-                         console.log(data);
+                         //console.log(data);
 
                      })
                     .fail(function () {
