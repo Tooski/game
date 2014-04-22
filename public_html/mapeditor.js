@@ -187,22 +187,24 @@ function createEraseButton() {
 
 }
 
+
 function createLoadButton() {
     var erase = new MapEditorButton("Load", 0, (buttonSize + 5) * 3, buttonSize, buttonSize);
 
      erase.onRelease = function(e) {
         terrainList = [];
-        var obj = JSON.parse(localStorage.getItem('terraindata'));
+       game.settings.get(function(data) {
+           var obj = jQuery.parseJSON( data );
+           console.log(obj);
         for(var i = 0; i < obj.length; i++) {
             var ter = new TerrainLine(new vec2(obj[i].p0.x, obj[i].p0.y), new vec2(obj[i].p1.x, obj[i].p1.y));
             ter.id = obj[i].id;
             ter.normal = new vec2(obj[i].normal.x, obj[i].normal.y);
             pushTerrain (ter);
         }
-        
+       });
+       this.isSelected = button = null;
 
-
-        this.isSelected = button = null;
     };
 
 }
@@ -213,13 +215,13 @@ function createSaveButton() {
     
     save.onRelease = function(e) {
         var terrain = [];
-        terrainList.forEach (function(ter) {
+terrainList.forEach (function(ter) {
             
             if(ter.adjacent0) var adj0 = ter.adjacent0.id.toString();
             if(ter.adjacent1) var adj1 = ter.adjacent1.id.toString();
             if(ter.normal) var norm = ter.normal;
             terrain.push({
-                "id" : terrain.id,
+                "id" : ter.id,
                 "p0" : { "x" : ter.p0.x, "y" : ter.p0.y },
                 "p1" : { "x" : ter.p1.x, "y" : ter.p1.y },
                 "normal" : { "x" : norm.x, "y" : norm.y },
@@ -228,13 +230,13 @@ function createSaveButton() {
                 );
             }
         );
-        localStorage.setItem('terraindata', JSON.stringify(terrain));
+    game.settings.post({"data" : JSON.stringify(terrain)});
+
         this.isSelected = button = null;
 
     };
 
 }
-
 function createEditModeButton() {
     var editmode = new MapEditorButton("Edit Mode", 0, 0, buttonSize, buttonSize);
     editmode.collider.onEditMode = false;
