@@ -52,7 +52,7 @@ function getCollisionData(ballState, LevelList, doNotCheck) {
   //create the CollisionData object to return to the physics function.
   var data = new CollisionData(didWeCollide, stuffWeCollidedWith);
 
-  if (COLLISION_TEST_COUNT = PRINT_EVERY) {
+  if (COLLISION_TEST_COUNT === PRINT_EVERY) {
     COLLISION_TEST_COUNT = 0;
   }
 

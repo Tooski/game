@@ -192,7 +192,6 @@ GameEngine.prototype.startInput = function() {
     }, false);
 
     this.ctx.canvas.addEventListener("keydown", function (e) {
-      console.log("keydown, ", e);
       if (gameEngine.input.editKeys) {
         console.log("why are we editing?");
           if (gameEngine.input.selectedKeyVal === "LEFT") {
@@ -261,7 +260,6 @@ GameEngine.prototype.startInput = function() {
     }, false);
     
     this.ctx.canvas.addEventListener("keyup", function (e) {
-      console.log("keyup", e);
       if (e.keyCode === gameEngine.input.leftKey && gameEngine.input.leftPressed === true) {
         gameEngine.setLeft(false, performance.now());
       } else if (e.keyCode === gameEngine.input.upKey && gameEngine.input.upPressed === true) {
@@ -305,7 +303,6 @@ GameEngine.prototype.setDown = function (upOrDown, time) {
 
 GameEngine.prototype.setLeft = function (upOrDown, time) {
   if (this.input.leftPressed !== upOrDown) {
-    console.log("setLeft");
     this.input.leftPressed = upOrDown;
     this.input.leftPressedTimestamp = time;
     this.eventsSinceLastFrame.push(new InputEventLeft((time - this.lastFrameTime) / 1000, upOrDown));

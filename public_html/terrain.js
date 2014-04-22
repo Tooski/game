@@ -120,11 +120,11 @@ function TerrainLine(point0, point1, player, adjacent0, adjacent1, normal) {
       var pA = this.p0;              // TerrainLine point 1
       var pB = this.p1;              // TerrainLine point 2
       var pC = ballLocation;                // center of the ball
-      var vAC = pC.subtract(pA);     // vector from A to the ball
-      var vBC = pC.subtract(pB);     // vector from B to the ball
-      if (vAC.length() <= radius) {
+      var vAC = pA.subtract(pC);     // vector from A to the ball
+      var vBC = pB.subtract(pC);     // vector from B to the ball
+      if (vAC.length() < radius) {
         return vAC.normalize();
-      } else if (vBC.length() <= radius) {
+      } else if (vBC.length() < radius) {
         // WE ARE OFF THE SIDES OF THE PERPENDICULAR BOUNDING BOX, BUT WE STILL COLLIDED WITH THE LINES ENDPOINT.
         return vBC.normalize();
       } else {

@@ -7,11 +7,13 @@ var PHYS_DEBUG = true;
 
 var HALF_PI = Math.PI / 2.0;
 
-var COLLISION_PRECISION_ITERATIONS = 10;
+var COLLISION_PRECISION_ITERATIONS = 26;
 var LOCK_MIN_ANGLE = 45.0 / 180 * Math.PI;  //ANGLE OF COLLISION BELOW WHICH NOT TO BOUNCE.
 var PRINTEVERY = 240;
 var FRAMECOUNTER = 0;
 
+var printFor = 5;
+var printed = 0;
 //INPUT TYPES AND CORRESPONDING INT VALUE
 //var inLeft = 0;
 //var inRight = 1;
@@ -380,9 +382,9 @@ PhysEng.prototype.stepToEndOfEvent = function (state, event, doNotCheck) {
       }
       this.handleTerrainAirCollision(stepState, newTerrainEvents); // TODO REFACTOR TO PASS COLLISION OBJECT WITH ADDITIONAL DATA. SEE handleTerrainAirCollision COMMENTS FOR MORE INFO.
     }
-    var stepState = new TempState(this.player.pos, this.player.vel, this.player.radius, this.player.timeDelta);
+    stepState = new TempState(this.player.pos, this.player.vel, this.player.radius, this.player.timeDelta);
     this.stepToEndOfEvent(stepState, event, doNotCheck);
-  } else {                           // newEvents.length < 0, and WE DID FINISH
+  } else {                           // newEvents.length = 0, and WE DID FINISH
     this.player.pos = stepState.pos;
     this.player.vel = stepState.vel;
     this.player.timeDelta = stepState.timeDelta;
@@ -421,43 +423,43 @@ PhysEng.prototype.airStep = function (state, timeGoal, doNotCheck) {
     var minCollisionTime = startTime;
     var maxCollisionTime = timeGoal;
     
-    var newDelta = minCollisionTime + (maxCollisionTime - minCollisionTime) / 2.0;
+    var newTime = (maxCollisionTime + minCollisionTime) / 2.0;
     var collisions = collisionData.collidedWith;
-    newVel = lastVel.add(accelVec.multf(newDelta));
+    newVel = lastVel.add(accelVec.multf(newTime - startTime));
     newPos = lastPos.add(lastVel.add(newVel).divf(2.0));
 
-    tempState = new TempState(newPos, newVel, player.radius, newDelta);
+    tempState = new TempState(newPos, newVel, player.radius, newTime);
     for (var i = 1; i < COLLISION_PRECISION_ITERATIONS || collisionData.collided === true; i++) { //find collision point
       
       if (!collisionData.collided) {  // NO COLLISION
-        minCollisionTime = newDelta;
+        minCollisionTime = newTime;
       } else {                        // COLLIDED
-        maxCollisionTime = newDelta;
+        maxCollisionTime = newTime;
         collisions = collisionData.collidedWith;
       }
 
-      newDelta = minCollisionTime + (maxCollisionTime - minCollisionTime) / 2.0;
+      newTime = (maxCollisionTime + minCollisionTime) / 2.0;
 
-      newVel = lastVel.add(accelVec.multf(newDelta));
-      newPos = lastPos.add(lastVel.add(newVel).divf(2.0));
+      newVel = lastVel.add(accelVec.multf(newTime - startTime));
+      newPos = lastPos.add(lastVel.add(newVel.divf(2.0)));
 
-      tempState = new TempState(newPos, newVel, player.radius, newDelta);
+      tempState = new TempState(newPos, newVel, player.radius, newTime);
       collisionData = getCollisionDataInList(tempState, collisions);
     }   // tempstate is collision point.                                              //Optimize by passing directly later, storing in named var for clarities sake for now.
 
     if (!collisionData.collided) {  // NO COLLISION
-      minCollisionTime = newDelta;
+      minCollisionTime = newTime;
     } else {                        // COLLIDED
-      maxCollisionTime = newDelta;
+      maxCollisionTime = newTime;
       collisions = collisionData.collidedWith;
     }
 
-    newDelta = minCollisionTime + (maxCollisionTime - minCollisionTime) / 2.0;
+    newTime = (maxCollisionTime + minCollisionTime) / 2.0;
 
-    newVel = lastVel.add(accelVec.multf(newDelta));
+    newVel = lastVel.add(accelVec.multf(newTime - startTime));
     newPos = lastPos.add(lastVel.add(newVel).divf(2.0));
 
-    tempState = new TempState(newPos, newVel, player.radius, newDelta);
+    tempState = new TempState(newPos, newVel, player.radius, newTime);
 
 
     returnState = tempState;
