@@ -62,7 +62,7 @@ function TempState(pos, vel, radius, timeDelta) { // overloaded constructor
 //DEFAULT PHYSICS VALS, TWEAK HERE
 // WIDTH  = 1920 UNITS
 // HEIGHT = 1080 UNITS
-var DFLT_gravity = 450;        // FORCE EXERTED BY GRAVITY IS 400 ADDITIONAL UNITS OF VELOCITY DOWNWARD PER SECOND. 
+var DFLT_gravity = 0;        // FORCE EXERTED BY GRAVITY IS 400 ADDITIONAL UNITS OF VELOCITY DOWNWARD PER SECOND. 
 
 var DFLT_JUMP_HOLD_TIME = 0.15; // To jump full height, jump must be held for this long. Anything less creates a fraction of the jump height based on the fraction of the full time the button was held. TODO implement.
 
