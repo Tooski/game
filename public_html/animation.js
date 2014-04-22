@@ -84,7 +84,7 @@ Animation.prototype.drawFrame = function (tick, ctx, x, y, scaleBy, flip, rotate
     ctx.drawImage(this.spriteSheet,
                   index * this.frameWidth  + offset , vindex*this.frameHeight + this.startY,  // source from sheet
                   this.frameWidth, this.frameHeight,
-                  locX  * flip - (flip === -1 ? this.frameWidth*2/5 : 0) , locY,
+                  locX  * flip - (flip === -1 ? this.frameWidth*scaleBy : 0) , locY,
                   this.frameWidth * scaleBy,
                   this.frameHeight * scaleBy);
     ctx.restore();
