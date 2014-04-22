@@ -14,7 +14,7 @@ function Player(x, y, timer) {
 
     this.movingAnimation = new Animation(ASSET_MANAGER.getAsset("assets/HamsterSprites.png"), 0, 300, 300, 300, 0.05, 11, true, false);
     this.jumpAnimation = new Animation(ASSET_MANAGER.getAsset("assets/HamsterSprites.png"), 0, 1800, 300, 300, 0.1, 2, true, true);
-
+    this.idleAnimation = new Animation(ASSET_MANAGER.getAsset("assets/HamsterSprites.png"), 0, 0, 300, 300, 0.1, 1, true, true);
 
     this.velocity_y = 0;
     this.velocity_x = 0;
@@ -74,13 +74,13 @@ Player.prototype.update = function() {
 
     if (this.inputs.rightPressed) {
         this.moveRight();
-        if(this.inputs.rightPressed){
-          this.movingAnimation.reverse = false;
+        if (this.inputs.rightPressed) {
+            this.movingAnimation.reverse = false;
         }
     } else if (this.inputs.leftPressed) {
         this.moveLeft();
-        if(this.inputs.leftPressed){
-          this.movingAnimation.reverse = false;
+        if (this.inputs.leftPressed) {
+            this.movingAnimation.reverse = false;
         }
     } else if (this.inputs.upPressed) {
         this.moveUp();
@@ -115,26 +115,29 @@ Player.prototype.draw = function(ctx) {
 
     ctx.arc(centerX, centerY, 75, 0, 2 * Math.PI, false);
     ctx.stroke();
-
     if (this.jumping) {
         this.jumpAnimation.drawFrame(this.timer.gameDelta
-                , ctx, this.position.x - this.jumpAnimation.frameWidth / 2 * scaleFactor, this.position.y - this.jumpAnimation.frameHeight / 2 * scaleFactor, scaleFactor);
+                , ctx, this.position.x - this.jumpAnimation.frameWidth / 2 * scaleFactor, this.position.y - this.jumpAnimation.frameHeight / 2 * scaleFactor, scaleFactor, this.facing);
     }
     else if (!this.moving && this.jumping) {
         this.movingAnimation.drawFrame(this.timer.gameDelta
-                , ctx, this.position.x - this.jumpAnimation.frameWidth / 2 * scaleFactor, this.position.y - this.jumpAnimation.frameHeight / 2 * scaleFactor, scaleFactor);
+                , ctx, this.position.x - this.jumpAnimation.frameWidth / 2 * scaleFactor, this.position.y - this.jumpAnimation.frameHeight / 2 * scaleFactor, scaleFactor, this.facing);
     }
     else if (this.moving && this.inputs.rightPressed) {
+        this.facing = true;
         this.movingAnimation.drawFrame(this.timer.gameDelta
                 , ctx, this.position.x - this.movingAnimation.frameWidth / 2 * scaleFactor, this.position.y - this.movingAnimation.frameHeight / 2 * scaleFactor, scaleFactor, true);
     } else if (this.moving && this.inputs.leftPressed) {
-         this.movingAnimation.drawFrame(this.timer.gameDelta
+        this.facing = false;
+        this.movingAnimation.drawFrame(this.timer.gameDelta
                 , ctx, this.position.x - this.movingAnimation.frameWidth / 2 * scaleFactor, this.position.y - this.movingAnimation.frameHeight / 2 * scaleFactor, scaleFactor, false);
-   
     }
     else {
-        this.movingAnimation.drawFrame(0
-                , ctx, this.position.x - this.movingAnimation.frameWidth / 2 * scaleFactor, this.position.y - this.movingAnimation.frameHeight / 2 * scaleFactor, scaleFactor);
+            
+            this.idleAnimation.drawFrame(0
+                    , ctx, this.position.x - this.movingAnimation.frameWidth / 2 * scaleFactor, this.position.y - this.movingAnimation.frameHeight / 2 * scaleFactor, scaleFactor, this.facing);
+     
+
     }
     // ctx.drawImage(image, this.position.x - this.width/2,  this.position.y -this.height/2, this.width, this.height);
 
@@ -166,23 +169,23 @@ Player.prototype.moveLeft = function() {
     this.moving = true;
     this.velocity_x = -5;
     this.velocity_y = 0;
- 
+
 };
 
-Player.prototype.moveUp = function(){
-        this.moving = true;
-        this.velocity_x = 0;
-        this.velocity_y = -5;
+Player.prototype.moveUp = function() {
+    this.moving = true;
+    this.velocity_x = 0;
+    this.velocity_y = -5;
 };
 
-Player.prototype.moveDown = function(){
-        this.moving = true;
-        this.velocity_x = 0;
-        this.velocity_y = -5;
+Player.prototype.moveDown = function() {
+    this.moving = true;
+    this.velocity_x = 0;
+    this.velocity_y = 5;
 };
 
-Player.prototype.jumpUp = function(){
-        this.moving = true;
-        this.velocity_x = 0;
-        this.velocity_y = 5;
+Player.prototype.jumpUp = function() {
+    this.moving = true;
+    this.velocity_x = 0;
+    this.velocity_y = 5;
 };

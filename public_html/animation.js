@@ -102,10 +102,12 @@ Animation.prototype.currentFrame = function () {
 Animation.prototype.isDone = function () {
     return (this.elapsedTime >= this.totalTime);
 };
-/*ending of the animation class*/
+
 
 Animation.prototype.Rotation = function(ctx,x, y, angleInRadians){
-    ctx.translate(x, y);
+    var locX = x;
+    var locY = y;
+    ctx.translate(locX, locY);
     ctx.rotate(angleInRadians);
     ctx.drawImage(this.spriteSheet,
                   index * this.frameWidth + offset, vindex*this.frameHeight + this.startY,  // source from sheet
@@ -114,6 +116,8 @@ Animation.prototype.Rotation = function(ctx,x, y, angleInRadians){
                   this.frameWidth * scaleBy,
                   this.frameHeight * scaleBy);
     ctx.rotate(-angleInRadians);
-    ctx.translate(-x, -y);
+    ctx.translate(-locX, -locY);
     
 };
+
+/*ending of the animation class*/
