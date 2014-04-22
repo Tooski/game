@@ -10,7 +10,7 @@ canvas { display:block; } /* To remove the scrollbars */
 </style>
     <meta charset="utf-8" />
     <title>Game Project Shell</title>
-    <script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
+    <script type="text/javascript" src="jquery-1.11.0.min.js"></script>
     <script type="text/javascript" src="./settings.js"></script>
     <script type="text/javascript" src="./entity.js"></script>
     <script type="text/javascript" src="./timer.js"></script>

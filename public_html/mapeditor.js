@@ -42,20 +42,18 @@ MapEditorButton.onClick = function(e){};
 MapEditorButton.onDrag = function(e){};
 MapEditorButton.onRelease = function(e){};
 
-function MapEditor() {
+function MapEditor(editMode) {
+    
+    this.editMode = editMode;
     createEditModeButton();
     createLineButton();
     createEraseButton();
     createLoadButton();
     createSaveButton();
     
+    loadFromFile();
 
-
-//    var t1 = new TerrainLine(new vec2(200,200+50), new vec2(200+250,200+150));
-//    var t2 = new TerrainLine(new vec2(200,200+50), new vec2(200+250,200-150));
-//
-//    pushTerrain(t1);
-//    pushTerrain(t2);
+    
 
     canvas.addEventListener('mousedown', function(e) {
         if(buttonListStart.x < e.offsetX && buttonListEnd.x > e.offsetX &&
@@ -192,10 +190,19 @@ function createLoadButton() {
     var erase = new MapEditorButton("Load", 0, (buttonSize + 5) * 3, buttonSize, buttonSize);
 
      erase.onRelease = function(e) {
-        terrainList = [];
-       game.settings.get(function(data) {
-           var obj = jQuery.parseJSON( data );
-           console.log(obj);
+       loadFromFile();
+       this.isSelected = button = null;
+
+    };
+
+}
+
+
+function loadFromFile() {
+     terrainList = [];
+        game.settings.get(function(data) {
+        var obj = jQuery.parseJSON( data );
+        console.log(obj);
         for(var i = 0; i < obj.length; i++) {
             var ter = new TerrainLine(new vec2(obj[i].p0.x, obj[i].p0.y), new vec2(obj[i].p1.x, obj[i].p1.y));
             ter.id = obj[i].id;
@@ -203,12 +210,7 @@ function createLoadButton() {
             pushTerrain (ter);
         }
        });
-       this.isSelected = button = null;
-
-    };
-
 }
-
 
 function createSaveButton() {
     var save = new MapEditorButton("Save", 0, (buttonSize + 5) * 4, buttonSize, buttonSize);
