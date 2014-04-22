@@ -86,8 +86,8 @@ Player.prototype.update = function() {
 //    }
 
 };
-var scaleFactor = 0.5;
 Player.prototype.draw = function (ctx) {
+  var scaleFactor = this.model.radius * 2 / 300;
   ctx.save();
     if (!this.ctx)
         this.ctx = ctx;

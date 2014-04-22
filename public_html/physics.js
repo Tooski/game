@@ -67,24 +67,24 @@ var DFLT_gravity = 0;        // FORCE EXERTED BY GRAVITY IS 400 ADDITIONAL UNITS
 var DFLT_JUMP_HOLD_TIME = 0.15; // To jump full height, jump must be held for this long. Anything less creates a fraction of the jump height based on the fraction of the full time the button was held. TODO implement.
 
 // CONST ACCEL INPUTS
-var DFLT_gLRaccel = 130;
-var DFLT_aLRaccel = 100;
-var DFLT_aUaccel = 100;
-var DFLT_aDaccel = 100;
-var DFLT_gUaccel = 75;
-var DFLT_gDaccel = 100;
-var DFLT_gBoostLRvel = 700;
-var DFLT_aBoostLRvel = 700;
-var DFLT_aBoostDownVel = 500;
+var DFLT_gLRaccel = 80;
+var DFLT_aLRaccel = 60;
+var DFLT_aUaccel = 50;
+var DFLT_aDaccel = 50;
+var DFLT_gUaccel = 30;
+var DFLT_gDaccel = 30;
+var DFLT_gBoostLRvel = 150;
+var DFLT_aBoostLRvel = 150;
+var DFLT_aBoostDownVel = 150;
 
 // CONST PULSE INPUTS
-var DFLT_jumpVelNormPulse = 900;
-var DFLT_doubleJumpVelYPulse = 900;
-var DFLT_doubleJumpVelYMin = 900;
+var DFLT_jumpVelNormPulse = 400;
+var DFLT_doubleJumpVelYPulse = 400;
+var DFLT_doubleJumpVelYMin = 400;
 
 // OTHER CHAR DEFAULTS
 var DFLT_numAirCharges = 1;
-var DFLT_radius = 1920 / 16;
+var DFLT_radius = 1920 / 32;
 
 // CONST RATIOS
 var DFLT_jumpSurfaceSpeedLossRatio = 0.7;   // When jumping from the ground, the characters velocity vector is decreased by this ratio before jump pulse is added. 
@@ -304,7 +304,7 @@ PhysEng.prototype.update = function (timeDelta, eventList) { // ______timeDelta 
   for (i = 0; i < eventList.length; i++) { //Handle all the events that have happened since last frame at their respective times.
     var event = eventList[i];
     if (!eventList[i] instanceof RenderEvent) {
-      console.log("about to stepToEndOfEvent. Event: ", event);
+      //console.log("about to stepToEndOfEvent. Event: ", event);
     }
     this.stepToEndOfEvent(state, event); // Guarantees time has completed up to the event and the event has been handled.
     state = new TempState(this.player.pos, this.player.vel, this.player.radius, 0.0);
@@ -652,7 +652,7 @@ InputEvent.prototype.handler = function (physEng) {          //THIS IS THE PAREN
 function InputEventRight(eventTime, pressed) {   //
   InputEvent.apply(this, [eventTime, pressed]);
   this.handler = function (physEng) {          //THIS CODE HANDLES INPUT CHANGES. SHOULD BE DONE.
-    console.log("Handling input right event. pressed = ", this.pressed);
+    //console.log("Handling input right event. pressed = ", this.pressed);
     var curInputState = physEng.inputState;
     if (this.pressed && (!curInputState.right)) {  // Input was just pressed down.
       curInputState.right = true;
@@ -675,7 +675,7 @@ InputEventRight.prototype = new InputEvent();
 function InputEventLeft(eventTime, pressed) {   //
   InputEvent.apply(this, [eventTime, pressed]);
   this.handler = function (physEng) {          //THIS CODE HANDLES INPUT CHANGES.  SHOULD BE DONE.
-    console.log("Handling input left event. pressed = ", this.pressed);
+    //console.log("Handling input left event. pressed = ", this.pressed);
     var curInputState = physEng.inputState;
     if (this.pressed && (!curInputState.left)) {  // Input was just pressed down.
       curInputState.left = true;
@@ -697,7 +697,7 @@ InputEventLeft.prototype = new InputEvent();
 function InputEventUp(eventTime, pressed) {   //
   InputEvent.apply(this, [eventTime, pressed]);
   this.handler = function (physEng) {          //THIS CODE HANDLES INPUT CHANGES.    SHOULD BE DONE.
-    console.log("Handling input up event. pressed = ", this.pressed);
+    //console.log("Handling input up event. pressed = ", this.pressed);
     var curInputState = physEng.inputState;
     if (this.pressed && (!curInputState.up)) {  // Input was just pressed down.
       curInputState.up = true;
@@ -720,7 +720,7 @@ InputEventUp.prototype = new InputEvent();
 function InputEventDown(eventTime, pressed) {   //
   InputEvent.apply(this, [eventTime, pressed]);
   this.handler = function (physEng) {          //THIS CODE HANDLES INPUT CHANGES.    SHOULD BE DONE.
-    console.log("Handling input down event. pressed = ", this.pressed);
+    //console.log("Handling input down event. pressed = ", this.pressed);
     var curInputState = physEng.inputState;
     if (this.pressed && (!curInputState.down)) {  // Input was just pressed down.
       curInputState.down = true;
@@ -743,7 +743,7 @@ InputEventDown.prototype = new InputEvent();
 function InputEventJump(eventTime, pressed) {   //
   InputEvent.apply(this, [eventTime, pressed]);
   this.handler = function (physEng) {          //THIS CODE HANDLES INPUT CHANGES. 
-    console.log("Handling input jump event. pressed = ", this.pressed);
+    //console.log("Handling input jump event. pressed = ", this.pressed);
     var curInputState = physEng.inputState;               // TODO HANDLE JUMP
     //if (this.pressed && (!curInputState.jump)) {  // Input was just pressed down.
     //  curInputState.jump = true;
@@ -765,7 +765,7 @@ InputEventJump.prototype = new InputEvent();
 function InputEventBoost(eventTime, pressed) {   //
   InputEvent.apply(this, [eventTime, pressed]);
   this.handler = function (physEng) {          //THIS CODE HANDLES INPUT CHANGES.  
-    console.log("Handling input boost event. pressed = ", this.pressed);
+    //console.log("Handling input boost event. pressed = ", this.pressed);
     var curInputState = physEng.inputState;                       // TODO HANDLE BOOST
     //if (this.pressed && (!curInputState.boost)) {  // Input was just pressed down.
     //  curInputState.boost = true;
