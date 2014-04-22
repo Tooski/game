@@ -7,7 +7,7 @@ var PHYS_DEBUG = true;
 
 var HALF_PI = Math.PI / 2.0;
 
-var COLLISION_PRECISION_ITERATIONS = 6;
+var COLLISION_PRECISION_ITERATIONS = 10;
 var LOCK_MIN_ANGLE = 45.0 / 180 * Math.PI;  //ANGLE OF COLLISION BELOW WHICH NOT TO BOUNCE.
 var PRINTEVERY = 240;
 var FRAMECOUNTER = 0;
@@ -427,7 +427,7 @@ PhysEng.prototype.airStep = function (state, timeGoal, doNotCheck) {
     newPos = lastPos.add(lastVel.add(newVel).divf(2.0));
 
     tempState = new TempState(newPos, newVel, player.radius, newDelta);
-    for (var i = 1; i < COLLISION_PRECISION_ITERATIONS && collisionData.collided === false; i++) { //find collision point
+    for (var i = 1; i < COLLISION_PRECISION_ITERATIONS || collisionData.collided === true; i++) { //find collision point
       
       if (!collisionData.collided) {  // NO COLLISION
         minCollisionTime = newDelta;
