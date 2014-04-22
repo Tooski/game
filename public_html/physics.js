@@ -67,9 +67,9 @@ var DFLT_gravity = 0;        // FORCE EXERTED BY GRAVITY IS 400 ADDITIONAL UNITS
 var DFLT_JUMP_HOLD_TIME = 0.15; // To jump full height, jump must be held for this long. Anything less creates a fraction of the jump height based on the fraction of the full time the button was held. TODO implement.
 
 // CONST ACCEL INPUTS
-var DFLT_gLRaccel = 500;
-var DFLT_aLRaccel = 300;
-var DFLT_aUaccel = 50;
+var DFLT_gLRaccel = 130;
+var DFLT_aLRaccel = 100;
+var DFLT_aUaccel = 100;
 var DFLT_aDaccel = 100;
 var DFLT_gUaccel = 75;
 var DFLT_gDaccel = 100;

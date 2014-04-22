@@ -40,8 +40,8 @@ function collides(x, y) {
 
 function collidedWith(value, x, y) {
   var calc =  (initWidth/ctx.canvas.width) / initScale / 2;
-  var xInit = x / initScale + player.position.x;
-  var yInit = y / initScale + player.position.y;
+  var xInit = x / initScale + player.model.pos.x;
+  var yInit = y / initScale + player.model.pos.y;
   return (xInit - calc * ctx.canvas.width <= value.x + value.w &&
             xInit - calc * ctx.canvas.width >= value.x &&
             yInit - calc * ctx.canvas.height <= value.y + value.h &&
