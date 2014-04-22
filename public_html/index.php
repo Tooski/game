@@ -13,6 +13,8 @@ canvas { display:block; } /* To remove the scrollbars */
     <script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
     <script type="text/javascript" src="./settings.js"></script>
     <script type="text/javascript" src="./entity.js"></script>
+    <script type="text/javascript" src="./timer.js"></script>
+    <script type="text/javascript" src="./animation.js"></script>
     <script type="text/javascript" src="./vec2.js"></script>
     <script type="text/javascript" src="./mousecollision.js"></script>
     <script type="text/javascript" src="./collision.js"></script>

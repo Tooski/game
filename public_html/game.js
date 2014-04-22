@@ -501,7 +501,7 @@ var initWidth;
 var ctx;
 var initScale = 0;
 // The assets
-var imagePaths = ["assets/backgroundTile.png", "assets/midground-Tile-150x150.png", "assets/Megaman8bit.jpg", "assets/enemy.jpg"];
+var imagePaths = ["assets/backgroundTile.png", "assets/midground-Tile-150x150.png", "assets/Megaman8bit.jpg", "assets/enemy.jpg", "assets/HamsterSprites.png"];
 
 var ASSET_MANAGER = new AssetManager();
 var gameEngine;
@@ -513,7 +513,8 @@ ASSET_MANAGER.downloadAll(function() {
     console.log("starting up da sheild");
     canvas = document.getElementById('gameWorld');
      ctx = canvas.getContext('2d');
-     player = new Player("assets/Megaman8bit.jpg",canvas.width/2, canvas.height/2);
+          var timer = new Timer();
+     player  = new Player(canvas.width/2, canvas.height/2, timer);
     canvas.tabIndex = 1;
    
     canvas.height = window.innerHeight;
@@ -522,7 +523,7 @@ ASSET_MANAGER.downloadAll(function() {
     initScale = initWidth / 1920;
 
     gameEngine = new GameEngine(player);
-
+    gameEngine.addEntity(timer);
     groundY = canvas.height/2;
     var gameboard = new GameBoard();
     for (var i = 0; i < enemy.length; i++) {

@@ -9,117 +9,132 @@ var debugMode = true;
  * the controller which currently has jumping and moving.
  * Written by: Josef Nosov
  */
-function Player(image, x,y, inputObject) {
-    Entity.call(this, null, 0, 0, -1, -1);
-    
+function Player(x, y, timer) {
+    Entity.call(this, null, 0, 0, 0, 0);
 
-    this.img = image;
+    this.movingAnimation = new Animation(ASSET_MANAGER.getAsset("assets/HamsterSprites.png"), 0, 300, 300, 300, 0.05, 11, true, false);
+    this.jumpAnimation = new Animation(ASSET_MANAGER.getAsset("assets/HamsterSprites.png"), 0, 1800, 300, 300, 0.1, 2, true, true);
+
 
     this.velocity_y = 0;
     this.velocity_x = 0;
-    
-    this.position = new vec2(this.x,this.y);
-    
-    
+
+    this.position = new vec2(this.x, this.y);
+
+
     this.moving = false;
     this.jumping = false;
+    this.numberOfJumps = 0;
     this.hasCollided = false;
 
-    this.inputs = inputObject;
-    
+    // this.inputs = inputObject;
+    this.timer = timer;
 }
+;
 
 
 
 Player.prototype = new Entity();
 Player.prototype.update = function() {
-    Entity.prototype.update.call(this);
-    
+    //Entity.prototype.update.call(this);
     // Allows the user to jump.
- 
-//    if(!this.jumping && jumpKeyPressed) {
-//        this.velocity_y = 5;
-//        this.jumping = true;
-//    } 
-//    if (this.jumping) {
-//        if(screenOffsetY - this.velocity_y < groundY - this.y) {
-//            screenOffsetY -= this.velocity_y;
-//            this.velocity_y -= gravity;
-//        } else {  
-//            screenOffsetY = groundY - this.y;
-//            this.jumping = false;
-//        }
-//    } 
+    if (this.inputs.jumpPressed) {
+        this.jump_y = 5;
+        this.jumping = true;
+    }
+    // console.log(this.jump_y);
+    if (this.jumping) {
+        if (this.position.y - this.jump_y < groundY - this.position.y) {
+            this.position.y -= this.jump_y;
+            this.jump_y -= gravity;
+            //console.log(this.position.y * 2);
+        } else {
+            this.position.y = groundY - this.position.y;
+            this.jumping = false;
+            this.numberOfJumps = 0;
+        }
+    }
 
     // The code below doesn't allow the camera to follow the user as they jump
     // change groundY to y in order for this to work properly.
     /*
-    if(!this.jumping && jumpKeyPressed) {
-        this.velocity_y = 5;
-        this.jumping = true;
-    } 
-    if (this.jumping) {
-        if(this.y - this.velocity_y < groundY) {
-            this.y  -= this.velocity_y;
-            this.velocity_y -= gravity;
-        } else {  
-            this.jumping = false;
+     if(!this.jumping && jumpKeyPressed) {
+     this.velocity_y = 5;
+     this.jumping = true;
+     } 
+     if (this.jumping) {
+     if(this.y - this.velocity_y < groundY) {
+     this.y  -= this.velocity_y;
+     this.velocity_y -= gravity;
+     } else {  
+     this.jumping = false;
+     }
+     } 
+     */
+
+    if (this.inputs.rightPressed) {
+        this.moveRight();
+        if(this.inputs.rightPressed){
+          this.movingAnimation.reverse = true;
         }
-    } 
-    */
-   
-    if (!this.moving && this.inputs.rightPressed) {
+    } else if (this.inputs.leftPressed) {
+        this.moveLeft();
+        if(this.inputs.leftPressed){
+          this.movingAnimation.reverse = false;
+        }
+    } else if (this.inputs.upPressed) {
+        this.moveUp();
+    } else if (this.inputs.downPressed) {
+        this.moveDown();
+    } else if (this.inputs.jumpKeyPressed) {
 
-        this.moving = true;
-        this.velocity_x = 5;
-        this.velocity_y = 0;
-    } else if (!this.moving && this.inputs.leftPressed) {
-        this.moving = true;
-        this.velocity_x = -5;
-        this.velocity_y = 0;
-
-    } else if (!this.moving && this.inputs.upPressed) {
-        this.moving = true;
-        this.velocity_x = 0;
-        this.velocity_y = -5;
-    } else if (!this.moving && this.inputs.downPressed) {
-        this.moving = true;
-        this.velocity_x = 0;
-        this.velocity_y = 5;
     } else {
-        
+
         this.moving = false;
     }
-    if(this.moving === true) {
-          this.position.x += this.velocity_x;
-          this.position.y += this.velocity_y;
+//    
+    if (this.moving === true) {
+        this.position.x += this.velocity_x;
+        this.position.y += this.velocity_y;
+        //  this.animation.drawFrame(this.timer.gameDelta, this.ctx, this.position.x, this.position.y);
 
-                 
 //        screenOffsetX = this.velocity_x; // screen moves with the user.
 //          screenOffsetY = this.velocity_y; // screen moves with the user.
 
     }
-        
-}
-Player.prototype.draw = function(ctx) {
-    var image = ASSET_MANAGER.cache[this.img];
 
+};
+var scaleFactor = 0.5;
+Player.prototype.draw = function(ctx) {
+    if (!this.ctx)
+        this.ctx = ctx;
     var centerX = this.position.x;
     var centerY = this.position.y;
     ctx.beginPath();
-      ctx.lineWidth=10;
+    ctx.lineWidth = 10;
 
-    ctx.arc(centerX, centerY, 25, 0, 2 * Math.PI, false);
+    ctx.arc(centerX, centerY, 75, 0, 2 * Math.PI, false);
     ctx.stroke();
-    if(this.width === -1)
-        this.width = image.naturalWidth/4;
-    if(this.height  === -1)
-        this.height = image.naturalHeight/4;
-    if(!this.collisionRadius)
-        this.collisionRadius = this.width > this.height ? this.width/2 : this.height/2;
-   // ctx.drawImage(image, this.position.x - this.width/2,  this.position.y -this.height/2, this.width, this.height);
-    
-        
+
+    if (this.jumping) {
+        this.jumpAnimation.drawFrame(this.timer.gameDelta
+                , ctx, this.position.x - this.jumpAnimation.frameWidth / 2 * scaleFactor, this.position.y - this.jumpAnimation.frameHeight / 2 * scaleFactor, scaleFactor);
+    }
+    else if (!this.moving && this.jumping) {
+        this.movingAnimation.drawFrame(this.timer.gameDelta
+                , ctx, this.position.x - this.jumpAnimation.frameWidth / 2 * scaleFactor, this.position.y - this.jumpAnimation.frameHeight / 2 * scaleFactor, scaleFactor);
+    }
+    else if (this.moving) {
+        this.movingAnimation.drawFrame(this.timer.gameDelta
+                , ctx, this.position.x - this.movingAnimation.frameWidth / 2 * scaleFactor, this.position.y - this.movingAnimation.frameHeight / 2 * scaleFactor, scaleFactor);
+    }
+    else {
+        this.movingAnimation.drawFrame(0
+                , ctx, this.position.x - this.movingAnimation.frameWidth / 2 * scaleFactor, this.position.y - this.movingAnimation.frameHeight / 2 * scaleFactor, scaleFactor);
+    }
+    // ctx.drawImage(image, this.position.x - this.width/2,  this.position.y -this.height/2, this.width, this.height);
+
+
 
 //    
 //    if(debugMode === true) {
@@ -134,5 +149,36 @@ Player.prototype.draw = function(ctx) {
 //    }
 //    
 
-    
-}
+
+};
+Player.prototype.moveRight = function() {
+    this.moving = true;
+    this.velocity_x = 5;
+    this.velocity_y = 0;
+
+};
+
+Player.prototype.moveLeft = function() {
+    this.moving = true;
+    this.velocity_x = -5;
+    this.velocity_y = 0;
+ 
+};
+
+Player.prototype.moveUp = function(){
+        this.moving = true;
+        this.velocity_x = 0;
+        this.velocity_y = -5;
+};
+
+Player.prototype.moveDown = function(){
+        this.moving = true;
+        this.velocity_x = 0;
+        this.velocity_y = -5;
+};
+
+Player.prototype.jumpUp = function(){
+        this.moving = true;
+        this.velocity_x = 0;
+        this.velocity_y = 5;
+};
