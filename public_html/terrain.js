@@ -220,8 +220,8 @@ TerrainLine.prototype.draw = function (ctx) {
       //ctx.lineWidth = 4;
       var pNormalPosEnd = midPoint.add(this.normal.multf(20));
 
-      //this.normalPosCol.x = pNormalPosEnd.x - this.normalPosCol.w / 2;
-      //this.normalPosCol.y = pNormalPosEnd.y - this.normalPosCol.h / 2;
+      this.normalPosCol.x = pNormalPosEnd.x - this.normalPosCol.w / 2;
+      this.normalPosCol.y = pNormalPosEnd.y - this.normalPosCol.h / 2;
 
       ctx.moveTo(midPoint.x, midPoint.y);
       ctx.lineTo(pNormalPosEnd.x, pNormalPosEnd.y);
