@@ -7,7 +7,6 @@ var PHYS_DEBUG = true;
 
 var HALF_PI = Math.PI / 2.0;
 
-var COLLISION_PRECISION_ITERATIONS = 26;
 var LOCK_MIN_ANGLE = 45.0 / 180 * Math.PI;  //ANGLE OF COLLISION BELOW WHICH NOT TO BOUNCE.
 var PRINTEVERY = 240;
 var FRAMECOUNTER = 0;
@@ -61,6 +60,7 @@ function TempState(pos, vel, radius, timeDelta) { // overloaded constructor
 
 
 
+var COLLISION_PRECISION_ITERATIONS = 10;
 //DEFAULT PHYSICS VALS, TWEAK HERE
 // WIDTH  = 1920 UNITS
 // HEIGHT = 1080 UNITS
@@ -90,7 +90,7 @@ var DFLT_radius = 1920 / 32;
 
 // CONST RATIOS
 var DFLT_jumpSurfaceSpeedLossRatio = 0.7;   // When jumping from the ground, the characters velocity vector is decreased by this ratio before jump pulse is added. 
-var DFLT_bounceSpeedLossRatio = 0.8;
+var DFLT_bounceSpeedLossRatio = 0.9;
 
 
 
@@ -444,7 +444,7 @@ PhysEng.prototype.airStep = function (state, timeGoal, doNotCheck) {
       newPos = lastPos.add(lastVel.add(newVel.divf(2.0)));
 
       tempState = new TempState(newPos, newVel, player.radius, newTime);
-      collisionData = getCollisionDataInList(tempState, collisions);
+      collisionData = getCollisionDataInList(tempState, collisions, doNotCheck);
     }   // tempstate is collision point.                                              //Optimize by passing directly later, storing in named var for clarities sake for now.
 
     if (!collisionData.collided) {  // NO COLLISION
@@ -564,7 +564,8 @@ PhysEng.prototype.handleTerrainAirCollision = function (ballState, stuffWeCollid
   } else {
     //throw "BOUNCE";
     //console.log(collisionVec.normalize());
-    this.player.vel = getReflectionVector(ballState.vel, collisionVec.normalize()).multf(DFLT_bounceSpeedLossRatio); //TODO REFACTOR TO USE NEW COLLISION OBJECT
+    this.player.vel = getReflectionVector(normalBallVel, stuffWeCollidedWith[0].getNormalAt(ballState.pos)).multf(ballState.vel.length() * DFLT_bounceSpeedLossRatio); //TODO REFACTOR TO USE NEW COLLISION OBJECT
+    //this.player.vel = getReflectionVector(ballState.vel, collisionVec.normalize()).multf(DFLT_bounceSpeedLossRatio); //TODO REFACTOR TO USE NEW COLLISION OBJECT          // COLLISIONVEC AVERAGE VERSION
     this.player.pos = ballState.pos;
     this.player.airBorne = true;
     //this.player.surfaceOn = null;      //TODO remove. This shouldnt be necessary as should be set when a player leaves a surface.

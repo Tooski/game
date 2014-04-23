@@ -38,11 +38,16 @@ function getCollisionData(ballState, LevelList, doNotCheck) {
     //console.log("checking collisions");
   }
   var stuffWeCollidedWith = [];
+  //doNotCheck = [];
   for (var i = 0; i < LevelList.length; i++) {
-    if (LevelList[i].collidesWith(ballState.pos, ballState.radius) && !contains(doNotCheck, LevelList[i].id)) {
-      
-      stuffWeCollidedWith.push(LevelList[i]);
-    }
+    if (LevelList[i].collidesWith(ballState.pos, ballState.radius) ) {
+      if (!contains(doNotCheck, LevelList[i].id)) {
+
+        stuffWeCollidedWith.push(LevelList[i]);
+      } else {
+        console.log("had stuff");
+      }
+    } 
   }
   var didWeCollide = false;
   if (stuffWeCollidedWith.length > 0) {
@@ -62,12 +67,15 @@ function getCollisionData(ballState, LevelList, doNotCheck) {
 
 
 //What I will be calling in the recursive physics bounds checking function to check the initial collision list.
-function getCollisionDataInList(ballState, collidersToCheck) {
+function getCollisionDataInList(ballState, collidersToCheck, doNotCheck) {
   //code to check for collisions ONLY WITH THE THINGS IN THE PASSED LIST! Should be about the same as the above method but only searches this specific list, and returns the subset of it that is still being collided with.
   var stuffWeCollidedWith = [];
   for (var i = 0; i < collidersToCheck.length; i++) {
-    if (collidersToCheck[i].collidesWith(ballState.pos, ballState.radius)) {
-      stuffWeCollidedWith.push(collidersToCheck[i]);
+    
+    if (!contains(doNotCheck, collidersToCheck[i].id)) {
+      if (collidersToCheck[i].collidesWith(ballState.pos, ballState.radius)) {
+        stuffWeCollidedWith.push(collidersToCheck[i]);
+      }
     }
   }
   var didWeCollide = false;

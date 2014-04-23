@@ -112,7 +112,7 @@ TerrainSurface.prototype.constructor = TerrainSurface;// Establishes this as hav
 // @param adjacents is an array of terrainObjects where adjacents[0] is connected by p0, and adjacent
 function TerrainLine(point0, point1, player, adjacent0, adjacent1, normal) {  
    
-    TerrainSurface.apply(this, [point0, point1, adjacent0, adjacent1,player]); // Sets this up as a child of TerrainSurface and initializes TerrainSurface's fields.
+    TerrainSurface.apply(this, [point0, point1, adjacent0, adjacent1, player]); // Sets this up as a child of TerrainSurface and initializes TerrainSurface's fields.
     this.normal = normal;//.normalize();
 
 
@@ -122,10 +122,13 @@ function TerrainLine(point0, point1, player, adjacent0, adjacent1, normal) {
       var pC = ballLocation;                // center of the ball
       var vAC = pA.subtract(pC);     // vector from A to the ball
       var vBC = pB.subtract(pC);     // vector from B to the ball
-      if (vAC.length() < radius) {
+      var acbool = vAC.length() < radius;
+      var bcbool = vBC.length() < radius;
+      if (acbool && bcbool) {         // if we're super close to both line endpoints.
+        return this.normal;           
+      } else if (acbool) {            // if we're touching line A
         return vAC.normalize();
-      } else if (vBC.length() < radius) {
-        // WE ARE OFF THE SIDES OF THE PERPENDICULAR BOUNDING BOX, BUT WE STILL COLLIDED WITH THE LINES ENDPOINT.
+      } else if (bcbool) {
         return vBC.normalize();
       } else {
         return this.normal;
@@ -151,32 +154,32 @@ function TerrainLine(point0, point1, player, adjacent0, adjacent1, normal) {
 
       var collision = false;
       var vABlen = vAB.length();
-      if (vCD.length() <= radius && vAD.length() < vABlen && vAB.subtract(vAD).length() < vABlen) {
+      if (vCD.length() < radius && vAD.length() < vABlen && vAB.subtract(vAD).length() < vABlen) {
         // THEN THE CENTER OF OUR CIRCLE IS WITHIN THE PERPENDICULAR BOUNDS OF THE LINE SEGMENT, AND CIRCLE IS LESS THAN RADIUS AWAY FROM THE LINE.
         collision = true;
-      } else if (vAC.length() <= radius || vBC.length() <= radius) {
+      } else if (vAC.length() < radius || vBC.length() < radius) {
         // WE ARE OFF THE SIDES OF THE PERPENDICULAR BOUNDING BOX, BUT WE STILL COLLIDED WITH THE LINES ENDPOINT.
         collision = true;
       } else {
         // No collision, unless we're missing a case in which case add additional detection here.
       }
       if (DEBUG_TERRAIN && ctx) {
-        //ctx.strokeStyle = collision ? "Red" : "Black";
+        ctx.strokeStyle = collision ? "Red" : "Black";
 
 
+        ctx.beginPath();
+        ctx.lineWidth = 3;
 
-        //ctx.lineWidth = 3;
+        ctx.moveTo(point.x, point.y);
+        ctx.lineTo(pB.x, pB.y);
 
-        //ctx.moveTo(point.x, point.y);
-        //ctx.lineTo(pB.x, pB.y);
+        ctx.moveTo(point.x, point.y);
+        ctx.lineTo(pA.x, pA.y);
 
-        //ctx.moveTo(point.x, point.y);
-        //ctx.lineTo(pA.x, pA.y);
+        ctx.moveTo(point.x, point.y);
+        ctx.lineTo(pD.x, pD.y);
 
-        //ctx.moveTo(point.x, point.y);
-        //ctx.lineTo(pD.x, pD.y);
-
-        //ctx.stroke();
+        ctx.stroke();
       }
 
       return collision;
