@@ -549,6 +549,8 @@ var imagePaths = ["assets/backgroundTile.png", "assets/midground-Tile-150x150.pn
 var ASSET_MANAGER = new AssetManager();
 var gameEngine;
 var player;
+
+var currentLevel;
 for(var i = 0; i < imagePaths.length; i++) {
     ASSET_MANAGER.queueDownload(imagePaths[i]);
 }
@@ -574,8 +576,10 @@ ASSET_MANAGER.downloadAll(function() {
         gameEngine.addEntity(new Unit("assets/enemy.jpg", enemy[i][0],enemy[i][1]));
     }
     //    gameEngine.addEntity(new TerrainLine(new vec2(200,200+50), new vec2(200+250,200+150), player));
+    currentLevel = new TerrainManager();
     
- gameEngine.addEntity(new MapEditor());
+    gameEngine.addEntity(currentLevel);
+    new MapEditor(currentLevel);
    //  gameEngine.addEntity(new BezierCurve(40,100,80,20,150,180,260,100));
     gameEngine.addEntity(gameboard);
     gameEngine.addEntity(player);
@@ -617,6 +621,14 @@ var enemy = [
 ];
 
 
-
+function localToWorld(value, dimension) {
+    if(dimension === "x")
+        return value / initScale - (initWidth/ctx.canvas.width) * 
+            ctx.canvas.width / initScale / 2 + player.model.pos.x;
+    else if (dimension === "y") {
+        return value / initScale - (initWidth/ctx.canvas.width) * 
+            ctx.canvas.height / initScale / 2 + player.model.pos.y;
+    }
+}
 
 

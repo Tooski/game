@@ -64,7 +64,7 @@ var COLLISION_PRECISION_ITERATIONS = 10;
 //DEFAULT PHYSICS VALS, TWEAK HERE
 // WIDTH  = 1920 UNITS
 // HEIGHT = 1080 UNITS
-var DFLT_gravity = 30;        // FORCE EXERTED BY GRAVITY IS 400 ADDITIONAL UNITS OF VELOCITY DOWNWARD PER SECOND. 
+var DFLT_gravity = 0;        // FORCE EXERTED BY GRAVITY IS 400 ADDITIONAL UNITS OF VELOCITY DOWNWARD PER SECOND. 
 
 var DFLT_JUMP_HOLD_TIME = 0.15; // To jump full height, jump must be held for this long. Anything less creates a fraction of the jump height based on the fraction of the full time the button was held. TODO implement.
 
@@ -415,7 +415,7 @@ PhysEng.prototype.airStep = function (state, timeGoal, doNotCheck) {
   var newPos = lastPos.add(lastVel.add(newVel).divf(2.0));
 
   var tempState = new TempState(newPos, newVel, this.player.radius, timeGoal);
-  var collisionData = getCollisionData(tempState, terrainList, doNotCheck);
+  var collisionData = getCollisionData(tempState, currentLevel.terrainList, doNotCheck);
   var returnState;
   if (!collisionData.collided) {  //IF WE DIDNT COLLIDE, THIS SHOULD BE GOOD? TODO CHECK TO MAKE SURE WE DIDNT MOVE MORE THAN RADIUS IN THIS STEP.
     returnState = tempState;

@@ -12,73 +12,8 @@ function TerrainSurface(point0, point1, adjacent0, adjacent1, pl) {
     Collideable.apply(this);    // SET UP TerrainSurface objects' inheritance from Collideable.
   this.p0 = point0;                                   // p0 and p1 are either end of this TerrainSurface.
   this.p1 = point1;
-  var that = this;
  
-  if(editMode) {
-      var wh = 10;
-      this.p0edit = new MouseCollideable("point", this.p0.x - wh, this.p0.y - wh, wh*2, wh*2);
-      
-      this.p0edit.onDrag = function(e) {
-        var xOffset = e.offsetX / initScale - (initWidth / ctx.canvas.width) * ctx.canvas.width / initScale / 2 + player.model.pos.x;
-        var yOffset = e.offsetY / initScale - (initWidth / ctx.canvas.width) * ctx.canvas.height / initScale / 2 + player.model.pos.y;
-
-        this.x = (that.p0.x = xOffset) - wh;
-        this.y = (that.p0.y = yOffset) - wh;
-        normalDrag(that);
-        if(that.adjacent0) {
-            if(that.adjacent0.adjacent1 === that) {
-                that.adjacent0.p1edit.x = (that.adjacent0.p1.x = xOffset) - wh;
-                that.adjacent0.p1edit.y = (that.adjacent0.p1.y = yOffset) - wh;
-                normalDrag(that.adjacent0);
-            } else if (that.adjacent0.adjacent0 === that) {
-                that.adjacent0.p0edit.x = (that.adjacent0.p0.x = xOffset) - wh;
-                that.adjacent0.p0edit.y = (that.adjacent0.p0.y = yOffset) - wh;
-                normalDrag(that.adjacent0);
-            }
-        }
-      };
-      this.p0edit.onRelease = function(e) {
-          snapTo(that);
-      };
-      this.p1edit = new MouseCollideable("point", this.p1.x - wh, this.p1.y - wh, wh*2, wh*2);
-      this.p1edit.onDrag = function(e) {
-        var xOffset = e.offsetX / initScale - (initWidth / ctx.canvas.width) * ctx.canvas.width / initScale / 2 + player.model.pos.x;
-        var yOffset = e.offsetY / initScale - (initWidth / ctx.canvas.width) * ctx.canvas.height / initScale / 2 + player.model.pos.y;
- 
-          
-        this.x = (that.p1.x = xOffset) - wh;
-        this.y = (that.p1.y = yOffset) - wh;
-        normalDrag(that);
-        if(that.adjacent1) {
-            if(that.adjacent1.adjacent1 === that) {
-                that.adjacent1.p1edit.x = (that.adjacent1.p1.x = xOffset) - wh;
-                that.adjacent1.p1edit.y = (that.adjacent1.p1.y = yOffset) - wh;
-                normalDrag(that.adjacent1);
-            } else if (that.adjacent1.adjacent0 === that) {
-                that.adjacent1.p0edit.x = (that.adjacent1.p0.x = xOffset) - wh;
-                that.adjacent1.p0edit.y = (that.adjacent1.p0.y = yOffset) - wh;
-                normalDrag(that.adjacent1);
-            }
-        }
-   
-      };
-      this.p1edit.onRelease = function(e) {
-          snapTo(that);
-      };
-     
-      this.normalPosVec = new vec2(this.p0.x, this.p0.y);
-      this.normalPosCol = new MouseCollideable("normal", this.p0.x - wh, this.p0.y - wh, wh*2, wh*2);
-      this.normalPosCol.onDrag = function(e) {
-          if(that.normal) {
-          var point = findNormalByMouse(e, that);
-          
-
-          that.normal.x = point.x;
-          that.normal.y = point.y;
-          
-        }
-      };
-    }
+  
   }
   
   
@@ -133,11 +68,11 @@ function TerrainLine(point0, point1, player, adjacent0, adjacent1, normal) {
       } else {
         return this.normal;
       }
-    }
+    };
 
     this.getSurfaceAt = function (ballLocation) {
       return (vec2(this.p1 - this.p0)).normalize();
-    }
+    };
 
     this.collidesWith = function (point, radius, ctx) { // OVERRIDES THE COLLIDEABLE METHOD!!
       var pA = this.p0;              // TerrainLine point 1
@@ -183,7 +118,7 @@ function TerrainLine(point0, point1, player, adjacent0, adjacent1, normal) {
       }
 
       return collision;
-    }
+    };
 }
 TerrainLine.prototype = new TerrainSurface();      //Establishes this as a child of TerrainSurface.
 TerrainLine.prototype.constructor = TerrainLine;   //Establishes this as having its own constructor.

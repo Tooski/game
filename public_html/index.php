@@ -22,6 +22,7 @@ canvas { display:block; } /* To remove the scrollbars */
     <script type="text/javascript" src="./terrain.js"></script>
     <script type="text/javascript" src="./unit.js"></script>
     <script type="text/javascript" src="./player.js"></script>
+    <script type="text/javascript" src="./terrainmanager.js"></script>
     <script type="text/javascript" src="./mapeditor.js"></script>
     <script type="text/javascript" src="./game.js"></script>
 
