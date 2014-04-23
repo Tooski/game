@@ -145,6 +145,8 @@ GameEngine.prototype.init = function(ctx) {
 
     this.surfaceWidth = this.ctx.canvas.width;
     this.surfaceHeight = this.ctx.canvas.height;
+    this.ctx.canvas.setAttribute('tabindex', '0');
+    this.ctx.canvas.focus();
     this.startInput();
 
 	gamepadSupport.init(this); //Initialize gamepad support
