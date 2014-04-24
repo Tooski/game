@@ -384,7 +384,7 @@ GameEngine.prototype.addEntity = function(entity) {
  * @param {Image} backgroundImage the background image.
  * @param {double} offsetSpeed the speed offset, smaller value if you want
  * it to be slower, larger value if you want it to be faster.
- * @returns {undefined}
+ * @returns nothing.
  */
 function parallax(ctx, backgroundImage, offsetSpeed, position) {
     var w = -position.x*offsetSpeed - backgroundImage.width ;
@@ -436,13 +436,11 @@ GameEngine.prototype.draw = function(drawCallback) {
     }
        
     for(var i = 0; i < buttonList.length; i++) {
-            if(!mouseCollidable[i].onEditMode || (mouseCollidable[i].onEditMode && editMode)) {
-       buttonList[i].collider.x = buttonList[i].x =  buttonList[i].ix/ initScale - 
-                    (initWidth/ctx.canvas.width) * ctx.canvas.width / initScale / 2 
-                    + player.model.pos.x;
-        buttonList[i].collider.y = buttonList[i].y =  buttonList[i].iy/ initScale - 
-                    (initWidth/ctx.canvas.width) * ctx.canvas.height / initScale / 2 
-                    + player.model.pos.y;
+        if(!mouseCollidable[i].onEditMode || (mouseCollidable[i].onEditMode && editMode)) {
+        buttonList[i].collider.x = buttonList[i].x = buttonList[i].ix + player.model.pos.x - (initWidth/ctx.canvas.width) * (ctx.canvas.width/ initScale / 2);
+        buttonList[i].collider.y = buttonList[i].y = buttonList[i].iy + player.model.pos.y - (initWidth/ctx.canvas.width) * (ctx.canvas.height/ initScale / 2) ;
+
+        
 
         this.ctx.fillStyle = buttonList[i].isSelected ? "#00FF00" : "#FF0000";
         this.ctx.fillRect(buttonList[i].x,buttonList[i].y, buttonList[i].w, buttonList[i].h);
@@ -451,7 +449,17 @@ GameEngine.prototype.draw = function(drawCallback) {
         this.ctx.font = "bold "+size+"px Arial";
         this.ctx.textAlign="center"; 
         this.ctx.fillText(buttonList[i].name, buttonList[i].x +  buttonList[i].w/2, buttonList[i].y  + buttonList[i].h/2 + size/2);
-    }
+        //this.ctx.fillStyle = "orange";
+        //this.ctx.drawRect( buttonList[i].collider.x, buttonList[i].collider.y , buttonList[i].collider.w , buttonList[i].collider.h );
+// ctx.beginPath();
+//      ctx.rect(xx, yy, 60,60);
+//
+//      ctx.lineWidth = 7;
+//      ctx.strokeStyle = 'black';
+//      ctx.stroke();
+     
+        
+        }
     } 
     this.ctx.restore();
     if (drawCallback) {
@@ -541,6 +549,7 @@ var groundY = 0;
 
 var canvas;
 var initWidth;
+var initHeight;
 var ctx;
 var initScale = 0;
 // The assets
@@ -562,7 +571,7 @@ ASSET_MANAGER.downloadAll(function() {
      player  = new Player(canvas.width/2, canvas.height/2, timer);
     canvas.tabIndex = 1;
    
-    canvas.height = window.innerHeight;
+    initHeight =canvas.height = window.innerHeight;
     initWidth = canvas.width = window.innerWidth;
 
     initScale = initWidth / 1920;
@@ -599,6 +608,14 @@ ASSET_MANAGER.downloadAll(function() {
         }
     }, false);
     canvas.addEventListener("mousemove", function(e){
+//        var v =  getMousePos( e);
+//        
+//         xx = e.offsetX/ initScale* (initWidth/ctx.canvas.width)
+//            -ctx.canvas.width/initScale/2* (initWidth/ctx.canvas.width) + player.model.pos.x ;
+//       yy = e.offsetY/ initScale* (initWidth/ctx.canvas.width)- 
+//            ctx.canvas.height/initScale/2* (initWidth/ctx.canvas.width)  + player.model.pos.y;
+//       
+        
         if (selectedItem && selectedItem.onDrag) {
             selectedItem.onDrag(e);
         }
@@ -614,14 +631,14 @@ ASSET_MANAGER.downloadAll(function() {
 
 
 
-
-
 var enemy = [
     [10,10], [30,30], [50,50]
 ];
 
 
 function localToWorld(value, dimension) {
+    var scale =  canvas.width/ initWidth * (initScale !== 0 ? initScale : 1) ;
+
     if(dimension === "x")
         return value / initScale - (initWidth/ctx.canvas.width) * 
             ctx.canvas.width / initScale / 2 + player.model.pos.x;
@@ -630,5 +647,4 @@ function localToWorld(value, dimension) {
             ctx.canvas.height / initScale / 2 + player.model.pos.y;
     }
 }
-
 

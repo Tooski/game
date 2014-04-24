@@ -160,10 +160,25 @@ TerrainLine.prototype.draw = function (ctx) {
 
       this.normalPosCol.x = pNormalPosEnd.x - this.normalPosCol.w / 2;
       this.normalPosCol.y = pNormalPosEnd.y - this.normalPosCol.h / 2;
+      
+      
+      
+      this.p0edit.x = this.p0.x;
+      this.p0edit.y = this.p0.y;
+
+      this.p1edit.x = this.p1.x;
+      this.p1edit.y = this.p1.y;
+      
+
 
       ctx.moveTo(midPoint.x, midPoint.y);
       ctx.lineTo(pNormalPosEnd.x, pNormalPosEnd.y);
       ctx.stroke();
+            ctx.moveTo(this.p0edit.x, this.p0edit.y);
+
+        ctx.arc(this.p0edit.x, this.p0edit.y, 4, 0, 2 * Math.PI, false);
+    ctx.fill();
+
       //ctx.beginPath();
 
       //ctx.arc(this.normalPosVec.x  , this.normalPosVec.y , this.normalPosCol.w/2, 0, 2 * Math.PI, false);

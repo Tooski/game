@@ -45,7 +45,7 @@ function getCollisionData(ballState, LevelList, doNotCheck) {
 
         stuffWeCollidedWith.push(LevelList[i]);
       } else {
-        console.log("had stuff");
+    //    console.log("had stuff");
       }
     } 
   }

@@ -20,10 +20,8 @@ TerrainManager.prototype.pushTerrain = function(terrain, list) {
 
 
 TerrainManager.prototype.update = function() {
-//    for(var i = 0; i < buttonList.length; i++) {
-////        buttonList[i].x  = buttonList[i].ix/initScale - (initWidth/ctx.canvas.width) * ctx.canvas.width / initScale / 2 + player.position.x;
-////        buttonList[i].y = buttonList[i].iy/initScale - (initWidth/ctx.canvas.width) * ctx.canvas.height / initScale / 2 + player.position.y;
-//    }
+    for(var i = 0; i < this.terrainList.length; i++) {
+    }
 };
 
 TerrainManager.prototype.draw = function(ctx) {
@@ -129,8 +127,8 @@ TerrainManager.prototype.createTerrainPoints = function(terrain) {
       terrain.p0edit = new MouseCollideable("point", terrain.p0.x - wh, terrain.p0.y - wh, wh*2, wh*2);
       
       terrain.p0edit.onDrag = function(e) {
-        var xOffset = localToWorld(e.offsetX, "x");
-        var yOffset = localToWorld(e.offsetY, "y");
+        var xOffset = localToWorld(e.offsetX* (initWidth/ctx.canvas.width), "x");
+        var yOffset = localToWorld(e.offsetY* (initWidth/ctx.canvas.width), "y");
 
         terrain.x = (terrain.p0.x = xOffset) - wh;
         terrain.y = (terrain.p0.y = yOffset) - wh;
@@ -152,8 +150,8 @@ TerrainManager.prototype.createTerrainPoints = function(terrain) {
       };
       terrain.p1edit = new MouseCollideable("point", terrain.p1.x - wh, terrain.p1.y - wh, wh*2, wh*2);
       terrain.p1edit.onDrag = function(e) {
-        var xOffset = localToWorld(e.offsetX, "x");
-        var yOffset = localToWorld(e.offsetY, "y");
+        var xOffset = localToWorld(e.offsetX* (initWidth/ctx.canvas.width), "x");
+        var yOffset = localToWorld(e.offsetY* (initWidth/ctx.canvas.width), "y");
           
         terrain.x = (terrain.p1.x = xOffset) - wh;
         terrain.y = (terrain.p1.y = yOffset) - wh;

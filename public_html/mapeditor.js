@@ -10,12 +10,11 @@ var buttonList = [];
 var buttonListStart = new vec2(0,0), buttonListEnd = new vec2(0,0);
 function MapEditorButton(name, x, y, w, h) {
     this.name = name;
-    this.ix = x;
-    this.iy = y;
-    this.x = x;
-    this.y = y;
-    this.w = w/initScale;
-    this.h = h/initScale;
+
+    this.ix = this.x = x;
+    this.iy = this.y = y;
+    this.iw = this.w = w;
+    this.ih = this.h = h;
     this.isSelected = false;
     this.collider = new MouseCollideable("button", this.x,this.y,this.w,this.h);
     var that = this;
