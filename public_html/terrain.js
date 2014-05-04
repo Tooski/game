@@ -52,20 +52,29 @@ function TerrainLine(point0, point1, player, adjacent0, adjacent1, normal) {
 
 
     this.getNormalAt = function (ballLocation, radius) {
+      if (!ballLocation) {
+        throw "ballLocation undefined";
+      } else if (!radius) {
+        throw "radius undefined";
+      }
       var pA = this.p0;              // TerrainLine point 1
       var pB = this.p1;              // TerrainLine point 2
       var pC = ballLocation;                // center of the ball
       var vAC = pA.subtract(pC);     // vector from A to the ball
       var vBC = pB.subtract(pC);     // vector from B to the ball
-      var acbool = vAC.length() < radius;
-      var bcbool = vBC.length() < radius;
+      var acbool = (vAC.length() <= radius);
+      var bcbool = (vBC.length() <= radius);
       if (acbool && bcbool) {         // if we're super close to both line endpoints.
+        //console.log("hitting both endpoints");
         return this.normal;           
-      } else if (acbool) {            // if we're touching line A
-        return vAC.normalize();
-      } else if (bcbool) {
-        return vBC.normalize();
+      } else if (acbool === true) {            // if we're touching pointA
+        //console.log("hitting point A");
+        return vAC.normalize().negate();
+      } else if (bcbool === true) {
+        //console.log("hitting point B");
+        return vBC.normalize().negate();
       } else {
+        //console.log("hit line only");
         return this.normal;
       }
     };
@@ -89,11 +98,13 @@ function TerrainLine(point0, point1, player, adjacent0, adjacent1, normal) {
 
       var collision = false;
       var vABlen = vAB.length();
-      if (vCD.length() < radius && vAD.length() < vABlen && vAB.subtract(vAD).length() < vABlen) {
+      if (vCD.length() <= radius && vAD.length() < vABlen && vAB.subtract(vAD).length() < vABlen) {
         // THEN THE CENTER OF OUR CIRCLE IS WITHIN THE PERPENDICULAR BOUNDS OF THE LINE SEGMENT, AND CIRCLE IS LESS THAN RADIUS AWAY FROM THE LINE.
+        //console.log("Within perpendicular line bounds.");
         collision = true;
-      } else if (vAC.length() < radius || vBC.length() < radius) {
+      } else if (vAC.length() <= radius || vBC.length() <= radius) {
         // WE ARE OFF THE SIDES OF THE PERPENDICULAR BOUNDING BOX, BUT WE STILL COLLIDED WITH THE LINES ENDPOINT.
+        //console.log("Outside line bounds, hit endpoint");
         collision = true;
       } else {
         // No collision, unless we're missing a case in which case add additional detection here.

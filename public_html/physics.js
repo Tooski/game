@@ -69,15 +69,15 @@ var DFLT_gravity = 0;        // FORCE EXERTED BY GRAVITY IS 400 ADDITIONAL UNITS
 var DFLT_JUMP_HOLD_TIME = 0.15; // To jump full height, jump must be held for this long. Anything less creates a fraction of the jump height based on the fraction of the full time the button was held. TODO implement.
 
 // CONST ACCEL INPUTS
-var DFLT_gLRaccel = 80;
-var DFLT_aLRaccel = 60;
-var DFLT_aUaccel = 50;
-var DFLT_aDaccel = 50;
-var DFLT_gUaccel = 30;
-var DFLT_gDaccel = 30;
-var DFLT_gBoostLRvel = 150;
-var DFLT_aBoostLRvel = 150;
-var DFLT_aBoostDownVel = 150;
+var DFLT_gLRaccel = 800;
+var DFLT_aLRaccel = 600;
+var DFLT_aUaccel = 500;
+var DFLT_aDaccel = 500;
+var DFLT_gUaccel = 300;
+var DFLT_gDaccel = 300;
+var DFLT_gBoostLRvel = 1500;
+var DFLT_aBoostLRvel = 1500;
+var DFLT_aBoostDownVel = 1500;
 
 // CONST PULSE INPUTS
 var DFLT_jumpVelNormPulse = 400;
@@ -380,6 +380,7 @@ PhysEng.prototype.stepToEndOfEvent = function (state, event, doNotCheck) {
       for (var k = 0; k < newTerrainEvents.length; k++) {
         doNotCheck.push(newTerrainEvents[k].id);
       }
+      console.log("stepstate: ", stepState);
       this.handleTerrainAirCollision(stepState, newTerrainEvents); // TODO REFACTOR TO PASS COLLISION OBJECT WITH ADDITIONAL DATA. SEE handleTerrainAirCollision COMMENTS FOR MORE INFO.
     }
     stepState = new TempState(this.player.pos, this.player.vel, this.player.radius, this.player.timeDelta);
@@ -406,13 +407,15 @@ PhysEng.prototype.airStep = function (state, timeGoal, doNotCheck) {
   //this.accelState.update(this.inputState);
   var accelVec = this.accelState.accelVec;
   //console.log("accelVec before adding: ", accelVec);
+  var deltaTime = timeGoal - startTime;
   var lastVel = state.vel;
   var lastPos = state.pos;
-  var multed = accelVec.multf(timeGoal - startTime);
+  var multVel = lastVel.multf(deltaTime);
+  var multAcc = accelVec.multf(deltaTime * deltaTime);
   //console.log("lastVel: ", lastVel);
   //console.log("this.inputState: ", this.inputState);
-  var newVel = lastVel.add(multed);
-  var newPos = lastPos.add(lastVel.add(newVel).divf(2.0));
+  var newVel = lastVel.add(accelVec.multf(deltaTime));
+  var newPos = lastPos.add(multVel.add(multAcc));
 
   var tempState = new TempState(newPos, newVel, this.player.radius, timeGoal);
   var collisionData = getCollisionData(tempState, currentLevel.terrainList, doNotCheck);
@@ -422,15 +425,17 @@ PhysEng.prototype.airStep = function (state, timeGoal, doNotCheck) {
   } else {                        //WE COLLIDED WITH SHIT, HANDLE RECURSIVELY, TODO DONE?
     var minCollisionTime = startTime;
     var maxCollisionTime = timeGoal;
-    
     var newTime = (maxCollisionTime + minCollisionTime) / 2.0;
     var collisions = collisionData.collidedWith;
-    newVel = lastVel.add(accelVec.multf(newTime - startTime));
-    newPos = lastPos.add(lastVel.add(newVel).divf(2.0));
+    //newVel = lastVel.add(accelVec.multf(newTime - startTime));
+    //newPos = lastPos.add(lastVel.add(newVel).divf(2.0));
 
-    tempState = new TempState(newPos, newVel, player.radius, newTime);
-    for (var i = 1; i < COLLISION_PRECISION_ITERATIONS || collisionData.collided === true; i++) { //find collision point
-      
+    tempState = new TempState(newPos, newVel, this.player.radius, newTime);
+    for (var i = 1; i < COLLISION_PRECISION_ITERATIONS || (collisionData.collided && i < 20); i++) { //find collision point
+      if (i >= COLLISION_PRECISION_ITERATIONS) {
+        console.log("Extra collision test ", i, ", startTime ", startTime, " timeGoal ", timeGoal, " newTime ", newTime);
+      }
+
       if (!collisionData.collided) {  // NO COLLISION
         minCollisionTime = newTime;
       } else {                        // COLLIDED
@@ -439,11 +444,13 @@ PhysEng.prototype.airStep = function (state, timeGoal, doNotCheck) {
       }
 
       newTime = (maxCollisionTime + minCollisionTime) / 2.0;
+      deltaTime = newTime - startTime;
+      multVel = lastVel.multf(deltaTime);
+      multAcc = accelVec.multf(deltaTime * deltaTime);
+      newVel = lastVel.add(accelVec.multf(deltaTime));
+      newPos = lastPos.add(multVel.add(multAcc));
 
-      newVel = lastVel.add(accelVec.multf(newTime - startTime));
-      newPos = lastPos.add(lastVel.add(newVel.divf(2.0)));
-
-      tempState = new TempState(newPos, newVel, player.radius, newTime);
+      tempState = new TempState(newPos, newVel, this.player.radius, newTime);
       collisionData = getCollisionDataInList(tempState, collisions, doNotCheck);
     }   // tempstate is collision point.                                              //Optimize by passing directly later, storing in named var for clarities sake for now.
 
@@ -454,12 +461,15 @@ PhysEng.prototype.airStep = function (state, timeGoal, doNotCheck) {
       collisions = collisionData.collidedWith;
     }
 
+
     newTime = (maxCollisionTime + minCollisionTime) / 2.0;
+    deltaTime = newTime - startTime;
+    multVel = lastVel.multf(deltaTime);
+    multAcc = accelVec.multf(deltaTime * deltaTime);
+    newVel = lastVel.add(accelVec.multf(deltaTime));
+    newPos = lastPos.add(multVel.add(multAcc));
 
-    newVel = lastVel.add(accelVec.multf(newTime - startTime));
-    newPos = lastPos.add(lastVel.add(newVel).divf(2.0));
-
-    tempState = new TempState(newPos, newVel, player.radius, newTime);
+    tempState = new TempState(newPos, newVel, this.player.radius, newTime);
 
 
     returnState = tempState;
@@ -469,7 +479,7 @@ PhysEng.prototype.airStep = function (state, timeGoal, doNotCheck) {
     }
 
   } // done with stepping
-  //console.log(returnState);
+  //console.log("airStep returnState: ", returnState);
   return returnState;
 
 }
@@ -502,14 +512,16 @@ PhysEng.prototype.handleTerrainAirCollision = function (ballState, stuffWeCollid
   var angleToNormal;
   var collisionVec;
   //if (stuffWeCollidedWith.length > 1) {
-  collisionVec = stuffWeCollidedWith[0].getNormalAt(ballState.pos);
+  console.log("radius = ", ballState.radius);
+  collisionVec = stuffWeCollidedWith[0].getNormalAt(ballState.pos, ballState.radius);
   //console.log(collisionVec);
     for (var i = 1; i < stuffWeCollidedWith.length; i++) {
-      collisionVec = collisionVec.add(stuffWeCollidedWith[i].getNormalAt(ballState.pos));
+      collisionVec = collisionVec.add(stuffWeCollidedWith[i].getNormalAt(ballState.pos, ballState.radius));
       //console.log("dealing with a multiple thing collision...");
     }
     angleToNormal = Math.acos(collisionVec.normalize().dot(normalBallVel));
     var collisionVecNorm = collisionVec.normalize();
+    console.log("collisionVecNorm = ", collisionVecNorm);
   //} else {
     //angleToNormal = Math.acos(collisionVec.getNormalAt(ballState.pos).dot(normalBallVel));
   //}
@@ -564,7 +576,7 @@ PhysEng.prototype.handleTerrainAirCollision = function (ballState, stuffWeCollid
   } else {
     //throw "BOUNCE";
     //console.log(collisionVec.normalize());
-    this.player.vel = getReflectionVector(normalBallVel, stuffWeCollidedWith[0].getNormalAt(ballState.pos)).multf(ballState.vel.length() * DFLT_bounceSpeedLossRatio); //TODO REFACTOR TO USE NEW COLLISION OBJECT
+    this.player.vel = getReflectionVector(normalBallVel, stuffWeCollidedWith[0].getNormalAt(ballState.pos, ballState.radius)).multf(ballState.vel.length() * DFLT_bounceSpeedLossRatio); //TODO REFACTOR TO USE NEW COLLISION OBJECT
     //this.player.vel = getReflectionVector(ballState.vel, collisionVec.normalize()).multf(DFLT_bounceSpeedLossRatio); //TODO REFACTOR TO USE NEW COLLISION OBJECT          // COLLISIONVEC AVERAGE VERSION
     this.player.pos = ballState.pos;
     this.player.airBorne = true;
