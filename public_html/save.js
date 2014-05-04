@@ -124,8 +124,8 @@ function Save(terrainList) {
 
 
     this.buttons = new MenuButtonGroup(0,0,this.iw,50, 10);
-    //this.buttons.addButtons([cancelButton,saveButton,newButton]);
-    this.buttons.addButtons([submitButton,insertUser]);
+    this.buttons.addButtons([cancelButton,saveButton,newButton]);
+    //this.buttons.addButtons([submitButton,insertUser]);
     this.buttons.setParent(this);
 }
 

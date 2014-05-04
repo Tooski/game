@@ -29,13 +29,13 @@ TerrainManager.prototype.draw = function(ctx) {
 
     if(editMode) {
         this.terrainList.forEach (function(ter) {
-            if(!ter.circularID){
+            //if(!ter.circularID){
                 ter.draw(ctx);
-            }
+            //}
         });
-        for(var i = 0; i < this.closedTerrain.length; i++) {
-            this.closedTerrain[i].draw(ctx);
-        }
+        //for(var i = 0; i < this.closedTerrain.length; i++) {
+        //    this.closedTerrain[i].draw(ctx);
+        //}
         //console.log(this.closedTerrain.length);
     } else {
         this.lineDraw = {};
