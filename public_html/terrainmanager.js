@@ -36,7 +36,7 @@ TerrainManager.prototype.draw = function(ctx) {
         for(var i = 0; i < this.closedTerrain.length; i++) {
             this.closedTerrain[i].draw(ctx);
         }
-        console.log(this.closedTerrain.length);
+        //console.log(this.closedTerrain.length);
     } else {
         this.lineDraw = {};
      for(var i = 0; i < this.terrainList.length; i++) {

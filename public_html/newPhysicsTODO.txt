@@ -14,6 +14,11 @@ CRITICAL:
 		
 	ADD HACKEY MAX_MOVE_DISTANCE as fraction of radius. Use to ensure small steps between collision checks to avoid frame aliasing against line endpoints.
 
+	
+DEBUG:
+	Add thingsToPrintDebug[] at the top of physics, any time we wanna print visual debug shit add whatever lines to print up there
+		add code to print thingsToPrintDebug[] objects in red. Or something. Idfk.
+		add debugLine object. Copy of terrainLines and shit but draws in red or whatever.
 
 OBJECT CollisionData:				Collision.js
 	RETURN:
