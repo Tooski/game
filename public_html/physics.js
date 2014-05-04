@@ -313,10 +313,10 @@ PhysEng.prototype.update = function (timeDelta, eventList) { // ______timeDelta 
     var terrainNotToCheck = [];
     this.stepToEndOfEvent(state, event, terrainNotToCheck); // Guarantees time has completed up to the event and the event has been handled.
     state = new TempState(this.player.pos, this.player.vel, this.player.radius, 0.0);
-  }                                   // PHYSICS ARE UP TO DATE. GO AHEAD AND RENDER.
+  }                                                       // PHYSICS ARE UP TO DATE. GO AHEAD AND RENDER.
 
   this.player.timeDelta = 0.0;
-  // WE ARE NOW DONE WITH THE ENTIRE UPDATE. HOPEFULLY NOTHING WENT WRONG.
+                                                          // WE ARE NOW DONE WITH THE ENTIRE UPDATE. HOPEFULLY NOTHING WENT WRONG.
 
   if (FRAMECOUNTER === PRINTEVERY) {
     FRAMECOUNTER = 0;

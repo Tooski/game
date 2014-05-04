@@ -60,11 +60,22 @@ FURTHER DOWN THE LINE:
 			
 			
 			
+			
+			
 LINKAGE!
 	Lots of fun physics stuff, but doesnt talk about how to determine what time things happened at.	http://ai.eecs.umich.edu/soar/Classes/494/talks/Lecture%205%20Basic%20Physics.pdf
 	Moving circle to static circle collisions, adapt to circle to point collisions???				http://www.heroicvirtuecreations.com/2DCollisions.html
 	Awesome but really in depth paper about predictive game engine design:							http://floppsie.comp.glam.ac.uk/Papers/paper21/ieee.pdf
 	
+
+	
+	
+	
+	
+	
+	
+			BELOW SHOULD ALREADY HAVE BEEN IMPLEMENTED, KEEPING FOR ARCHIVE REFERENCE PURPOSE
+			
 BALL WITH BALL COLLISION CODE???? USES LINE BETWEEN BOTH BALLS CENTERS r1 + r2. We only care about r1 and dist from circle to point.
 DID NOT ORIGINALLY INCLUDE ACCELERATION, THIS ONE IS UNMODIFIED
 
