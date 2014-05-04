@@ -140,56 +140,28 @@ TerrainCircular.prototype = new Entity();
 
 TerrainCircular.prototype.draw = function(ctx) {
     
-    var smallestX = Number.MAX_VALUE, smallestY= Number.MAX_VALUE, largestX= Number.MIN_VALUE, largestY= Number.MIN_VALUE;
+    var rect = new Rectangle(Number.MAX_VALUE, Number.MAX_VALUE, Number.MIN_VALUE, Number.MIN_VALUE);
     ctx.save();
     ctx.beginPath();
-    var init = {};
-    for(var item in this.circular) {
-        
-            
-            
-            
-        if(smallestX > this.circular[item].p0.x) smallestX = this.circular[item].p0.x;
-        if(largestX < this.circular[item].p0.x) largestX = this.circular[item].p0.x;
-        if(smallestY > this.circular[item].p0.y) smallestY = this.circular[item].p0.y;
-        if(largestY < this.circular[item].p0.y) largestY = this.circular[item].p0.y;
-        if(smallestX > this.circular[item].p1.x) smallestX = this.circular[item].p1.x;
-        if(largestX < this.circular[item].p1.x) largestX = this.circular[item].p1.x;
-        if(smallestY > this.circular[item].p1.y) smallestY = this.circular[item].p1.y;
-        if(largestY < this.circular[item].p1.y) largestY = this.circular[item].p1.y;
-        
-        if(init.length === 0) {
-            ctx.moveTo(this.circular[item].p0.x,this.circular[item].p0.y);
-        }
-        if(init[this.circular[item].p1.x] === this.circular[item].p1.y) {
-            ctx.lineTo(this.circular[item].p0.x,this.circular[item].p0.y);
-            init[this.circular[item].p0.x] = this.circular[item].p0.y;
-        } else {
-            ctx.lineTo(this.circular[item].p1.x,this.circular[item].p1.y);
-            init[this.circular[item].p1.x] = this.circular[item].p1.y;
-        }
+    
+    for (var k in this.circular) {
+        this.fillTerrain(ctx, this.circular[k], {}, rect,{});
+
+        break;
     }
+    
+   
     
     ctx.closePath();
     ctx.clip();
     var img = ASSET_MANAGER.cache["assets/dirt.jpg"];
-    for(var x = smallestX; x < largestX; x+=img.width) {
-        for(var y = smallestY; y < largestY; y+=img.height) {
+    for(var x = rect.x1 ; x < rect.x2; x+=img.width) {
+        for(var y = rect.y1; y < rect.y2; y+=img.height) {
             ctx.drawImage(img, x, y);
         }
     }
-   
-
-    
-    
- 
-    
-    
-    
-    
-    
     ctx.restore();
-    ctx.lineWidth = this.circular[item].lineWidth;
+    ctx.lineWidth = this.circular[k].lineWidth;
     ctx.stroke();
     
     
@@ -208,6 +180,61 @@ TerrainCircular.prototype.draw = function(ctx) {
     }
 };
 
+
+TerrainCircular.prototype.fillTerrain = function(ctx, terrain, visited, rect, visitedLine) {
+        if(rect.x1 > terrain.p0.x) rect.x1 = terrain.p0.x;
+        if(rect.x2 < terrain.p0.x) rect.x2 = terrain.p0.x;
+        if(rect.y1 > terrain.p0.y) rect.y1 = terrain.p0.y;
+        if(rect.y2 < terrain.p0.y) rect.y2 = terrain.p0.y;
+        if(rect.x1 > terrain.p1.x) rect.x1 = terrain.p1.x;
+        if(rect.x2 < terrain.p1.x) rect.x2 = terrain.p1.x;
+        if(rect.y1 > terrain.p1.y) rect.y1 = terrain.p1.y;
+        if(rect.y2 < terrain.p1.y) rect.y2 = terrain.p1.y;
+        
+        
+        visitedLine[terrain.id] = true;
+        
+            var t0 = JSON.stringify( terrain.p0);
+            var t1 = JSON.stringify( terrain.p1);
+            
+            
+            if(visited.length === 0) {
+                ctx.moveTo(terrain.p0.x,terrain.p0.y);
+                visited[t0] = true;
+            }
+            
+                    if(!visited[t0]) ctx.lineTo(terrain.p0.x,terrain.p0.y);
+                    else if (!visited[t1]) ctx.lineTo(terrain.p1.x,terrain.p1.y);
+            
+            if(terrain.adjacent0 && !visitedLine[terrain.adjacent0.id]) {
+                var o0 = JSON.stringify( terrain.adjacent0.p0);
+                var o1 = JSON.stringify( terrain.adjacent0.p1);
+                if(!visited[t0] || !visited[t1]) {
+
+                    if(t0 === o0 || t0 === o1) visited[t0] = true;
+                    else if (t1 === o0 || t1 === o1) visited[t1] = true;
+               
+                    
+                    
+                    this.fillTerrain(ctx, terrain.adjacent0, visited, rect, visitedLine);
+                }
+            }
+            if(terrain.adjacent1 && !visitedLine[terrain.adjacent1.id]) {
+                
+                var o0 = JSON.stringify( terrain.adjacent1.p0);
+                var o1 = JSON.stringify( terrain.adjacent1.p1);
+                if(!visited[t0] || !visited[t1]) {
+                    if(t0 === o0 || t0 === o1) visited[t0] = true;
+                    else if (t1 === o0 || t1 === o1) visited[t1] = true;
+                             
+            
+                    
+                    
+                    this.fillTerrain(ctx, terrain.adjacent1, visited, rect, visitedLine);
+                }
+            }
+            
+}
 
 TerrainManager.prototype.removeFrom = function(terrain) {
 
@@ -343,9 +370,11 @@ function checkCircular(nextLine, array, original, visited) {
             return true;
         } else {
             
-            if(nextLine.adjacent0) {
+            if(nextLine.adjacent0 && !array[nextLine.adjacent0.id]) {
                 var o0 = JSON.stringify(nextLine.adjacent0.p0);
                 var o1 = JSON.stringify(nextLine.adjacent0.p1);
+                
+                
                 
                 if(!visited[t0] || !visited[t1]) {
                     if(t0 === o0 || t0 === o1) visited[t0] = true;
@@ -354,7 +383,7 @@ function checkCircular(nextLine, array, original, visited) {
                     return checkCircular(nextLine.adjacent0, array, original, visited);
                 }
             }
-            if(nextLine.adjacent1) {
+            if(nextLine.adjacent1 && !array[nextLine.adjacent1.id]) {
                 var o0 = JSON.stringify(nextLine.adjacent1.p0);
                 var o1 = JSON.stringify(nextLine.adjacent1.p1);
                 if(!visited[t0] || !visited[t1]) {
