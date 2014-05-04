@@ -120,6 +120,7 @@ function InputObject() {
 
 function GameEngine(player) {
     this.entities = [];
+    this.menu;
     this.ctx = null;
     this.click = null;
     this.mouse = null;
@@ -198,34 +199,42 @@ GameEngine.prototype.startInput = function() {
         console.log("why are we editing?");
           if (gameEngine.input.selectedKeyVal === "LEFT") {
             gameEngine.input.leftKey = e.keyCode;
+            alert("Left movement has been remapped");
             gameEngine.input.selectedKeyVal = null;
             gameEngine.input.editKeys = false;
           } else if (gameEngine.input.selectedKeyVal === "RIGHT") {
             gameEngine.input.rightKey = e.keyCode;
+            alert("Right movement has been remapped");
             gameEngine.input.selectedKeyVal = null;
             gameEngine.input.editKeys = false;
           } else if (gameEngine.input.selectedKeyVal === "UP") {
             gameEngine.input.upKey = e.keyCode;
+            alert("Upward movement has been remapped");
             gameEngine.input.selectedKeyVal = null;
             gameEngine.input.editKeys = false;
           } else if (gameEngine.input.selectedKeyVal === "DOWN") {
             gameEngine.input.downKey = e.keyCode;
+            alert("Downward movement has been remapped");
             gameEngine.input.selectedKeyVal = null;
             gameEngine.input.editKeys = false;
           } else if (gameEngine.input.selectedKeyVal === "JUMP") {
             gameEngine.input.jumpKey = e.keyCode;
+            alert("Jump has been remapped");
             gameEngine.input.selectedKeyVal = null;
             gameEngine.input.editKeys = false;
           } else if (gameEngine.input.selectedKeyVal === "LOCK") {
             gameEngine.input.lockKey = e.keyCode;
+            alert("Lock has been remapped");
             gameEngine.input.selectedKeyVal = null;
             gameEngine.input.editKeys = false;
           } else if (gameEngine.input.selectedKeyVal === "BOOST") {
             gameEngine.input.boostKey = e.keyCode;
+            alert("Boost has been remapped");
             gameEngine.input.selectedKeyVal = null;
             gameEngine.input.editKeys = false;
           } else if (gameEngine.input.selectedKeyVal === "PAUSE") {
             gameEngine.input.pauseKey = e.keyCode;
+            alert("Pause has been remapped");
             gameEngine.input.selectedKeyVal = null;
             gameEngine.input.editKeys = false;
           }
@@ -255,6 +264,7 @@ GameEngine.prototype.startInput = function() {
             //console.log("Lock pressed");
           } else if (e.keyCode === gameEngine.input.pauseKey && gameEngine.input.pausePressed === false) {
             gameEngine.setPause(true, performance.now());
+			gameEngine.toggleOverlay();
             //console.log("Pause pressed");
 			    }
         }
@@ -345,7 +355,7 @@ GameEngine.prototype.setBoost = function (upOrDown, time) {
 
 GameEngine.prototype.setPause = function (upOrDown, time) {
   if (this.input.pausePressed !== upOrDown) {
-    this.input.pausePressed = pressed;
+    this.input.pausePressed = upOrDown;
     this.input.pausePressedTimestamp = time;
     this.eventsSinceLastFrame.push(new InputEventPause((time - this.lastFrameTime) / 1000, upOrDown));
   } 
@@ -367,7 +377,36 @@ GameEngine.prototype.resetDefaults = function() {
   this.input.upKey = 38;
   this.input.lockKey = 68;
   this.input.pauseKey = 80;
+  alert("Key mappings have been reset to default");
 }
+
+//Toggles the pause overlay
+var overlay = document.querySelector( 'div.overlay' );
+
+GameEngine.prototype.toggleOverlay = function() {
+	if( classie.has( overlay, 'open' ) ) {
+		classie.remove( overlay, 'open' );
+		classie.add( overlay, 'close' );
+		var onEndTransitionFn = function( ev ) {
+			if( support.transitions ) {
+				if( ev.propertyName !== 'visibility' ) return;
+				this.removeEventListener( transEndEventName, onEndTransitionFn );
+			}
+			classie.remove( overlay, 'close' );
+		};
+		if( support.transitions ) {
+			overlay.addEventListener( transEndEventName, onEndTransitionFn );
+		}
+		else {
+			onEndTransitionFn();
+		}
+	}
+	else if( !classie.has( overlay, 'close' ) ) {
+		classie.add( overlay, 'open' );
+	}
+}
+
+
 
 GameEngine.prototype.addEntity = function(entity) {
     console.log('added entity');
@@ -424,13 +463,13 @@ GameEngine.prototype.draw = function(drawCallback) {
         this.ctx.translate(
         (initWidth/this.ctx.canvas.width) * this.ctx.canvas.width / initScale / 2 - this.player.model.pos.x,  
         (initWidth/this.ctx.canvas.width) * this.ctx.canvas.height / initScale / 2 - this.player.model.pos.y);
-        parallax(this.ctx, ASSET_MANAGER.cache[imagePaths[0]], 1 / 4, this.player.model.pos);
-        parallax(this.ctx, ASSET_MANAGER.cache[imagePaths[1]], 1 / 2, this.player.model.pos);
+
     }
 
 
 
-    
+    parallax(this.ctx, ASSET_MANAGER.cache[imagePaths[0]], 1 / 4, this.player.model.pos);
+    parallax(this.ctx, ASSET_MANAGER.cache[imagePaths[1]], 1 / 2, this.player.model.pos);
     for (var i = 0; i < this.entities.length; i++) {
         this.entities[i].draw(this.ctx);
     }
@@ -440,10 +479,12 @@ GameEngine.prototype.draw = function(drawCallback) {
         buttonList[i].collider.x = buttonList[i].x = buttonList[i].ix + player.model.pos.x - (initWidth/ctx.canvas.width) * (ctx.canvas.width/ initScale / 2);
         buttonList[i].collider.y = buttonList[i].y = buttonList[i].iy + player.model.pos.y - (initWidth/ctx.canvas.width) * (ctx.canvas.height/ initScale / 2) ;
 
-        
 
+        this.ctx.beginPath();
         this.ctx.fillStyle = buttonList[i].isSelected ? "#00FF00" : "#FF0000";
         this.ctx.fillRect(buttonList[i].x,buttonList[i].y, buttonList[i].w, buttonList[i].h);
+         this.ctx.stroke();
+
         var size = 16;
         this.ctx.fillStyle = "black";
         this.ctx.font = "bold "+size+"px Arial";
@@ -461,6 +502,11 @@ GameEngine.prototype.draw = function(drawCallback) {
         
         }
     } 
+    
+    if(this.menu && this.menu instanceof Menu) this.menu.draw(this.ctx);
+    this.ctx.font = "30px Arial";
+    this.ctx.fillText(player.model.pos,200 + player.model.pos.x - (initWidth/ctx.canvas.width) * (ctx.canvas.width/ initScale / 2),100 + player.model.pos.y - (initWidth/ctx.canvas.width) * (ctx.canvas.height/ initScale / 2) );
+
     this.ctx.restore();
     if (drawCallback) {
       drawCallback(this);
@@ -468,6 +514,9 @@ GameEngine.prototype.draw = function(drawCallback) {
 }
 
 GameEngine.prototype.update = function() {
+    if(this.menu && this.menu instanceof Menu) {
+        this.menu.update();
+    } else {
     var entitiesCount = this.entities.length;
     var thisFrameTime = performance.now();
     var timeDelta = thisFrameTime - this.lastFrameTime;
@@ -492,7 +541,8 @@ GameEngine.prototype.update = function() {
             this.entities.splice(i, 1);
         }
     }
-}
+    }
+};
 
 GameEngine.prototype.loop = function() {
     this.update();
@@ -522,18 +572,6 @@ GameBoard.prototype.draw = function(ctx) {
 
 
 
-/**
- * QuadTree is used to create an efficient collision detection.
- * Splits the canvas into seperate partitions.
- * @returns {undefined}
- */
-function QuadTree (boundingBox) {
-    var boundingBox = boundingBox;
-    
-}
-
-
-
 
 
 // the "main" code begins here
@@ -553,7 +591,7 @@ var initHeight;
 var ctx;
 var initScale = 0;
 // The assets
-var imagePaths = ["assets/backgroundTile.png", "assets/midground-Tile-150x150.png", "assets/Megaman8bit.jpg", "assets/enemy.jpg", "assets/HamsterSprites.png"];
+var imagePaths = ["assets/backgroundTile.png", "assets/midground-Tile-150x150.png", "assets/Megaman8bit.jpg", "assets/enemy.jpg", "assets/HamsterSprites.png", "assets/dirt.jpg"];
 
 var ASSET_MANAGER = new AssetManager();
 var gameEngine;
@@ -563,7 +601,12 @@ var currentLevel;
 for(var i = 0; i < imagePaths.length; i++) {
     ASSET_MANAGER.queueDownload(imagePaths[i]);
 }
+
+
+
+
 ASSET_MANAGER.downloadAll(function() {
+    
     console.log("starting up da sheild");
     canvas = document.getElementById('gameWorld');
      ctx = canvas.getContext('2d');
@@ -575,6 +618,17 @@ ASSET_MANAGER.downloadAll(function() {
     initWidth = canvas.width = window.innerWidth;
 
     initScale = initWidth / 1920;
+    loadingScreen(ctx);
+    
+    
+     game.settings.query(function(){ // if callback is returned, run the application.
+         
+     
+    var timer = new Timer();
+    player  = new Player(canvas.width/2, canvas.height/2, timer);
+    canvas.tabIndex = 1;
+    
+
 
     gameEngine = new GameEngine(player);
     gameEngine.addEntity(timer);
@@ -589,13 +643,12 @@ ASSET_MANAGER.downloadAll(function() {
     
     gameEngine.addEntity(currentLevel);
     new MapEditor(currentLevel);
+	//new KeyMapping(gameEngine);
    //  gameEngine.addEntity(new BezierCurve(40,100,80,20,150,180,260,100));
     gameEngine.addEntity(gameboard);
     gameEngine.addEntity(player);
     gameEngine.init(ctx);
     gameEngine.start();
-   // gameEngine.startInput();
-
 
 
 
@@ -608,6 +661,7 @@ ASSET_MANAGER.downloadAll(function() {
         }
     }, false);
     canvas.addEventListener("mousemove", function(e){
+
 //        var v =  getMousePos( e);
 //        
 //         xx = e.offsetX/ initScale* (initWidth/ctx.canvas.width)
@@ -628,8 +682,7 @@ ASSET_MANAGER.downloadAll(function() {
     }, false);
     
 });
-
-
+});
 
 var enemy = [
     [10,10], [30,30], [50,50]
@@ -637,7 +690,7 @@ var enemy = [
 
 
 function localToWorld(value, dimension) {
-    var scale =  canvas.width/ initWidth * (initScale !== 0 ? initScale : 1) ;
+
 
     if(dimension === "x")
         return value / initScale - (initWidth/ctx.canvas.width) * 
@@ -648,3 +701,8 @@ function localToWorld(value, dimension) {
     }
 }
 
+function loadingScreen(ctx) {
+    var px = 30;
+    ctx.font =  (px*initScale) + "px Arial";
+    ctx.fillText("Loading",canvas.width/2, canvas.height/2);
+}

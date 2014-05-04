@@ -961,6 +961,7 @@ function solveQuadratic(a, b, c) {
   if (x < 0) {
     // ROOTS ARE IMAGINARY!
     console.log("roots are imaginary.... a ", a, ", b ", b, ", c ", c);
+    return null;
   } else {
     //calculate roots
     var bNeg = -b;
@@ -968,20 +969,21 @@ function solveQuadratic(a, b, c) {
     var t = Math.sqrt(x);
     var y = (bNeg + t) / (aDoubled);
     var z = (bNeg - t) / (aDoubled);
-    console.log("roots are ", y, ", ", z);
+    //console.log("roots are ", y, ", ", z);
     roots.push(y);
     roots.push(z);
   }
   return roots;
 }
 
-
-function solveSurfaceExitTime(distanceToSurfaceEnd, currentVelocity, acceleration) {
+/*
+ * Gets the amount of time taken to travel the specified distance at the current velocity and acceleration. 1 dimensional.
+ */
+function solveTimeToPoint1D(distanceToSurfaceEnd, currentVelocity, acceleration) {
   //var a = acceleration / 2;
   //var b = currentVelocity;
   //var c = distanceToSurfaceEnd;
 
-  var roots = [];
   //calculate
   var x = (currentVelocity * currentVelocity) - (2 * acceleration * distanceToSurfaceEnd);
   var y;
@@ -995,16 +997,73 @@ function solveSurfaceExitTime(distanceToSurfaceEnd, currentVelocity, acceleratio
     //calculate roots
     var velNeg = -currentVelocity;
     var t = Math.sqrt(x);
-    y = (velNeg + t) / (acceleration);
-    z = (velNeg - t) / (acceleration);
-    console.log("possible time distances are ", y, ", ", z);
-    console.log("returning closest???? ", (y > z ? z : y));
-    return (y > z ? z : y);
+    y = (velNeg + t) / (acceleration);  //root 1
+    z = (velNeg - t) / (acceleration);  //root 2
+    console.log("solveTimeToPoint1D.  acceleration ", acceleration, ", currentVelocity ", currentVelocity, ", distanceToSurfaceEnd ", distanceToSurfaceEnd);
+    console.log("   possible time distances are ", y, ", ", z);
+    var toReturn;
+    if (y < 0) {            // is y negative?
+      if (z < 0) {
+        toReturn = null;        // NO VALID ROOT, BOTH ARE BACKWARDS IN TIME
+      } else {
+        toReturn = z;           // y < 0 and z > 0 return z
+      }
+    } else if (z < 0) {     // y is positive, is z?
+      toReturn = y;             // y WASNT NEGATIVE AND z WAS SO RETURN y
+    } else if (y > z) {     // y and z are both positive, return the smaller one
+      toReturn = z;             // z occurs earlier
+    } else {
+      toReturn = y;             // y occurs earlier
+    }
+    console.log("   returning closest: ", toReturn);
+    return toReturn;                             //TODO DEBUG could be totally wrong with this, may require a different test.
   }
+}
+
+//Generally, targetPos is the point and distanceGoal is radius (we want to find the time when balls center point is exactly radius away from the targetPos)
+//Returns the nearest positive point in time when this will occur, or null if it wont occur.
+function solveTimeToDistFromPoint(curPos, curVel, accel, targetPos, distanceGoal) {
+/* (p1-(p2+vt + (1/2 * a*t^2))) = r
+   -(p2+vt + (1/2 * a*t^2)) = r - p1
+   -p2-vt - (1/2 * a*t^2) = r - p1
+   -vt - (1/2 * a*t^2) = r - p1 + p2
+   vt + (1/2 * a*t^2) = (p1 - p2) - r
+      Now since ||d|| = ||b||+||c|| when d = b+c, we know that
+
+   ||v||t + 1/2 * ||a||t^2 = ||p1-p2|| - r
+   ||v||t + 1/2 * ||a||t^2	- ||p1-p2|| + r = 0										//NEW,	roots are when this = 0. Yields solution????
+ */
+  var c = -(curPos.subtract(targetPos).length()) + distanceGoal;
+  var rootsArray = solveQuadratic(accel.length(), curVel.length(), c); //TODO DEBUG PRINT STATEMENTS AND VERIFY THIS IS CORRECT, PROBABLY WRONG. DOES THIS ACTUALLY WORK? WAS IT REALLY THIS EASYYYY????????
+
+  console.log("solveTimeToDistFromPoint.   accel.length() ", accel.length(), ", curVel.length() ", curVel.length(), ", curPos ", curPos, ", targetPos ", targetPos, ", distanceGoal ", distanceGoal);
+  console.log("   possible time distances are ", rootsArray[0], ", ", rootsArray[1]);
+
+  var toReturn;
+  if (rootsArray === null) {
+    console.log("   ROOTS WERE IMAGINARY OR SOMETHING WENT HORRIBLY WRONG");
+    return null;                                                              //TODO hopefully remove this case or put at end maybe I dunno
+  } else if (rootsArray[0] < 0) {            // is y negative?
+    if (rootsArray[1] < 0) {
+      toReturn = null;        // NO VALID ROOT, BOTH ARE BACKWARDS IN TIME
+    } else {
+      toReturn = rootsArray[1];           // y < 0 and z > 0 return z
+    }
+  } else if (rootsArray[1] < 0) {     // y is positive, is z?
+    toReturn = rootsArray[0];             // y WASNT NEGATIVE AND z WAS SO RETURN y
+  } else if (rootsArray[0] > rootsArray[1]) {     // y and z are both positive, return the smaller one
+    toReturn = rootsArray[1];             // z occurs earlier
+  } else {
+    toReturn = rootsArray[0];             // y occurs earlier
+  }
+  console.log("   returning closest: ", toReturn);
+  return toReturn;
 }
 
 
 
+
+// Checks to see if array a contains Object obj.
 function contains(a, obj) {
   var i = a.length;
   while (i--) {
@@ -1039,3 +1098,13 @@ function contains(a, obj) {
 
 var time_in_update = 0.0;
 var time_in_other = 0.0; //etc
+
+
+
+
+
+
+/** SHIT THAT PRINTS TO THE SCREEN, USE PER FRAME FOR TESTING PERHAPS.
+  this.ctx.font = "30px Arial";
+    this.ctx.fillText("Hello World",200 + player.model.pos.x - (initWidth/ctx.canvas.width) * (ctx.canvas.width/ initScale / 2),100 + player.model.pos.y - (initWidth/ctx.canvas.width) * (ctx.canvas.height/ initScale / 2) );
+*/

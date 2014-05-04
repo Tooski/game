@@ -10,8 +10,8 @@ var editMode = true;
 function TerrainSurface(point0, point1, adjacent0, adjacent1, pl) {
   if(point0 && point1) {
     Collideable.apply(this);    // SET UP TerrainSurface objects' inheritance from Collideable.
-  this.p0 = point0;                                   // p0 and p1 are either end of this TerrainSurface.
-  this.p1 = point1;
+    this.p0 = point0;                                   // p0 and p1 are either end of this TerrainSurface.
+    this.p1 = point1;
  
   
   }
@@ -123,41 +123,45 @@ function TerrainLine(point0, point1, player, adjacent0, adjacent1, normal) {
 TerrainLine.prototype = new TerrainSurface();      //Establishes this as a child of TerrainSurface.
 TerrainLine.prototype.constructor = TerrainLine;   //Establishes this as having its own constructor.
 
-
+TerrainLine.prototype.lineWidth = 5;
 
 TerrainLine.prototype.draw = function (ctx) {
 
-  ctx.beginPath();
-  ctx.lineWidth = 6;
-    ctx.lineCap = "round";
+    ctx.beginPath();
+    ctx.lineWidth = this.lineWidth;
+      ctx.lineCap = "round";
 
-  ctx.lineJoin = "round";
-  ctx.miterLimit = 3;
-  ctx.strokeStyle = "#000000";
-  ctx.moveTo(this.p0.x, this.p0.y);
-  ctx.lineTo(this.p1.x, this.p1.y);
+    ctx.lineJoin = "round";
+    ctx.miterLimit = 3;
+    ctx.strokeStyle = "#000000";
+    ctx.moveTo(this.p0.x, this.p0.y);
+    ctx.lineTo(this.p1.x, this.p1.y);
 
 
   //// CODE BELOW ONLY SHOWS IF EDIT MODE IS ENABLED FOR MAP EDITOR!
-  if (editMode) {
-    //ctx.beginPath();
-    ctx.moveTo(this.p0.x, this.p0.y);
-    ctx.arc(this.p0.x, this.p0.y, 4, 0, 2 * Math.PI, false);
-    //ctx.fillStyle = 'green';
-    //ctx.fill();
-    ctx.moveTo(this.p1.x, this.p1.y);
-    ctx.arc(this.p1.x, this.p1.y, 4, 0, 2 * Math.PI, false);
-    //ctx.fillStyle = 'red';
-    ctx.fill();
+    if (editMode) {
+        //ctx.beginPath();
+        ctx.moveTo(this.p0.x, this.p0.y);
+        ctx.arc(this.p0.x, this.p0.y, 4, 0, 2 * Math.PI, false);
+        //ctx.fillStyle = 'green';
+        //ctx.fill();
+        ctx.moveTo(this.p1.x, this.p1.y);
+        ctx.arc(this.p1.x, this.p1.y, 4, 0, 2 * Math.PI, false);
+        //ctx.fillStyle = 'red';
+        ctx.fill();
 
-    if (this.normal) {
+        if (this.normal) {
 
-      var midPoint = this.p0.add(this.p1).divf(2.0);
-      //ctx.beginPath();
-      //ctx.strokeStyle = "#001133";
-      //ctx.lineWidth = 4;
-      var pNormalPosEnd = midPoint.add(this.normal.multf(20));
+            var midPoint = this.p0.add(this.p1).divf(2.0);
+            //ctx.beginPath();
+            //ctx.strokeStyle = "#001133";
+            //ctx.lineWidth = 4;
+            var pNormalPosEnd = midPoint.add(this.normal.multf(20));
 
+//<<<<<<< HEAD
+//            this.normalPosCol.x = pNormalPosEnd.x - this.normalPosCol.w / 2;
+//            this.normalPosCol.y = pNormalPosEnd.y - this.normalPosCol.h / 2;
+//=======
       this.normalPosCol.x = pNormalPosEnd.x - this.normalPosCol.w / 2;
       this.normalPosCol.y = pNormalPosEnd.y - this.normalPosCol.h / 2;
       
@@ -181,22 +185,41 @@ TerrainLine.prototype.draw = function (ctx) {
 
       //ctx.beginPath();
 
-      //ctx.arc(this.normalPosVec.x  , this.normalPosVec.y , this.normalPosCol.w/2, 0, 2 * Math.PI, false);
-      //ctx.fillStyle = 'orange';
-      //ctx.fill();
-      //ctx.stroke();
 
-    } else {
+            this.p0edit.x = this.p0.x;
+            this.p0edit.y = this.p0.y;
 
-      ctx.stroke();
-    }
+            this.p1edit.x = this.p1.x;
+            this.p1edit.y = this.p1.y;
+
+
+
+            ctx.moveTo(midPoint.x, midPoint.y);
+            ctx.lineTo(pNormalPosEnd.x, pNormalPosEnd.y);
+            ctx.stroke();
+            ctx.moveTo(this.p0edit.x, this.p0edit.y);
+
+            ctx.arc(this.p0edit.x, this.p0edit.y, 4, 0, 2 * Math.PI, false);
+            ctx.fill();
+
+          //ctx.beginPath();
+
+          //ctx.arc(this.normalPosVec.x  , this.normalPosVec.y , this.normalPosCol.w/2, 0, 2 * Math.PI, false);
+          //ctx.fillStyle = 'orange';
+          //ctx.fill();
+          //ctx.stroke();
+
+        } else {
+
+          ctx.stroke();
+        }
     if (DEBUG_TERRAIN) {
       this.collidesWith(this.player.model.pos, DFLT_radius, ctx);
     }
   } else {
     ctx.stroke();
   }
-}
+};
 
 function findNormalByMouse(e, line) {
     var mousePos = getMousePos(e);

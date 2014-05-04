@@ -35,7 +35,6 @@ function MapEditorButton(name, x, y, w, h) {
 }
 
 
-
 MapEditorButton.onClick = function(e){};
 MapEditorButton.onDrag = function(e){};
 MapEditorButton.onRelease = function(e){};
@@ -48,9 +47,6 @@ function MapEditor(level, editMode) {
     this.createEraseButton();
     this.createLoadButton();
     this.createSaveButton();
-    
-
-    
 
     canvas.addEventListener('mousedown', function(e) {
         if(buttonListStart.x < e.offsetX && buttonListEnd.x > e.offsetX &&
@@ -173,7 +169,9 @@ MapEditor.prototype.createLoadButton = function() {
     var erase = new MapEditorButton("Load", 0, (buttonSize + 5) * 3, buttonSize, buttonSize);
     var that = this;
      erase.onRelease = function(e) {
-       that.level.loadFromFile();
+       //that.level.loadFromFile();
+           gameEngine.menu = new Load(that.level);
+
        this.isSelected = button = null;
 
     };
@@ -187,29 +185,30 @@ MapEditor.prototype.createSaveButton = function() {
     var save = new MapEditorButton("Save", 0, (buttonSize + 5) * 4, buttonSize, buttonSize);
     var that = this;
     save.onRelease = function(e) {
-        var terrain = [];
-        that.level.terrainList.forEach (function(ter) {
-            
-            if(ter.adjacent0) var adj0 = ter.adjacent0.id.toString();
-            if(ter.adjacent1) var adj1 = ter.adjacent1.id.toString();
-            if(ter.normal) var norm = ter.normal;
-            terrain.push({
-                "id" : ter.id,
-                "p0" : { "x" : ter.p0.x, "y" : ter.p0.y },
-                "p1" : { "x" : ter.p1.x, "y" : ter.p1.y },
-                "normal" : { "x" : norm.x, "y" : norm.y },
-                "adjacent0" : adj0,
-                "adjacent1" : adj1 }
-                );
-            }
-        );
-    game.settings.post({"data" : JSON.stringify(terrain)});
-
+//        var terrain = [];
+//        that.level.terrainList.forEach (function(ter) {
+//            
+//            if(ter.adjacent0) var adj0 = ter.adjacent0.id.toString();
+//            if(ter.adjacent1) var adj1 = ter.adjacent1.id.toString();
+//            if(ter.normal) var norm = ter.normal;
+//            terrain.push({
+//                "id" : ter.id,
+//                "p0" : { "x" : ter.p0.x, "y" : ter.p0.y },
+//                "p1" : { "x" : ter.p1.x, "y" : ter.p1.y },
+//                "normal" : { "x" : norm.x, "y" : norm.y },
+//                "adjacent0" : adj0,
+//                "adjacent1" : adj1 }
+//                );
+//            }
+//        );
+//    game.settings.post({"data" : JSON.stringify(terrain)});
+console.log(that.level.terrainList);
+    gameEngine.menu = new Save(that.level.terrainList);
         this.isSelected = button = null;
 
     };
 
-}
+};
 MapEditor.prototype.createEditModeButton = function() {
     var editmode = new MapEditorButton("Edit Mode", 0, 0, buttonSize, buttonSize);
     editmode.collider.onEditMode = false;

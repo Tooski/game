@@ -9,6 +9,7 @@ function MouseCollideable(type, x, y, w, h) {
     this.iw = this.w = w || 0;
     this.ih = this.h = h || 0;
     this.onEditMode = true;
+    
     mouseCollidable.push(this);
 
 }
@@ -28,9 +29,7 @@ MouseCollideable.onRelease = function(e) { };
 
 function collides(x, y) {
   var isCollision = false;
-  
-  
-  
+
   
 //      if(prevScale !== (canvas.width / initWidth)) {
 //          prevScale =(canvas.width / initWidth);
@@ -73,4 +72,5 @@ function collidedWith(value, x, y) {
             xInit >= value.x &&
             yInit  <= value.y + value.h &&
             yInit >= value.y);
+
 }

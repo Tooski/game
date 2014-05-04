@@ -58,8 +58,12 @@ function projectVec2(a, b) {
 
 
 vec2.prototype.toString = function () {
-  return "X: " + this.x + ", Y: " + this.y;
-}
+  return "X: " + this.x.toFixed(2); + ", Y: " + this.y.toFixed(2);
+};
 
+
+vec2.prototype.equals = function(otherVec) {
+    return otherVec instanceof vec2 && this.x === otherVec.x && this.y === otherVec.y;
+}
 
 //console.log("vec2(2.0, 1.0).multf(3.0), %2.2f, %2.2f", (new vec2(2.0, 1.0).multf(3.0)).x, (new vec2(2.0, 1.0).multf(3.0)).y);
