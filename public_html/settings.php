@@ -33,7 +33,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             //boolean result
             $result = mysqli_stmt_execute($stmt);
             echo $result;
-
+            break;
+        case "addLevelToStage":
+            $stmt = mysqli_prepare($db, "insert into StageLevels values (?,?,?);");
+            mysqli_stmt_bind_param($stmt, "iii", $_POST["data"]["stageID"], $_POST["data"]["levelID"], $_POST["data"]["postion"]);
+            //boolean result
+            $result = mysqli_stmt_execute($stmt);
+            echo $result;
             break;
     }
 } else if ($_SERVER['REQUEST_METHOD'] === 'GET') {
@@ -138,6 +144,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             /* fetch values */
             while ($stmt->fetch()) {
                 printf("%s %s\n", $col1, $col2);
+            }
+            break;
+        case "getStageLevels":
+            $stmt = mysqli_prepare($db, "select Levels.levelname from Levels inner join StageLevels on Levels.levelID = StageLevels.levelID where StageLevels.stageID = ?;");
+            mysqli_stmt_bind_param($stmt, "i", $_GET["data"]["stageID"]);
+            mysqli_stmt_execute($stmt);
+
+            /* bind variables to prepared statement */
+            $stmt->bind_result($col1);
+
+            /* fetch values */
+            while ($stmt->fetch()) {
+                printf("%s \n", $col1);
             }
             break;
     }

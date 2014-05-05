@@ -191,8 +191,8 @@ function Save(terrainList) {
 
         });
     };
-    
-        var topTenTime = new MenuButton("top ten time");
+
+    var topTenTime = new MenuButton("top ten time");
     topTenTime.collider.onClick = function(e) {
         game.settings.get({"command": "topTenTime",
             "data": {"levelID": "14"}},
@@ -210,11 +210,37 @@ function Save(terrainList) {
 
         });
     };
+
+    var addLevelToStage = new MenuButton("add level to stage");
+    addLevelToStage.collider.onClick = function(e) {
+        game.settings.post({"command": "addLevelToStage",
+            "data": {"stageID": "6", "levelID": "15", "postion": "2"}},
+        function(callback) {
+            if (callback === "1") {
+                console.log("score inserted");
+            } else {
+                console.log("score not inserted");
+            }
+
+        });
+    };
+
+    var getStageLevels = new MenuButton("get levels in stage");
+    getStageLevels.collider.onClick = function(e) {
+        game.settings.get({"command": "getStageLevels",
+            "data": {"stageID": "6"}},
+        function(callback) {
+            console.log(callback);
+
+        });
+    };
+
     this.buttons = new MenuButtonGroup(0, 0, this.iw, 50, 10);
     //this.buttons.addButtons([cancelButton,saveButton,newButton]);
     //this.buttons.addButtons([hasUserName, hasEmail]);
     //this.buttons.addButtons([insertScore, highScore, bestTime]);
-        this.buttons.addButtons([topTenHighScore, topTenTime]);
+    //this.buttons.addButtons([topTenHighScore, topTenTime]);
+    this.buttons.addButtons([addLevelToStage, getStageLevels]);
 
     this.buttons.setParent(this);
 }
