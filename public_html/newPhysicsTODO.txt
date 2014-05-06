@@ -6,13 +6,13 @@ add PredictedEvent heap that is reset upon input changes or collisions.
 add EndEvent heap that causes an event handling the end of something (essentially the expiration of a timer that started at a previous event).
 
 CRITICAL:
-	FIX HOW BALL IS BEING STEPPED ROFL PRETTY SURE MINE IS COMPLETELY WRONG. MAYBE TEST THOUGH BECAUSE MY APPROX MIGHT BE RIGHT BECAUSE CONSTANT ACCELS?
+	;;HALF DONE? PUT IN OWN FUNCTION;; FIX HOW BALL IS BEING STEPPED ROFL PRETTY SURE MINE IS COMPLETELY WRONG. MAYBE TEST THOUGH BECAUSE MY APPROX MIGHT BE RIGHT BECAUSE CONSTANT ACCELS?
 		The equation for the ball's position at a given time t is:
 		x(t) = 1/2 * Accelx * t^2 + Velx * t + x
 				PRETTY SURE I'M USING A BAD CALCULATION RIGHT NOW.
 		Implement getNewStateAtTime(timeDeltaFromCurPlayerModelState) which returns the above calculations into the new state. ENSURE EVERYWHERE IN THE CODE THAT STEPS TO NEW STATE USES THIS METHOD.
 		
-	ADD HACKEY MAX_MOVE_DISTANCE as fraction of radius. Use to ensure small steps between collision checks to avoid frame aliasing against line endpoints.
+	;;In skeleton;; ADD HACKEY MAX_MOVE_DISTANCE as fraction of radius. Use to ensure small steps between collision checks to avoid frame aliasing against line endpoints.
 
 	
 DEBUG:
@@ -63,8 +63,13 @@ FURTHER DOWN THE LINE:
 			
 			
 			
-			
-			
+TestPhysicsEngine!
+	copy current gameEngine
+	bypasses physEng.update() and updates physEng itself. 
+	Calls physEng.attemptStep() 
+	steps in arbitrary intervals once per press of stepKey.. 
+	if an event happens before last interval, attempStep returns that state and we just draw and wait for stepKey again.
+	inputs are allowed between time
 			
 			
 LINKAGE!
@@ -79,52 +84,51 @@ LINKAGE!
 	
 	
 	
-			BELOW SHOULD ALREADY HAVE BEEN IMPLEMENTED, KEEPING FOR ARCHIVE REFERENCE PURPOSE
-			
-BALL WITH BALL COLLISION CODE???? USES LINE BETWEEN BOTH BALLS CENTERS r1 + r2. We only care about r1 and dist from circle to point.
-DID NOT ORIGINALLY INCLUDE ACCELERATION, THIS ONE IS UNMODIFIED
+	;;BELOW SHOULD ALREADY HAVE BEEN IMPLEMENTED, KEEPING FOR ARCHIVE REFERENCE PURPOSE
+			BALL WITH BALL COLLISION CODE???? USES LINE BETWEEN BOTH BALLS CENTERS r1 + r2. We only care about r1 and dist from circle to point.
+			DID NOT ORIGINALLY INCLUDE ACCELERATION, THIS ONE IS UNMODIFIED
 
-We want to know when ||p1-p2|| is less than r, where r is the radius of the ball (AKA THE DESIRED DISTANCE FROM BALL CENTER TO THE COLLISION POINT).
+			We want to know when ||p1-p2|| is less than r, where r is the radius of the ball (AKA THE DESIRED DISTANCE FROM BALL CENTER TO THE COLLISION POINT).
 
-From ball2's perspective, ball1 is moving with velocity v1+v2. At time t, ball2 is at position p2+(v1+v2)*t.
+			From ball2's perspective, ball1 is moving with velocity v1+v2. At time t, ball2 is at position p2+(v1+v2)*t.
 
-The balls collide when:
+			The balls collide when:
 
-(p1-(p2+vt)) = r
--(p2+vt) = r - p1
--p2-vt = r - p1
--vt = r - p1+p2
-vt = (p1-p2) - r
-Now since ||a|| = ||b||+||c|| when a = b+c, we know that
+			(p1-(p2+vt)) = r
+			-(p2+vt) = r - p1
+			-p2-vt = r - p1
+			-vt = r - p1+p2
+			vt = (p1-p2) - r
+			Now since ||a|| = ||b||+||c|| when a = b+c, we know that
 
-||v||t = ||p1-p2|| - r
-t = (||p1-p2|| - r)/||v||
+			||v||t = ||p1-p2|| - r
+			t = (||p1-p2|| - r)/||v||
 
-edit to put the vectormath into pseudocode:
+			edit to put the vectormath into pseudocode:
 
-p = p1-p2
-v = v1-v2
-t = (sqrt(p.x*p.x + p.y*p.y) - r) / sqrt(v.x*v.x + v.y*v.y)
+			p = p1-p2
+			v = v1-v2
+			t = (sqrt(p.x*p.x + p.y*p.y) - r) / sqrt(v.x*v.x + v.y*v.y)
 
 
-THIS ONE MODIFIED TO INCLUDE ACCELERATION????
-We want to know when ||p1-p2|| is less than ||r1||+||r2||, where r1 is the vector with a length of the radius of the first ball in the direction towards the second ball, and r2 is vice-versa.
+			THIS ONE MODIFIED TO INCLUDE ACCELERATION????
+			We want to know when ||p1-p2|| is less than ||r1||+||r2||, where r1 is the vector with a length of the radius of the first ball in the direction towards the second ball, and r2 is vice-versa.
 
-From ball2's perspective, ball1 is moving with velocity v1+v2. At time t, ball2 is at position p2+(v1+v2)*t.
+			From ball2's perspective, ball1 is moving with velocity v1+v2. At time t, ball2 is at position p2+(v1+v2)*t.
 
-The balls collide when:
+			The balls collide when:
 
-(p1-(p2+vt + (1/2 * a*t^2))) = r
--(p2+vt + (1/2 * a*t^2)) = r - p1
--p2-vt - (1/2 * a*t^2) = r - p1
--vt - (1/2 * a*t^2) = r - p1 + p2
-vt + (1/2 * a*t^2) = (p1 - p2) - r
-Now since ||d|| = ||b||+||c|| when d = b+c, we know that
+			(p1-(p2+vt + (1/2 * a*t^2))) = r
+			-(p2+vt + (1/2 * a*t^2)) = r - p1
+			-p2-vt - (1/2 * a*t^2) = r - p1
+			-vt - (1/2 * a*t^2) = r - p1 + p2
+			vt + (1/2 * a*t^2) = (p1 - p2) - r
+			Now since ||d|| = ||b||+||c|| when d = b+c, we know that
 
-||v||t + 1/2 * ||a||t^2 = ||p1-p2|| - r
-||v||t + 1/2 * ||a||t^2	- ||p1-p2|| + r = 0										//NEW,	roots are when this = 0. Yields solution????
-//t = (||p1-p2|| - r)/||v||														//OLD
+			||v||t + 1/2 * ||a||t^2 = ||p1-p2|| - r
+			||v||t + 1/2 * ||a||t^2	- ||p1-p2|| + r = 0										//NEW,	roots are when this = 0. Yields solution????
+			//t = (||p1-p2|| - r)/||v||														//OLD
 
-//p = p1-p2
-//v = v1-v2
-//t = (sqrt(p.x*p.x + p.y*p.y) - r) / sqrt(v.x*v.x + v.y*v.y)
+			//p = p1-p2
+			//v = v1-v2
+			//t = (sqrt(p.x*p.x + p.y*p.y) - r) / sqrt(v.x*v.x + v.y*v.y)

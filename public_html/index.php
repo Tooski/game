@@ -20,7 +20,7 @@ canvas { display:block; } /* To remove the scrollbars */
     <script type="text/javascript" src="./vec2.js"></script>
     <script type="text/javascript" src="./mousecollision.js"></script>
     <script type="text/javascript" src="./menu.js"></script>
-
+    <script type="text/javascript" src="./event.js"></script>
     <script type="text/javascript" src="./collision.js"></script>
     <script type="text/javascript" src="./physics.js"></script>
     <script type="text/javascript" src="./gamepad.js"></script>
