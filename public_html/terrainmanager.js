@@ -128,7 +128,7 @@ TerrainManager.prototype.snapTo = function(terrain) {
 };
 
 function TerrainCircular(circular, closedTerrain) {
-    Entity.call();
+    //Entity.call();
     this.circular = circular;
     for (var item in this.circular){
         this.circular[item].circularID = this.id;
