@@ -4,7 +4,7 @@
 
 // Event class. All events interpreted by the physics engine must extend this, as seen below. 
 // Currently input and render events exist. Physics events will probably follow shortly (for example, when the player passes from one terrain line to another, etc).
-function Event(eventTime) {    //eventTime is the amount of time since last rendered frame that the event occurred at. THIS IS A PARENT CLASS. THERE ARE SUBCLASSES FOR THIS, THIS CLASS IS NEVER ACTUALLY INSTANTIATED.
+function Event(eventTime) {    //eventTime is the gameTime that the event occurs at.
   this.time = eventTime;
   this.handler = function (physEng) {   // NEEDS TO BE OVERRIDDEN IN CHILDREN CLASSES
     throw "this abstract function should never call.";
@@ -221,7 +221,7 @@ InputEventPause.prototype = new InputEvent();
 
 
 // Event class for the Collectible Event when the player runs into a collectible. 
-function CollectibleEvent(eventTime) {
+function CollectibleEvent(eventTime) { // eventTime is gameTime at which the event occurs.
   Event.apply(this, [eventTime])
 
   this.handler = function (physEng) {
@@ -235,7 +235,7 @@ CollectibleEvent.prototype = new Event();
 
 
 // Event class for the Goal Event. TODO IMPLEMENT, NEEDS TO STORE WHICH GOAL AND ANY OTHER RELEVENT VICTORY INFORMATION.
-function GoalEvent(eventTime) { // eventTime is deltaTime since last frame.
+function GoalEvent(eventTime) { // eventTime is gameTime at which the event occurs.
   Event.apply(this, [eventTime])
 
   this.handler = function (physEng) {
@@ -250,7 +250,7 @@ GoalEvent.prototype = new Event();
 
 
 // Event class for the render event. One of these should be the last event in the eventList array passed to update. NOT STORED IN REPLAYS.
-function RenderEvent(eventTime) { // eventTime should be deltaTime since last frame, the time the physics engine should complete up to before rendering.
+function RenderEvent(eventTime) {  // eventTime is gameTime at which the render occurs.
   Event.apply(this, [eventTime])
 
   this.handler = function (physEng) {
@@ -266,12 +266,14 @@ RenderEvent.prototype = new Event();
 
 
 
-// Predicted Events class. Not stored in replays. These are calculated by physics engine automatically.
-function PredictedEvent(predictedTime, dependencyMask) {   // may not need dependencyMask. Could be used to bitwise and shit for predictions that are only affected by specific things.
+/* Predicted Events class. Not stored in replays. These are calculated by physics engine automatically.
+ * @param predictedTime     the gametime at which the event will occur.
+ * @param dependencyMask    used to bitwise and shit for predictions that are only affected by specific things. MAY NOT USE?
+ */
+function PredictedEvent(predictedTime, dependencyMask) {  
   Event.apply(this, [eventTime])
-  this.dependencyMask = dependencyMask;       // Dependencies that can be anded bitwise with values for specific cases that should overwrite this event.
+  this.dependencyMask = dependencyMask;    
 }
-
 PredictedEvent.prototype = new Event();
 PredictedEvent.prototype.constructor = PredictedEvent;
 PredictedEvent.prototype.handler = function (physEng) {          //THIS IS THE PARENT CLASS FOR INPUT CHANGE CODE.
@@ -281,16 +283,73 @@ PredictedEvent.prototype.handler = function (physEng) {          //THIS IS THE P
 
 
 
-// Event class for the render event. One of these should be the last event in the eventList array passed to update. NOT STORED IN REPLAYS.
-function RenderEvent(eventTime) { // eventTime should be deltaTime since last frame, the time the physics engine should complete up to before rendering.
-  Event.apply(this, [eventTime])
+/* Event class for the predicted time the player will roll to the end of a line and reach its corner. 
+ * @param predictedTime     the gametime at which the event will occur.
+ * @param dependencyMask    used to bitwise and shit for predictions that are only affected by specific things. MAY NOT USE?
+ */
+function SurfaceEndEvent(predictedTime, dependencyMask) { // predictedTime should be gameTime since last frame, the time the physics engine should complete up to before rendering.
+  PredictedEvent.apply(this, [predictedTime, dependencyMask])
 
   this.handler = function (physEng) {
-    return;
+    return;                               //TODO
   }
 }
-RenderEvent.prototype = new Event();
-//RenderEvent.prototype.constructor = RenderEvent;
+SurfaceEndEvent.prototype = new PredictedEvent();
+//SurfaceEndEvent.prototype.constructor = SurfaceEndEvent;
+
+
+
+
+/* Event class for the EndCornerArcEvent predicted when a locked ball completes a corner and continues locked on the next surface.
+ * @param predictedTime     the gametime at which the event will occur.
+ * @param dependencyMask    used to bitwise and shit for predictions that are only affected by specific things. MAY NOT USE?
+ */
+function EndCornerArcEvent(nextSurface, predictedTime, dependencyMask) { // predictedTime should be gameTime since last frame, the time the physics engine should complete up to before rendering.
+  PredictedEvent.apply(this, [predictedTime, dependencyMask])
+  this.nextSurface = nextSurface;
+  this.handler = function (physEng) {
+    return;                               //TODO
+  }
+}
+EndCornerArcEvent.prototype = new PredictedEvent();
+//EndCornerArcEvent.prototype.constructor = EndCornerArcEvent;
+
+
+
+
+/* Event class for the DragTableEvent
+ * @param predictedTime     the gametime at which the event will occur.
+ * @param dependencyMask    used to bitwise and shit for predictions that are only affected by specific things. MAY NOT USE?
+ */
+function DragTableEvent(predictedTime, dependencyMask, upOrDown) { // predictedTime should be gameTime since last frame, the time the physics engine should complete up to before rendering.
+  PredictedEvent.apply(this, [predictedTime, dependencyMask])
+
+  this.handler = function (physEng) {
+    return;                               //TODO
+  }
+}
+DragTableEvent.prototype = new PredictedEvent();
+//DragTableEvent.prototype.constructor = DragTableEvent;
+
+
+
+
+///* Event class for the   PREDICTED EVENT TEMPLATE
+// * @param predictedTime     the gametime at which the event will occur.
+// * @param dependencyMask    used to bitwise and shit for predictions that are only affected by specific things. MAY NOT USE?
+// */
+//function xEvent(predictedTime, dependencyMask) { // predictedTime should be gameTime since last frame, the time the physics engine should complete up to before rendering.
+//  PredictedEvent.apply(this, [predictedTime, dependencyMask])
+
+//  this.handler = function (physEng) {
+//    return;                               //TODO
+//  }
+//}
+//xEvent.prototype = new PredictedEvent();
+////xEvent.prototype.constructor = xEvent;
+
+
+
 
 
 

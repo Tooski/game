@@ -1,7 +1,7 @@
 
 Update code flow to match new flow diagram
 
-refactor to InputEvent heap. ASSERT always empty at end of update. (No inputs should be able to be passed to update with a timestep AFTER the update time).
+refactor to InputEvent heap. if live, ASSERT always empty at end of update. (No inputs should be able to be passed to update with a timestep AFTER the update time unless replay).
 add PredictedEvent heap that is reset upon input changes or collisions.
 add EndEvent heap that causes an event handling the end of something (essentially the expiration of a timer that started at a previous event).
 
