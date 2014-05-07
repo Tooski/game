@@ -156,14 +156,14 @@ GameEngine.prototype.init = function(ctx) {
 
 GameEngine.prototype.start = function() {
   console.log("starting game");
-  var lastTime = performance.now();
-  var newTime;
+  //var lastTime = performance.now();
+  //var newTime;
     var that = this;
     (function gameLoop() {
       that.loop();
-      newTime = performance.now();
-      console.log(newTime - lastTime);
-      lastTime = newTime;
+      //newTime = performance.now();
+      //console.log(newTime - lastTime);
+      //lastTime = newTime;
         requestAnimFrame(gameLoop, that.ctx.canvas);
     })();
 }
