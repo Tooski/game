@@ -271,7 +271,7 @@ RenderEvent.prototype = new Event();
  * @param dependencyMask    used to bitwise and shit for predictions that are only affected by specific things. MAY NOT USE?
  */
 function PredictedEvent(predictedTime, dependencyMask) {  
-  Event.apply(this, [eventTime])
+  Event.apply(this, [predictedTime])
   this.dependencyMask = dependencyMask;    
 }
 PredictedEvent.prototype = new Event();

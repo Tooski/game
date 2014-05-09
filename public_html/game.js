@@ -141,6 +141,8 @@ function GameEngine(player) {
     this.lastFrameTime = performance.now();
 }
 
+
+
 GameEngine.prototype.init = function(ctx) {
     this.ctx = ctx;
 
@@ -154,6 +156,8 @@ GameEngine.prototype.init = function(ctx) {
     console.log('game initialized');
 }
 
+
+
 GameEngine.prototype.start = function() {
   console.log("starting game");
   //var lastTime = performance.now();
@@ -164,7 +168,7 @@ GameEngine.prototype.start = function() {
       //newTime = performance.now();
       //console.log(newTime - lastTime);
       //lastTime = newTime;
-        requestAnimFrame(gameLoop, that.ctx.canvas);
+      requestAnimFrame(gameLoop, that.ctx.canvas);
     })();
 }
 
@@ -582,14 +586,6 @@ GameBoard.prototype.draw = function(ctx) {
 // the "main" code begins here
 
 
-// The gravity, changes the gravity when the user jumps. 
-var gravity = 0.21875;
-
-
-
-// The groundY position. Will be replaced in the future.
-var groundY = 0;
-
 var canvas;
 var initWidth;
 var initHeight;
@@ -637,12 +633,12 @@ ASSET_MANAGER.downloadAll(function() {
 
     gameEngine = new GameEngine(player);
     gameEngine.addEntity(timer);
-    groundY = canvas.height/2;
+    //groundY = canvas.height/2;
     var gameboard = new GameBoard();
-    for (var i = 0; i < enemy.length; i++) {
+    //for (var i = 0; i < enemy.length; i++) {
 
-        gameEngine.addEntity(new Unit("assets/enemy.jpg", enemy[i][0],enemy[i][1]));
-    }
+    //    gameEngine.addEntity(new Unit("assets/enemy.jpg", enemy[i][0],enemy[i][1]));
+    //}
     //    gameEngine.addEntity(new TerrainLine(new vec2(200,200+50), new vec2(200+250,200+150), player));
     currentLevel = new TerrainManager();
     

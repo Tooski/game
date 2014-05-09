@@ -1,501 +1,60 @@
-/*
- * Physics.js
+﻿/*
+ * The physics engine. These are helper functions used to base the games physics around.
+ * May later be extended to support different player characters with different physics properties.
+ * Author Travis Drake
  */
-// DO A THING WITH A DRAG LOOKUP TABLE
-		
+var PHYS_DEBUG = true;
+
+var HALF_PI = Math.PI / 2.0;
+
+var LOCK_MIN_ANGLE = 45.0 / 180 * Math.PI;  //ANGLE OF COLLISION BELOW WHICH NOT TO BOUNCE.
+var PRINTEVERY = 240;
+var FRAMECOUNTER = 0;
+
+var printFor = 5;
+var printed = 0;
+//INPUT TYPES AND CORRESPONDING INT VALUE
+//var inLeft = 0;
+//var inRight = 1;
+//var inUp = 2;
+//var inDown = 3;
+//var inJump = 4;
+//var inBoost = 5;
+//var inLock = 6;
+
+
+//var CONST_DRAG = 0.5;
+
+
+// this should work in just about any browser, and allows us to use performance.now() successfully no matter the browser.
+// source http://www.sitepoint.com/discovering-the-high-resolution-time-api/
+window.performance = window.performance || {};
+performance.now = (function () {
+  return performance.now ||
+         performance.mozNow ||
+         performance.msNow ||
+         performance.oNow ||
+         performance.webkitNow ||
+         function () { return new Date().getTime(); };
+})();
+
 
 
 // this thing is just useful for storing potential states in an object.
-function State(time, radius, pos, vel, accel, eventList  
-		//, accelPrime, accelDPrime									// DO WE INCLUDE SUB ACCEL DERIVS?
-		) {
-	this.time = time;
-	this.radius = radius;
-	this.pos = pos;
-	this.vel = vel;
-	this.accel = accel;
-	this.eventList = eventList;
-	//this.accelPrime = accelPrime;
-	//this.accelDPrime = accelDPrime;
+function TempState(pos, vel, radius, timeDelta, eventList) {
+  this.pos = pos;
+  this.vel = vel;
+  this.radius = radius;
+  this.timeDelta = timeDelta;
+  this.eventList = eventList;
 }
-function State(time, radius, pos, vel, accel 
-		//, accelPrime, accelDPrime									// DO WE INCLUDE SUB ACCEL DERIVS?
-		) { // overloaded constructor
-	this.time = time;
-	this.radius = radius;
-	this.pos = pos;
-	this.vel = vel;
-	this.accel = accel;
-	this.eventList = [];
-	//this.accelPrime = accelPrime;
-	//this.accelDPrime = accelDPrime;
+function TempState(pos, vel, radius, timeDelta) { // overloaded constructor
+  this.pos = pos;
+  this.vel = vel;
+  this.radius = radius;
+  this.timeDelta = timeDelta;
+  this.eventList = [];
 }
-
-
-
-
-
-
-/**PhysParams object contains all the physics values. These will not change between characters. 
- * This exists because it will be used later on to implement other terrain types, whose static
- * effect values will be passed in here.
- */
-function PhysParams(gravity) {
-  this.gravity = gravity;
-}
-
-
-/**This object contains all the values that are relative to the PLAYER. 
- * IE, anything that would be specific to different selectable characters.
- */
-function ControlParams(gLRaccel, aLRaccel, aUaccel, aDaccel, gUaccel, gDaccel, gBoostLRvel, aBoostLRvel, aBoostDownVel, jumpVelNormPulse, doubleJumpVelYPulse, doubleJumpVelYMin, numAirCharges, dragBaseAmt, dragTerminalVel, dragExponent, jumpSurfaceSpeedLossRatio) {
-  this.gLRaccel = gLRaccel;                 //x acceleration exerted by holding Left or Right on the surface.
-  this.aLRaccel = aLRaccel;                 //x acceleration exerted by holding Left or Right in the air.
-  this.aUaccel = aUaccel;                   //y acceleration exerted by holding up in the air.
-  this.aDaccel = aDaccel;                   //y acceleration exerted by holding down in the air.
-  this.gUaccel = gUaccel;                   //y acceleration exerted by holding up on a surface.
-  this.gDaccel = gDaccel;                   //y acceleration exerted by holding down on a surface.
-  this.gBoostLRvel = gBoostLRvel;           //x velocity that a boost on the surface sets.
-  this.aBoostLRvel = aBoostLRvel;           //x velocity that a boost in the air sets.
-  this.aBoostDownVel = aBoostDownVel;         //-y velocity that a downboost sets in the air.
-  this.jumpVelNormPulse = jumpVelNormPulse;             //velocity that a surface jump sets from the normal.
-  this.doubleJumpVelYPulse = doubleJumpVelYPulse;       //y velocity that a double jump adds.
-  this.doubleJumpVelYMin = doubleJumpVelYMin;           //min y velocity that a double jump must result in.
-  this.jumpSurfaceSpeedLossRatio = jumpSurfaceSpeedLossRatio;   // When jumping from the ground, the characters velocity vector is decreased by this ratio before jump pulse is added. 
-
-  this.numAirCharges = numAirCharges;       //number of boost / double jumps left in the air.
-
-  this.dragBase = dragBaseAmt;              //base drag exerted
-  this.dragTerminalVel = dragTerminalVel;   //the velocity at which drag and gravity will be equal with no other factors present.
-  this.dragExponent = dragExponent;         //the exponent used to create the drag curve.
-
-}
-
-
-
-/**
- * The input state object. May replace later on with however we handle input, but this is how I'm visualizing it for now.
- */
-function InputState() {
-  this.left = false;
-  this.right = false;
-  this.up = false;
-  this.down = false;
-  this.lock = false;
-  this.additionalVecs = null;
-}
-
-function PlayerModel(controlParams, physParams, time, radius, pos, vel, accel       //NEW
-		//, accelPrime, accelDPrime
-		) {
-	State.apply(this, [time, radius, pos, vel, accel 
-			//, accelPrime, accelDPrime
-			]);
-	this.controlParameters = controlParams;
-	this.physParams = physParams;
-	//this.inputState = inputState;
-	
-	// PLAYER STATE
-	this.surfaceOn = surfaceOrNull;   // what surface is the player on?
-	this.onGround = true;     // is the player on a surface?
-	this.gLocked = false;     // is the player locked to the ground?
-	
-	if (!surfaceOrNull) {
-	this.onGround = false;
-	}
-	
-	this.gBoosting = false;   // is the player in the ground boost state?
-	this.aBoosting = false;   // is the player in the air boost state?
-	this.gJumping = false;    // is the player jumping from the ground?
-	this.aJumping = false;    // is the player air jumping?
-
-	this.airChargeCount = controlParams.numAirCharges; //number of boosts / double jumps left.
-	
-	
-	this.updateToState = function (state) { //TODO
-		if (!(state.time && state.radius && state.pos && state.vel && state.accel)) {
-			console.log("Missing fields in state.");
-			console.log("time: ", state.time);
-			console.log("radius: ", state.radius);
-			console.log("pos: ", state.pos);
-			console.log("vel: ", state.vel);
-			console.log("accel: ", state.accel);
-			console.log("time: ", state.time);
-			console.log("time: ", state.time);
-			throw "Missing fields in state.";
-		}
-		this.time = state.time;
-		this.radius = state.radius;
-		this.pos = state.pos;
-		this.vel = state.vel;
-		this.accel = state.accel;
-		this.eventList = state.eventList;
-		//this.accelPrime = state.accelPrime;
-		//this.accelDPrime = state.accelDPrime;
-	}
-	
-	this.leaveGround = function () { // TODO write code to handle leaving the ground here.
-		this.surfaceOn = null;
-		this.onGround = false;
-		this.gLocked = false;
-	}
-	
-	
-  this.updateVectors = function (inputState) {
-    //console.log(" in AccelState update function. inputState ", inputState);
-    if (!this.player.surfaceOn) {
-      //console.log("    Calling updateAir, player.surfaceOn === null.");
-      this.updateAir(inputState);
-    } else {
-      //console.log("    Calling updateGround, player.surfaceOn !== null.");
-      this.updateGround(inputState);
-    }
-  }
-
-  // UPDATES THE ACCELVEC BASED ON THE CURRENT INPUT STATE AND ITS EFFECTS ON THE GROUND.
-  this.updateGround = function (inputState) {  // DONE? TEST
-    //console.log("  in AccelState.updateGround(), setting accelVec. ");
-    var baseForceX = 0.0;
-    var baseForceY = this.physParams.gravity;
-
-    if (inputState.up) {
-      baseForceY -= this.controlParams.gUaccel;
-    } else if (inputState.down) {
-      baseForceY += this.controlParams.gDaccel;
-    }
-
-    if (inputState.left) {
-      baseForceX -= this.controlParams.gLRaccel;
-    } else if (inputState.down) {
-      baseForceX += this.controlParams.gLRaccel;
-    }
-
-
-    var baseForceVec = new vec2(baseForceX, baseForceY);
-    if (inputState.additionalVecs) {                          // if theres an additional vector of force to consider
-      for (var i = 0; i < additionalVecs.length; i++) {
-		baseForceVec = baseForceVec.add(inputState.additionalVecs[i]);
-	  }
-    }
-
-    var surface = this.surfaceOn;
-    var baseForceNormalized = baseForceVec.normalize();
-    var angleToNormal = Math.acos(surface.getNormalAt(this.pos).dot(baseForceNormalized));
-
-    if (inputState.lock) {                                                     // If we are locked to the surface we are on.
-      //console.log("   we are being locked to the surface we are on.");
-      var surfaceDir = this.vel;
-      this.accel = projectVec2(baseForceVec, surfaceDir);
-    } else if (angleToNormal > HALF_PI || angleToNormal < -HALF_PI) {          // If the baseForceVec is pushing us towards the surface we're on:
-      //console.log("   we are being pushed towards the surface we are on.");
-      // WE ASSUME PLAYER'S VELOCITY VECTOR IS ALREADY ALIGNED WITH THE SURFACE.
-      // ___+____+____+___ magnitude acceleration along a sloped surface = magnitude of force * sin(angle between force and surface normal)
-      var surfaceDir = this.vel;
-      this.accel = projectVec2(baseForceVec, surfaceDir);
-      //var angleToSurface = Math.acos(surfaceVec.normalize().dot(baseForceNormalized));
-    } else {                                                                    // we are being pushed away from teh surface we are on. Updating states to have left the ground, and then calling updateAirStates.
-      console.log("   we are being pushed AWAY from the surface we are on. Simply calling updateAirStates.");
-      this.leaveGround();
-      this.updateAirStates(inputState);
-    }
-  }
-  
-
-  // updates the accel vector based in the provided inputs based on the character being in the air state.
-  this.updateAir = function (inputState) {  // DONE? TEST
-    console.log("in AccelState.updateAir(), setting accelVec. ");
-    var baseForceX = 0.0;
-    var baseForceY = this.physParams.gravity;
-
-    if (inputState.up) {
-      //console.log("   inputState.up true");
-      baseForceY -= this.controlParams.aUaccel;
-    } else if (inputState.down) {
-      //console.log("   inputState.down true");
-      baseForceY += this.controlParams.aDaccel;
-    }
-
-    if (inputState.left) {
-      //console.log("   inputState.left true");
-      baseForceX -= this.controlParams.aLRaccel;
-    } else if (inputState.right) {
-      //console.log("   inputState.right true");
-      baseForceX += this.controlParams.aLRaccel;
-    }
-
-
-    var baseForceVec = new vec2(baseForceX, baseForceY);
-    if (inputState.additionalVecs) {                          // if theres an additional vector of force to consider
-      for (var i = 0; i < additionalVecs.length; i++) {
-		baseForceVec = baseForceVec.add(inputState.additionalVecs[i]);
-	  }
-    }
-    this.accel = baseForceVec;
-    //console.log(this.accel);
-  }
-
-}
-PlayerModel.prototype = new State();
-//PlayerModel.prototype.constructor = PlayerModel;
-
-
-
-
-
-
-
-
-
-
-
-
-function StepResult () {		//TODO shit to return after a step regarding whether step completed and what the hell happened
-
-}
-		
-
-
-
-function PhysEng () {
-	
-  eventHeap
-  predictedEventHeap
-	
-	
-  update(targetTime, newEvents) {
-    add newEvents to eventHeap
-		
-    do
-      tempState := attemptStep(goalDeltaTime);
-			
-			if tempState has new events
-				add tempStates events to eventHeap
-			
-			alter current state to reflect tempState
-			
-			pop currentEvent(s?) and run its handler.	//case testing verify from the popped events time that this is the time gamestate resulted in.
-    while currentEvent isnt a renderEvent
-		
-  }
-		
-		
-		
-  attemptStep(goalDeltaTime) {
-    tempState = stepAt(goalDeltaTime);
-    var stepCount = 1;
-    while player.velocity.multf(goalDeltaTime / stepCount) > MAX_MOVE_DISTANCE
-      stepCount *= 2;
-		
-		
-    return endstate at goalDeltaTime, OR state when new event(s) were discovered
-  }
-	
-	
-  stepAt(deltaTime) {				// the universal step-to function. returns the position if 
-    doshit
-  }
-}
-	
-	
-	
-	
-        // __________MATH SHIT_________
-
-
-
-
-//GET REFLECTION VECTOR. velVec = vector to get the reflection of. normalVec, the normal of the surface that you're reflecting off of. TODO possibly a bug if velVec isnt normalized for the function and then length remultiplied at the end? P sure this is right but if bounces are buggy start here.
-getReflectionVector = function (velVec, normalVec) {
-  //     v' = 2 * (v . n) * n - v;
-
-     // SINGLE LINE OPTIMIZED
-  return (velVec).subtract(normalVec.multf(2.0 * velVec.dot(normalVec)));
-  //return normalVec.multf(2.0 * velVec.dot(normalVec)).subtract(velVec);                OLD
-}
-
-
-
-//TEST REFLECTION
-//var toReflect = new vec2(19, 31);   //moving down and right
-//var theNormal = new vec2(-1, .5).normalize();    //normal facing straight up
-//console.log("reflection ", getReflectionVector(toReflect, theNormal));
-
-
-
-
-// finds the roots of a quadratic function ax^2 + bx + c
-function solveQuadratic(a, b, c) {
-
-  var roots = [];
-  //calculate
-  var x = (b * b) - (4 * a * c);
-
-  if (x < 0) {
-    // ROOTS ARE IMAGINARY!
-    console.log("roots are imaginary.... a ", a, ", b ", b, ", c ", c);
-    return null;
-  } else {
-    //calculate roots
-    var bNeg = -b;
-    var aDoubled = 2 * a;
-    var t = Math.sqrt(x);
-    var y = (bNeg + t) / (aDoubled);
-    var z = (bNeg - t) / (aDoubled);
-    //console.log("roots are ", y, ", ", z);
-    roots.push(y);
-    roots.push(z);
-  }
-  return roots;
-}
-
-/*
- * Gets the amount of time taken to travel the specified distance at the current velocity and acceleration. 1 dimensional.
- */
-function solveTimeToPoint1D(distanceToSurfaceEnd, currentVelocity, acceleration) {
-  //var a = acceleration / 2;
-  //var b = currentVelocity;
-  //var c = distanceToSurfaceEnd;
-
-  //calculate
-  var x = (currentVelocity * currentVelocity) - (2 * acceleration * distanceToSurfaceEnd);
-  var y;
-  var z;
-  if (x < 0) {
-    // ROOTS ARE IMAGINARY!
-    console.log("roots are imaginary, not gonna exit surface.");
-    console.log("  acceleration ", acceleration, ", currentVelocity ", currentVelocity, ", distanceToSurfaceEnd ", distanceToSurfaceEnd);
-    return null;
-  } else {
-    //calculate roots
-    var velNeg = -currentVelocity;
-    var t = Math.sqrt(x);
-    y = (velNeg + t) / (acceleration);  //root 1
-    z = (velNeg - t) / (acceleration);  //root 2
-    console.log("solveTimeToPoint1D.  acceleration ", acceleration, ", currentVelocity ", currentVelocity, ", distanceToSurfaceEnd ", distanceToSurfaceEnd);
-    console.log("   possible time distances are ", y, ", ", z);
-
-	return closestPositive(y, z);
-  }
-}
-
-//Generally, targetPos is the point and distanceGoal is radius (we want to find the time when balls center point is exactly radius away from the targetPos)
-//Returns the nearest positive point in time when this will occur, or null if it wont occur.
-function solveTimeToDistFromPoint(curPos, curVel, accel, targetPos, distanceGoal) {
-/* (p1-(p2+vt + (1/2 * a*t^2))) = r
-   -(p2+vt + (1/2 * a*t^2)) = r - p1
-   -p2-vt - (1/2 * a*t^2) = r - p1
-   -vt - (1/2 * a*t^2) = r - p1 + p2
-   vt + (1/2 * a*t^2) = (p1 - p2) - r
-      Now since ||d|| = ||b||+||c|| when d = b+c, we know that
-
-   ||v||t + 1/2 * ||a||t^2 = ||p1-p2|| - r
-   ||v||t + 1/2 * ||a||t^2	- ||p1-p2|| + r = 0										//NEW,	roots are when this = 0. Yields solution????
- */
-  var c = -(curPos.subtract(targetPos).length()) + distanceGoal;
-  var rootsArray = solveQuadratic(accel.length(), curVel.length(), c); //TODO DEBUG PRINT STATEMENTS AND VERIFY THIS IS CORRECT, PROBABLY WRONG. DOES THIS ACTUALLY WORK? WAS IT REALLY THIS EASYYYY????????
-
-  console.log("solveTimeToDistFromPoint.   accel.length() ", accel.length(), ", curVel.length() ", curVel.length(), ", curPos ", curPos, ", targetPos ", targetPos, ", distanceGoal ", distanceGoal);
-  console.log("   possible time distances are ", rootsArray[0], ", ", rootsArray[1]);
-
-return closestPositive(rootsArray[0], rootsArray[1]);
-}
-
-
-
-
- 
-/*
- * finds the time at which the states velocity will reach velTarget.
- */
-getTimeToVelocity(state, velTarget) {
-	if (!(state.time && state.vel && state.accel && velTarget)) {
-		console.log("Missing fields in state.");
-		console.log("time: ", state.time);
-		console.log("vel: ", state.vel);
-		console.log("accel: ", state.accel);
-		console.log("velTarget: ", velTarget);
-		throw "Missing fields in state.";
-	}
-	var ax = state.accel.x;
-	var ay = state.accel.y;
-	var vx = state.vel.x;
-	var vy = state.vel.y;
-	var s = velTarget;
-	
-	var postRad = 2 * ax * vx + 2 * ay * vy;
-	
-	var radical = sqrt(postRad * postRad - 4 * (ax * ax + ay * ay) * ((-(s * s)) + vx * vx + vy * vy));
-	var denominator = 2 * (ax * ax + ay * ay);
-	
-	var t0 = (-radical - postRad) / denominator; //root 0
-	var t1 = (radical - postRad) / denominator;  //root 1
-	
-	return closestPositive(t0, t1) + state.time;				// null if no valid roots.
-}
-
-
-
-closestPositive = function (value1, value2) {
-	    var toReturn;
-    if (value1 < 0) {            // is value1 negative?
-      if (value2 < 0) {
-        toReturn = null;        // NO VALID ROOT, BOTH ARE BACKWARDS IN TIME
-      } else {
-        toReturn = value2;           // value1 < 0 and value2 > 0 return value2
-      }
-    } else if (value2 < 0) {     // value1 is positive, is value2?
-      toReturn = value1;             // value1 WASNT NEGATIVE AND value2 WAS SO RETURN value1
-    } else if (value1 < value2) {     // value1 and value2 are both positive, return the smaller one
-      toReturn = value2;             // value2 occurs earlier
-    } else {
-      toReturn = value1;             // value1 occurs earlier
-    }
-    console.log("   returning closest: ", toReturn);
-    return toReturn;                          //TODO DEBUG could be totally wrong with this, may require a different test.
-}
-
-
-
-
-
-               // ARRAY SHIT
-
-
-// Checks to see if array a contains Object obj.
-function contains(a, obj) {
-  var i = a.length;
-  while (i--) {
-    if (a[i] === obj) {
-      return i;
-    }
-  }
-  return null;
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-/*
-OLD.  __  OLD.  __  OLD.  __  OLD.  __  OLD.  __  OLD.  __  OLD.  __  OLD.  __  OLD.  __  OLD.  __  OLD.  __  OLD.  __  OLD.  __  OLD.  __  OLD.  __  OLD.  __  OLD.  __  OLD.  __  OLD.  __  OLD.  __  OLD.  __  OLD.  __  OLD.  __  OLD.  __  OLD.  __  OLD.  __  OLD.  __  OLD.  __  OLD.  __  OLD.  __  
-*/
-
-
 
 
 
@@ -534,6 +93,186 @@ var DFLT_jumpSurfaceSpeedLossRatio = 0.7;   // When jumping from the ground, the
 var DFLT_bounceSpeedLossRatio = 0.9;
 
 
+
+
+
+// PhysParams object contains all the physics values. These will not change between characters. 
+// This exists because it will be used later on to implement other terrain types, whose static
+// effect values will be passed in here.
+function PhysParams(gravity) {
+  this.gravity = gravity;
+}
+
+
+
+
+// This object contains all the values that are relative to the PLAYER. IE, anything that would be specific to different selectable characters.
+function ControlParams(gLRaccel, aLRaccel, aUaccel, aDaccel, gUaccel, gDaccel, gBoostLRvel, aBoostLRvel, aBoostDownVel, jumpVelNormPulse, doubleJumpVelYPulse, doubleJumpVelYMin, numAirCharges, dragBaseAmt, dragTerminalVel, dragExponent, jumpSurfaceSpeedLossRatio) {
+  this.gLRaccel = gLRaccel;                 //x acceleration exerted by holding Left or Right on the surface.
+  this.aLRaccel = aLRaccel;                 //x acceleration exerted by holding Left or Right in the air.
+  this.aUaccel = aUaccel;                   //y acceleration exerted by holding up in the air.
+  this.aDaccel = aDaccel;                   //y acceleration exerted by holding down in the air.
+  this.gUaccel = gUaccel;                   //y acceleration exerted by holding up on a surface.
+  this.gDaccel = gDaccel;                   //y acceleration exerted by holding down on a surface.
+  this.gBoostLRvel = gBoostLRvel;           //x velocity that a boost on the surface sets.
+  this.aBoostLRvel = aBoostLRvel;           //x velocity that a boost in the air sets.
+  this.aBoostDownVel = aBoostDownVel;         //-y velocity that a downboost sets in the air.
+  this.jumpVelNormPulse = jumpVelNormPulse;             //velocity that a surface jump sets from the normal.
+  this.doubleJumpVelYPulse = doubleJumpVelYPulse;       //y velocity that a double jump adds.
+  this.doubleJumpVelYMin = doubleJumpVelYMin;           //min y velocity that a double jump must result in.
+  this.jumpSurfaceSpeedLossRatio = jumpSurfaceSpeedLossRatio;   // When jumping from the ground, the characters velocity vector is decreased by this ratio before jump pulse is added. 
+
+  this.numAirCharges = numAirCharges;       //number of boost / double jumps left in the air.
+
+  this.dragBase = dragBaseAmt;              //base drag exerted
+  this.dragTerminalVel = dragTerminalVel;   //the velocity at which drag and gravity will be equal with no other factors present.
+  this.dragExponent = dragExponent;         //the exponent used to create the drag curve.
+
+}
+
+
+
+function PlayerModel(controlParams, ballRadius, startPoint, surfaceOrNull) {     // THIS IS THE PLAYER PHYSICS MODEL, EXTENDABLE FOR DIFFERENT CHARACTER TYPES.
+  // Player properties.
+  this.radius = ballRadius;          //float radius
+  this.controlParameters = controlParams;
+  // Movement values.
+  this.pos = startPoint;             //vec2 for position!
+  this.vel = new vec2(0.0, 0.0);     //vec2 for velocity!
+
+  this.timeDelta = 0.0;
+
+  // PLAYER STATE
+  this.surfaceOn = surfaceOrNull;   // what surface is the player on?
+  this.onGround = true;     // is the player on a surface?
+  this.gLocked = false;     // is the player locked to the ground?
+  if (surfaceOrNull === null) {
+    this.onGround = false;
+  }
+  this.gBoosting = false;   // is the player in the ground boost state?
+  this.aBoosting = false;   // is the player in the air boost state?
+  this.gJumping = false;    // is the player jumping from the ground?
+  this.aJumping = false;    // is the player air jumping?
+
+  this.airChargeCount = controlParams.numAirCharges; //number of boosts / double jumps left.
+}
+PlayerModel.prototype.leaveGround = function () { // TODO write code to handle leaving the ground here.
+  this.surfaceOn = null;
+  this.onGround = false;
+  this.gLocked = false;
+}
+
+
+
+// The acceleration vector state. Stores the component vectors and resulting vector in order to efficiently return the current acceleration in the air or on the surface without uneccessary calculations.
+function AccelState(physParams, controlParams, playerModel) {  // DO WE NEED A REFERENCE TO PhysEng?
+  this.accelVec = new vec2(0.0, 0.0);
+  //this.physEng = physEng;
+  this.player = playerModel;
+  this.controlParams = controlParams;
+  this.physParams = physParams;
+
+  this.update = function (inputState) {
+    //console.log(" in AccelState update function. inputState ", inputState);
+    if (this.player.surfaceOn === null) {
+      //console.log("    Calling updateAir, player.surfaceOn === null.");
+      this.updateAir(inputState);
+    } else {
+      //console.log("    Calling updateGround, player.surfaceOn !== null.");
+      this.updateGround;
+    }
+  }
+
+  // UPDATES THE ACCELVEC BASED ON THE CURRENT INPUT STATE AND ITS EFFECTS ON THE GROUND.
+  this.updateGround = function (inputState) {  // DONE? TEST
+    //console.log("  in AccelState.updateGround(), setting accelVec. ");
+    var baseForceX = 0.0;
+    var baseForceY = this.physParams.gravity;
+
+    if (inputState.up) {
+      baseForceY -= this.controlParams.gUaccel;
+    } else if (inputState.down) {
+      baseForceY += this.controlParams.gDaccel;
+    }
+
+    if (inputState.left) {
+      baseForceX -= this.controlParams.gLRaccel;
+    } else if (inputState.down) {
+      baseForceX += this.controlParams.gLRaccel;
+    }
+
+
+    var baseForceVec = new vec2(baseForceX, baseForceY);
+    if (inputState.additionalVec !== null) {                          // if theres an additional vector of force to consider
+      baseForceVec = baseForceVec.add(inputState.additionalVec);
+    }
+
+    var surface = this.player.surfaceOn;
+    var baseForceNormalized = baseForceVec.normalize();
+    var angleToNormal = Math.acos(surface.getNormalAt(this.player.pos).dot(baseForceNormalized));
+
+    if (inputState.lock) {                                                     // If we are locked to the surface we are on.
+      //console.log("   we are being locked to the surface we are on.");
+      var surfaceDir = this.player.vel;
+      this.accelVec = projectVec2(baseForceVec, surfaceDir);
+    } else if (angleToNormal > HALF_PI || angleToNormal < -HALF_PI) {          // If the baseForceVec is pushing us towards the surface we're on:
+      //console.log("   we are being pushed towards the surface we are on.");
+      // WE ASSUME PLAYER'S VELOCITY VECTOR IS ALREADY ALIGNED WITH THE SURFACE.
+      // ___+____+____+___ magnitude acceleration along a sloped surface = magnitude of force * sin(angle between force and surface normal)
+      var surfaceDir = this.player.vel;
+      this.accelVec = projectVec2(baseForceVec, surfaceDir);
+      //var angleToSurface = Math.acos(surfaceVec.normalize().dot(baseForceNormalized));
+    } else {                                                                    // we are being pushed away from teh surface we are on. Updating states to have left the ground, and then calling updateAirStates.
+      console.log("   we are being pushed AWAY from the surface we are on. Simply calling updateAirStates.");
+      this.player.leaveGround();
+      this.updateAirStates(inputState);
+    }
+  }
+  
+
+  // updates the accel vector based in the provided inputs based on the character being in the air state.
+  this.updateAir = function (inputState) {  // DONE? TEST
+    //console.log("in AccelState.updateAir(), setting accelVec. ");
+    var baseForceX = 0.0;
+    var baseForceY = this.physParams.gravity;
+
+    if (inputState.up) {
+      //console.log("   inputState.up true");
+      baseForceY -= this.controlParams.aUaccel;
+    } else if (inputState.down) {
+      //console.log("   inputState.down true");
+      baseForceY += this.controlParams.aDaccel;
+    }
+
+    if (inputState.left) {
+      //console.log("   inputState.left true");
+      baseForceX -= this.controlParams.aLRaccel;
+    } else if (inputState.right) {
+      //console.log("   inputState.right true");
+      baseForceX += this.controlParams.aLRaccel;
+    }
+
+
+    var baseForceVec = new vec2(baseForceX, baseForceY);
+    if (inputState.additionalVec !== null) {                          // if theres an additional vector of force to consider
+      baseForceVec = baseForceVec.add(inputState.additionalVec);
+    }
+    this.accelVec = baseForceVec;
+    //console.log(this.accelVec);
+  }
+}
+
+
+
+// The input state object. May replace later on with however we handle input, but this is how I'm visualizing it for now.
+function InputState() {
+  this.left = false;
+  this.right = false;
+  this.up = false;
+  this.down = false;
+  this.lock = false;
+  this.additionalVec = null;
+}
 
 
 
@@ -641,7 +380,7 @@ PhysEng.prototype.stepToEndOfEvent = function (state, event, doNotCheck) {
       for (var k = 0; k < newTerrainEvents.length; k++) {
         doNotCheck.push(newTerrainEvents[k].id);
       }
-      console.log("stepstate: ", stepState);
+      //console.log("stepstate: ", stepState);
       this.handleTerrainAirCollision(stepState, newTerrainEvents); // TODO REFACTOR TO PASS COLLISION OBJECT WITH ADDITIONAL DATA. SEE handleTerrainAirCollision COMMENTS FOR MORE INFO.
     }
     stepState = new TempState(this.player.pos, this.player.vel, this.player.radius, this.player.timeDelta);
@@ -773,7 +512,7 @@ PhysEng.prototype.handleTerrainAirCollision = function (ballState, stuffWeCollid
   var angleToNormal;
   var collisionVec;
   //if (stuffWeCollidedWith.length > 1) {
-  console.log("radius = ", ballState.radius);
+  //console.log("radius = ", ballState.radius);
   collisionVec = stuffWeCollidedWith[0].getNormalAt(ballState.pos, ballState.radius);
   //console.log(collisionVec);
     for (var i = 1; i < stuffWeCollidedWith.length; i++) {
@@ -782,7 +521,7 @@ PhysEng.prototype.handleTerrainAirCollision = function (ballState, stuffWeCollid
     }
     angleToNormal = Math.acos(collisionVec.normalize().dot(normalBallVel));
     var collisionVecNorm = collisionVec.normalize();
-    console.log("collisionVecNorm = ", collisionVecNorm);
+    //console.log("collisionVecNorm = ", collisionVecNorm);
   //} else {
     //angleToNormal = Math.acos(collisionVec.getNormalAt(ballState.pos).dot(normalBallVel));
   //}
@@ -934,6 +673,171 @@ PhysEng.prototype.printStartState = function () {
 
 
 
+
+        // __________MATH SHIT_________
+
+
+
+
+//GET REFLECTION VECTOR. velVec = vector to get the reflection of. normalVec, the normal of the surface that you're reflecting off of. TODO possibly a bug if velVec isnt normalized for the function and then length remultiplied at the end? P sure this is right but if bounces are buggy start here.
+getReflectionVector = function (velVec, normalVec) {
+  // Basically if you have a vector v, which represents the object's velocity, and a normalized normal vector n, 
+  // which is perpendicular to the surface with which the object collides, then the new velocity v' is given by the equation
+  //     v' = 2 * (v . n) * n - v;
+  //     v' = ((2 * (v . n)) * n) - v;
+  // Where '*' is the scalar multiplication operator, '.' is the dot product of two vectors, and '-' is the subtraction operator 
+  // for two vectors. v is reflected off of the surface, and gives a reflection vector v' which is used as the new velocity of the object. 
+
+      //STEP BY STEP
+  //var vdnx2 = 2 * velVec.dot(normalVec);          //   v' = (vdnx2 * n) - v;
+  //var normMult = normalVec.multf(vdnx2);          //   v' = normMult - v;
+  //return velVec.subtract(normMult);
+
+     // SINGLE LINE OPTIMIZED
+  return (velVec).subtract(normalVec.multf(2.0 * velVec.dot(normalVec)));
+  //return normalVec.multf(2.0 * velVec.dot(normalVec)).subtract(velVec);                OLD
+}
+
+
+
+//TEST REFLECTION
+//var toReflect = new vec2(19, 31);   //moving down and right
+//var theNormal = new vec2(-1, .5).normalize();    //normal facing straight up
+//console.log(getReflectionVector(toReflect, theNormal));
+
+
+
+
+// the name of our class its public
+function solveQuadratic(a, b, c) {
+
+  var roots = [];
+  //calculate
+  var x = (b * b) - (4 * a * c);
+
+  if (x < 0) {
+    // ROOTS ARE IMAGINARY!
+    console.log("roots are imaginary.... a ", a, ", b ", b, ", c ", c);
+    return null;
+  } else {
+    //calculate roots
+    var bNeg = -b;
+    var aDoubled = 2 * a;
+    var t = Math.sqrt(x);
+    var y = (bNeg + t) / (aDoubled);
+    var z = (bNeg - t) / (aDoubled);
+    //console.log("roots are ", y, ", ", z);
+    roots.push(y);
+    roots.push(z);
+  }
+  return roots;
+}
+
+/*
+ * Gets the amount of time taken to travel the specified distance at the current velocity and acceleration. 1 dimensional.
+ */
+function solveTimeToPoint1D(distanceToSurfaceEnd, currentVelocity, acceleration) {
+  //var a = acceleration / 2;
+  //var b = currentVelocity;
+  //var c = distanceToSurfaceEnd;
+
+  //calculate
+  var x = (currentVelocity * currentVelocity) - (2 * acceleration * distanceToSurfaceEnd);
+  var y;
+  var z;
+  if (x < 0) {
+    // ROOTS ARE IMAGINARY!
+    console.log("roots are imaginary, not gonna exit surface.");
+    console.log("  acceleration ", acceleration, ", currentVelocity ", currentVelocity, ", distanceToSurfaceEnd ", distanceToSurfaceEnd);
+    return null;
+  } else {
+    //calculate roots
+    var velNeg = -currentVelocity;
+    var t = Math.sqrt(x);
+    y = (velNeg + t) / (acceleration);  //root 1
+    z = (velNeg - t) / (acceleration);  //root 2
+    console.log("solveTimeToPoint1D.  acceleration ", acceleration, ", currentVelocity ", currentVelocity, ", distanceToSurfaceEnd ", distanceToSurfaceEnd);
+    console.log("   possible time distances are ", y, ", ", z);
+    var toReturn;
+    if (y < 0) {            // is y negative?
+      if (z < 0) {
+        toReturn = null;        // NO VALID ROOT, BOTH ARE BACKWARDS IN TIME
+      } else {
+        toReturn = z;           // y < 0 and z > 0 return z
+      }
+    } else if (z < 0) {     // y is positive, is z?
+      toReturn = y;             // y WASNT NEGATIVE AND z WAS SO RETURN y
+    } else if (y > z) {     // y and z are both positive, return the smaller one
+      toReturn = z;             // z occurs earlier
+    } else {
+      toReturn = y;             // y occurs earlier
+    }
+    console.log("   returning closest: ", toReturn);
+    return toReturn;                             //TODO DEBUG could be totally wrong with this, may require a different test.
+  }
+}
+
+//Generally, targetPos is the point and distanceGoal is radius (we want to find the time when balls center point is exactly radius away from the targetPos)
+//Returns the nearest positive point in time when this will occur, or null if it wont occur.
+function solveTimeToDistFromPoint(curPos, curVel, accel, targetPos, distanceGoal) {
+/* (p1-(p2+vt + (1/2 * a*t^2))) = r
+   -(p2+vt + (1/2 * a*t^2)) = r - p1
+   -p2-vt - (1/2 * a*t^2) = r - p1
+   -vt - (1/2 * a*t^2) = r - p1 + p2
+   vt + (1/2 * a*t^2) = (p1 - p2) - r
+      Now since ||d|| = ||b||+||c|| when d = b+c, we know that
+
+   ||v||t + 1/2 * ||a||t^2 = ||p1-p2|| - r
+   ||v||t + 1/2 * ||a||t^2	- ||p1-p2|| + r = 0										//NEW,	roots are when this = 0. Yields solution????
+ */
+  var c = -(curPos.subtract(targetPos).length()) + distanceGoal;
+  var rootsArray = solveQuadratic(accel.length(), curVel.length(), c); //TODO DEBUG PRINT STATEMENTS AND VERIFY THIS IS CORRECT, PROBABLY WRONG. DOES THIS ACTUALLY WORK? WAS IT REALLY THIS EASYYYY????????
+
+  console.log("solveTimeToDistFromPoint.   accel.length() ", accel.length(), ", curVel.length() ", curVel.length(), ", curPos ", curPos, ", targetPos ", targetPos, ", distanceGoal ", distanceGoal);
+  console.log("   possible time distances are ", rootsArray[0], ", ", rootsArray[1]);
+
+  var toReturn;
+  if (rootsArray === null) {
+    console.log("   ROOTS WERE IMAGINARY OR SOMETHING WENT HORRIBLY WRONG");
+    return null;                                                              //TODO hopefully remove this case or put at end maybe I dunno
+  } else if (rootsArray[0] < 0) {            // is y negative?
+    if (rootsArray[1] < 0) {
+      toReturn = null;        // NO VALID ROOT, BOTH ARE BACKWARDS IN TIME
+    } else {
+      toReturn = rootsArray[1];           // y < 0 and z > 0 return z
+    }
+  } else if (rootsArray[1] < 0) {     // y is positive, is z?
+    toReturn = rootsArray[0];             // y WASNT NEGATIVE AND z WAS SO RETURN y
+  } else if (rootsArray[0] > rootsArray[1]) {     // y and z are both positive, return the smaller one
+    toReturn = rootsArray[1];             // z occurs earlier
+  } else {
+    toReturn = rootsArray[0];             // y occurs earlier
+  }
+  console.log("   returning closest: ", toReturn);
+  return toReturn;
+}
+
+
+
+
+                // ARRAY SHIT
+
+
+// Checks to see if array a contains Object obj.
+function contains(a, obj) {
+  var i = a.length;
+  while (i--) {
+    if (a[i] === obj) {
+      return i;
+    }
+  }
+  return null;
+}
+
+
+
+
+
 /* EXAMPLE INHERITANCE
 function CHILD(param1, param2, ....etc) {
   PARENT.apply(this, [PARENTparam1, PARENTparam2, ....etc])
@@ -977,42 +881,7 @@ var time_in_other = 0.0; //etc
 
 
 
-/* SHIT THAT PRINTS TO THE SCREEN, USE PER FRAME FOR TESTING PERHAPS.
+/** SHIT THAT PRINTS TO THE SCREEN, USE PER FRAME FOR TESTING PERHAPS.
   this.ctx.font = "30px Arial";
     this.ctx.fillText("Hello World",200 + player.model.pos.x - (initWidth/ctx.canvas.width) * (ctx.canvas.width/ initScale / 2),100 + player.model.pos.y - (initWidth/ctx.canvas.width) * (ctx.canvas.height/ initScale / 2) );
 */
-
-
-/*
-TO TOP _____ TO TOP _____ TO TOP _____ TO TOP _____ TO TOP _____ TO TOP _____ TO TOP _____ TO TOP _____ TO TOP _____ TO TOP _____ TO TOP _____ TO TOP _____ TO TOP _____ TO TOP _____ TO TOP _____ TO TOP _____ TO TOP _____ TO TOP _____ 
-*/
-/*
- * The physics engine. These are helper functions used to base the games physics around.
- * May later be extended to support different player characters with different physics properties.
- * Author Travis Drake
- */
-var PHYS_DEBUG = true;
-
-var HALF_PI = Math.PI / 2.0;
-
-var LOCK_MIN_ANGLE = 45.0 / 180 * Math.PI;  //ANGLE OF COLLISION BELOW WHICH NOT TO BOUNCE.
-var PRINTEVERY = 240;
-var FRAMECOUNTER = 0;
-
-var printFor = 5;
-var printed = 0;
-
-//var CONST_DRAG = 0.5;
-
-
-// this should work in just about any browser, and allows us to use performance.now() successfully no matter the browser.
-// source http://www.sitepoint.com/discovering-the-high-resolution-time-api/
-window.performance = window.performance || {};
-performance.now = (function () {
-  return performance.now ||
-         performance.mozNow ||
-         performance.msNow ||
-         performance.oNow ||
-         performance.webkitNow ||
-         function () { return new Date().getTime(); };
-})();

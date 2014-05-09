@@ -198,8 +198,19 @@ MinHeap.prototype.remove = function() {
  * @returns the minimum value within the heap.
  * @function
  */
-MinHeap.prototype.getMin = function() {
-	return this.heap[0];
+MinHeap.prototype.getMin = function () {
+  return this.heap[0];
+};
+
+
+/**
+ * Returns the minimum value contained within the heap.  This will
+ * not remove the value from the heap.
+ * @returns the minimum value within the heap.
+ * @function
+ */
+MinHeap.prototype.peek = function () {
+  return this.heap[0];
 };
 
 /**
