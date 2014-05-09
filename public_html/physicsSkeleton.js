@@ -1,11 +1,13 @@
-Physics.js
+/*
+ * Physics.js
+ */
 // DO A THING WITH A DRAG LOOKUP TABLE
 		
 
 
 // this thing is just useful for storing potential states in an object.
-function State(time, radius, pos, vel, accel, eventList,  
-		//accelPrime, accelDPrime									// DO WE INCLUDE SUB ACCEL DERIVS?
+function State(time, radius, pos, vel, accel, eventList  
+		//, accelPrime, accelDPrime									// DO WE INCLUDE SUB ACCEL DERIVS?
 		) {
 	this.time = time;
 	this.radius = radius;
@@ -16,8 +18,8 @@ function State(time, radius, pos, vel, accel, eventList,
 	//this.accelPrime = accelPrime;
 	//this.accelDPrime = accelDPrime;
 }
-function State(time, radius, pos, vel, accel, 
-		//accelPrime, accelDPrime									// DO WE INCLUDE SUB ACCEL DERIVS?
+function State(time, radius, pos, vel, accel 
+		//, accelPrime, accelDPrime									// DO WE INCLUDE SUB ACCEL DERIVS?
 		) { // overloaded constructor
 	this.time = time;
 	this.radius = radius;
@@ -34,15 +36,18 @@ function State(time, radius, pos, vel, accel,
 
 
 
-// PhysParams object contains all the physics values. These will not change between characters. 
-// This exists because it will be used later on to implement other terrain types, whose static
-// effect values will be passed in here.
+/**PhysParams object contains all the physics values. These will not change between characters. 
+ * This exists because it will be used later on to implement other terrain types, whose static
+ * effect values will be passed in here.
+ */
 function PhysParams(gravity) {
   this.gravity = gravity;
 }
 
 
-// This object contains all the values that are relative to the PLAYER. IE, anything that would be specific to different selectable characters.
+/**This object contains all the values that are relative to the PLAYER. 
+ * IE, anything that would be specific to different selectable characters.
+ */
 function ControlParams(gLRaccel, aLRaccel, aUaccel, aDaccel, gUaccel, gDaccel, gBoostLRvel, aBoostLRvel, aBoostDownVel, jumpVelNormPulse, doubleJumpVelYPulse, doubleJumpVelYMin, numAirCharges, dragBaseAmt, dragTerminalVel, dragExponent, jumpSurfaceSpeedLossRatio) {
   this.gLRaccel = gLRaccel;                 //x acceleration exerted by holding Left or Right on the surface.
   this.aLRaccel = aLRaccel;                 //x acceleration exerted by holding Left or Right in the air.
@@ -68,7 +73,9 @@ function ControlParams(gLRaccel, aLRaccel, aUaccel, aDaccel, gUaccel, gDaccel, g
 
 
 
-// The input state object. May replace later on with however we handle input, but this is how I'm visualizing it for now.
+/**
+ * The input state object. May replace later on with however we handle input, but this is how I'm visualizing it for now.
+ */
 function InputState() {
   this.left = false;
   this.right = false;
@@ -78,11 +85,11 @@ function InputState() {
   this.additionalVecs = null;
 }
 
-function PlayerModel(controlParams, physParams, time, radius, pos, vel, accel,       //NEW
-		//accelPrime, accelDPrime
+function PlayerModel(controlParams, physParams, time, radius, pos, vel, accel       //NEW
+		//, accelPrime, accelDPrime
 		) {
-	State.apply(this, [time, radius, pos, vel, accel, 
-			//accelPrime, accelDPrime
+	State.apply(this, [time, radius, pos, vel, accel 
+			//, accelPrime, accelDPrime
 			]);
 	this.controlParameters = controlParams;
 	this.physParams = physParams;
@@ -242,24 +249,24 @@ PlayerModel.prototype = new State();
 
 
 
-function StepResult () {		//TODO
+function StepResult () {		//TODO shit to return after a step regarding whether step completed and what the hell happened
 
 }
 		
 
 
 
-PhysEng
+function PhysEng () {
 	
-	eventHeap
-	predictedEventHeap
+  eventHeap
+  predictedEventHeap
 	
 	
-	update(targetTime, newEvents) {
-		add newEvents to eventHeap
+  update(targetTime, newEvents) {
+    add newEvents to eventHeap
 		
-		do
-			tempState := attemptStep(goalDeltaTime);
+    do
+      tempState := attemptStep(goalDeltaTime);
 			
 			if tempState has new events
 				add tempStates events to eventHeap
@@ -267,27 +274,27 @@ PhysEng
 			alter current state to reflect tempState
 			
 			pop currentEvent(s?) and run its handler.	//case testing verify from the popped events time that this is the time gamestate resulted in.
-		while currentEvent isnt a renderEvent
+    while currentEvent isnt a renderEvent
 		
-	}
-		
-		
-		
-	attemptStep(goalDeltaTime) {
-		tempState = stepAt(goalDeltaTime);
-		var stepCount = 1;
-		while player.velocity.multf(goalDeltaTime / stepCount) > MAX_MOVE_DISTANCE
-			stepCount *= 2;
+  }
 		
 		
-		return endstate at goalDeltaTime, OR state when new event(s) were discovered
-	}
+		
+  attemptStep(goalDeltaTime) {
+    tempState = stepAt(goalDeltaTime);
+    var stepCount = 1;
+    while player.velocity.multf(goalDeltaTime / stepCount) > MAX_MOVE_DISTANCE
+      stepCount *= 2;
+		
+		
+    return endstate at goalDeltaTime, OR state when new event(s) were discovered
+  }
 	
 	
-	stepAt(deltaTime) {				// the universal step-to function. returns the position if 
-		doshit
-	}
-	
+  stepAt(deltaTime) {				// the universal step-to function. returns the position if 
+    doshit
+  }
+}
 	
 	
 	
@@ -311,7 +318,7 @@ getReflectionVector = function (velVec, normalVec) {
 //TEST REFLECTION
 //var toReflect = new vec2(19, 31);   //moving down and right
 //var theNormal = new vec2(-1, .5).normalize();    //normal facing straight up
-//console.log(getReflectionVector(toReflect, theNormal));
+//console.log("reflection ", getReflectionVector(toReflect, theNormal));
 
 
 
@@ -484,9 +491,9 @@ function contains(a, obj) {
 
 
 
-
+/*
 OLD.  __  OLD.  __  OLD.  __  OLD.  __  OLD.  __  OLD.  __  OLD.  __  OLD.  __  OLD.  __  OLD.  __  OLD.  __  OLD.  __  OLD.  __  OLD.  __  OLD.  __  OLD.  __  OLD.  __  OLD.  __  OLD.  __  OLD.  __  OLD.  __  OLD.  __  OLD.  __  OLD.  __  OLD.  __  OLD.  __  OLD.  __  OLD.  __  OLD.  __  OLD.  __  
-
+*/
 
 
 
@@ -976,9 +983,9 @@ var time_in_other = 0.0; //etc
 */
 
 
-
+/*
 TO TOP _____ TO TOP _____ TO TOP _____ TO TOP _____ TO TOP _____ TO TOP _____ TO TOP _____ TO TOP _____ TO TOP _____ TO TOP _____ TO TOP _____ TO TOP _____ TO TOP _____ TO TOP _____ TO TOP _____ TO TOP _____ TO TOP _____ TO TOP _____ 
-
+*/
 /*
  * The physics engine. These are helper functions used to base the games physics around.
  * May later be extended to support different player characters with different physics properties.
