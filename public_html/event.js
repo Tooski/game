@@ -353,8 +353,10 @@ TerrainCollisionEvent.prototype = new CollisionEvent();
 
 
 // Event class for the Goal Event. TODO IMPLEMENT, NEEDS TO STORE WHICH GOAL AND ANY OTHER RELEVENT VICTORY INFORMATION.
-function GoalEvent(eventTime) { // eventTime is gameTime at which the event occurs.
+function GoalEvent(eventTime, goalObject) { // eventTime is gameTime at which the event occurs.
   Event.apply(this, [eventTime])
+
+  this.goalObject = goalObject;
 
   this.handler = function (physEng) {
     return;     //TODO IMPLEMENT

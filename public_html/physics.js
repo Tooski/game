@@ -279,11 +279,6 @@ PlayerModel.prototype = new State();
 
 
 
-
-
-
-
-
 /**
  * Object representing the result of a step. 
  * contains the state, time, and collisions
@@ -291,6 +286,7 @@ PlayerModel.prototype = new State();
 function StepResult (state, eventArray) {
   this.state = state;
   this.success = true;
+  this.events;
   if (eventArray && eventArray.length > 0) {  // new events
     this.events = eventArray;
     this.success = false;
@@ -336,31 +332,6 @@ function PhysEng(playerModel, terrainManager) {
   if (PHYS_DEBUG) {
     this.printStartState();
   }
-  
-  
- 
-  
-  
-  /**
-   * Function to pop and return the most recent event. Modify when additional event heaps are added to physics engine.
-   * //DONE.
-   */
-  this.popMostRecentEvent = function() {
-    var events = [];
-    events.push(eventHeap);
-    events.push(predictedEventHeap);
-    // events.push (eventHeap.peek());    // FUTURE HEAPS.
-	
-    var min = events[0].peek().time;
-    var minIndex = 0;
-    for (var i = 1; i < events.length; i++) {
-      if (min > events[i].peek().time) {
-        min = events[i].peek().time;
-        minIndex = i;
-      }
-    }
-    return events[minIndex].pop();	
-  }
 		
 		
   /**
@@ -393,7 +364,7 @@ function PhysEng(playerModel, terrainManager) {
       events = findEventsFromCollisions(collisionList);
     } else if (tweenTime !== goalGameTime) {
       console.log("tweenTime: ", tweenTime, " goalGameTime: ", goalGameTime);
-      throw "yeah we're gonna need to manually update to goalTime cuz this isnt working";
+      throw "yeah I'm gonna need to manually update to goalTime cuz this isnt working";
     } else {                                                        // NO COLLISIONS.
       console.log("attemptNextStep, no collisions and resulting times matched:");
       console.log("tweenTime: ", tweenTime, " goalGameTime: ", goalGameTime);
@@ -408,11 +379,13 @@ function PhysEng(playerModel, terrainManager) {
     //  }
     //}
     var results = new StepResult(endState, eventArray);
+    //TODO UPDATE PLAYER HERE???
     return results;
   }
 
 	
-	// Universal method to step a state forward to a time, no logic involved.
+  // Universal method to step a state forward to a time, no logic involved.
+  // COMPLETELY AND UTTERLY DONE. I THINK.
   this.stepStateByTime = function(state, targetGameTime) {				
     var startTime = state.time;
     //console.log("in airStep. timeGoal: ", timeGoal);
@@ -484,7 +457,6 @@ function PhysEng(playerModel, terrainManager) {
             collisionHeap.push(collisionHeapObj);
           }
         }
-        
       }
       if (collision.collidedP0 && (!testedP0)) {
         var point0Time = solveTimeToDistFromPoint(this.player.pos, this.player.vel, this.player.accel, collision.surface.p0, this.player.radius);
@@ -493,12 +465,14 @@ function PhysEng(playerModel, terrainManager) {
           console.log("collision ", i, " collided with p0 at time: ", lineTime);
           var tempState0 = this.stepStateByTime(this.player, point0Time);
           console.log("at position ", tempState0);
+          if (collision.surface.isPointWithinPerpBounds(tempState0.pos)) { // DEBUG TODO PLEASE DONT EVER LET THIS BE CALLED
+            throw "fuck you fuck everything I dont want to write a special case handler here please for the love of God dont ever let this exception get thrown";
+          }
           var collisionHeapObj = { time: point0Time, collisionObj: new TerrainPoint(collision.surface.p0, collision.surface), state: tempState0 };
           collisionHeap.push(collisionHeapObj);
         } else {
 
         }
-
       }
       if (collision.collidedP1 && (!testedP1)) {
         var point1Time = solveTimeToDistFromPoint(this.player.pos, this.player.vel, this.player.accel, collision.surface.p1, this.player.radius);
@@ -507,6 +481,9 @@ function PhysEng(playerModel, terrainManager) {
           console.log("collision ", i, " collided with p1 at time: ", lineTime);
           var tempState1 = this.stepStateByTime(this.player, point1Time);
           console.log("at position ", tempState1);
+          if (collision.surface.isPointWithinPerpBounds(tempState1.pos)) { // DEBUG TODO PLEASE DONT EVER LET THIS BE CALLED
+            throw "fuck you fuck everything I dont want to write a special case handler here please for the love of God dont ever let this exception get thrown";
+          }
           var collisionHeapObj = { time: point1Time, collisionObj: new TerrainPoint(collision.surface.p1, collision.surface), state: tempState1 };
           collisionHeap.push(collisionHeapObj);
         }
@@ -546,6 +523,8 @@ function PhysEng(playerModel, terrainManager) {
 
 
 
+
+
   /**
    * This method takes a list of collisions that occurred at the same time and decides what events need to happen.
    * TODO decide how to handle line and point same time collisions. Go with line for now???
@@ -561,7 +540,7 @@ function PhysEng(playerModel, terrainManager) {
       } else if (collisions[i].collisionObj instanceof TerrainPoint) {
         terrainPointCollisions.push(collisions[i]);
       } else if (collisions[i].collisionObj instanceof GoalLine) {           //DONE? TODO
-        var ge = new GoalEvent(collisions[i].time);
+        var ge = new GoalEvent(collisions[i].time, collisions[i].collisionObj);
         eventList.push(ge);
       } else if (collisions[i].collisionObj instanceof Collectible) {        //TODO 
         var ce = new CollectibleEvent(collisions[i].time);
@@ -578,35 +557,71 @@ function PhysEng(playerModel, terrainManager) {
       if (terrainLineCollisions.length > 1) {
         console.log("   we collided with 2 TerrainLines. Just lettin you know. ", terrainLineCollisions);
         var combinedNormal = vec2(0, 0);
+        var collisionSurfaces = [];
         for (var i = 0; i < terrainLineCollisions.length; i++) {
           var vecToState = terrainLineCollisions[i].state.pos.subtract(terrainLineCollisions[i].collisionObj.p0);
           combinedNormal = combinedNormal.add(terrainLineCollisions[i].collisionObj.normal.getFacing(vecToState));
+          collisionSurfaces.push(terrainLineCollisions[i].collisionObj);
         }
         combinedNormal = combinedNormal.normalize();
         var surfaceVec = combinedNormal.perp();
 
-        var te = new TerrainCollisionEvent(terrainLineCollisions[0].time, terrainLineCollisions, terrainLineCollisions[0].state, surfaceVec, combinedNormal);
+        var te = new TerrainCollisionEvent(terrainLineCollisions[0].time, collisionSurfaces, terrainLineCollisions[0].state, surfaceVec, combinedNormal);
         eventList.push(te);
       } else {    // JUST ONE TerrainLine collision.      TerrainLine(gameTimeOfCollision, collidedWithList, stateAtCollision, surfaceVec, normalVec)
         var tlc = terrainLineCollisions[0];
         var te = new TerrainCollisionEvent(tlc.time, [tlc.collisionObj], tlc.state, tlc.collisionObj.getSurfaceAt(tlc.state), tlc.normal);
         eventList.push(te);
       }
-    } else if (terrainPointCollisions.length > 0) {   // no TerrainLines, deal with TerrainPoints
+    } else if (terrainPointCollisions.length === 1) {   // no TerrainLines, deal with TerrainPoints
+      var tpc = terrainPointCollisions[0];
+      var vecToState = tpc.state.pos.subtract(tpc.collisionObj);
+      console.log("TESTING WHETHER YOU CAN SUBTRACT A THING THAT HAS .x and .y FROM A VEC2");
+      console.log("tpc.state.pos: ", tpc.state.pos);
+      console.log("tpc.collisionObj: ", tpc.collisionObj);
+      console.log("vecToState: ", vecToState);
 
+      var collisionNormal = vecToState.normalize();
+      var surfaceVec = collisionNormal.perp();
+
+      var te = new TerrainCollisionEvent(tpc.time, [tpc.collisionObj], tpc.state, surfaceVec, collisionNormal);
+      eventList.push(te);
     } else { //nothing???
 
     }
 
-
-    var collisionNormal = new vec2(0, 0);
-    for (var i = 0; i < terrainLineCollisions.length; i++) {
-      collisionNormal
-    }
-
-
     return eventList;
   }
+
+
+
+
+
+  /**
+   * Function to pop and return the most recent event. Modify when additional event heaps are added to physics engine.
+   * //DONE.
+   */
+  this.popMostRecentEvent = function () {
+    var events = [];
+    events.push(eventHeap);
+    events.push(predictedEventHeap);
+    // events.push (eventHeap.peek());    // FUTURE HEAPS.
+
+    var min = events[0].peek().time;
+    var minIndex = 0;
+    for (var i = 1; i < events.length; i++) {
+      if (min > events[i].peek().time) {
+        min = events[i].peek().time;
+        minIndex = i;
+      }
+    }
+    return events[minIndex].pop();
+  }
+
+
+
+
+
 
 }
 
@@ -614,10 +629,10 @@ function PhysEng(playerModel, terrainManager) {
 
 PhysEng.prototype.update = function(targetTime, newEvents) {
   if (this.eventHeap.size() > 0 && !this.inReplay) {
-    throw "why the hell are we starting update with events still in event thing?";	
+    throw "why the hell are we starting update with events still in event thing? *grumbles* better ways to implement replays....";	
   }
 	
-  for(var i = 0; i < newEvents.length; i++) {			//Put newEvents into eventHeap.
+  for(var i = 0; newEvents && i < newEvents.length; i++) {			//Put newEvents into eventHeap.
     this.eventHeap.push(newEvents[i]);
     this.replayData.push(newEvents[i]);
   }
@@ -639,7 +654,7 @@ PhysEng.prototype.update = function(targetTime, newEvents) {
 
 PhysEng.prototype.loadReplay = function(inputEventList) {
   this.eventHeap = new MinHeap(inputEventList, function(e1, e2) {
-    return e2.time == e2.time ? 0 : e1.time < e2.time ? -1 : 1;
+    return e1.time == e2.time ? 0 : e1.time < e2.time ? -1 : 1;
   });
   this.inReplay = true;
 }
@@ -698,6 +713,8 @@ function solveQuadratic(a, b, c) {
   return roots;
 }
 
+
+
 /*
  * Gets the amount of time taken to travel the specified distance at the current velocity and acceleration. 1 dimensional.
  * assumes the starting position is at 0.
@@ -706,8 +723,6 @@ function solveTimeToPoint1D(targetDist, currentVelocity, acceleration) {
   //var a = acceleration / 2;
   //var b = currentVelocity;
   //var c = distanceToSurfaceEnd;
-
-
   if (acceleration === 0) {
 
     return -targetDist / currentVelocity;
@@ -793,6 +808,7 @@ function solveTimeToDistFromLine(curPos, curVel, accel, targetLine, distanceGoal
 }
 
 
+
 function getRotatedToXAround(origin, curPos, curVel, accel, targetLine) {  
   var v01 = targetLine.p1.subtract(targetLine.p0);
   var horiz = new vec2(1, 0);
@@ -851,6 +867,7 @@ function getTimeToVelocity(state, velTarget) {
 	
   return closestPositive(t0, t1) + state.time;				// null if no valid roots.
 }
+
 
 
 
@@ -1066,6 +1083,7 @@ PhysEng.prototype.stepToEndOfEvent = function (state, event, doNotCheck) {
 }
 
 
+
 // Returns the players new position and velocity (in a TempState object) after an airStep of this length. Does not modify values.
 PhysEng.prototype.airStep = function (state, timeGoal, doNotCheck) {
   var startTime = state.timeDelta;
@@ -1169,6 +1187,7 @@ PhysEng.prototype.surfaceStep = function (state, timeGoal, doNotCheck) {
   return state;
   // REMEMBER TO UPDATE this.player.timeDelta to the state where the surfaceStep ended.
 }
+
 
 
 //This code handles a terrain collision. TODO REFACTOR TO TAKE A COLLISION OBJECT THAT HAS A NORMAL OF COLLISION, AND A SINGLE SURFACE THAT MAY BE LOCKED TO, IF ANY. THIS WILL COVER MULTICOLLISIONS AND CORNERS / ENDPOINT CASES.
