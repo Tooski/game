@@ -273,7 +273,6 @@ GameEngine.prototype.startInput = function() {
             //console.log("Lock pressed");
           } else if (e.keyCode === gameEngine.input.pauseKey && gameEngine.input.pausePressed === false) {
             gameEngine.setPause(true, performance.now());
-			gameEngine.toggleOverlay();
             //console.log("Pause pressed");
 			    }
         }
@@ -389,33 +388,25 @@ GameEngine.prototype.resetDefaults = function() {
   alert("Key mappings have been reset to default");
 }
 
-//Toggles the pause overlay
-var overlay = document.querySelector( 'div.overlay' );
-
-GameEngine.prototype.toggleOverlay = function() {
-	if( classie.has( overlay, 'open' ) ) {
-		classie.remove( overlay, 'open' );
-		classie.add( overlay, 'close' );
-		var onEndTransitionFn = function( ev ) {
-			if( support.transitions ) {
-				if( ev.propertyName !== 'visibility' ) return;
-				this.removeEventListener( transEndEventName, onEndTransitionFn );
-			}
-			classie.remove( overlay, 'close' );
-		};
-		if( support.transitions ) {
-			overlay.addEventListener( transEndEventName, onEndTransitionFn );
-		}
-		else {
-			onEndTransitionFn();
-		}
-	}
-	else if( !classie.has( overlay, 'close' ) ) {
-		classie.add( overlay, 'open' );
-	}
+//Reset control flags and time values, to be used with level restarting
+GameEngine.prototype.controlReset = function() {
+  this.input.jumpPressed = false;
+  this.input.jumpPressedTimestamp = 0;
+  this.input.boostPressed = false;
+  this.input.boostPressedTimestamp = 0;
+  this.input.leftPressed = false;
+  this.input.leftPressedTimestamp = 0;
+  this.input.rightPressed = false;
+  this.input.rightPressedTimestamp = 0;
+  this.input.upPressed = false;
+  this.input.upPressedTimestamp = 0;
+  this.input.downPressed = false;
+  this.input.downPressedTimestamp = 0;
+  this.input.lockPressed = false;
+  this.input.lockPressedTimestamp = 0;
+  this.input.pausePressed = false;
+  this.input.pausePressedTimestamp = 0;
 }
-
-
 
 GameEngine.prototype.addEntity = function(entity) {
     console.log('added entity');
@@ -587,9 +578,11 @@ GameBoard.prototype.draw = function(ctx) {
 
 
 var canvas;
+var canvas2;
 var initWidth;
 var initHeight;
 var ctx;
+var ctx2;
 var initScale = 0;
 // The assets
 var imagePaths = ["assets/backgroundTile.png", "assets/midground-Tile-150x150.png", "assets/Megaman8bit.jpg", "assets/enemy.jpg", "assets/HamsterSprites.png", "assets/dirt.jpg"];
@@ -611,6 +604,8 @@ ASSET_MANAGER.downloadAll(function() {
     console.log("starting up da sheild");
     canvas = document.getElementById('gameWorld');
      ctx = canvas.getContext('2d');
+	canvas2 = document.getElementById('score');
+	 ctx2 = canvas2.getContext('2d');
           var timer = new Timer();
      player  = new Player(canvas.width/2, canvas.height/2, timer);
     canvas.tabIndex = 1;
