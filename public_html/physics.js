@@ -91,7 +91,27 @@ function PlayerModel(controlParams, physParams, time, radius, pos, vel, accel   
 		) {
 	State.apply(this, [time, radius, pos, vel, accel 
 			//, accelPrime, accelDPrime
-			]);
+	]);
+
+
+  /**
+   * ANIMATION FIELDS FOR MIKE!
+   */
+	this.animationFacing = "left";          // "left" or "right" or "neutral"
+	this.animationBoosting = false;         // is the player in the ground boost state?
+	this.animationgroundJumping = false;    // is the player jumping from the ground?
+	this.animationDoubleJumping = false;    // is the player air jumping?
+	this.animationColliding = false;        // is the player in the collision animation?
+	this.animationFreefall = false;         // is the player in the Freefall animation?
+	
+	this.animationTimeInCurrentAnimation = 0.0;   // what amount of time in seconds have we been in this animation state?
+	this.animationAngleOfAnimation = 0.0;         // DO WE WANT THIS IN DEGREES OR RADIANS?
+  
+  //END ANIMATION FIELDS
+
+
+
+
 	this.controlParameters = controlParams;
 	this.physParams = physParams;
 	//this.inputState = inputState;
@@ -100,19 +120,24 @@ function PlayerModel(controlParams, physParams, time, radius, pos, vel, accel   
 	this.surfaceOn = surfaceOrNull;   // what surface is the player on?
 	this.onGround = true;     // is the player on a surface?
 	this.gLocked = false;     // is the player locked to the ground?
+
+
+	this.roundingPoint = false;
+	this.pointBeingRounded = null;
+	this.angleAroundPoint = 0.0;   //RADIANS OR DEGREES I HAVE NO IDEA
+	this.rotationDirection = false; // TRUE IF CLOCKWISE, FALSE IF COUNTER-CLOCKWISE.
 	
 	if (!surfaceOrNull) {
 	this.onGround = false;
 	}
-	
-	this.gBoosting = false;   // is the player in the ground boost state?
-	this.aBoosting = false;   // is the player in the air boost state?
-	this.gJumping = false;    // is the player jumping from the ground?
-	this.aJumping = false;    // is the player air jumping?
 
 	this.airChargeCount = controlParams.numAirCharges; //number of boosts / double jumps left.
 	
 	
+
+
+
+
 	this.updateToState = function (state) { //TODO
 		if (!(state.time && state.radius && state.pos && state.vel && state.accel)) {
 			console.log("Missing fields in state.");
