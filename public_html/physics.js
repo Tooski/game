@@ -8,28 +8,28 @@
 
 // this thing is just useful for storing potential states in an object.
 function State(time, radius, pos, vel, accel, eventList  
-		//, accelPrime, accelDPrime									// DO WE INCLUDE SUB ACCEL DERIVS?
+  //, accelPrime, accelDPrime									// DO WE INCLUDE SUB ACCEL DERIVS?
 		) {
-	this.time = time;
-	this.radius = radius;
-	this.pos = pos;
-	this.vel = vel;
-	this.accel = accel;
-	this.eventList = eventList;
-	//this.accelPrime = accelPrime;
-	//this.accelDPrime = accelDPrime;
+  this.time = time;
+  this.radius = radius;
+  this.pos = pos;
+  this.vel = vel;
+  this.accel = accel;
+  this.eventList = eventList;
+  //this.accelPrime = accelPrime;
+  //this.accelDPrime = accelDPrime;
 }
 function State(time, radius, pos, vel, accel 
-		//, accelPrime, accelDPrime									// DO WE INCLUDE SUB ACCEL DERIVS?
+  //, accelPrime, accelDPrime									// DO WE INCLUDE SUB ACCEL DERIVS?
 		) { // overloaded constructor
-	this.time = time;
-	this.radius = radius;
-	this.pos = pos;
-	this.vel = vel;
-	this.accel = accel;
-	this.eventList = [];
-	//this.accelPrime = accelPrime;
-	//this.accelDPrime = accelDPrime;
+  this.time = time;
+  this.radius = radius;
+  this.pos = pos;
+  this.vel = vel;
+  this.accel = accel;
+  this.eventList = [];
+  //this.accelPrime = accelPrime;
+  //this.accelDPrime = accelDPrime;
 }
 
 
@@ -87,84 +87,84 @@ function InputState() {
 }
 
 function PlayerModel(controlParams, physParams, time, radius, pos, vel, accel       //NEW
-		//, accelPrime, accelDPrime
+  //, accelPrime, accelDPrime
 		) {
-	State.apply(this, [time, radius, pos, vel, accel 
+  State.apply(this, [time, radius, pos, vel, accel 
 			//, accelPrime, accelDPrime
-	]);
+  ]);
 
 
   /**
    * ANIMATION FIELDS FOR MIKE!
    */
-	this.animationFacing = "left";          // "left" or "right" or "neutral"
-	this.animationBoosting = false;         // is the player in the ground boost state?
-	this.animationgroundJumping = false;    // is the player jumping from the ground?
-	this.animationDoubleJumping = false;    // is the player air jumping?
-	this.animationColliding = false;        // is the player in the collision animation?
-	this.animationFreefall = false;         // is the player in the Freefall animation?
+  this.animationFacing = "left";          // "left" or "right" or "neutral"
+  this.animationBoosting = false;         // is the player in the ground boost state?
+  this.animationgroundJumping = false;    // is the player jumping from the ground?
+  this.animationDoubleJumping = false;    // is the player air jumping?
+  this.animationColliding = false;        // is the player in the collision animation?
+  this.animationFreefall = false;         // is the player in the Freefall animation?
 	
-	this.animationTimeInCurrentAnimation = 0.0;   // what amount of time in seconds have we been in this animation state?
-	this.animationAngleOfAnimation = 0.0;         // DO WE WANT THIS IN DEGREES OR RADIANS?
+  this.animationTimeInCurrentAnimation = 0.0;   // what amount of time in seconds have we been in this animation state?
+  this.animationAngleOfAnimation = 0.0;         // DO WE WANT THIS IN DEGREES OR RADIANS?
   
   //END ANIMATION FIELDS
 
 
 
 
-	this.controlParameters = controlParams;
-	this.physParams = physParams;
-	//this.inputState = inputState;
+  this.controlParameters = controlParams;
+  this.physParams = physParams;
+  //this.inputState = inputState;
 	
-	// PLAYER STATE
-	this.surfaceOn = surfaceOrNull;   // what surface is the player on?
-	this.onGround = true;     // is the player on a surface?
-	this.gLocked = false;     // is the player locked to the ground?
+  // PLAYER STATE
+  this.surfaceOn = surfaceOrNull;   // what surface is the player on?
+  this.onGround = true;     // is the player on a surface?
+  this.gLocked = false;     // is the player locked to the ground?
 
 
-	this.roundingPoint = false;
-	this.pointBeingRounded = null;
-	this.angleAroundPoint = 0.0;   //RADIANS OR DEGREES I HAVE NO IDEA
-	this.rotationDirection = false; // TRUE IF CLOCKWISE, FALSE IF COUNTER-CLOCKWISE.
+  this.roundingPoint = false;
+  this.pointBeingRounded = null;
+  this.angleAroundPoint = 0.0;   //RADIANS OR DEGREES I HAVE NO IDEA
+  this.rotationDirection = false; // TRUE IF CLOCKWISE, FALSE IF COUNTER-CLOCKWISE.
 	
-	if (!surfaceOrNull) {
-	this.onGround = false;
-	}
+  if (!surfaceOrNull) {
+    this.onGround = false;
+  }
 
-	this.airChargeCount = controlParams.numAirCharges; //number of boosts / double jumps left.
+  this.airChargeCount = controlParams.numAirCharges; //number of boosts / double jumps left.
 	
 	
 
 
 
 
-	this.updateToState = function (state) { //TODO
-		if (!(state.time && state.radius && state.pos && state.vel && state.accel)) {
-			console.log("Missing fields in state.");
-			console.log("time: ", state.time);
-			console.log("radius: ", state.radius);
-			console.log("pos: ", state.pos);
-			console.log("vel: ", state.vel);
-			console.log("accel: ", state.accel);
-			console.log("time: ", state.time);
-			console.log("time: ", state.time);
-			throw "Missing fields in state.";
-		}
-		this.time = state.time;
-		this.radius = state.radius;
-		this.pos = state.pos;
-		this.vel = state.vel;
-		this.accel = state.accel;
-		this.eventList = state.eventList;
-		//this.accelPrime = state.accelPrime;
-		//this.accelDPrime = state.accelDPrime;
-	}
+  this.updateToState = function (state) { //TODO
+    if (!(state.time && state.radius && state.pos && state.vel && state.accel)) {
+      console.log("Missing fields in state.");
+      console.log("time: ", state.time);
+      console.log("radius: ", state.radius);
+      console.log("pos: ", state.pos);
+      console.log("vel: ", state.vel);
+      console.log("accel: ", state.accel);
+      console.log("time: ", state.time);
+      console.log("time: ", state.time);
+      throw "Missing fields in state.";
+    }
+    this.time = state.time;
+    this.radius = state.radius;
+    this.pos = state.pos;
+    this.vel = state.vel;
+    this.accel = state.accel;
+    this.eventList = state.eventList;
+    //this.accelPrime = state.accelPrime;
+    //this.accelDPrime = state.accelDPrime;
+  }
 	
-	this.leaveGround = function () { // TODO write code to handle leaving the ground here.
-		this.surfaceOn = null;
-		this.onGround = false;
-		this.gLocked = false;
-	}
+  this.leaveGround = function () { // TODO write code to handle leaving the ground here.
+    this.surfaceOn = null;
+    this.onGround = false;
+    this.gLocked = false;
+  }
 	
 	
   this.updateVectors = function (inputState) {
@@ -200,8 +200,8 @@ function PlayerModel(controlParams, physParams, time, radius, pos, vel, accel   
     var baseForceVec = new vec2(baseForceX, baseForceY);
     if (inputState.additionalVecs) {                          // if theres an additional vector of force to consider
       for (var i = 0; i < additionalVecs.length; i++) {
-		baseForceVec = baseForceVec.add(inputState.additionalVecs[i]);
-	  }
+        baseForceVec = baseForceVec.add(inputState.additionalVecs[i]);
+      }
     }
 
     var surface = this.surfaceOn;
@@ -253,8 +253,8 @@ function PlayerModel(controlParams, physParams, time, radius, pos, vel, accel   
     var baseForceVec = new vec2(baseForceX, baseForceY);
     if (inputState.additionalVecs) {                          // if theres an additional vector of force to consider
       for (var i = 0; i < additionalVecs.length; i++) {
-		baseForceVec = baseForceVec.add(inputState.additionalVecs[i]);
-	  }
+        baseForceVec = baseForceVec.add(inputState.additionalVecs[i]);
+      }
     }
     this.accel = baseForceVec;
     //console.log(this.accel);
@@ -313,20 +313,20 @@ function PhysEng(playerModel, terrainManager) {
    * Function to return the most recent event. Modify when additional event heaps are added to physics engine.
    */
   this.getMostRecentEvent = function() {
-	var events = [];
-	events.push(eventHeap);
-	events.push(predictedEventHeap);
-	// events.push (eventHeap.peek());
+    var events = [];
+    events.push(eventHeap);
+    events.push(predictedEventHeap);
+    // events.push (eventHeap.peek());
 	
-	var min = events[0].peek().time;
-	var minIndex = 0;
-	for (var i = 1; i < events.length; i++) {
-		if (min > events[i].peek().time) {
-			min = events[i].peek().time;
-			minIndex = i;
-		}
-	}
-	return events[minIndex].pop();	
+    var min = events[0].peek().time;
+    var minIndex = 0;
+    for (var i = 1; i < events.length; i++) {
+      if (min > events[i].peek().time) {
+        min = events[i].peek().time;
+        minIndex = i;
+      }
+    }
+    return events[minIndex].pop();	
   }
 		
 		
@@ -382,7 +382,7 @@ PhysEng.prototype.loadReplay = function(inputEventList) {
 	
 	
 	
-        // __________MATH SHIT_________
+// __________MATH SHIT_________
 
 
 
@@ -391,7 +391,7 @@ PhysEng.prototype.loadReplay = function(inputEventList) {
 function getReflectionVector(velVec, normalVec) {
   //     v' = 2 * (v . n) * n - v;
 
-     // SINGLE LINE OPTIMIZED
+  // SINGLE LINE OPTIMIZED
   return (velVec).subtract(normalVec.multf(2.0 * velVec.dot(normalVec)));
   //return normalVec.multf(2.0 * velVec.dot(normalVec)).subtract(velVec);                OLD
 }
@@ -457,30 +457,30 @@ function solveTimeToPoint1D(distanceToSurfaceEnd, currentVelocity, acceleration)
     console.log("solveTimeToPoint1D.  acceleration ", acceleration, ", currentVelocity ", currentVelocity, ", distanceToSurfaceEnd ", distanceToSurfaceEnd);
     console.log("   possible time distances are ", y, ", ", z);
 
-	return closestPositive(y, z);
+    return closestPositive(y, z);
   }
 }
 
 //Generally, targetPos is the point and distanceGoal is radius (we want to find the time when balls center point is exactly radius away from the targetPos)
 //Returns the nearest positive point in time when this will occur, or null if it wont occur.
 function solveTimeToDistFromPoint(curPos, curVel, accel, targetPos, distanceGoal) {
-/* (p1-(p2+vt + (1/2 * a*t^2))) = r
-   -(p2+vt + (1/2 * a*t^2)) = r - p1
-   -p2-vt - (1/2 * a*t^2) = r - p1
-   -vt - (1/2 * a*t^2) = r - p1 + p2
-   vt + (1/2 * a*t^2) = (p1 - p2) - r
-      Now since ||d|| = ||b||+||c|| when d = b+c, we know that
-
-   ||v||t + 1/2 * ||a||t^2 = ||p1-p2|| - r
-   ||v||t + 1/2 * ||a||t^2	- ||p1-p2|| + r = 0										//NEW,	roots are when this = 0. Yields solution????
- */
+  /* (p1-(p2+vt + (1/2 * a*t^2))) = r
+     -(p2+vt + (1/2 * a*t^2)) = r - p1
+     -p2-vt - (1/2 * a*t^2) = r - p1
+     -vt - (1/2 * a*t^2) = r - p1 + p2
+     vt + (1/2 * a*t^2) = (p1 - p2) - r
+        Now since ||d|| = ||b||+||c|| when d = b+c, we know that
+  
+     ||v||t + 1/2 * ||a||t^2 = ||p1-p2|| - r
+     ||v||t + 1/2 * ||a||t^2	- ||p1-p2|| + r = 0										//NEW,	roots are when this = 0. Yields solution????
+   */
   var c = -(curPos.subtract(targetPos).length()) + distanceGoal;
   var rootsArray = solveQuadratic(accel.length(), curVel.length(), c); //TODO DEBUG PRINT STATEMENTS AND VERIFY THIS IS CORRECT, PROBABLY WRONG. DOES THIS ACTUALLY WORK? WAS IT REALLY THIS EASYYYY????????
 
   console.log("solveTimeToDistFromPoint.   accel.length() ", accel.length(), ", curVel.length() ", curVel.length(), ", curPos ", curPos, ", targetPos ", targetPos, ", distanceGoal ", distanceGoal);
   console.log("   possible time distances are ", rootsArray[0], ", ", rootsArray[1]);
 
-return closestPositive(rootsArray[0], rootsArray[1]);
+  return closestPositive(rootsArray[0], rootsArray[1]);
 }
 
 
@@ -491,57 +491,57 @@ return closestPositive(rootsArray[0], rootsArray[1]);
  * finds the time at which the states velocity will reach velTarget.
  */
 function getTimeToVelocity(state, velTarget) {
-	if (!(state.time && state.vel && state.accel && velTarget)) {
-		console.log("Missing fields in state.");
-		console.log("time: ", state.time);
-		console.log("vel: ", state.vel);
-		console.log("accel: ", state.accel);
-		console.log("velTarget: ", velTarget);
-		throw "Missing fields in state.";
-	}
-	var ax = state.accel.x;
-	var ay = state.accel.y;
-	var vx = state.vel.x;
-	var vy = state.vel.y;
-	var s = velTarget;
+  if (!(state.time && state.vel && state.accel && velTarget)) {
+    console.log("Missing fields in state.");
+    console.log("time: ", state.time);
+    console.log("vel: ", state.vel);
+    console.log("accel: ", state.accel);
+    console.log("velTarget: ", velTarget);
+    throw "Missing fields in state.";
+  }
+  var ax = state.accel.x;
+  var ay = state.accel.y;
+  var vx = state.vel.x;
+  var vy = state.vel.y;
+  var s = velTarget;
 	
-	var postRad = 2 * ax * vx + 2 * ay * vy;
+  var postRad = 2 * ax * vx + 2 * ay * vy;
 	
-	var radical = sqrt(postRad * postRad - 4 * (ax * ax + ay * ay) * ((-(s * s)) + vx * vx + vy * vy));
-	var denominator = 2 * (ax * ax + ay * ay);
+  var radical = sqrt(postRad * postRad - 4 * (ax * ax + ay * ay) * ((-(s * s)) + vx * vx + vy * vy));
+  var denominator = 2 * (ax * ax + ay * ay);
 	
-	var t0 = (-radical - postRad) / denominator; //root 0
-	var t1 = (radical - postRad) / denominator;  //root 1
+  var t0 = (-radical - postRad) / denominator; //root 0
+  var t1 = (radical - postRad) / denominator;  //root 1
 	
-	return closestPositive(t0, t1) + state.time;				// null if no valid roots.
+  return closestPositive(t0, t1) + state.time;				// null if no valid roots.
 }
 
 
 
 function closestPositive(value1, value2) {
-	    var toReturn;
-    if (value1 < 0) {            // is value1 negative?
-      if (value2 < 0) {
-        toReturn = null;        // NO VALID ROOT, BOTH ARE BACKWARDS IN TIME
-      } else {
-        toReturn = value2;           // value1 < 0 and value2 > 0 return value2
-      }
-    } else if (value2 < 0) {     // value1 is positive, is value2?
-      toReturn = value1;             // value1 WASNT NEGATIVE AND value2 WAS SO RETURN value1
-    } else if (value1 < value2) {     // value1 and value2 are both positive, return the smaller one
-      toReturn = value2;             // value2 occurs earlier
+  var toReturn;
+  if (value1 < 0) {            // is value1 negative?
+    if (value2 < 0) {
+      toReturn = null;        // NO VALID ROOT, BOTH ARE BACKWARDS IN TIME
     } else {
-      toReturn = value1;             // value1 occurs earlier
+      toReturn = value2;           // value1 < 0 and value2 > 0 return value2
     }
-    console.log("   returning closest: ", toReturn);
-    return toReturn;                          //TODO DEBUG could be totally wrong with this, may require a different test.
+  } else if (value2 < 0) {     // value1 is positive, is value2?
+    toReturn = value1;             // value1 WASNT NEGATIVE AND value2 WAS SO RETURN value1
+  } else if (value1 < value2) {     // value1 and value2 are both positive, return the smaller one
+    toReturn = value2;             // value2 occurs earlier
+  } else {
+    toReturn = value1;             // value1 occurs earlier
+  }
+  console.log("   returning closest: ", toReturn);
+  return toReturn;                          //TODO DEBUG could be totally wrong with this, may require a different test.
 }
 
 
 
 
 
-               // ARRAY SHIT
+// ARRAY SHIT
 
 
 // Checks to see if array a contains Object obj.
@@ -642,7 +642,7 @@ PhysEng.prototype.update = function (timeDelta, eventList) { // ______timeDelta 
   }                                                       // PHYSICS ARE UP TO DATE. GO AHEAD AND RENDER.
 
   this.player.timeDelta = 0.0;
-                                                          // WE ARE NOW DONE WITH THE ENTIRE UPDATE. HOPEFULLY NOTHING WENT WRONG.
+  // WE ARE NOW DONE WITH THE ENTIRE UPDATE. HOPEFULLY NOTHING WENT WRONG.
 
   if (FRAMECOUNTER === PRINTEVERY) {
     FRAMECOUNTER = 0;
@@ -664,7 +664,7 @@ PhysEng.prototype.stepToEndOfEvent = function (state, event, doNotCheck) {
     for (var k = 0; k < stepState.eventList.length; k++) {
       //console.log("new events added in stepToEndOfEvent, ", stepState.eventList.length);
 
-        newEvents.push(stepState.eventList[k]);              
+      newEvents.push(stepState.eventList[k]);              
 
     }
 
@@ -673,7 +673,7 @@ PhysEng.prototype.stepToEndOfEvent = function (state, event, doNotCheck) {
     stepState = this.surfaceStep(state, event.time, doNotCheck);
     for (var k = 0; k < stepState.eventList.length; k++) {
 
-        newEvents.push(stepState.eventList[k]);            
+      newEvents.push(stepState.eventList[k]);            
 
     }
   }
@@ -818,11 +818,11 @@ PhysEng.prototype.surfaceStep = function (state, timeGoal, doNotCheck) {
   var collisionData = getCollisionData(state, terrainList, [this.player.surfaceOn.id]);
   
   if (!collisionData.collided) {
-                                 // WE ARE NOW IN THE AIR. RECURSIVELY FIND WHERE WE LEFT THE SURFACE, HANDLE THAT, THEN STEP ACCORDINGLY DEPENDING ON WHAT WE'RE ON AFTERWARDS.
+    // WE ARE NOW IN THE AIR. RECURSIVELY FIND WHERE WE LEFT THE SURFACE, HANDLE THAT, THEN STEP ACCORDINGLY DEPENDING ON WHAT WE'RE ON AFTERWARDS.
   } else if (collisionData.collidedWith.length === 1 && collisionData.collidedWith[0] === this.player.surfaceOn) {
-                                 // WE ARE STILL ON THE SURFACE WE WERE ON LAST FRAME, NO OTHER COLLISIONS, HANDLE NORMALLY, TODO
+    // WE ARE STILL ON THE SURFACE WE WERE ON LAST FRAME, NO OTHER COLLISIONS, HANDLE NORMALLY, TODO
   } else {     
-                                 // WE COLLIDED With SOMEthING NEW, HANDLE COLLISIONS RECURSIVELY OR SOMESHIT, TODO
+    // WE COLLIDED With SOMEthING NEW, HANDLE COLLISIONS RECURSIVELY OR SOMESHIT, TODO
 
   }
   return state;
@@ -841,15 +841,15 @@ PhysEng.prototype.handleTerrainAirCollision = function (ballState, stuffWeCollid
   console.log("radius = ", ballState.radius);
   collisionVec = stuffWeCollidedWith[0].getNormalAt(ballState.pos, ballState.radius);
   //console.log(collisionVec);
-    for (var i = 1; i < stuffWeCollidedWith.length; i++) {
-      collisionVec = collisionVec.add(stuffWeCollidedWith[i].getNormalAt(ballState.pos, ballState.radius));
-      //console.log("dealing with a multiple thing collision...");
-    }
-    angleToNormal = Math.acos(collisionVec.normalize().dot(normalBallVel));
-    var collisionVecNorm = collisionVec.normalize();
-    console.log("collisionVecNorm = ", collisionVecNorm);
+  for (var i = 1; i < stuffWeCollidedWith.length; i++) {
+    collisionVec = collisionVec.add(stuffWeCollidedWith[i].getNormalAt(ballState.pos, ballState.radius));
+    //console.log("dealing with a multiple thing collision...");
+  }
+  angleToNormal = Math.acos(collisionVec.normalize().dot(normalBallVel));
+  var collisionVecNorm = collisionVec.normalize();
+  console.log("collisionVecNorm = ", collisionVecNorm);
   //} else {
-    //angleToNormal = Math.acos(collisionVec.getNormalAt(ballState.pos).dot(normalBallVel));
+  //angleToNormal = Math.acos(collisionVec.getNormalAt(ballState.pos).dot(normalBallVel));
   //}
 
 
@@ -891,7 +891,7 @@ PhysEng.prototype.handleTerrainAirCollision = function (ballState, stuffWeCollid
 
     var surfaceVecNorm = collisionVecNorm.perp();       // REALISTIC ADDITIONS START
     this.player.vel = projectVec2(ballState.vel, surfaceVecNorm);                                             // TODO DOES NOT TAKE INTO ACCOUNT TOUCHING THE END OF A LINE.
-                                                                // REALISTIC ADDITIONS END
+    // REALISTIC ADDITIONS END
     this.player.pos = ballState.pos;
     this.player.airBorne = false;
     this.player.surfaceLocked = inputState.lock;
@@ -911,7 +911,7 @@ PhysEng.prototype.handleTerrainAirCollision = function (ballState, stuffWeCollid
   this.player.timeDelta = ballState.timeDelta;
 }
 
-  // Self explanatory. For debug purposes.
+// Self explanatory. For debug purposes.
 PhysEng.prototype.printState = function (printExtraPlayerDebug, printExtraControlsDebug, printExtraPhysDebug) {
   if (FRAMECOUNTER === PRINTEVERY)
   {
