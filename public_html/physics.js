@@ -105,6 +105,9 @@ function PlayerModel(controlParams, physParams, time, radius, pos, vel, accel   
    * ANIMATION FIELDS FOR MIKE!
    */
   this.animationFacing = "left";          // "left" or "right" or "neutral"
+  this.animationWalking = false;         // is the player in the walking state?
+  this.animationRunning = false;         // is the player in the running state?
+  this.animationBoosting = false;         // is the player in the boost state?
   this.animationBoosting = false;         // is the player in the boost state?
   this.animationgroundJumping = false;    // is the player jumping from the ground?
   this.animationDoubleJumping = false;    // is the player air jumping?
@@ -113,6 +116,7 @@ function PlayerModel(controlParams, physParams, time, radius, pos, vel, accel   
 	
   this.animationTimeInCurrentAnimation = 0.0;   // what amount of time in seconds have we been in this animation state?
   this.animationAngleOfAnimation = 0.0;         // DO WE WANT THIS IN DEGREES OR RADIANS?
+  this.animationSpeed = 0.0;                    // The player speed. Used for walking / running animations.
   
   //END ANIMATION FIELDS
 
