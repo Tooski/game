@@ -7,9 +7,10 @@
 
 
 // this thing is just useful for storing potential states in an object.
-function State(time, radius, pos, vel, accel, eventList  
+function State(time, radius, pos, vel, accel
   //, accelPrime, accelDPrime									// DO WE INCLUDE SUB ACCEL DERIVS?
-		) {
+		, eventList) {
+
   this.time = time;
   this.radius = radius;
   this.pos = pos;
@@ -22,6 +23,7 @@ function State(time, radius, pos, vel, accel, eventList
 function State(time, radius, pos, vel, accel 
   //, accelPrime, accelDPrime									// DO WE INCLUDE SUB ACCEL DERIVS?
 		) { // overloaded constructor
+
   this.time = time;
   this.radius = radius;
   this.pos = pos;
@@ -86,6 +88,8 @@ function InputState() {
   this.additionalVecs = null;
 }
 
+
+
 function PlayerModel(controlParams, physParams, time, radius, pos, vel, accel       //NEW
   //, accelPrime, accelDPrime
 		) {
@@ -98,7 +102,7 @@ function PlayerModel(controlParams, physParams, time, radius, pos, vel, accel   
    * ANIMATION FIELDS FOR MIKE!
    */
   this.animationFacing = "left";          // "left" or "right" or "neutral"
-  this.animationBoosting = false;         // is the player in the ground boost state?
+  this.animationBoosting = false;         // is the player in the boost state?
   this.animationgroundJumping = false;    // is the player jumping from the ground?
   this.animationDoubleJumping = false;    // is the player air jumping?
   this.animationColliding = false;        // is the player in the collision animation?
