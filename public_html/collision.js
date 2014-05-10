@@ -11,71 +11,78 @@ function Collideable() {
 }
 Collideable.prototype = new Entity();
 Collideable.prototype.collidesWith = function (point, radius) { }; // for now just checks a point and its radius aka the hamster ball's center + radius to see if it collides. 
+Collideable.prototype.collidesData = function (point, radius) { }; // for now just checks a point and its radius aka the hamster ball's center + radius to see if it collides. 
 Collideable.constructor = Collideable;
 
+
+/*
+	RETURN:
+		What was collided with.
+		The EXACT time of the collision
+		The collisions normalVec and surfaceVec (which represents the perp to the normalVec, not necessarily the surface collided with) ONLY IF THIS IS A SURFACE THAT MAY BE COLLIDED WITH.		
+*/
   // Collision data object to return to physics.
-function CollisionData(collided, collidedWith) {
+function CollisionResults(collided, collisionList) {
   // Did we collide with something? True or false.
   this.collided = collided;
 
+
   //The "stuff" that we collided with. Unimplemented for now, but just return an array of whatever the terrain objects are stored as, whether lines or beziers or boxs etc.
-  //When a collision is found, I'm going to use a binary time search to recursively find the point in time where the first collision occurred.
-  this.collidedWith = collidedWith;
+  this.collisionList = collisionList;
 }
 
 
-
-//What I will be calling from physicsEngine. If there were no collisions, return an empty array as the collidedWith field.
-function getCollisionData(ballState, LevelList, doNotCheck) {
-  //state is a TempState object as seen in physics.js. The only parts you will probably care about in collision are:
-  //state.pos           a vec2(x position, y position); the center of the circle you're checking collisions against. state.pos.x, state.pos.y
-  //state.radius        the radius of the circle you're checking collisions against. 
-  COLLISION_TEST_COUNT++;
-
-
-  //code to check for collisions here. TODO optimize
-  if (COLLISION_TEST_COUNT = PRINT_EVERY) {
-    //console.log("checking collisions");
-  }
-  var stuffWeCollidedWith = [];
-  //doNotCheck = [];
-  for (var i = 0; i < LevelList.length; i++) {
-    if (LevelList[i].collidesWith(ballState.pos, ballState.radius) ) {
-      if (!contains(doNotCheck, LevelList[i].id)) {
-
-        stuffWeCollidedWith.push(LevelList[i]);
-      } else {
-    //    console.log("had stuff");
-      }
-    } 
-  }
-  var didWeCollide = false;
-  if (stuffWeCollidedWith.length > 0) {
-    didWeCollide = true;
-  }
-
-  //create the CollisionData object to return to the physics function.
-  var data = new CollisionData(didWeCollide, stuffWeCollidedWith);
-
-  if (COLLISION_TEST_COUNT === PRINT_EVERY) {
-    COLLISION_TEST_COUNT = 0;
-  }
-
-
-  return data;
+/**
+ * TerrainPoint object. Useful for collision data info.
+ */
+function TerrainPoint(pos, leftLine, rightLine) {
+  this.x = pos.x;
+  this.y = pos.y;
+  this.leftLine = leftLine;
+  this.rightLine = rightLine;
 }
+function TerrainPoint(pos, terrainLine) {
+  this.x = pos.x;
+  this.y = pos.y;
+  if (pos === terrainLine.p0) {
+    this.leftLine = terrainLine.adjacent0;
+    this.rightLine = terrainLine;
+  } else if (pos === terrainLine.p1) {
+    this.leftLine = terrainLine;
+    this.rightLine = terrainLine.adjacent1;
+  } else {
+    throw "bad pos / terrainLine combo in TerrainPoint constructor";
+  } 
+}
+
 
 
 //What I will be calling in the recursive physics bounds checking function to check the initial collision list.
-function getCollisionDataInList(ballState, collidersToCheck, doNotCheck) {
+//doNotCheck may be empty.
+function getCollisionsInList(ballState, collidersToCheck, doNotCheck) {
   //code to check for collisions ONLY WITH THE THINGS IN THE PASSED LIST! Should be about the same as the above method but only searches this specific list, and returns the subset of it that is still being collided with.
   var stuffWeCollidedWith = [];
   for (var i = 0; i < collidersToCheck.length; i++) {
     
     if (!contains(doNotCheck, collidersToCheck[i].id)) {
-      if (collidersToCheck[i].collidesWith(ballState.pos, ballState.radius)) {
-        stuffWeCollidedWith.push(collidersToCheck[i]);
+      //data { collision, collidedLine, collidedP0, collidedP1, surface, perpendicularIntersect }
+      var data = collidersToCheck[i].collidesData(ballState.pos, ballState.radius);
+      if (data.collided) {
+        stuffWeCollidedWith.push(data);
       }
+
+      //if (data.collidedP0) {
+      //  stuffWeCollidedWith.push(new TerrainPoint(collidersToCheck[i].p0, collidersToCheck[i].adjacent0, collidersToCheck[i]));
+      //}
+      //if (data.collidedP1) {
+      //  stuffWeCollidedWith.push(new TerrainPoint(collidersToCheck[i].p1, collidersToCheck[i], collidersToCheck[i].adjacent1));
+      //}
+      //if (data.collidedLine) {
+      //  stuffWeCollidedWith.push(collidersToCheck[i]);
+      //}
+
+    } else {
+      console.log("doNotCheck contained colliders[i]: ", collidersToCheck[i]);
     }
   }
   var didWeCollide = false;
@@ -83,7 +90,5 @@ function getCollisionDataInList(ballState, collidersToCheck, doNotCheck) {
     didWeCollide = true;
   }
 
-  //create the CollisionData object to return to the physics function.
-  var data = new CollisionData(didWeCollide, stuffWeCollidedWith);
-  return data;
+  return stuffWeCollidedWith;
 }

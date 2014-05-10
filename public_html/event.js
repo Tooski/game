@@ -6,10 +6,11 @@
 // Currently input and render events exist. Physics events will probably follow shortly (for example, when the player passes from one terrain line to another, etc).
 function Event(eventTime) {    //eventTime is the gameTime that the event occurs at.
   this.time = eventTime;
-  this.handler = function (physEng) {   // NEEDS TO BE OVERRIDDEN IN CHILDREN CLASSES
-    throw "this abstract function should never call.";
-  };
 }
+
+Event.prototype.handler = function (physEng) {   // NEEDS TO BE OVERRIDDEN IN CHILDREN CLASSES
+  throw "this abstract function should never call.";
+};
 
 
 
@@ -230,6 +231,123 @@ function CollectibleEvent(eventTime) { // eventTime is gameTime at which the eve
 }
 CollectibleEvent.prototype = new Event();
 //CollectibleEvent.prototype.constructor = CollectibleEvent;
+
+
+
+
+
+
+// Abstract event class for the Collision Event when the player runs into a Level element. 
+function CollisionEvent(gameTimeOfCollision, collidedWithList, stateAtCollision) {
+  Event.apply(this, [gameTimeOfCollision])
+  
+  this.collidedWithList = collidedWithList;
+  this.state = stateAtCollision;
+}
+CollisionEvent.prototype = new Event();
+CollisionEvent.handler = function (physEng) {
+  throw "Abstract function should never be called.";
+}
+//CollisionEvent.prototype.constructor = CollisionEvent;
+
+
+
+
+
+
+// Event class for the TerrainCollision Event when the player runs into a TerrainLine. 
+function TerrainCollisionEvent(gameTimeOfCollision, collidedWithList, stateAtCollision, surfaceVec, normalVec) {
+  CollisionEvent.apply(this, [gameTimeOfCollision, collidedWithList, stateAtCollision]);
+
+  this.surfaceVec = surfaceVec;
+  this.normalVec = normalVec;
+
+
+  this.handler = function (physEng) {
+
+
+
+
+
+
+
+
+
+
+    //OLD
+
+    //console.log("START handleTerrainAirCollision");
+    var normalBallVel = this.state.vel.normalize();
+    var angleToNormal;
+    var collisionVec;
+    //if (stuffWeCollidedWith.length > 1) {
+    console.log("radius = ", this.state.radius);
+    collisionVec = this.normalVec;
+
+
+    var COLLISION_GLANCING_ENOUGH_TO_AUTO_LOCK = false; //TODO do some math
+    if (COLLISION_GLANCING_ENOUGH_TO_AUTO_LOCK) {
+      console.log("auto locked!?!?");
+      throw "AUTO LOCKED";
+      var surfaceVecNorm = collisionVecNorm.perp();      //TODO OHGOD REFACTOR TO THIS METHOD TAKING A COLLISION OBJECT THAT STORES NORMALS AND THE SINGLE SURFACE TO LOCK TO
+      var surfaceAngle = surfaceVecNorm.dot(normalBallVel);
+
+      //var velocityMag = ballState.vel.length();                     // DISABLED FOR REALISTIC PHYSICS
+      //var surfaceInvertAngle = surfaceVec.negate().dot(normalBallVel);
+
+      //if (surfaceAngle > surfaceInvertAngle) {
+      //  surfaceVec = surfaceVec.negate();
+      //}
+      //this.player.vel = surfaceVec.multf(velocityMag);              // END DISABLED FOR REALISTIC PHYSICS
+
+      this.player.pos = this.state.pos;
+      this.player.vel = projectVec2(this.state.vel, surfaceVecNorm);
+      this.player.airBorne = false;
+      this.player.surfaceLocked = inputState.lock;
+
+
+      // IF PLAYER IS HOLDING LOCK, ATTEMP TO LOCK IF WITHIN BOUNDARIES! TODO IS THE NEGATIVE LOCK_MIN_ANGLE CHECK NEEDED!!!?
+    } else if (this.inputState.lock && (angleToNormal > LOCK_MIN_ANGLE || angleToNormal < -LOCK_MIN_ANGLE)) {
+      console.log("locked!?!?");
+      throw "LOCKED";
+      //var velocityMag = ballState.vel.length();                 // COMMENTED OUT FOR REALISTIC PHYSICS
+      //var surfaceVecNorm = stuffWeCollidedWith[0].getSurfaceAt(ballState.pos); // REFACTOR TO USE NEW COLLISION OBJECT
+      //var surfaceAngle = surfaceVecNorm.dot(normalBallVel);
+      //var surfaceInvertAngle = (surfaceVec.negate()).dot(normalBallVel);
+
+      //if (surfaceAngle > surfaceInvertAngle) {
+      //  surfaceVec = surfaceVec.negate();
+      //}
+      //this.player.vel = surfaceVec.multf(velocityMag);          // END COMMENTED OUT FOR REALISTIC PHYSICS
+
+
+      var surfaceVecNorm = collisionVecNorm.perp();       // REALISTIC ADDITIONS START
+      this.player.vel = projectVec2(this.state.vel, surfaceVecNorm);                                             // TODO DOES NOT TAKE INTO ACCOUNT TOUCHING THE END OF A LINE.
+      // REALISTIC ADDITIONS END
+      this.player.pos = this.state.pos;
+      this.player.airBorne = false;
+      this.player.surfaceLocked = inputState.lock;
+      this.player.surfaceOn = this.collidedWithList[0]; // TODO REFACTOR TO USE NEW COLLISION OBJECT
+
+
+      // BOUNCE. TODO implement addition of normalVector * jumpVel to allow jump being held to bounce him higher?   perhaps just buffer jump events.      
+    } else {
+      //console.log(collisionVec.normalize());
+      this.player.vel = getReflectionVector(normalBallVel, this.collidedWithList[0].getNormalAt(this.state.pos, this.state.radius)).multf(this.state.vel.length() * DFLT_bounceSpeedLossRatio); //TODO REFACTOR TO USE NEW COLLISION OBJECT
+      //this.player.vel = getReflectionVector(ballState.vel, collisionVec.normalize()).multf(DFLT_bounceSpeedLossRatio); //TODO REFACTOR TO USE NEW COLLISION OBJECT          // COLLISIONVEC AVERAGE VERSION
+      this.player.pos = this.state.pos;
+      this.player.airBorne = true;
+      //this.player.surfaceOn = null;      //TODO remove. This shouldnt be necessary as should be set when a player leaves a surface.
+    }
+    this.player.timeDelta = this.state.timeDelta;
+  }
+}
+TerrainCollisionEvent.prototype = new CollisionEvent();
+//TerrainCollisionEvent.prototype.constructor = TerrainCollisionEvent;
+
+
+
+
 
 
 
