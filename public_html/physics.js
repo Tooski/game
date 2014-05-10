@@ -962,9 +962,9 @@ var DFLT_aBoostLRvel = 1500;
 var DFLT_aBoostDownVel = 1500;
 
 // CONST PULSE INPUTS
-var DFLT_jumpVelNormPulse = 400;
-var DFLT_doubleJumpVelYPulse = 400;
-var DFLT_doubleJumpVelYMin = 400;
+var DFLT_jumpVelNormPulse = 2000;
+var DFLT_doubleJumpVelYPulse = 2000;
+var DFLT_doubleJumpVelYMin = 2000;
 
 // OTHER CHAR DEFAULTS
 var DFLT_numAirCharges = 1;
