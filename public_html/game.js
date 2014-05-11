@@ -172,7 +172,7 @@ GameEngine.prototype.start = function() {
     })();
 }
 
-
+var showPause = false;
 
 GameEngine.prototype.startInput = function() {
     console.log('Starting input');
@@ -273,6 +273,18 @@ GameEngine.prototype.startInput = function() {
             //console.log("Lock pressed");
           } else if (e.keyCode === gameEngine.input.pauseKey && gameEngine.input.pausePressed === false) {
             gameEngine.setPause(true, performance.now());
+			if (!showPause) {
+				var pause = document.getElementById('pause');
+				pause.style.display = '';
+				showPause = true;
+				levelTime.pause();
+			}
+			else {
+				var pause = document.getElementById('pause');
+				pause.style.display = 'none';
+				showPause = false;
+				levelTime.start();
+			}
             //console.log("Pause pressed");
 			    }
         }
@@ -621,6 +633,17 @@ levelTimer.prototype.pause = function() {
 levelTimer.prototype.reset = function() {
 	min = 0;
 	sec = 0;
+}
+
+//Pause menu
+function PauseMenu () {
+	console.log("Create the menu!");
+	var newC = document.createElement('canvas');
+	newC.id = 'pause';
+	newC.height = '600';
+	newC.width = '300';
+	newC.setAttribute("style",'position:absolute; z-index: 2; left:500px; top:100px; background: white');
+	document.body.appendChild(newC);
 }
 
 
