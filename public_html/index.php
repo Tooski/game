@@ -46,7 +46,8 @@ canvas { display:block; } /* To remove the scrollbars */
         </div>-->
 
         <canvas id="gameWorld" style="position:absolute; border: 0px solid brown; z-index: 1; background: white"></canvas>
-		<canvas id="score" style="position:absolute; z-index: 2; background: red" height="150px" width="200px"></canvas>
+		<canvas id="time" style="position:absolute; z-index: 2;  left:1150px; top:25px; background: white" height="50px" width="100px"></canvas>
+		<canvas id="score" style="position:absolute; z-index: 2;  left:25px; top:25px; background: white" height="50px" width="100px">
 		<!--<canvas id="time" style="z-index: 2; background: red"></canvas>-->
 </body>
 </html>

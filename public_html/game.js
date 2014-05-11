@@ -571,7 +571,57 @@ GameBoard.prototype.draw = function(ctx) {
 }
 
 
+//Level timer
+var min = 0;
+var sec = 0;
+var add = "0";
 
+function levelTimer() {
+	var time;
+}
+
+levelTimer.prototype.start = function() {
+	this.time = setInterval(this.updateTime,1000);
+}
+
+levelTimer.prototype.updateTime = function() {
+	if (sec === 59) {
+		sec = 0;
+		min += 1;
+	}
+	else {
+		sec += 1;
+	}
+	if (sec < 10) {
+		add = "0";
+	}
+	else {
+		add = "";
+	}
+/*
+	var oldC = document.getElementById('score');
+	document.removeChild(oldC);
+	var newC = document.createElement('canvas');
+	newC.id = 'score';
+	newC.style = 'position:absolute; z-index: 2;  left:1100px; top:25px; background: white';
+	newC.height = '100';
+	newC.width = '150';
+	document.body.appendChild(newC);
+*/
+	ctx2.clearRect(0,0,canvas2.width,canvas2.height);
+	timeTest(ctx2);
+	//console.log("Time = " + min + ":" + add + sec);
+
+}
+
+levelTimer.prototype.pause = function() {
+	clearInterval(this.time);
+}
+
+levelTimer.prototype.reset = function() {
+	min = 0;
+	sec = 0;
+}
 
 
 // the "main" code begins here
@@ -579,10 +629,13 @@ GameBoard.prototype.draw = function(ctx) {
 
 var canvas;
 var canvas2;
+var canvas3;
 var initWidth;
 var initHeight;
 var ctx;
 var ctx2;
+var ctx3;
+var levelTime;
 var initScale = 0;
 // The assets
 var imagePaths = ["assets/backgroundTile.png", "assets/midground-Tile-150x150.png", "assets/Megaman8bit.jpg", "assets/enemy.jpg", "assets/HamsterSprites.png", "assets/dirt.jpg"];
@@ -604,8 +657,12 @@ ASSET_MANAGER.downloadAll(function() {
     console.log("starting up da sheild");
     canvas = document.getElementById('gameWorld');
      ctx = canvas.getContext('2d');
-	canvas2 = document.getElementById('score');
+	canvas2 = document.getElementById('time');
 	 ctx2 = canvas2.getContext('2d');
+	canvas3 = document.getElementById('score');
+	 ctx3 = canvas3.getContext('2d');
+	levelTime= new levelTimer();
+	 levelTime.start();
           var timer = new Timer();
      player  = new Player(canvas.width/2, canvas.height/2, timer);
     canvas.tabIndex = 1;
@@ -615,6 +672,8 @@ ASSET_MANAGER.downloadAll(function() {
 
     initScale = initWidth / 1920;
     loadingScreen(ctx);
+	timeTest(ctx2);
+	scoreTest(ctx3);
     
     
      game.settings.query(function(){ // if callback is returned, run the application.
@@ -699,8 +758,18 @@ function localToWorld(value, dimension) {
 
 function loadingScreen(ctx) {
     var px = 30;
-    ctx.font =  (px*initScale) + "px Arial";
+    ctx.font =  (px) + "px Arial";
     ctx.fillText("Loading",canvas.width/2, canvas.height/2);
+}
+
+function timeTest(ctx) {
+    ctx.font =  "20px Arial";
+    ctx.fillText(min + ":" + add + sec,30,35);
+}
+
+function scoreTest(ctx) {
+    ctx.font =  "20px Arial";
+    ctx.fillText("30,000",20,35);
 }
 
 
