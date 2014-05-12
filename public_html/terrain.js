@@ -111,12 +111,13 @@ function TerrainLine(point0, point1, player, adjacent0, adjacent1, normal) {
     var vCD = pC.subtract(pD);       // find the vector from ball to the perpendicular intersection.
 
     var collision = false;
-    var vABlen = vAB.length();
-    if (vCD.length() <= radius && vAD.length() < vABlen && vAB.subtract(vAD).length() < vABlen) {
+    var radiussq = radius * radius;
+    var vABlensq = vAB.lengthsq();
+    if (vCD.lengthsq() <= radiussq && vAD.lengthsq() < vABlensq && vAB.subtract(vAD).lengthsq() < vABlensq) {
       // THEN THE CENTER OF OUR CIRCLE IS WITHIN THE PERPENDICULAR BOUNDS OF THE LINE SEGMENT, AND CIRCLE IS LESS THAN RADIUS AWAY FROM THE LINE.
       //console.log("Within perpendicular line bounds.");
       collision = true;
-    } else if (vAC.length() <= radius || vBC.length() <= radius) {
+    } else if (vAC.lengthsq() <= radiussq || vBC.lengthsq() <= radiussq) {
       // WE ARE OFF THE SIDES OF THE PERPENDICULAR BOUNDING BOX, BUT WE STILL COLLIDED WITH THE LINES ENDPOINT.
       //console.log("Outside line bounds, hit endpoint");
       collision = true;
@@ -161,10 +162,10 @@ function TerrainLine(point0, point1, player, adjacent0, adjacent1, normal) {
     var vAD = projectVec2(vAC, vAB); //project the vector to the ball onto the surface.
     var pD = pA.add(vAD);            // find the perpendicular intersect of the surface.
     var vCD = pC.subtract(pD);       // find the vector from ball to the perpendicular intersection.
+    
+    var vABlensq = vAB.lengthsq();
 
-    var vABlen = vAB.length();
-
-    if (vCD.length() <= radius && vAD.length() < vABlen && vAB.subtract(vAD).length() < vABlen) {
+    if (vAD.lengthsq() < vABlensq && vAB.subtract(vAD).lengthsq() < vABlensq) {
       // THEN THE CENTER OF OUR CIRCLE IS WITHIN THE PERPENDICULAR BOUNDS OF THE LINE SEGMENT, AND CIRCLE IS LESS THAN RADIUS AWAY FROM THE LINE.
       return true;
     } else {
@@ -191,17 +192,17 @@ function TerrainLine(point0, point1, player, adjacent0, adjacent1, normal) {
     var vCD = pC.subtract(pD);       // find the vector from ball to the perpendicular intersection.
 
     var data = { collision: false, collidedLine: false, collidedP0: false, collidedP1: false, surface: this, perpendicularIntersect: pD };
-
-    var vABlen = vAB.length();
-    if (vAC.length() <= radius) {
+    var radiussq = radius * radius;
+    var vABlensq = vAB.lengthsq();
+    if (vAC.lengthsq() <= radiussq) {
       data.collision = true;
       data.collidedP0 = true;
     }
-    if (vBC.length() <= radius) {
+    if (vBC.lengthsq() <= radiussq) {
       data.collision = true;
       data.collidedP1 = true;
     }
-    if (vCD.length() <= radius && vAD.length() < vABlen && vAB.subtract(vAD).length() < vABlen) {
+    if (vCD.lengthsq() <= radiussq && vAD.lengthsq() < vABlensq && vAB.subtract(vAD).lengthsq() < vABlensq) {
       // THEN THE CENTER OF OUR CIRCLE IS WITHIN THE PERPENDICULAR BOUNDS OF THE LINE SEGMENT, AND CIRCLE IS LESS THAN RADIUS AWAY FROM THE LINE.
       //console.log("Within perpendicular line bounds.");
       data.collision = true;

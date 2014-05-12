@@ -41,13 +41,12 @@ performance.now = (function () {
 
 
 
-var COLLISION_PRECISION_ITERATIONS = 10;
 //DEFAULT PHYSICS VALS, TWEAK HERE
 // WIDTH  = 1920 UNITS
 // HEIGHT = 1080 UNITS
 var DFLT_gravity = 0;        // FORCE EXERTED BY GRAVITY IS 400 ADDITIONAL UNITS OF VELOCITY DOWNWARD PER SECOND. 
-var DFLT_autoLockThreshold = 200;
 var DFLT_lockThreshold = 1000;
+var DFLT_autoLockThreshold = 200;
 
 var DFLT_JUMP_HOLD_TIME = 0.15; // To jump full height, jump must be held for this long. Anything less creates a fraction of the jump height based on the fraction of the full time the button was held. TODO implement.
 
@@ -140,12 +139,18 @@ function StepResult (state, eventArray) {
  * This exists because it will be used later on to implement other terrain types, whose static
  * effect values will be passed in here.
  */
-function PhysParams(gravity, autoLockThreshold) {
-  if (!(gravity && autoLockThreshold)) {
+function PhysParams(gravity, lockThreshold, autoLockThreshold) {
+  if (!((gravity || gravity === 0) && (lockThreshold || lockThreshold === 0) && (autoLockThreshold || autoLockThreshold === 0))) {
+    console.log("");
+    console.log("");
+    console.log("gravity: ", gravity);
+    console.log("lockThreshold: ", lockThreshold);
+    console.log("autoLockThreshold: ", autoLockThreshold);
     throw "missing PhysParams";
   }
-  this.gravity = gravity;
-  this.autoLockThreshold = autoLockThreshold;
+  this.gravity = gravity;                           // Force of gravity. Hopefully you knew that.
+  this.lockThreshold = lockThreshold;               // Force of a collision after which locking is disallowed.
+  this.autoLockThreshold = autoLockThreshold;       // Force of a collision after which autoLocking is disallowed.
 }
 
 
@@ -160,8 +165,29 @@ function ControlParams(gLRaccel, aLRaccel, aUaccel, aDaccel, gUaccel, gDaccel,
 
   if (!(gLRaccel && aLRaccel && aUaccel && aDaccel && gUaccel && gDaccel &&   //DEBUG TODO REMOVE
   gBoostLRvel && aBoostLRvel && aBoostDownVel && jumpVelNormPulse && doubleJumpVelYPulse &&
-  doubleJumpVelYMin && numAirCharges && dragBaseAmt && dragTerminalVel && dragExponent &&
-  jumpSurfaceSpeedLossRatio && reverseAirJumpSpeed && lockThreshold)) {
+  doubleJumpVelYMin && numAirCharges &&
+    //dragBaseAmt && dragTerminalVel && dragExponent &&
+  jumpSurfaceSpeedLossRatio && reverseAirJumpSpeed)) {
+    console.log("");
+    console.log("");
+    console.log("gLRaccel: ", gLRaccel);
+    console.log("aLRaccel: ", aLRaccel);
+    console.log("aUaccel: ", aUaccel);
+    console.log("aDaccel: ", aDaccel);
+    console.log("gUaccel: ", gUaccel);
+    console.log("gDaccel: ", gDaccel);
+    console.log("gBoostLRvel: ", gBoostLRvel);
+    console.log("aBoostLRvel: ", aBoostLRvel);
+    console.log("aBoostDownVel: ", aBoostDownVel);
+    console.log("jumpVelNormPulse: ", jumpVelNormPulse);
+    console.log("doubleJumpVelYPulse: ", doubleJumpVelYPulse);
+    console.log("doubleJumpVelYMin: ", doubleJumpVelYMin);
+    console.log("numAirCharges: ", numAirCharges);
+    console.log("dragBaseAmt: ", dragBaseAmt);
+    console.log("dragTerminalVel: ", dragTerminalVel);
+    console.log("dragExponent ", dragExponent);
+    console.log("jumpSurfaceSpeedLossRatio: ", jumpSurfaceSpeedLossRatio);
+    console.log("reverseAirJumpSpeed: ", reverseAirJumpSpeed);
     throw "missing ControlParams";
   }
 
@@ -179,7 +205,6 @@ function ControlParams(gLRaccel, aLRaccel, aUaccel, aDaccel, gUaccel, gDaccel,
   this.doubleJumpVelYMin = doubleJumpVelYMin;           //min y velocity that a double jump must result in.
   this.jumpSurfaceSpeedLossRatio = jumpSurfaceSpeedLossRatio;   // When jumping from the ground, the characters velocity vector is decreased by this ratio before jump pulse is added. 
   this.reverseAirJumpSpeed = reverseAirJumpSpeed;
-  this.lockThreshold = lockThreshold;                 //Force of a collision after which locking is disallowed.
 
   this.numAirCharges = numAirCharges;       //number of boost / double jumps left in the air.
 
@@ -241,13 +266,15 @@ function TimeManager(time, referenceBrowserTime, referenceGameTime, timeRate) {
 
 
 
-function PlayerModel(controlParams, physParams, time, radius, pos, vel, accel       //NEW
+function PlayerModel(controlParams, physParams, time, radius, pos, vel, accel, surfaceOrNull       //NEW
   //, accelPrime, accelDPrime
 		) {
   State.apply(this, [time, radius, pos, vel, accel 
 			//, accelPrime, accelDPrime
   ]);
 
+
+  this.replayData = [];
 
   /**
    * ANIMATION FIELDS FOR MIKE!
@@ -270,7 +297,7 @@ function PlayerModel(controlParams, physParams, time, radius, pos, vel, accel   
   //END ANIMATION FIELDS
 
 
-  this.controlParameters = controlParams;
+  this.controlParams = controlParams;
   this.physParams = physParams;
   this.inputState = new InputState();
   this.completionState = null;
@@ -299,7 +326,12 @@ function PlayerModel(controlParams, physParams, time, radius, pos, vel, accel   
    * updates the playerModel to the provided state.
    */
   this.updateToState = function (state) {
-    if (!(state.time && state.radius && state.pos && state.vel && state.accel)) {
+    if (!(
+      (state.time  || state.time === 0) &&
+      (state.radius || state.radius === 0)  &&
+      (state.pos || state.pos === 0) &&
+     (state.vel || state.vel === 0) &&
+      (state.accel || state.accel === 0))) {
       console.log("Missing fields in state.");
       console.log("time: ", state.time);
       console.log("radius: ", state.radius);
@@ -326,7 +358,7 @@ function PlayerModel(controlParams, physParams, time, radius, pos, vel, accel   
 	// Figures out which vector update call to use and then updates vectors.
   this.updateVecs = function (inputState) {
     //console.log(" in AccelState update function. inputState ", inputState);
-    if (!this.player.surface) {
+    if (!this.surface) {
       //console.log("    Calling updateAir, player.surfaceOn === null.");
       this.updateVecsAir(inputState);
     } else {
@@ -340,18 +372,18 @@ function PlayerModel(controlParams, physParams, time, radius, pos, vel, accel   
   this.updateVecsGround = function (inputState) {  // DONE? TEST
     //console.log("  in AccelState.updateGround(), setting accelVec. ");
     var baseForceX = 0.0;
-    var baseForceY = this.physParameters.gravity;
+    var baseForceY = this.physParams.gravity;
 
     if (inputState.up) {
-      baseForceY -= this.controlParameters.gUaccel;
+      baseForceY -= this.controlParams.gUaccel;
     } else if (inputState.down) {
-      baseForceY += this.controlParameters.gDaccel;
+      baseForceY += this.controlParams.gDaccel;
     }
 
     if (inputState.left) {
-      baseForceX -= this.controlParameters.gLRaccel;
+      baseForceX -= this.controlParams.gLRaccel;
     } else if (inputState.down) {
-      baseForceX += this.controlParameters.gLRaccel;
+      baseForceX += this.controlParams.gLRaccel;
     }
 
 
@@ -389,22 +421,22 @@ function PlayerModel(controlParams, physParams, time, radius, pos, vel, accel   
   this.updateVecsAir = function (inputState) {  // DONE? TEST
     console.log("in AccelState.updateAir(), setting accelVec. ");
     var baseForceX = 0.0;
-    var baseForceY = this.physParameters.gravity;
+    var baseForceY = this.physParams.gravity;
 
     if (inputState.up) {
       //console.log("   inputState.up true");
-      baseForceY -= this.controlParameters.aUaccel;
+      baseForceY -= this.controlParams.aUaccel;
     } else if (inputState.down) {
       //console.log("   inputState.down true");
-      baseForceY += this.controlParameters.aDaccel;
+      baseForceY += this.controlParams.aDaccel;
     }
 
     if (inputState.left) {
       //console.log("   inputState.left true");
-      baseForceX -= this.controlParameters.aLRaccel;
+      baseForceX -= this.controlParams.aLRaccel;
     } else if (inputState.right) {
       //console.log("   inputState.right true");
-      baseForceX += this.controlParameters.aLRaccel;
+      baseForceX += this.controlParams.aLRaccel;
     }
 
 
@@ -430,20 +462,20 @@ PlayerModel.prototype.doubleJump = function () {
   animationSetPlayerDoubleJumping(this, this.time);
   //add end animation event for double jump. TODO
 
-  vely = this.vel.y - this.controlParameters.doubleJumpVelYPulse;
+  vely = this.vel.y - this.controlParams.doubleJumpVelYPulse;
 
-  if (vely > -this.controlParameters.doubleJumpVelYMin) {
+  if (vely > -this.controlParams.doubleJumpVelYMin) {
     //Min double jump value
-    vely = -this.controlParameters.doubleJumpVelYMin;
+    vely = -this.controlParams.doubleJumpVelYMin;
   }
   //this.jumpVelNormPulse = jumpVelNormPulse;             //velocity that a surface jump sets from the normal.
   //this.doubleJumpVelYPulse = doubleJumpVelYPulse;       //y velocity that a double jump adds.
   //this.doubleJumpVelYMin = doubleJumpVelYMin;           //min y velocity that a double jump must result in.
 
   if (this.vel.x < 0 && input.right) { //moving left, holding right\
-    velx = this.controlParameters.reverseAirJumpSpeed;
+    velx = this.controlParams.reverseAirJumpSpeed;
   } else if (this.vel.x > 0 && input.left) { //moving right, holding left
-    velx = -this.controlParameters.reverseAirJumpSpeed;
+    velx = -this.controlParams.reverseAirJumpSpeed;
   } else {                          // continue moving as normal.
     velx = this.vel.x;
   }
@@ -502,7 +534,7 @@ function PhysEng(playerModel, terrainManager) {
     throw "need to pass a terrainManager into PhysEng constructor.";
   }
   // Self explanitory
-  this.MAX_MOVE_DIST = this.player.radius * MAX_MOVE_FRACTION_OF_RADIUS; 
+  this.MAX_MOVE_DIST = playerModel.radius * MAX_MOVE_FRACTION_OF_RADIUS;
 
   // The above but squared. Useful
   this.MAX_MOVE_DIST_SQ = this.MAX_MOVE_DIST * this.MAX_MOVE_DIST;
@@ -521,7 +553,7 @@ function PhysEng(playerModel, terrainManager) {
 
   // The level terrainManager.
   this.tm = terrainManager;
-  this.player.pos = tm.playerStartPos;    //sets player position to the level starting position.
+  this.player.pos = this.tm.playerStartPos;    //sets player position to the level starting position.
 
   this.timeMgr = new TimeManager(0.0, 0.0, 0.0, 1); // TODO DO THE THING
 
@@ -559,18 +591,25 @@ function PhysEng(playerModel, terrainManager) {
   this.ReplayData = [];
 	
 	
-  if (PHYS_DEBUG) {
     this.printStartState();
-  }
+}
+
+/**
+ * Update function for physEng. If you want it to use browser time you need to add a renderEvent at the browser timestamp to newEvents before passing it into update.
+ */
+PhysEng.prototype.update = function (time, newEvents) {
+  console.log("time ", time);
+  newEvents.push(new RenderEvent(time));
+  this.updatePhys(newEvents, DEBUG_EVENT_AT_A_TIME);
 }
 
 
 /**
  * Update function for physEng. If you want it to use browser time you need to add a renderEvent at the browser timestamp to newEvents before passing it into update.
  */
-PhysEng.prototype.update = function (newEvents) {
+PhysEng.prototype.updatePhys = function (newEvents, stepToRender) {
   if (this.inputEventHeap.size() > 0 && !this.inReplay) {
-    throw "why the hell are we starting update with events still in inputEventHeap thing? *grumbles* better ways to implement replays....";
+    //throw "why the hell are we starting update with events still in inputEventHeap thing? *grumbles* better ways to implement replays....";
   }
   if (this.tweenEventHeap.size() > 0 && !this.inReplay) {
     throw "why the hell are we starting update with events still in tweenEventHeap thing?";
@@ -579,7 +618,6 @@ PhysEng.prototype.update = function (newEvents) {
     throw "you need to pass an array of newEvents into physEng.update(targetBrowserTime, newEvents). It can be empty, but it must exist.";
   }
 
-  var endAtEvent = DEBUG_EVENT_AT_A_TIME;
 
   //var gameTime = this.timeMgr.convertBrowserTime(targetBrowserTime);
 
@@ -587,21 +625,18 @@ PhysEng.prototype.update = function (newEvents) {
   for (var i = 0; i < newEvents.length; i++) {			//Put newEvents into eventHeap.
     if (newEvents[i] instanceof InputEvent) {
       this.convertEventBrowserTime(newEvents[i]);
-      this.replayData.push(newEvents[i]);
+      this.player.replayData.push(newEvents[i]);
     } else if (newEvents[i] instanceof RenderEvent) {
       renderEventCount++;
       if (renderEventCount > 1) {
         throw "recieved 2 render events in 1 update, cannot continue.";
       }
+      console.log("convertEventBrowserTime for a renderEvent");
       this.convertEventBrowserTime(newEvents[i]);
     }
 
     this.inputEventHeap.push(newEvents[i]);
   }
-  //if (!DEBUG_EVENT_AT_A_TIME) {
-  //  stepToRenderEvent = true;
-  //  //this.eventHeap.push(new RenderEvent(gameTime));
-  //}
 
 
   var eventsArray = this.getEventHeapArray();
@@ -623,13 +658,15 @@ PhysEng.prototype.update = function (newEvents) {
     }
 
     var currentEvent = this.popMostRecentEvent();
+    console.log("stepResult: ", stepResult);
+    console.log("currentEvent: ", currentEvent);
     if (currentEvent.time != stepResult.state.time) {     //DEBUG CASE TESTING TODO REMOVE
       throw "times dont match between the event and the stepResult.state";
     }
-    currentEvent.handle(this);
+    currentEvent.handler(this);
 
     this.syncEvent();
-  } while (stepToRenderEvent && (!currentEvent instanceof RenderEvent));
+  } while (stepToRender && (!currentEvent instanceof RenderEvent));
   console.log("finished do while loop in update, currentEvent = ", currentEvent);
 
   return this.player.completionState;
@@ -681,9 +718,19 @@ PhysEng.prototype.unpause = function (browserTime) {
 PhysEng.prototype.convertEventBrowserTime = function (event) {
   if (this.isPaused) {
     event.time = this.timeMgr.referenceGameTime;
+    event.valid = true;
   } else {
     event.time = this.timeMgr.convertBrowserTime(event.browserTime);
+   
+    event.valid = true;
   }
+  if (!(event.time >= 0 && event.time <= 10000000000000000000000)) {
+    console.log("bad event time conversion.");
+    console.log("event.browserTime: ", event.browserTime);
+    console.log("event.time: ", event.time);
+    console.log("this.timeMgr: ", this.timeMgr);
+    throw "bad event conversion time";
+  }     // DEBUG TODO REMOVE
 }
 
 
@@ -693,7 +740,8 @@ PhysEng.prototype.convertEventBrowserTime = function (event) {
  */
 PhysEng.prototype.attemptNextStep = function (goalGameTime) {
   var stepCount = 1;
-  while (player.velocity.multf(goalGameTime / stepCount).lengthsq() > this.MAX_MOVE_DISTANCE_SQ)   // Figure out how many steps to divide this step into.
+  console.log(this.player);
+  while (this.player.vel.multf(goalGameTime / stepCount).lengthsq() > this.MAX_MOVE_DISTANCE_SQ)   // Figure out how many steps to divide this step into.
   {
     stepCount *= 2;
   }
@@ -704,35 +752,40 @@ PhysEng.prototype.attemptNextStep = function (goalGameTime) {
   var stepFraction = 0.0;
   var collisionList = [];
   var tweenTime;
-  for (var i = 1; i < stepCount + 1 && collisionList.length === 0; i++) {     // Take steps.
+  var tempState;
+  for (var i = 1; i < stepCount && collisionList.length === 0; i++) {     // Take steps.
     stepFraction = i / stepCount;
     tweenTime = startGameTime + stepFraction * deltaTime;
 
-    var tempState = this.stepStateByTime(this.player, tweenTime);
+    tempState = this.stepStateByTime(this.player, tweenTime);
 
-    collisionList = getCollisionsInList(tempState, this.tm.terrain, []);    //TODO MINIMIZE THIS LIST SIZE, THIS IS IDIOTIC
+    collisionList = getCollisionsInList(tempState, this.tm.terrainList, []);    //TODO MINIMIZE THIS LIST SIZE, THIS IS IDIOTIC
   }
 
   var events = [];
   if (collisionList.length > 0) {   // WE COLLIDED WITH STUFF AND EXITED THE LOOP EARLY, handle.
-    events = findEventsFromCollisions(collisionList);
-  } else if (tweenTime !== goalGameTime) {
-    console.log("tweenTime: ", tweenTime, " goalGameTime: ", goalGameTime);
-    throw "yeah I'm gonna need to manually update to goalTime cuz this isnt working";
-  } else {                                                        // NO COLLISIONS.
-    console.log("attemptNextStep, no collisions and resulting times matched:");
-    console.log("tweenTime: ", tweenTime, " goalGameTime: ", goalGameTime);
+    events = findEventsFromCollisions(collisionList);         // a bunch of TerrainCollisionEvent's hopefully?
+    tempState = events[0].state;
   }
-  //else {                // TRY FINAL STEP
-  //  tweenTime = goalGameTime;
-  //  var tempState = this.stepStateByTime(this.player, tweenTime);
-  //  collisionList = getCollisionsInList(tempState, this.tm.terrain, []);    //TODO MINIMIZE THIS LIST SIZE, THIS IS IDIOTIC
-
-  //  if (collisionList.length > 0) {   // WE COLLIDED WITH STUFF AND EXITED THE LOOP EARLY
-  //    events = findEventsFromCollisions(collisionList);
-  //  }
+  //else if (tweenTime !== goalGameTime) {
+  //  console.log("tweenTime: ", tweenTime, " goalGameTime: ", goalGameTime);
+  //  throw "yeah I'm gonna need to manually update to goalTime cuz this isnt working";
+  //} 
+  //else {                                                        // NO COLLISIONS.
+  //  console.log("attemptNextStep, no collisions and resulting times matched:");
+  //  console.log("tweenTime: ", tweenTime, " goalGameTime: ", goalGameTime);
   //}
-  var results = new StepResult(endState, eventArray);
+  else {                // TRY FINAL STEP
+    tweenTime = goalGameTime;
+    tempState = this.stepStateByTime(this.player, tweenTime);
+    collisionList = getCollisionsInList(tempState, this.tm.terrainList, []);    //TODO MINIMIZE THIS LIST SIZE, THIS IS IDIOTIC
+
+    if (collisionList.length > 0) {   // WE COLLIDED WITH STUFF AND EXITED THE LOOP EARLY
+      events = findEventsFromCollisions(collisionList);
+      tempState = events[0].state;
+    }
+  }
+  var results = new StepResult(tempState, events);
   //TODO UPDATE PLAYER HERE???
   return results;
 }
@@ -972,7 +1025,7 @@ PhysEng.prototype.getMinIndexInEventList = function (eventHeapList) {
   var min = 10000000000000000;
   var minIndex = 0;
   for (var i = 0; i < eventHeapList.length; i++) {
-    if (min > eventHeapList[i].peek().time) {
+    if (eventHeapList[i].peek() && min > eventHeapList[i].peek().time) {
       min = eventHeapList[i].peek().time;
       minIndex = i;
     }
@@ -987,7 +1040,7 @@ PhysEng.prototype.getMinIndexInEventList = function (eventHeapList) {
 PhysEng.prototype.getMinTimeInEventList = function (eventHeapList) {
   var min = 10000000000000000;
   for (var i = 0; i < eventHeapList.length; i++) {
-    if (min > eventHeapList[i].peek().time) {
+    if (eventHeapList[i].peek() && min > eventHeapList[i].peek().time) {
       min = eventHeapList[i].peek().time;
     }
   }
@@ -1423,87 +1476,89 @@ function animationReset(p) {
 
 // Self explanatory. For debug purposes.
 PhysEng.prototype.printState = function (printExtraPlayerDebug, printExtraControlsDebug, printExtraPhysDebug) {
-  if (FRAMECOUNTER === PRINTEVERY) {
+  //if (FRAMECOUNTER === PRINTEVERY) {
 
-    console.log("Player: ");
-    console.log("  pos: %.2f, %.2f", this.player.pos.x, this.player.pos.y);
-    console.log("  vel: %.2f, %.2f", this.player.vel.x, this.player.vel.y);
-    if (printExtraPlayerDebug) {
-      //console.log("  radius: %.2f", this.player.radius);
-      console.log("  onGround: %s", this.player.onGround);
-      console.log("  gLocked: %s", this.player.gLocked);
-      console.log("  surfaceOn: %s", this.player.surfaceOn);
-    }
-    console.log("");
+  //  console.log("Player: ");
+  //  console.log("  pos: %.2f, %.2f", this.player.pos.x, this.player.pos.y);
+  //  console.log("  vel: %.2f, %.2f", this.player.vel.x, this.player.vel.y);
+  //  if (printExtraPlayerDebug) {
+  //    //console.log("  radius: %.2f", this.player.radius);
+  //    console.log("  onGround: %s", this.player.onGround);
+  //    console.log("  gLocked: %s", this.player.gLocked);
+  //    console.log("  surfaceOn: %s", this.player.surfaceOn);
+  //  }
+  //  console.log("");
 
-    if (printExtraControlsDebug) {
-      console.log("Controls: ");
+  //  if (printExtraControlsDebug) {
+  //    console.log("Controls: ");
 
-      console.log("  gLRaccel: %.2f", this.player.controlParameters.gLRaccel);
-      console.log("  aLRaccel: %.2f", this.player.controlParameters.aLRaccel);
-      console.log("  gUaccel: %.2f", this.player.controlParameters.gUaccel);
-      console.log("  gDaccel: %.2f", this.player.controlParameters.gDaccel);
-      console.log("  aUaccel: %.2f", this.player.controlParameters.aUaccel);
-      console.log("  aDaccel: %.2f", this.player.controlParameters.aDaccel);
-      console.log("  gBoostLRvel: %.2f", this.player.controlParameters.gBoostLRvel);
-      console.log("  aBoostLRvel: %.2f", this.player.controlParameters.aBoostLRvel);
-      console.log("  aBoostDownVel: %.2f", this.player.controlParameters.aBoostDownVel);
-      console.log("  jumpVelNormPulse: %.2f", this.player.controlParameters.jumpVelNormPulse);
-      console.log("  doubleJumpVelYPulse: %.2f", this.player.controlParameters.doubleJumpVelYPulse);
-      console.log("  doubleJumpVelYMin: %.2f", this.player.controlParameters.doubleJumpVelYMin);
-      console.log("  numAirCharges: %.2f", this.player.controlParameters.numAirCharges);
-      console.log("  dragBase: %.2f", this.player.controlParameters.dragBase);
-      console.log("  dragTerminalVel: %.2f", this.player.controlParameters.dragTerminalVel);
-      console.log("  dragExponent: %.2f", this.player.controlParameters.dragExponent);
-      console.log("");
-    }
+  //    console.log("  gLRaccel: %.2f", this.player.controlParams.gLRaccel);
+  //    console.log("  aLRaccel: %.2f", this.player.controlParams.aLRaccel);
+  //    console.log("  gUaccel: %.2f", this.player.controlParams.gUaccel);
+  //    console.log("  gDaccel: %.2f", this.player.controlParams.gDaccel);
+  //    console.log("  aUaccel: %.2f", this.player.controlParams.aUaccel);
+  //    console.log("  aDaccel: %.2f", this.player.controlParams.aDaccel);
+  //    console.log("  gBoostLRvel: %.2f", this.player.controlParams.gBoostLRvel);
+  //    console.log("  aBoostLRvel: %.2f", this.player.controlParams.aBoostLRvel);
+  //    console.log("  aBoostDownVel: %.2f", this.player.controlParams.aBoostDownVel);
+  //    console.log("  jumpVelNormPulse: %.2f", this.player.controlParams.jumpVelNormPulse);
+  //    console.log("  doubleJumpVelYPulse: %.2f", this.player.controlParams.doubleJumpVelYPulse);
+  //    console.log("  doubleJumpVelYMin: %.2f", this.player.controlParams.doubleJumpVelYMin);
+  //    console.log("  numAirCharges: %.2f", this.player.controlParams.numAirCharges);
+  //    console.log("  dragBase: %.2f", this.player.controlParams.dragBase);
+  //    console.log("  dragTerminalVel: %.2f", this.player.controlParams.dragTerminalVel);
+  //    console.log("  dragExponent: %.2f", this.player.controlParams.dragExponent);
+  //    console.log("");
+  //  }
 
 
-    if (printExtraPhysDebug) {
+  //  if (printExtraPhysDebug) {
 
-      console.log("PhysParams: ");
-      console.log("  gravity: %.2f", this.phys.gravity);
-      console.log("");
-    }
-    console.log("");
-  }
+  //    console.log("PhysParams: ");
+  //    console.log("  gravity: %.2f", this.phys.gravity);
+  //    console.log("");
+  //  }
+  //  console.log("");
+  //}
+  console.log(this);
 }
 
 // Self explanatory. For debug purposes.
 PhysEng.prototype.printStartState = function () {
-  console.log("Created PhysEng");
-  console.log("Controls: ");
-  console.log("  gLRaccel: %.2f", this.player.controlParameters.gLRaccel);
-  console.log("  aLRaccel: %.2f", this.player.controlParameters.aLRaccel);
-  console.log("  gUaccel: %.2f", this.player.controlParameters.gUaccel);
-  console.log("  gDaccel: %.2f", this.player.controlParameters.gDaccel);
-  console.log("  aUaccel: %.2f", this.player.controlParameters.aUaccel);
-  console.log("  aDaccel: %.2f", this.player.controlParameters.aDaccel);
-  console.log("  gBoostLRvel: %.2f", this.player.controlParameters.gBoostLRvel);
-  console.log("  aBoostLRvel: %.2f", this.player.controlParameters.aBoostLRvel);
-  console.log("  aBoostDownVel: %.2f", this.player.controlParameters.aBoostDownVel);
-  console.log("  jumpVelNormPulse: %.2f", this.player.controlParameters.jumpVelNormPulse);
-  console.log("  doubleJumpVelYPulse: %.2f", this.player.controlParameters.doubleJumpVelYPulse);
-  console.log("  doubleJumpVelYMin: %.2f", this.player.controlParameters.doubleJumpVelYMin);
-  console.log("  numAirCharges: %.2f", this.player.controlParameters.numAirCharges);
-  console.log("  dragBase: %.2f", this.player.controlParameters.dragBase);
-  console.log("  dragTerminalVel: %.2f", this.player.controlParameters.dragTerminalVel);
-  console.log("  dragExponent: %.2f", this.player.controlParameters.dragExponent);
-  console.log("");
+  //console.log("Created PhysEng");
+  //console.log("Controls: ");
+  //console.log("  gLRaccel: %.2f", this.player.controlParams.gLRaccel);
+  //console.log("  aLRaccel: %.2f", this.player.controlParams.aLRaccel);
+  //console.log("  gUaccel: %.2f", this.player.controlParams.gUaccel);
+  //console.log("  gDaccel: %.2f", this.player.controlParams.gDaccel);
+  //console.log("  aUaccel: %.2f", this.player.controlParams.aUaccel);
+  //console.log("  aDaccel: %.2f", this.player.controlParams.aDaccel);
+  //console.log("  gBoostLRvel: %.2f", this.player.controlParams.gBoostLRvel);
+  //console.log("  aBoostLRvel: %.2f", this.player.controlParams.aBoostLRvel);
+  //console.log("  aBoostDownVel: %.2f", this.player.controlParams.aBoostDownVel);
+  //console.log("  jumpVelNormPulse: %.2f", this.player.controlParams.jumpVelNormPulse);
+  //console.log("  doubleJumpVelYPulse: %.2f", this.player.controlParams.doubleJumpVelYPulse);
+  //console.log("  doubleJumpVelYMin: %.2f", this.player.controlParams.doubleJumpVelYMin);
+  //console.log("  numAirCharges: %.2f", this.player.controlParams.numAirCharges);
+  //console.log("  dragBase: %.2f", this.player.controlParams.dragBase);
+  //console.log("  dragTerminalVel: %.2f", this.player.controlParams.dragTerminalVel);
+  //console.log("  dragExponent: %.2f", this.player.controlParams.dragExponent);
+  //console.log("");
 
-  console.log("PhysParams: ");
-  console.log("  gravity: %.2f", this.phys.gravity);
-  console.log("");
+  //console.log("PhysParams: ");
+  //console.log("  gravity: %.2f", this.phys.gravity);
+  //console.log("");
 
-  console.log("Player: ");
-  console.log("  radius: %.2f", this.player.radius);
-  console.log("  starting pos: %.2f, %.2f", this.player.pos.x, this.player.pos.y);
-  console.log("  starting vel: %.2f, %.2f", this.player.vel.x, this.player.vel.y);
-  console.log("  onGround: %s", this.player.onGround);
-  console.log("  gLocked: %s", this.player.gLocked);
-  console.log("  surfaceOn: %s", this.player.surfaceOn);
-  console.log("");
-  console.log("");
+  //console.log("Player: ");
+  //console.log("  radius: %.2f", this.player.radius);
+  //console.log("  starting pos: %.2f, %.2f", this.player.pos.x, this.player.pos.y);
+  //console.log("  starting vel: %.2f, %.2f", this.player.vel.x, this.player.vel.y);
+  //console.log("  onGround: %s", this.player.onGround);
+  //console.log("  gLocked: %s", this.player.gLocked);
+  //console.log("  surfaceOn: %s", this.player.surfaceOn);
+  //console.log("");
+  //console.log("");
+  console.log(this);
 }
 
 
@@ -1526,18 +1581,19 @@ CHILD.prototype.method = function () {
 
 
 // MAIN CODE TESTING BS HERE
-//var physParams = new PhysParams(DFLT_gravity);
-//var controlParams = new ControlParams(DFLT_gLRaccel, DFLT_aLRaccel, DFLT_aUaccel, DFLT_aDaccel, DFLT_gUaccel, DFLT_gDaccel, DFLT_gBoostLRvel, DFLT_aBoostLRvel, DFLT_aBoostDownVel, DFLT_jumpVelNormPulse, DFLT_doubleJumpVelYPulse, DFLT_doubleJumpVelYMin, DFLT_numAirCharges, 0.0, 100000000, 2, DFLT_jumpSurfaceSpeedLossRatio);
-//var playerModel = new PlayerModel(controlParams, DFLT_radius, new vec2(800, -400), null);
-//var physeng = new PhysEng(physParams, playerModel);
-//physeng.update(0.001, []);
-//physeng.update(0.002, []);
-//physeng.update(0.005, []);
-//physeng.update(0.010, [new InputEventRight(0.005, true)]);
-//physeng.update(0.050, [new InputEventRight(0.005, false), new InputEventLeft(0.010, true)]);
-//physeng.update(0.200, [new InputEventUp(0.084, true)]);
-//physeng.update(0.010, [new InputEventLeft(0.0005, false)]);
-//physeng.update(0.035, [new InputEventUp(0.03, false)]);
+var terrainManager = new TerrainManager();
+var physParams = new PhysParams(DFLT_gravity, DFLT_lockThreshold, DFLT_autoLockThreshold);
+var controlParams = new ControlParams(DFLT_gLRaccel, DFLT_aLRaccel, DFLT_aUaccel, DFLT_aDaccel, DFLT_gUaccel, DFLT_gDaccel, DFLT_gBoostLRvel, DFLT_aBoostLRvel, DFLT_aBoostDownVel, DFLT_jumpVelNormPulse, DFLT_doubleJumpVelYPulse, DFLT_doubleJumpVelYMin, DFLT_numAirCharges, 0.0, 100000000, 2, DFLT_jumpSurfaceSpeedLossRatio, DFLT_reverseAirJumpSpeed);
+var playerModel = new PlayerModel(controlParams, physParams, 0.0, DFLT_radius, new vec2(800, -400), new vec2(0, -0), new vec2(0, -0), null);
+var physEng = new PhysEng(playerModel, terrainManager);
+physEng.update(0.001, []);
+physEng.update(0.002, []);
+physEng.update(0.005, []);
+physEng.update(0.010, [new InputEventRight(0.005, true)]);
+physEng.update(0.050, [new InputEventRight(0.005, false), new InputEventLeft(0.010, true)]);
+physEng.update(0.200, [new InputEventUp(0.084, true)]);
+physEng.update(0.010, [new InputEventLeft(0.0005, false)]);
+physEng.update(0.035, [new InputEventUp(0.03, false)]);
 
 
 

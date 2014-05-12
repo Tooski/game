@@ -310,7 +310,7 @@ GameEngine.prototype.setUp = function (upOrDown, time) {
   if (this.input.upPressed !== upOrDown) {
     this.input.upPressed = upOrDown;
     this.input.upPressedTimestamp = time;
-    this.eventsSinceLastFrame.push(new InputEventUp((time - this.lastFrameTime) / 1000, upOrDown));
+    this.eventsSinceLastFrame.push(new InputEventUp((time) / 1000, upOrDown));
   }
 }
 
@@ -318,7 +318,7 @@ GameEngine.prototype.setDown = function (upOrDown, time) {
   if (this.input.downPressed !== upOrDown) {
     this.input.downPressed = upOrDown;
     this.input.downPressedTimestamp = time;
-    this.eventsSinceLastFrame.push(new InputEventDown((time - this.lastFrameTime) / 1000, upOrDown));
+    this.eventsSinceLastFrame.push(new InputEventDown((time) / 1000, upOrDown));
   }
 }
 
@@ -326,7 +326,7 @@ GameEngine.prototype.setLeft = function (upOrDown, time) {
   if (this.input.leftPressed !== upOrDown) {
     this.input.leftPressed = upOrDown;
     this.input.leftPressedTimestamp = time;
-    this.eventsSinceLastFrame.push(new InputEventLeft((time - this.lastFrameTime) / 1000, upOrDown));
+    this.eventsSinceLastFrame.push(new InputEventLeft((time) / 1000, upOrDown));
   } 
 }
 
@@ -334,7 +334,7 @@ GameEngine.prototype.setRight = function (upOrDown, time) {
   if (this.input.rightPressed !== upOrDown) {
     this.input.rightPressed = upOrDown;
     this.input.rightPressedTimestamp = time;
-    this.eventsSinceLastFrame.push(new InputEventRight((time - this.lastFrameTime) / 1000, upOrDown));
+    this.eventsSinceLastFrame.push(new InputEventRight((time) / 1000, upOrDown));
   } 
 }
 
@@ -342,7 +342,7 @@ GameEngine.prototype.setJump = function (upOrDown, time) {
   if (this.input.jumpPressed !== upOrDown) {
     this.input.jumpPressed = upOrDown;
     this.input.jumpPressedTimestamp = time;
-    this.eventsSinceLastFrame.push(new InputEventJump((time - this.lastFrameTime) / 1000, upOrDown));
+    this.eventsSinceLastFrame.push(new InputEventJump((time) / 1000, upOrDown));
   } 
 }
 
@@ -350,7 +350,7 @@ GameEngine.prototype.setLock = function (upOrDown, time) {
   if (this.input.lockPressed !== upOrDown) {
     this.input.lockPressed = upOrDown;
     this.input.lockPressedTimestamp = time;
-    this.eventsSinceLastFrame.push(new InputEventLock((time - this.lastFrameTime) / 1000, upOrDown));
+    this.eventsSinceLastFrame.push(new InputEventLock((time) / 1000, upOrDown));
   } 
 }
 
@@ -358,7 +358,7 @@ GameEngine.prototype.setBoost = function (upOrDown, time) {
   if (this.input.boostPressed !== upOrDown) {
     this.input.boostPressed = upOrDown;
     this.input.boostPressedTimestamp = time;
-    this.eventsSinceLastFrame.push(new InputEventBoost((time - this.lastFrameTime) / 1000, upOrDown));
+    this.eventsSinceLastFrame.push(new InputEventBoost((time) / 1000, upOrDown));
   } 
 }
 
@@ -366,7 +366,7 @@ GameEngine.prototype.setPause = function (upOrDown, time) {
   if (this.input.pausePressed !== upOrDown) {
     this.input.pausePressed = upOrDown;
     this.input.pausePressedTimestamp = time;
-    this.eventsSinceLastFrame.push(new InputEventPause((time - this.lastFrameTime) / 1000, upOrDown));
+    this.eventsSinceLastFrame.push(new InputEventPause((time) / 1000, upOrDown));
   } 
 }
 
