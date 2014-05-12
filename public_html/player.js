@@ -95,7 +95,8 @@ Player.prototype.draw = function (ctx) {
     if (!this.ctx)
         this.ctx = ctx;
     //var centerX = this.position.x;
-    //var centerY = this.position.y;
+  //var centerY = this.position.y;
+    //console.log("x: ", this.model.pos.x, " y: ", this.model.pos.y);
     ctx.beginPath();
     ctx.lineWidth = 8;
     ctx.arc(this.model.pos.x, this.model.pos.y, this.model.radius, 0, 2 * Math.PI, false);
