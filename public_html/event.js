@@ -1,5 +1,56 @@
 ﻿
 
+//this.surface = surfaceOrNull;   // what surface is the player on?
+//this.locked = false;     // is the player locked to the ground?
+
+
+//this.roundingPoint = false;
+//this.pointBeingRounded = null;
+//this.angleAroundPoint = 0.0;   //RADIANS OR DEGREES I HAVE NO IDEA
+//this.rotationDirection = false; // TRUE IF CLOCKWISE, FALSE IF COUNTER-CLOCKWISE.
+
+
+
+//this.animationFacing = "left";          // "left" or "right" or "neutral"
+//this.animationWalking = false;         // is the player in the walking state?
+//this.animationRunning = false;         // is the player in the running state?
+//this.animationBoosting = false;         // is the player in the boost state?
+//this.animationBoosting = false;         // is the player in the boost state?
+//this.animationgroundJumping = false;    // is the player jumping from the ground?
+//this.animationDoubleJumping = false;    // is the player air jumping?
+//this.animationColliding = false;        // is the player in the collision animation?
+//this.animationFreefall = false;         // is the player in the Freefall animation?
+
+//this.animationTimeInCurrentAnimation = 0.0;   // what amount of time in seconds have we been in this animation state?
+//this.animationStartTime = 0.0;
+//this.animationAngleOfAnimation = 0.0;         // DO WE WANT THIS IN DEGREES OR RADIANS?
+//this.animationSpeed = 0.0;                    // The player speed. Used for walking / running animations.
+
+////END ANIMATION FIELDS
+
+//this.controlParameters = controlParams;
+//this.physParameters = physParameters;
+//this.inputState = new InputState();
+
+//// PLAYER STATE
+//this.surfaceOn = surfaceOrNull;   // what surface is the player on?
+//this.onGround = true;     // is the player on a surface?
+//this.gLocked = false;     // is the player locked to the ground?
+
+
+//this.roundingPoint = false;
+//this.pointBeingRounded = null;
+//this.angleAroundPoint = 0.0;   //RADIANS OR DEGREES I HAVE NO IDEA
+//this.rotationDirection = false; // TRUE IF CLOCKWISE, FALSE IF COUNTER-CLOCKWISE.
+
+//this.airChargeCount = controlParams.numAirCharges; //number of boosts / double jumps left.
+
+//this.updateToState = function (state) 
+//this.leaveGround = function () { // TODO write code to handle leaving the ground here.
+//this.updateVecs = function (inputState) {
+//this.updateVecsGround = function (inputState) {  // DONE? TEST
+//this.updateVecsAir = function (inputState) 
+
 
 
 // Event class. All events interpreted by the physics engine must extend this, as seen below. 
@@ -15,9 +66,10 @@ Event.prototype.handler = function (physEng) {   // NEEDS TO BE OVERRIDDEN IN CH
 
 
 // InputEvent class for input events. These are the events that would be stored in a replay file and consist of any human input to the physics engine (Character control).
-function InputEvent(eventTime, pressed) {   //
+function InputEvent(browserTime, pressed, eventTime) {   //
   Event.apply(this, [eventTime])
   this.pressed = pressed;       // PRESSED DOWN OR RELEASED
+  this.browserTime = browserTime;
 }
 
 InputEvent.prototype = new Event();
@@ -29,17 +81,21 @@ InputEvent.prototype.handler = function (physEng) {          //THIS IS THE PAREN
 
 
 // InputEventRight class for input events. These are the events that would be stored in a replay file and consist of any human input to the physics engine (Character control).
-function InputEventRight(eventTime, pressed) {   //
-  InputEvent.apply(this, [eventTime, pressed]);
+function InputEventRight(browserTime, pressed, eventTime) {   //
+  InputEvent.apply(this, [browserTime, pressed, eventTime]);
   this.handler = function (physEng) {          //THIS CODE HANDLES INPUT CHANGES. SHOULD BE DONE.
     //console.log("Handling input right event. pressed = ", this.pressed);
-    var curInputState = physEng.inputState;
+    var curInputState = physEng.player.inputState;
     if (this.pressed && (!curInputState.right)) {  // Input was just pressed down.
       curInputState.right = true;
-      physEng.accelState.update(curInputState);
+      if (!dashing) {
+        physEng.player.updateVecs(curInputState);
+      }
     } else if ((!this.pressed) && (curInputState.right)) {            // Input was just released.
       curInputState.right = false;
-      physEng.accelState.update(curInputState);
+      if (!dashing) {
+        physEng.player.updateVecs(curInputState);
+      } 
     } else {
       console.log("we reached a state where a right input was illogically pressed or released.");
     }
@@ -52,17 +108,21 @@ InputEventRight.prototype = new InputEvent();
 
 
 // InputEventLeft class for input events. These are the events that would be stored in a replay file and consist of any human input to the physics engine (Character control).
-function InputEventLeft(eventTime, pressed) {   //
-  InputEvent.apply(this, [eventTime, pressed]);
+function InputEventLeft(browserTime, pressed, eventTime) {   //
+  InputEvent.apply(this, [browserTime, pressed, eventTime]);
   this.handler = function (physEng) {          //THIS CODE HANDLES INPUT CHANGES.  SHOULD BE DONE.
     //console.log("Handling input left event. pressed = ", this.pressed);
-    var curInputState = physEng.inputState;
+    var curInputState = physEng.player.inputState;
     if (this.pressed && (!curInputState.left)) {  // Input was just pressed down.
       curInputState.left = true;
-      physEng.accelState.update(curInputState);
+      if (!dashing) {
+        physEng.player.updateVecs(curInputState);
+      }
     } else if (!this.pressed && (curInputState.left)) {            // Input was just released.
       curInputState.left = false;
-      physEng.accelState.update(curInputState);
+      if (!dashing) {
+        physEng.player.updateVecs(curInputState);
+      } 
     } else {
       console.log("we reached a state where a left input was illogically pressed or released.");
     }
@@ -74,17 +134,21 @@ InputEventLeft.prototype = new InputEvent();
 
 
 // InputEventUp class for input events. These are the events that would be stored in a replay file and consist of any human input to the physics engine (Character control).
-function InputEventUp(eventTime, pressed) {   //
-  InputEvent.apply(this, [eventTime, pressed]);
+function InputEventUp(browserTime, pressed, eventTime) {   //
+  InputEvent.apply(this, [browserTime, pressed, eventTime]);
   this.handler = function (physEng) {          //THIS CODE HANDLES INPUT CHANGES.    SHOULD BE DONE.
     //console.log("Handling input up event. pressed = ", this.pressed);
-    var curInputState = physEng.inputState;
+    var curInputState = physEng.player.inputState;
     if (this.pressed && (!curInputState.up)) {  // Input was just pressed down.
       curInputState.up = true;
-      physEng.accelState.update(curInputState);
+      if (!dashing) {
+        physEng.player.updateVecs(curInputState);
+      }
     } else if (!this.pressed && (curInputState.up)) {            // Input was just released.
       curInputState.up = false;
-      physEng.accelState.update(curInputState);
+      if (!dashing) {
+        physEng.player.updateVecs(curInputState);
+      }
     } else {
       console.log("we reached a state where an up input was illogically pressed or released.");
     }
@@ -97,17 +161,21 @@ InputEventUp.prototype = new InputEvent();
 
 
 // InputEventDown class for input events. These are the events that would be stored in a replay file and consist of any human input to the physics engine (Character control).
-function InputEventDown(eventTime, pressed) {   //
-  InputEvent.apply(this, [eventTime, pressed]);
+function InputEventDown(browserTime, pressed, eventTime) {   //
+  InputEvent.apply(this, [browserTime, pressed, eventTime]);
   this.handler = function (physEng) {          //THIS CODE HANDLES INPUT CHANGES.    SHOULD BE DONE.
     //console.log("Handling input down event. pressed = ", this.pressed);
-    var curInputState = physEng.inputState;
+    var curInputState = physEng.player.inputState;
     if (this.pressed && (!curInputState.down)) {  // Input was just pressed down.
       curInputState.down = true;
-      physEng.accelState.update(curInputState);
+      if (!dashing) {
+        physEng.player.updateVecs(curInputState);
+      }
     } else if (!this.pressed && (curInputState.down)) {            // Input was just released.
       curInputState.down = false;
-      physEng.accelState.update(curInputState);
+      if (!dashing) {
+        physEng.player.updateVecs(curInputState);
+      }
     } else {
       console.log("we reached a state where a down input was illogically pressed or released.");
     }
@@ -120,18 +188,29 @@ InputEventDown.prototype = new InputEvent();
 
 
 // InputEventJump class for input events. These are the events that would be stored in a replay file and consist of any human input to the physics engine (Character control).
-function InputEventJump(eventTime, pressed) {   //
-  InputEvent.apply(this, [eventTime, pressed]);
+function InputEventJump(browserTime, pressed, eventTime) {   //
+  InputEvent.apply(this, [browserTime, pressed, eventTime]);
   this.handler = function (physEng) {          //THIS CODE HANDLES INPUT CHANGES. 
     //console.log("Handling input jump event. pressed = ", this.pressed);
-    var curInputState = physEng.inputState;               // TODO HANDLE JUMP
-    //if (this.pressed && (!curInputState.jump)) {  // Input was just pressed down.
-    //  curInputState.jump = true;
-    //  physEng.accelState.update();
-    //} else if (!this.pressed && (curInputState.jump)) {            // Input was just released.
-    //  curInputState.jump = false;
-    //  physEng.accelState.update();
-    //}
+    if (pressed) {
+      var input = physEng.player.inputState;
+      input.jump = true;
+      var p = physEng.player;
+
+      if (p.surface) {  //handle jumping from a surface
+        p.jump();
+        physEng.player.updateVecs(input);
+      } else if (p.airchargeCount > 0) {          //handle jumping in the air
+        p.doubleJump();
+        physEng.player.updateVecs(input);
+      } else { //cant jump right now, TODO BUFFER JUMP
+
+      }
+
+    } else {  //BUTTON WAS RELEASED.
+      //TODO HANDLE HOW LONG BUTTON WAS HELD FOR. WILL NEED TO HAVE DELAY ON WHEN JUMP STARTS.
+      input.jump = false;
+    }
   }
 }
 InputEventJump.prototype = new InputEvent();
@@ -142,11 +221,11 @@ InputEventJump.prototype = new InputEvent();
 
 
 // InputEventBoost class for input events. These are the events that would be stored in a replay file and consist of any human input to the physics engine (Character control).
-function InputEventBoost(eventTime, pressed) {   //
-  InputEvent.apply(this, [eventTime, pressed]);
+function InputEventBoost(browserTime, pressed, eventTime) {   //TODO
+  InputEvent.apply(this, [browserTime, pressed, eventTime]);
   this.handler = function (physEng) {          //THIS CODE HANDLES INPUT CHANGES.  
     //console.log("Handling input boost event. pressed = ", this.pressed);
-    var curInputState = physEng.inputState;                       // TODO HANDLE BOOST
+    var curInputState = physEng.player.inputState;                       // TODO HANDLE BOOST
     //if (this.pressed && (!curInputState.boost)) {  // Input was just pressed down.
     //  curInputState.boost = true;
     //  physEng.accelState.update();
@@ -154,6 +233,7 @@ function InputEventBoost(eventTime, pressed) {   //
     //  curInputState.boost = false;
     //  physEng.accelState.update();
     //}
+    physEng.player.updateVecs(curInputState);
   }
 }
 InputEventBoost.prototype = new InputEvent();
@@ -165,21 +245,22 @@ InputEventBoost.prototype = new InputEvent();
 
 
 // InputEventLock class for input events. These are the events that would be stored in a replay file and consist of any human input to the physics engine (Character control).
-function InputEventLock(eventTime, pressed) {   //
-  InputEvent.apply(this, [eventTime, pressed]);
+function InputEventLock(browserTime, pressed, eventTime) {   //
+  InputEvent.apply(this, [browserTime, pressed, eventTime]);
   this.handler = function (physEng) {          //THIS CODE HANDLES LOCK CHANGES.  TODO DONE????
     //console.log("Handling input lock event. pressed = ", this.pressed);
-    var curInputState = physEng.inputState;
+    var curInputState = physEng.player.inputState;
     if (this.pressed && (!curInputState.lock)) {  // Input was just pressed down.
       curInputState.lock = true;
-      if (physEng.player.onGround) {
-        physEng.player.gLocked = true;
+      if (physEng.player.surface) {
+        physEng.player.locked = true;
       }
       //physEng.accelState.update();                              // TODO MOST LIKELY UNNECESSARY BUT MAY BE NEEDED LATER???
-    } else if (!this.pressed && (curInputState.lock)) {           // Input was just released.
-      if (physEng.player.gLocked) {
+    } else if (!this.pressed && (curInputState.lock)) { // Input was just released.
+      if (physEng.player.locked) {
         curInputState.lock = false;
-        physEng.accelState.update(curInputState);
+        physEng.player.locked = false;
+        physEng.player.updateVecs(curInputState);
       }
     } else {
       console.log("we reached a state where a lock input was illogically pressed or released.");
@@ -195,25 +276,57 @@ InputEventLock.prototype = new InputEvent();
 
 
 
-// InputEventPause class for input events. These are the events that would be stored in a replay file and consist of any human input to the physics engine (Character control).
-function InputEventPause(eventTime, pressed) {   //
-  InputEvent.apply(this, [eventTime, pressed]);
+// PauseEvent class for pausing the physics engine.
+function PauseEvent(eventTime) {   //takes browser time.
+  Event.apply(this, [eventTime]);
   this.handler = function (physEng) {          //THIS CODE HANDLES INPUT CHANGES.  TODO handle later, who needs pausing anyway?
-    //console.log("Handling input pause event. pressed = ", this.pressed);
-    var curInputState = physEng.inputState;
-    if (this.pressed && (!curInputState.pause)) {  // Input was just pressed down.
-      curInputState.pause = true;
-      physEng.accelState.update(curInputState);
-    } else if (!this.pressed && (curInputState.pause)) {            // Input was just released.
-      curInputState.pause = false;
-      physEng.accelState.update(curInputState);
-    } else {
-      console.log("we reached a state where a pause was illogically pressed or released.");
+    if (physEng.isPaused) {  // DEBUG TODO REMOVE
+      throw "already paused";
     }
+    physEng.pause();
+
+    //CODE TO ORIGINALLY HANDLE WHEN IT WAS AN INPUT EVENT.
+    //var curInputState = physEng.inputState;
+
+    //if (!physEng.isPaused) {
+    //  //not paused
+    //  if (this.pressed) {// pause
+    //    curInputState.pauseIgnoreRelease = true;
+    //      physEng.pause(true);
+    //  } else { // 
+    //    throw "should never get here";
+    //  }
+    //} else {
+    //  //paused
+    //  if (this.pressed) {// do nothing
+    //    curInputState.pauseIgnoreRelease = false;
+    //  } else if (!curInputState.pauseIgnoreRelease) { // unpause
+    //    physEng.pause(false);
+    //  } else {                                      // released after a pause.
+
+    //  }
+    //}
   }
 }
-InputEventPause.prototype = new InputEvent();
-//InputEventPause.prototype.constructor = InputEventPause;
+PauseEvent.prototype = new Event();
+//PauseEvent.prototype.constructor = PauseEvent;
+
+
+
+
+// UnpauseEvent class for unpausing the physics engine. 
+function UnpauseEvent(eventTime) {   //takes browser time.
+  Event.apply(this, [eventTime]);
+
+  this.handler = function (physEng) {          //THIS CODE HANDLES INPUT CHANGES.  TODO handle later, who needs pausing anyway?
+    if (!physEng.isPaused) {//DEBUG TODO REMOVE
+      throw "trying to unpause when physEng is already unpaused";
+    }
+    physEng.unpause(this.time);
+  }
+}
+UnpauseEvent.prototype = new Event();
+//UnpauseEvent.prototype.constructor = UnpauseEvent;
 
 
 
@@ -256,39 +369,35 @@ CollisionEvent.handler = function (physEng) {
 
 
 // Event class for the TerrainCollision Event when the player runs into a TerrainLine. 
-function TerrainCollisionEvent(gameTimeOfCollision, collidedWithList, stateAtCollision, surfaceVec, normalVec) {
+function TerrainCollisionEvent(gameTimeOfCollision, collidedWithList, stateAtCollision, surfaceVec, normalVec, allowAuto) {
   CollisionEvent.apply(this, [gameTimeOfCollision, collidedWithList, stateAtCollision]);
-
+  //this.time
+  //this.collidedWithList = collidedWithList;
+  //this.state = stateAtCollision;
   this.surfaceVec = surfaceVec;
   this.normalVec = normalVec;
+  this.allowAuto = allowAuto;
+
 
 
   this.handler = function (physEng) {
+    var p = physEng.player;
+    var input = p.inputState;
 
-
-
-
-
-
-
-
-
-
-    //OLD
-
-    //console.log("START handleTerrainAirCollision");
-    var normalBallVel = this.state.vel.normalize();
+    var normalBallVel = p.vel.normalize();
     var angleToNormal;
     var collisionVec;
     //if (stuffWeCollidedWith.length > 1) {
-    console.log("radius = ", this.state.radius);
+    console.log("radius = ", p.radius);
     collisionVec = this.normalVec;
 
 
-    var COLLISION_GLANCING_ENOUGH_TO_AUTO_LOCK = false; //TODO do some math
+    var COLLISION_GLANCING_ENOUGH_TO_AUTO_LOCK = allowAuto;
+    if (projectVec2(p.vel, this.normalVec).length() < p.physParameters.autoLockThreshold) {
+
+    }
     if (COLLISION_GLANCING_ENOUGH_TO_AUTO_LOCK) {
       console.log("auto locked!?!?");
-      throw "AUTO LOCKED";
       var surfaceVecNorm = collisionVecNorm.perp();      //TODO OHGOD REFACTOR TO THIS METHOD TAKING A COLLISION OBJECT THAT STORES NORMALS AND THE SINGLE SURFACE TO LOCK TO
       var surfaceAngle = surfaceVecNorm.dot(normalBallVel);
 
@@ -352,6 +461,7 @@ TerrainCollisionEvent.prototype = new CollisionEvent();
 
 
 
+
 // Event class for the Goal Event. TODO IMPLEMENT, NEEDS TO STORE WHICH GOAL AND ANY OTHER RELEVENT VICTORY INFORMATION.
 function GoalEvent(eventTime, goalObject) { // eventTime is gameTime at which the event occurs.
   Event.apply(this, [eventTime])
@@ -359,7 +469,8 @@ function GoalEvent(eventTime, goalObject) { // eventTime is gameTime at which th
   this.goalObject = goalObject;
 
   this.handler = function (physEng) {
-    return;     //TODO IMPLEMENT
+    var p = physEng.player;
+    p.completionState = new CompletionState(p, this.time, new State(p.time, p.radius, p.pos, p.vel, p.accel), goalObject.goalNumber, p.replay);
   }
 }
 GoalEvent.prototype = new Event();
@@ -370,11 +481,31 @@ GoalEvent.prototype = new Event();
 
 
 // Event class for the render event. One of these should be the last event in the eventList array passed to update. NOT STORED IN REPLAYS.
-function RenderEvent(eventTime) {  // eventTime is gameTime at which the render occurs.
+function RenderEvent(browserTime, pressed, eventTime) {   //
   Event.apply(this, [eventTime])
 
   this.handler = function (physEng) {
     return;
+  }
+}
+RenderEvent.prototype = new Event();
+//RenderEvent.prototype.constructor = RenderEvent;
+
+
+
+
+
+// Event class for the ReplaySync event. STORED IN REPLAYS, used to ensure float rounding differences from same calcs at different times doesnt desync replays.
+function ReplaySyncEvent(eventTime, state) {  // eventTime is gameTime at which the render occurs.  TODO IMPLEMENT SO THAT THIS WILL OVERRIDE ANYTHING AT THE SAME TIME IN THE LIST.
+  Event.apply(this, [eventTime])
+  if (eventTime !== state.time) {
+    throw "ReplaySyncEvent time and its states time dont match";
+  }
+  this.state = new State(eventTime, state.radius, state.pos, state.vel, state.accel);
+
+  this.handler = function (physEng, playerModel) {
+    playerModel.updateToState(this.state);
+    //TODO UPDATE PHYSENG TO THE RIGHT HEAP VALUES.
   }
 }
 RenderEvent.prototype = new Event();
@@ -411,7 +542,13 @@ function SurfaceEndEvent(predictedTime, dependencyMask) { // predictedTime shoul
   PredictedEvent.apply(this, [predictedTime, dependencyMask])
 
   this.handler = function (physEng) {
-    return;                               //TODO
+
+    //PLAYER FIELDS TO USE
+    //player.roundingPoint = false;
+    //player.pointBeingRounded = null;
+    //player.angleAroundPoint = 0.0;   //RADIANS OR DEGREES I HAVE NO IDEA
+    //player.rotationDirection = false; // TRUE IF CLOCKWISE, FALSE IF COUNTER-CLOCKWISE.
+    return;
   }
 }
 SurfaceEndEvent.prototype = new PredictedEvent();
