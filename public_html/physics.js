@@ -669,9 +669,9 @@ PhysEng.prototype.updatePhys = function (newEvents, stepToRender) {
     this.syncEvent();
   } while (stepToRender && (!currentEvent instanceof RenderEvent));
   //console.log("finished do while loop in update, currentEvent = ", currentEvent);
-  console.log(this.player.pos);
-  console.log("");
-  console.log(stepResult.state.pos);
+  //console.log(this.player.pos);
+  //console.log("");
+  //console.log(stepResult.state.pos);
   return this.player.completionState;
 }
 
