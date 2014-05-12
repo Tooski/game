@@ -1,14 +1,90 @@
 /*
- * Physics.js
- * terrainManager gets passed
+ * The physics engine. This is a complex system that uses no timers, but rather mathematically discretizes
+ * all events across time into component events, predicts future events, and only acts upon events that are reached.
+ * RenderEvents are passed into the physics engine to choose what time for the engine to determine the events up to.
+ * 
+ * May later be extended to support different player characters with different physics properties.
+ *
+ * Author Travis Drake
+ * All rights reserved.
  */
+var HALF_PI = Math.PI / 2.0;
+
+//var LOCK_MIN_ANGLE = 45.0 / 180 * Math.PI;  //ANGLE OF COLLISION BELOW WHICH NOT TO BOUNCE.
+var PRINTEVERY = 240;
+var FRAMECOUNTER = 0;
+
+var printFor = 5;
+var printed = 0;
+
+//var CONST_DRAG = 0.5;
+
+
+// this should work in just about any browser, and allows us to use performance.now() successfully no matter the browser.
+// source http://www.sitepoint.com/discovering-the-high-resolution-time-api/
+window.performance = window.performance || {};
+performance.now = (function () {
+  return performance.now ||
+         performance.mozNow ||
+         performance.msNow ||
+         performance.oNow ||
+         performance.webkitNow ||
+         function () { return new Date().getTime(); };
+})();
+
+
 // DO A THING WITH A DRAG LOOKUP TABLE TODO PLZ
+
+
+
+
+
+
+
+//DEFAULT PHYSICS VALS, TWEAK HERE
+// WIDTH  = 1920 UNITS
+// HEIGHT = 1080 UNITS
+var DFLT_gravity = 0;        // FORCE EXERTED BY GRAVITY IS 400 ADDITIONAL UNITS OF VELOCITY DOWNWARD PER SECOND. 
+var DFLT_lockThreshold = 1000;
+var DFLT_autoLockThreshold = 200;
+
+var DFLT_JUMP_HOLD_TIME = 0.15; // To jump full height, jump must be held for this long. Anything less creates a fraction of the jump height based on the fraction of the full time the button was held. TODO implement.
+
+// CONST ACCEL INPUTS
+var DFLT_gLRaccel = 800;
+var DFLT_aLRaccel = 600;
+var DFLT_aUaccel = 500;
+var DFLT_aDaccel = 500;
+var DFLT_gUaccel = 300;
+var DFLT_gDaccel = 300;
+var DFLT_gBoostLRvel = 1500;
+var DFLT_aBoostLRvel = 1500;
+var DFLT_aBoostDownVel = 1500;
+
+// CONST PULSE INPUTS
+var DFLT_jumpVelNormPulse = 2000;
+var DFLT_doubleJumpVelYPulse = 2000;
+var DFLT_doubleJumpVelYMin = 2000;
+
+// OTHER CHAR DEFAULTS
+var DFLT_numAirCharges = 1;
+var DFLT_radius = 1920 / 32;
+
+// CONST RATIOS
+var DFLT_jumpSurfaceSpeedLossRatio = 0.7;   // When jumping from the ground, the characters velocity vector is decreased by this ratio before jump pulse is added. 
+var DFLT_bounceSpeedLossRatio = 0.9;
+var DFLT_reverseAirJumpSpeed = 300;
+
 
 
 /*
  * The fraction of player radius that our max movement distance will be.
 */
 var MAX_MOVE_FRACTION_OF_RADIUS = 1.0;
+var HORIZ_NORM = new vec2(1.0, 0.0);
+var REPLAY_SYNC_INTERVAL = 1.0;
+var DEBUG_EVENT_AT_A_TIME = true;
+var DEBUG_MAX_TIMESTEP = 0.016;
 
 
 // this thing is just useful for storing potential states in an object.
@@ -40,21 +116,81 @@ function State(time, radius, pos, vel, accel
 
 
 
+ 
+/**
+ * Object representing the result of a step. 
+ * contains the state, time, and collisions
+ */
+function StepResult (state, eventArray) {
+  this.state = state;
+  this.success = true;
+  this.events;
+  if (eventArray && eventArray.length > 0) {  // new events
+    this.events = eventArray;
+    this.success = false;
+  }
+}
 
 
-/**PhysParams object contains all the physics values. These will not change between characters. 
+
+
+/**
+ * PhysParams object contains all the physics values. These will not change between characters. 
  * This exists because it will be used later on to implement other terrain types, whose static
  * effect values will be passed in here.
  */
-function PhysParams(gravity) {
-  this.gravity = gravity;
+function PhysParams(gravity, lockThreshold, autoLockThreshold) {
+  if (!((gravity || gravity === 0) && (lockThreshold || lockThreshold === 0) && (autoLockThreshold || autoLockThreshold === 0))) {
+    console.log("");
+    console.log("");
+    console.log("gravity: ", gravity);
+    console.log("lockThreshold: ", lockThreshold);
+    console.log("autoLockThreshold: ", autoLockThreshold);
+    throw "missing PhysParams";
+  }
+  this.gravity = gravity;                           // Force of gravity. Hopefully you knew that.
+  this.lockThreshold = lockThreshold;               // Force of a collision after which locking is disallowed.
+  this.autoLockThreshold = autoLockThreshold;       // Force of a collision after which autoLocking is disallowed.
 }
+
 
 
 /**This object contains all the values that are relative to the PLAYER. 
  * IE, anything that would be specific to different selectable characters.
  */
-function ControlParams(gLRaccel, aLRaccel, aUaccel, aDaccel, gUaccel, gDaccel, gBoostLRvel, aBoostLRvel, aBoostDownVel, jumpVelNormPulse, doubleJumpVelYPulse, doubleJumpVelYMin, numAirCharges, dragBaseAmt, dragTerminalVel, dragExponent, jumpSurfaceSpeedLossRatio) {
+function ControlParams(gLRaccel, aLRaccel, aUaccel, aDaccel, gUaccel, gDaccel,
+  gBoostLRvel, aBoostLRvel, aBoostDownVel, jumpVelNormPulse, doubleJumpVelYPulse,
+  doubleJumpVelYMin, numAirCharges, dragBaseAmt, dragTerminalVel, dragExponent,
+  jumpSurfaceSpeedLossRatio, reverseAirJumpSpeed, lockThreshold) {
+
+  if (!(gLRaccel && aLRaccel && aUaccel && aDaccel && gUaccel && gDaccel &&   //DEBUG TODO REMOVE
+  gBoostLRvel && aBoostLRvel && aBoostDownVel && jumpVelNormPulse && doubleJumpVelYPulse &&
+  doubleJumpVelYMin && numAirCharges &&
+    //dragBaseAmt && dragTerminalVel && dragExponent &&
+  jumpSurfaceSpeedLossRatio && reverseAirJumpSpeed)) {
+    console.log("");
+    console.log("");
+    console.log("gLRaccel: ", gLRaccel);
+    console.log("aLRaccel: ", aLRaccel);
+    console.log("aUaccel: ", aUaccel);
+    console.log("aDaccel: ", aDaccel);
+    console.log("gUaccel: ", gUaccel);
+    console.log("gDaccel: ", gDaccel);
+    console.log("gBoostLRvel: ", gBoostLRvel);
+    console.log("aBoostLRvel: ", aBoostLRvel);
+    console.log("aBoostDownVel: ", aBoostDownVel);
+    console.log("jumpVelNormPulse: ", jumpVelNormPulse);
+    console.log("doubleJumpVelYPulse: ", doubleJumpVelYPulse);
+    console.log("doubleJumpVelYMin: ", doubleJumpVelYMin);
+    console.log("numAirCharges: ", numAirCharges);
+    console.log("dragBaseAmt: ", dragBaseAmt);
+    console.log("dragTerminalVel: ", dragTerminalVel);
+    console.log("dragExponent ", dragExponent);
+    console.log("jumpSurfaceSpeedLossRatio: ", jumpSurfaceSpeedLossRatio);
+    console.log("reverseAirJumpSpeed: ", reverseAirJumpSpeed);
+    throw "missing ControlParams";
+  }
+
   this.gLRaccel = gLRaccel;                 //x acceleration exerted by holding Left or Right on the surface.
   this.aLRaccel = aLRaccel;                 //x acceleration exerted by holding Left or Right in the air.
   this.aUaccel = aUaccel;                   //y acceleration exerted by holding up in the air.
@@ -68,6 +204,7 @@ function ControlParams(gLRaccel, aLRaccel, aUaccel, aDaccel, gUaccel, gDaccel, g
   this.doubleJumpVelYPulse = doubleJumpVelYPulse;       //y velocity that a double jump adds.
   this.doubleJumpVelYMin = doubleJumpVelYMin;           //min y velocity that a double jump must result in.
   this.jumpSurfaceSpeedLossRatio = jumpSurfaceSpeedLossRatio;   // When jumping from the ground, the characters velocity vector is decreased by this ratio before jump pulse is added. 
+  this.reverseAirJumpSpeed = reverseAirJumpSpeed;
 
   this.numAirCharges = numAirCharges;       //number of boost / double jumps left in the air.
 
@@ -88,18 +225,56 @@ function InputState() {
   this.up = false;
   this.down = false;
   this.lock = false;
+  this.pauseIgnoreRelease = false;
   this.additionalVecs = null;
 }
 
 
 
-function PlayerModel(controlParams, physParams, time, radius, pos, vel, accel       //NEW
+/**
+ * The CompletionState object. Contains information about how the level was completed.
+ */
+function CompletionState(player, time, state, goalNumber, replay) {
+  this.player = player;
+  this.time = time;
+  this.state = state;
+  this.goalNumber = goalNumber;
+  this.replay = replay;
+}
+
+
+/**
+ * TimeManager object for physics.
+ */
+function TimeManager(time, referenceBrowserTime, referenceGameTime, timeRate) {
+  this.time = time;
+  this.referenceBrowserTime = referenceBrowserTime;
+  this.referenceGameTime = referenceGameTime;
+  this.timeRate = timeRate;
+
+  this.convertBrowserTime = function (browserTime) {
+    var deltaBrowser = browserTime - this.referenceBrowserTime;
+    var deltaConverted;
+    if (timeRate !== 1) {
+      deltaConverted = deltaBrowser * timeRate;
+    } else {
+      deltaConverted = deltaBrowser;
+    }
+    return this.referenceGameTime + deltaConverted;
+  }
+}
+
+
+
+function PlayerModel(controlParams, physParams, time, radius, pos, vel, accel, surfaceOrNull       //NEW
   //, accelPrime, accelDPrime
 		) {
   State.apply(this, [time, radius, pos, vel, accel 
 			//, accelPrime, accelDPrime
   ]);
 
+
+  this.replayData = [];
 
   /**
    * ANIMATION FIELDS FOR MIKE!
@@ -108,29 +283,28 @@ function PlayerModel(controlParams, physParams, time, radius, pos, vel, accel   
   this.animationWalking = false;         // is the player in the walking state?
   this.animationRunning = false;         // is the player in the running state?
   this.animationBoosting = false;         // is the player in the boost state?
-  this.animationBoosting = false;         // is the player in the boost state?
-  this.animationgroundJumping = false;    // is the player jumping from the ground?
+  this.animationDownBoosting = false;         // is the player in the Down boost state?
+  this.animationGroundJumping = false;    // is the player jumping from the ground?
   this.animationDoubleJumping = false;    // is the player air jumping?
   this.animationColliding = false;        // is the player in the collision animation?
   this.animationFreefall = false;         // is the player in the Freefall animation?
 	
   this.animationTimeInCurrentAnimation = 0.0;   // what amount of time in seconds have we been in this animation state?
+  this.animationStartTime = 0.0;
   this.animationAngleOfAnimation = 0.0;         // DO WE WANT THIS IN DEGREES OR RADIANS?
   this.animationSpeed = 0.0;                    // The player speed. Used for walking / running animations.
   
   //END ANIMATION FIELDS
 
 
-
-
-  this.controlParameters = controlParams;
+  this.controlParams = controlParams;
   this.physParams = physParams;
-  //this.inputState = inputState;
+  this.inputState = new InputState();
+  this.completionState = null;
 	
   // PLAYER STATE
-  this.surfaceOn = surfaceOrNull;   // what surface is the player on?
-  this.onGround = true;     // is the player on a surface?
-  this.gLocked = false;     // is the player locked to the ground?
+  this.surface = surfaceOrNull;   // what surface is the player on?
+  this.locked = false;     // is the player locked to the ground?
 
 
   this.roundingPoint = false;
@@ -152,15 +326,18 @@ function PlayerModel(controlParams, physParams, time, radius, pos, vel, accel   
    * updates the playerModel to the provided state.
    */
   this.updateToState = function (state) {
-    if (!(state.time && state.radius && state.pos && state.vel && state.accel)) {
+    if (!(
+      (state.time  || state.time === 0) &&
+      (state.radius || state.radius === 0)  &&
+      (state.pos || state.pos === 0) &&
+     (state.vel || state.vel === 0) &&
+      (state.accel || state.accel === 0))) {
       console.log("Missing fields in state.");
       console.log("time: ", state.time);
       console.log("radius: ", state.radius);
       console.log("pos: ", state.pos);
       console.log("vel: ", state.vel);
       console.log("accel: ", state.accel);
-      console.log("time: ", state.time);
-      console.log("time: ", state.time);
       throw "Missing fields in state.";
     }
     this.time = state.time;
@@ -174,15 +351,14 @@ function PlayerModel(controlParams, physParams, time, radius, pos, vel, accel   
 	
 
   this.leaveGround = function () { // TODO write code to handle leaving the ground here.
-    this.surfaceOn = null;
-    this.onGround = false;
-    this.gLocked = false;
+    this.surface = null;
+    this.locked = false;
   }
 	
 	// Figures out which vector update call to use and then updates vectors.
-  this.updateDerivVectors = function (inputState) {
+  this.updateVecs = function (inputState) {
     //console.log(" in AccelState update function. inputState ", inputState);
-    if (!this.player.surfaceOn) {
+    if (!this.surface) {
       //console.log("    Calling updateAir, player.surfaceOn === null.");
       this.updateVecsAir(inputState);
     } else {
@@ -218,7 +394,7 @@ function PlayerModel(controlParams, physParams, time, radius, pos, vel, accel   
       }
     }
 
-    var surface = this.surfaceOn;
+    var surface = this.surface;
     var baseForceNormalized = baseForceVec.normalize();
     var angleToNormal = Math.acos(surface.getNormalAt(this.pos).dot(baseForceNormalized));
 
@@ -236,7 +412,7 @@ function PlayerModel(controlParams, physParams, time, radius, pos, vel, accel   
     } else {                                                                    // we are being pushed away from teh surface we are on. Updating states to have left the ground, and then calling updateAirStates.
       console.log("   we are being pushed AWAY from the surface we are on. Simply calling updateAirStates.");
       this.leaveGround();
-      this.updateAirStates(inputState);
+      this.updateVecsAir(inputState);
     }
   }
   
@@ -277,383 +453,635 @@ function PlayerModel(controlParams, physParams, time, radius, pos, vel, accel   
 }
 PlayerModel.prototype = new State();
 //PlayerModel.prototype.constructor = PlayerModel;
+PlayerModel.prototype.doubleJump = function () {
+  var input = this.inputState;
+  var velx;
+  var vely;
+  this.airchargeCount--;
 
+  animationSetPlayerDoubleJumping(this, this.time);
+  //add end animation event for double jump. TODO
 
+  vely = this.vel.y - this.controlParams.doubleJumpVelYPulse;
 
+  if (vely > -this.controlParams.doubleJumpVelYMin) {
+    //Min double jump value
+    vely = -this.controlParams.doubleJumpVelYMin;
+  }
+  //this.jumpVelNormPulse = jumpVelNormPulse;             //velocity that a surface jump sets from the normal.
+  //this.doubleJumpVelYPulse = doubleJumpVelYPulse;       //y velocity that a double jump adds.
+  //this.doubleJumpVelYMin = doubleJumpVelYMin;           //min y velocity that a double jump must result in.
+
+  if (this.vel.x < 0 && input.right) { //moving left, holding right\
+    velx = this.controlParams.reverseAirJumpSpeed;
+  } else if (this.vel.x > 0 && input.left) { //moving right, holding left
+    velx = -this.controlParams.reverseAirJumpSpeed;
+  } else {                          // continue moving as normal.
+    velx = this.vel.x;
+  }
+
+  this.vel = new vec2(velx, vely);
+}
+
+PlayerModel.prototype.jump = function () {
+  if (!this.surface) {    //DEBUG TODO REMOVE
+    throw "no surface and jump was called.";
+  }
+
+  var input = this.inputState;
+  var velx;
+  var vely;
+  this.airchargeCount--;
+
+  animationSetPlayerJumping(this, this.time, this.surface);
+  //add end animation event for double jump. TODO
+
+  var jumpVec = this.surface.getNormalAt(this.pos).normalize();
+  jumpVec = jumpVec.multf(jumpVelNormPulse);
+  this.pos = this.pos.add(jumpVec);
+}
 
 
 
 /**
- * Object representing the result of a step. 
- * contains the state, time, and collisions
+ * Function that locks the playerModel to a surface. TerrainSurface or TerrainPoint.
  */
-function StepResult (state, eventArray) {
-  this.state = state;
-  this.success = true;
-  this.events;
-  if (eventArray && eventArray.length > 0) {  // new events
-    this.events = eventArray;
-    this.success = false;
-  }
+PlayerModel.prototype.lockTo = function (surface, surfaceVecNorm) {
+  //var velocityMag = ballState.vel.length();                 // COMMENTED OUT FOR REALISTIC PHYSICS
+  //var surfaceVecNorm = stuffWeCollidedWith[0].getSurfaceAt(ballState.pos); // REFACTOR TO USE NEW COLLISION OBJECT
+  //var surfaceAngle = surfaceVecNorm.dot(normalBallVel);
+  //var surfaceInvertAngle = (surfaceVec.negate()).dot(normalBallVel);
+
+  //if (surfaceAngle > surfaceInvertAngle) {
+  //  surfaceVec = surfaceVec.negate();
+  //}
+  //this.player.vel = surfaceVec.multf(velocityMag);          // END COMMENTED OUT FOR REALISTIC PHYSICS
+  this.vel = projectVec2(this.vel, surfaceVecNorm);    //GROUNDBOOST TODO
+  p.airBorne = false;
+  p.locked = input.lock;
 }
+
 		
 
 
 
 // Physics Engine constructor.
 function PhysEng(playerModel, terrainManager) {
-  this.player = playerModel;                        // the players character model
-
+  if (!playerModel) {
+    throw "need to pass a playerModel into PhysEng constructor.";
+  }
+  if (!terrainManager) {
+    throw "need to pass a terrainManager into PhysEng constructor.";
+  }
   // Self explanitory
-  this.MAX_MOVE_DIST = this.player.radius * MAX_MOVE_FRACTION_OF_RADIUS; 
+  this.MAX_MOVE_DIST = playerModel.radius * MAX_MOVE_FRACTION_OF_RADIUS;
 
   // The above but squared. Useful
   this.MAX_MOVE_DIST_SQ = this.MAX_MOVE_DIST * this.MAX_MOVE_DIST;
 
+  //The previous real timestamp given to update.
+  this.prevBrowserTime = 0.0;
+
+  //The current real timestamp given to update.
+  this.curBrowserTime = 0.0;
+
+  //The gameTime of the last sync event.
+  this.lastSyncEventTime = 0.0;
+
+  // the players character model
+  this.player = playerModel;                       
+
   // The level terrainManager.
   this.tm = terrainManager;
-  this.player.pos = tm.playerStartPos;
+  this.player.pos = this.tm.playerStartPos;    //sets player position to the level starting position.
 
-
-  //this.ctrl = playerModel.controlParameters;        // control parameters.
-  this.inputState = new InputState();
+  this.timeMgr = new TimeManager(0.0, 0.0, 0.0, 1); // TODO DO THE THING
 
   //The events that will need to be handled.
-  this.eventHeap = new MinHeap(null, function(e1, e2) {
+  this.inputEventHeap = new MinHeap(null, function (e1, e2) {
+    if (!e1) throw "e1 null";         //DEBUG TODO REMOVE ALL THESE IFS.
+    if (!e2) throw "e2 null";
+    if (!e1 instanceof InputEvent) throw "e1 not an InputEvent";
+    if (!e2 instanceof InputEvent) throw "e2 not an InputEvent";
+
+    return e1.time == e2.time ? (e1.browserTime == e2.browserTime ? 0 : e1.browserTime < e2.browserTime ? -1 : 1) : e1.time < e2.time ? -1 : 1;
+  });
+
+
+  //The predicted events. This is cleared and re-predicted every time the inputs to PhysEng are modified.
+  this.predictedEventHeap = new MinHeap(null, function (e1, e2) {
     return e1.time == e2.time ? 0 : e1.time < e2.time ? -1 : 1;
   });
 
-  //The predicted events. This is cleared and re-predicted every time the inputs to PhysEng are modified.
-  this.predictedEventHeap = new MinHeap(null, function(e1, e2) {
+
+  //The tween events. This is should always be empty at the end of a step.
+  this.tweenEventHeap = new MinHeap(null, function (e1, e2) {
     return e1.time == e2.time ? 0 : e1.time < e2.time ? -1 : 1;
   });
+
+
+  ////The state events, such as time a dash will end. Modified at certain times.
+  //this.stateEventHeap = new MinHeap(null, function (e1, e2) {
+  //  return e1.time == e2.time ? 0 : e1.time < e2.time ? -1 : 1;
+  //});
 
 
   this.inReplay = false;
+  this.isPaused = false;
   this.ReplayData = [];
 	
 	
-  if (PHYS_DEBUG) {
     this.printStartState();
+}
+
+/**
+ * Update function for physEng. If you want it to use browser time you need to add a renderEvent at the browser timestamp to newEvents before passing it into update.
+ */
+PhysEng.prototype.update = function (time, newEvents) {
+  console.log("time ", time);
+  newEvents.push(new RenderEvent(time));
+  this.updatePhys(newEvents, DEBUG_EVENT_AT_A_TIME);
+}
+
+
+/**
+ * Update function for physEng. If you want it to use browser time you need to add a renderEvent at the browser timestamp to newEvents before passing it into update.
+ */
+PhysEng.prototype.updatePhys = function (newEvents, stepToRender) {
+  if (this.inputEventHeap.size() > 0 && !this.inReplay) {
+    //throw "why the hell are we starting update with events still in inputEventHeap thing? *grumbles* better ways to implement replays....";
   }
-		
-		
-  /**
-   * attempts to step playerModel to the provided time.
-   */
-  this.attemptNextStep = function(goalGameTime) {
-    var stepCount = 1;
-    while (player.velocity.multf(goalGameTime / stepCount).lengthsq() > this.MAX_MOVE_DISTANCE_SQ)   // Figure out how many steps to divide this step into.
-    {
-      stepCount *= 2;
-    }
-
-    var startGameTime = this.player.time;
-    var deltaTime = goalGameTime - startGameTime;
-
-    var fraction = 0.0;
-    var collisionList = [];
-    var tweenTime;
-    for (var i = 1; i < stepCount + 1 && collisionList.length === 0; i++) {     // Take steps.
-      fraction = i / stepCount;
-      tweenTime = startGameTime + fraction * deltaTime;
-
-      var tempState = this.stepStateByTime(this.player, tweenTime);
-
-      collisionList = getCollisionsInList(tempState, this.tm.terrain, []);    //TODO MINIMIZE THIS LIST SIZE, THIS IS IDIOTIC
-    }
-
-    var events = [];
-    if (collisionList.length > 0) {   // WE COLLIDED WITH STUFF AND EXITED THE LOOP EARLY, handle.
-      events = findEventsFromCollisions(collisionList);
-    } else if (tweenTime !== goalGameTime) {
-      console.log("tweenTime: ", tweenTime, " goalGameTime: ", goalGameTime);
-      throw "yeah I'm gonna need to manually update to goalTime cuz this isnt working";
-    } else {                                                        // NO COLLISIONS.
-      console.log("attemptNextStep, no collisions and resulting times matched:");
-      console.log("tweenTime: ", tweenTime, " goalGameTime: ", goalGameTime);
-    }
-    //else {                // TRY FINAL STEP
-    //  tweenTime = goalGameTime;
-    //  var tempState = this.stepStateByTime(this.player, tweenTime);
-    //  collisionList = getCollisionsInList(tempState, this.tm.terrain, []);    //TODO MINIMIZE THIS LIST SIZE, THIS IS IDIOTIC
-      
-    //  if (collisionList.length > 0) {   // WE COLLIDED WITH STUFF AND EXITED THE LOOP EARLY
-    //    events = findEventsFromCollisions(collisionList);
-    //  }
-    //}
-    var results = new StepResult(endState, eventArray);
-    //TODO UPDATE PLAYER HERE???
-    return results;
+  if (this.tweenEventHeap.size() > 0 && !this.inReplay) {
+    throw "why the hell are we starting update with events still in tweenEventHeap thing?";
   }
-
-	
-  // Universal method to step a state forward to a time, no logic involved.
-  // COMPLETELY AND UTTERLY DONE. I THINK.
-  this.stepStateByTime = function(state, targetGameTime) {				
-    var startTime = state.time;
-    //console.log("in airStep. timeGoal: ", timeGoal);
-    //console.log("startTime: ", startTime);
-    //this.accelState.update(this.inputState);
-    //console.log("accelVec before adding: ", accelVec);
-    var deltaTime = targetGameTime - startTime;
-    var multVel = state.vel.multf(deltaTime);
-    var multAcc = state.accel.multf(deltaTime * deltaTime / 2);
-    //console.log("lastVel: ", lastVel);
-    //console.log("this.inputState: ", this.inputState);
-    var newVel = state.vel.add(state.accel.multf(deltaTime));
-    var newPos = state.pos.add(multVel.add(multAcc));
-    return new State(targetGameTime, state.radius, newPos, newVel, state.accel);
+  if (!newEvents) {
+    throw "you need to pass an array of newEvents into physEng.update(targetBrowserTime, newEvents). It can be empty, but it must exist.";
   }
 
 
+  //var gameTime = this.timeMgr.convertBrowserTime(targetBrowserTime);
 
-
-  /**
-   * Determines the time of the collisions and then return the earliest, those that tie for the earliest.
-   * data = { collision: false, collidedLine: false, collidedP0: false, collidedP1: false, surface: this, perpendicularIntersect: pD }
-   */
-  this.findEventsFromCollisions = function (collisionList) {
-
-    var collisionHeap = new MinHeap(null, function (e1, e2) {
-      return e1.time == e2.time ? 0 : e1.time < e2.time ? -1 : 1;
-    });
-
-    for (var i = 0; i < collisionList.length; i++) {
-      var collision = collisionList[i];
-      var testedLine = false;
-      var testedP0 = false;
-      var testedP1 = false;
-      
-      if (collision.collidedLine) {
-        testedLine = true;
-        var lineTime = solveTimeToDistFromLine(this.player.pos, this.player.vel, this.player.accel, collision.surface, this.player.radius);
-
-        console.log("collision ", i, " collided with line at time: ", lineTime);
-        var tempState = this.stepStateByTime(this.player, lineTime);
-        console.log("at position ", tempState);
-
-        if (collision.surface.isPointWithinPerpBounds(tempState.pos) && lineTime && lineTime > 0 && lineTime < 200) {   // Ensures that the real collision was with the line and not the points.
-          var collisionHeapObj = { time: lineTime, collisionObj: collision.surface, state: tempState };
-          collisionHeap.push(collisionHeapObj);
-
-        } else {                // We didnt really collide with the line. Try to add points instead.
-
-          console.log("We got a line collision but not with points, but time analysis says we didnt collide with line. Testing points?");
-          testedP0 = true;
-          testedP1 = true;
-          var point0Time = solveTimeToDistFromPoint(this.player.pos, this.player.vel, this.player.accel, collision.surface.p0, this.player.radius);
-          var point1Time = solveTimeToDistFromPoint(this.player.pos, this.player.vel, this.player.accel, collision.surface.p1, this.player.radius);
-
-          if (point0Time && point0Time > 0 && point0Time < 200) {
-            console.log("collision ", i, " collided with p0 at time: ", lineTime);
-            var tempState0 = this.stepStateByTime(this.player, point0Time);
-            console.log("at position ", tempState0);
-            var collisionHeapObj = { time: point0Time, collisionObj:  new TerrainPoint(collision.surface.p0, collision.surface), state: tempState0 };
-            collisionHeap.push(collisionHeapObj);
-          }
-
-          if (point1Time && point1Time > 0 && point1Time < 200) {
-            console.log("collision ", i, " collided with p1 at time: ", lineTime);
-            var tempState1 = this.stepStateByTime(this.player, point1Time);
-            console.log("at position ", tempState1);
-            var collisionHeapObj = { time: point1Time, collisionObj: new TerrainPoint(collision.surface.p1, collision.surface), state: tempState1 };
-            collisionHeap.push(collisionHeapObj);
-          }
-        }
+  var renderEventCount = 0;
+  for (var i = 0; i < newEvents.length; i++) {			//Put newEvents into eventHeap.
+    if (newEvents[i] instanceof InputEvent) {
+      this.convertEventBrowserTime(newEvents[i]);
+      this.player.replayData.push(newEvents[i]);
+    } else if (newEvents[i] instanceof RenderEvent) {
+      renderEventCount++;
+      if (renderEventCount > 1) {
+        throw "recieved 2 render events in 1 update, cannot continue.";
       }
-      if (collision.collidedP0 && (!testedP0)) {
+      console.log("convertEventBrowserTime for a renderEvent");
+      this.convertEventBrowserTime(newEvents[i]);
+    }
+
+    this.inputEventHeap.push(newEvents[i]);
+  }
+
+
+  var eventsArray = this.getEventHeapArray();
+  do {    // The stepping loop.
+    var targetTime = this.getMinTimeInEventList(eventsArray);
+    var stepResult = this.attemptNextStep(targetTime); //stepResult .state .success .events
+
+
+    //update player state to resulting state.
+    this.player.updateToState(stepResult.state);
+
+    //if stepResult has new events
+    for (var i = 0; stepResult.events && i < stepResult.events.length; i++) {
+      //add new events events to eventHeap
+      if (i > 1) {                                        //DEBUG CASE TESTING TODO REMOVE
+        console.log("added more than one new event??? event #", i);
+      }
+      this.tweenEventHeap.push(stepResult.events[i]);
+    }
+
+    var currentEvent = this.popMostRecentEvent();
+    console.log("stepResult: ", stepResult);
+    console.log("currentEvent: ", currentEvent);
+    if (currentEvent.time != stepResult.state.time) {     //DEBUG CASE TESTING TODO REMOVE
+      throw "times dont match between the event and the stepResult.state";
+    }
+    currentEvent.handler(this);
+
+    this.syncEvent();
+  } while (stepToRender && (!currentEvent instanceof RenderEvent));
+  console.log("finished do while loop in update, currentEvent = ", currentEvent);
+
+  return this.player.completionState;
+}
+
+
+/**
+ * checks to see if a syncEvent should be added to the current replay, and adds it if so.
+ */
+PhysEng.prototype.syncEvent = function () {
+  if (!this.inReplay && this.time > this.lastSyncEventTime + REPLAY_SYNC_INTERVAL) {    // We need to add a syncEvent to the replay.
+    this.replayData.push(new ReplaySyncEvent(this.time, this.player.state));
+    this.lastSyncEventTime = this.getTime();
+  }
+}
+
+
+
+/**
+ * pauses the physics engine.
+ */
+PhysEng.prototype.pause = function () {
+  if (physEng.isPaused) {  // DEBUG TODO REMOVE
+    throw "already paused";
+  }
+  this.timeMgr.referenceGameTime = this.timeMgr.time;
+  this.isPaused = true;
+}
+
+
+
+/**
+ * unpauses the physics engine.
+ * need to pass in the browserTime.
+ */
+PhysEng.prototype.unpause = function (browserTime) {
+  if (!physEng.isPaused) {            //DEBUG TODO REMOVE
+    throw "trying to unpause when physEng is already unpaused";
+  }
+  this.timeMgr.referenceBrowserTime = browserTime;
+  this.isPaused = false;
+}
+
+
+
+/**
+ * converts an event created with browser time to the proper gameTime.
+ */
+PhysEng.prototype.convertEventBrowserTime = function (event) {
+  if (this.isPaused) {
+    event.time = this.timeMgr.referenceGameTime;
+    event.valid = true;
+  } else {
+    event.time = this.timeMgr.convertBrowserTime(event.browserTime);
+   
+    event.valid = true;
+  }
+  if (!(event.time >= 0 && event.time <= 10000000000000000000000)) {
+    console.log("bad event time conversion.");
+    console.log("event.browserTime: ", event.browserTime);
+    console.log("event.time: ", event.time);
+    console.log("this.timeMgr: ", this.timeMgr);
+    throw "bad event conversion time";
+  }     // DEBUG TODO REMOVE
+}
+
+
+
+/**
+ * attempts to step playerModel to the provided time.
+ */
+PhysEng.prototype.attemptNextStep = function (goalGameTime) {
+  var stepCount = 1;
+  console.log(this.player);
+  while (this.player.vel.multf(goalGameTime / stepCount).lengthsq() > this.MAX_MOVE_DISTANCE_SQ)   // Figure out how many steps to divide this step into.
+  {
+    stepCount *= 2;
+  }
+
+  var startGameTime = this.player.time;
+  var deltaTime = goalGameTime - startGameTime;
+
+  var stepFraction = 0.0;
+  var collisionList = [];
+  var tweenTime;
+  var tempState;
+  for (var i = 1; i < stepCount && collisionList.length === 0; i++) {     // Take steps.
+    stepFraction = i / stepCount;
+    tweenTime = startGameTime + stepFraction * deltaTime;
+
+    tempState = this.stepStateByTime(this.player, tweenTime);
+
+    collisionList = getCollisionsInList(tempState, this.tm.terrainList, []);    //TODO MINIMIZE THIS LIST SIZE, THIS IS IDIOTIC
+  }
+
+  var events = [];
+  if (collisionList.length > 0) {   // WE COLLIDED WITH STUFF AND EXITED THE LOOP EARLY, handle.
+    events = findEventsFromCollisions(collisionList);         // a bunch of TerrainCollisionEvent's hopefully?
+    tempState = events[0].state;
+  }
+  //else if (tweenTime !== goalGameTime) {
+  //  console.log("tweenTime: ", tweenTime, " goalGameTime: ", goalGameTime);
+  //  throw "yeah I'm gonna need to manually update to goalTime cuz this isnt working";
+  //} 
+  //else {                                                        // NO COLLISIONS.
+  //  console.log("attemptNextStep, no collisions and resulting times matched:");
+  //  console.log("tweenTime: ", tweenTime, " goalGameTime: ", goalGameTime);
+  //}
+  else {                // TRY FINAL STEP
+    tweenTime = goalGameTime;
+    tempState = this.stepStateByTime(this.player, tweenTime);
+    collisionList = getCollisionsInList(tempState, this.tm.terrainList, []);    //TODO MINIMIZE THIS LIST SIZE, THIS IS IDIOTIC
+
+    if (collisionList.length > 0) {   // WE COLLIDED WITH STUFF AND EXITED THE LOOP EARLY
+      events = findEventsFromCollisions(collisionList);
+      tempState = events[0].state;
+    }
+  }
+  var results = new StepResult(tempState, events);
+  //TODO UPDATE PLAYER HERE???
+  return results;
+}
+
+
+// Universal method to step a state forward to a time, no logic involved.
+// COMPLETELY AND UTTERLY DONE. I THINK.
+PhysEng.prototype.stepStateByTime = function (state, targetGameTime) {
+  var startTime = state.time;
+  //console.log("in airStep. timeGoal: ", timeGoal);
+  //console.log("startTime: ", startTime);
+  //this.player.updateDerivVecs(this.inputState);
+  //console.log("accelVec before adding: ", accelVec);
+  var deltaTime = targetGameTime - startTime;
+  var multVel = state.vel.multf(deltaTime);
+  var multAcc = state.accel.multf(deltaTime * deltaTime / 2);
+  //console.log("lastVel: ", lastVel);
+  //console.log("this.inputState: ", this.inputState);
+  var newVel = state.vel.add(state.accel.multf(deltaTime));
+  var newPos = state.pos.add(multVel.add(multAcc));
+  return new State(targetGameTime, state.radius, newPos, newVel, state.accel);
+}
+
+
+
+
+/**
+ * Determines the time of the collisions and then return the earliest, those that tie for the earliest.
+ * data = { collision: false, collidedLine: false, collidedP0: false, collidedP1: false, surface: this, perpendicularIntersect: pD }
+ */
+PhysEng.prototype.findEventsFromCollisions = function (collisionList) {
+
+  var collisionHeap = new MinHeap(null, function (e1, e2) {
+    return e1.time == e2.time ? 0 : e1.time < e2.time ? -1 : 1;
+  });
+
+  for (var i = 0; i < collisionList.length; i++) {
+    var collision = collisionList[i];
+    var testedLine = false;
+    var testedP0 = false;
+    var testedP1 = false;
+
+    if (collision.collidedLine) {
+      testedLine = true;
+      var lineTime = solveTimeToDistFromLine(this.player.pos, this.player.vel, this.player.accel, collision.surface, this.player.radius);
+
+      console.log("collision ", i, " collided with line at time: ", lineTime);
+      var tempState = this.stepStateByTime(this.player, lineTime);
+      console.log("at position ", tempState);
+
+      if (collision.surface.isPointWithinPerpBounds(tempState.pos) && lineTime && lineTime > 0 && lineTime < 200) {   // Ensures that the real collision was with the line and not the points.
+        var collisionHeapObj = { time: lineTime, collisionObj: collision.surface, state: tempState };
+        collisionHeap.push(collisionHeapObj);
+
+      } else {                // We didnt really collide with the line. Try to add points instead.
+
+        console.log("We got a line collision but not with points, but time analysis says we didnt collide with line. Testing points?");
+        testedP0 = true;
+        testedP1 = true;
         var point0Time = solveTimeToDistFromPoint(this.player.pos, this.player.vel, this.player.accel, collision.surface.p0, this.player.radius);
+        var point1Time = solveTimeToDistFromPoint(this.player.pos, this.player.vel, this.player.accel, collision.surface.p1, this.player.radius);
 
         if (point0Time && point0Time > 0 && point0Time < 200) {
           console.log("collision ", i, " collided with p0 at time: ", lineTime);
           var tempState0 = this.stepStateByTime(this.player, point0Time);
           console.log("at position ", tempState0);
-          if (collision.surface.isPointWithinPerpBounds(tempState0.pos)) { // DEBUG TODO PLEASE DONT EVER LET THIS BE CALLED
-            throw "fuck you fuck everything I dont want to write a special case handler here please for the love of God dont ever let this exception get thrown";
-          }
           var collisionHeapObj = { time: point0Time, collisionObj: new TerrainPoint(collision.surface.p0, collision.surface), state: tempState0 };
           collisionHeap.push(collisionHeapObj);
-        } else {
-
         }
-      }
-      if (collision.collidedP1 && (!testedP1)) {
-        var point1Time = solveTimeToDistFromPoint(this.player.pos, this.player.vel, this.player.accel, collision.surface.p1, this.player.radius);
 
         if (point1Time && point1Time > 0 && point1Time < 200) {
           console.log("collision ", i, " collided with p1 at time: ", lineTime);
           var tempState1 = this.stepStateByTime(this.player, point1Time);
           console.log("at position ", tempState1);
-          if (collision.surface.isPointWithinPerpBounds(tempState1.pos)) { // DEBUG TODO PLEASE DONT EVER LET THIS BE CALLED
-            throw "fuck you fuck everything I dont want to write a special case handler here please for the love of God dont ever let this exception get thrown";
-          }
           var collisionHeapObj = { time: point1Time, collisionObj: new TerrainPoint(collision.surface.p1, collision.surface), state: tempState1 };
           collisionHeap.push(collisionHeapObj);
         }
       }
-    }   // end massive fucking for loop. Holy hell. Now we have a minheap hopefully full of the most recent events.
-    
-    var earliestCollisions = [collisionHeap.pop()];
-    while (collisionHeap.peek().time === earliestCollisions[0].time) {
-      //if (collisionHeap.peek().collisionObj instanceof TerrainLine && earliestEvents[0].collisionObj instanceof TerrainLine   //FOR DEBUG, TODO REMOVE.
-      //      && collisionHeap.peek().collisionObj.p0.x === earliestCollisions[0].collisionObj.p0.x
-      //      && collisionHeap.peek().collisionObj.p0.y === earliestCollisions[0].collisionObj.p0.y
-      //      && collisionHeap.peek().collisionObj.p1.x === earliestCollisions[0].collisionObj.p1.x
-      //      && collisionHeap.peek().collisionObj.p1.y === earliestCollisions[0].collisionObj.p1.y) 
-      //{
-      //  throw "Hmm we shouldnt have 2 of the exact same thingy.";
-      //} else if (collisionHeap.peek().collisionObj instanceof vec2 && earliestEvents[0].collisionObj instanceof vec2   //FOR DEBUG, TODO REMOVE.
-      //      && collisionHeap.peek().collisionObj.x === earliestCollisions[0].collisionObj.x
-      //      && collisionHeap.peek().collisionObj.y === earliestCollisions[0].collisionObj.y)
-      //{
-      //  throw "Hmm we shouldnt have 2 of the exact same thingy.";
-      //}
-      if (!(contains(earliestCollisions, collisionHeap.peek()))) {
-        console.log("not dupe, adding ", collisionHeap.peek());
-
-        earliestCollisions.push(collisionHeap.pop());
-      } else {
-        console.log("tried adding a dupe, ", collisionHeap.peek());
-        collisionHeap.pop();
-      }
-    } //earliestEvents should now have all the earliest collisions.
-    if (earliestCollisions.length > 1) {
-      console.log("there might be nothing wrong dunno if I'm handling this but we have more than 1 earliest event.");
     }
+    if (collision.collidedP0 && (!testedP0)) {
+      var point0Time = solveTimeToDistFromPoint(this.player.pos, this.player.vel, this.player.accel, collision.surface.p0, this.player.radius);
 
-    var eventList = this.turnCollisionsIntoEvents(earliestCollisions);
-  }
-
-
-
-
-
-  /**
-   * This method takes a list of collisions that occurred at the same time and decides what events need to happen.
-   * TODO decide how to handle line and point same time collisions. Go with line for now???
-   */
-  this.turnCollisionsIntoEvents = function (collisions) {
-    var eventList = [];
-    
-    var terrainLineCollisions = [];
-    var terrainPointCollisions = [];
-    for (var i = 0; i < collisions.length; i++) {
-      if (collisions[i].collisionObj instanceof TerrainLine) {
-        terrainLineCollisions.push(collisions[i]);
-      } else if (collisions[i].collisionObj instanceof TerrainPoint) {
-        terrainPointCollisions.push(collisions[i]);
-      } else if (collisions[i].collisionObj instanceof GoalLine) {           //DONE? TODO
-        var ge = new GoalEvent(collisions[i].time, collisions[i].collisionObj);
-        eventList.push(ge);
-      } else if (collisions[i].collisionObj instanceof Collectible) {        //TODO 
-        var ce = new CollectibleEvent(collisions[i].time);
-        eventList.push(ce);
-      }
-    }
-
-    //var collisionHeapObj = { time: point1Time, collisionObj: new TerrainPoint(collision.surface.p1, collision.surface), state: tempState1 };
-    if (terrainPointCollisions.length > 1) {            // TODO DEBUG REMOVE
-      throw "serious fucking problem here :| we got stacked points or someshit.";
-    }
-
-    if (terrainLineCollisions.length > 0) {         // THEN WE IGNORE TERRAIN POINTS???? TODO
-      if (terrainLineCollisions.length > 1) {
-        console.log("   we collided with 2 TerrainLines. Just lettin you know. ", terrainLineCollisions);
-        var combinedNormal = vec2(0, 0);
-        var collisionSurfaces = [];
-        for (var i = 0; i < terrainLineCollisions.length; i++) {
-          var vecToState = terrainLineCollisions[i].state.pos.subtract(terrainLineCollisions[i].collisionObj.p0);
-          combinedNormal = combinedNormal.add(terrainLineCollisions[i].collisionObj.normal.getFacing(vecToState));
-          collisionSurfaces.push(terrainLineCollisions[i].collisionObj);
+      if (point0Time && point0Time > 0 && point0Time < 200) {
+        console.log("collision ", i, " collided with p0 at time: ", lineTime);
+        var tempState0 = this.stepStateByTime(this.player, point0Time);
+        console.log("at position ", tempState0);
+        if (collision.surface.isPointWithinPerpBounds(tempState0.pos)) { // DEBUG TODO PLEASE DONT EVER LET THIS BE CALLED
+          throw "fuck you fuck everything I dont want to write a special case handler here please for the love of God dont ever let this exception get thrown";
         }
-        combinedNormal = combinedNormal.normalize();
-        var surfaceVec = combinedNormal.perp();
+        var collisionHeapObj = { time: point0Time, collisionObj: new TerrainPoint(collision.surface.p0, collision.surface), state: tempState0 };
+        collisionHeap.push(collisionHeapObj);
+      } else {
 
-        var te = new TerrainCollisionEvent(terrainLineCollisions[0].time, collisionSurfaces, terrainLineCollisions[0].state, surfaceVec, combinedNormal);
-        eventList.push(te);
-      } else {    // JUST ONE TerrainLine collision.      TerrainLine(gameTimeOfCollision, collidedWithList, stateAtCollision, surfaceVec, normalVec)
-        var tlc = terrainLineCollisions[0];
-        var te = new TerrainCollisionEvent(tlc.time, [tlc.collisionObj], tlc.state, tlc.collisionObj.getSurfaceAt(tlc.state), tlc.normal);
-        eventList.push(te);
       }
-    } else if (terrainPointCollisions.length === 1) {   // no TerrainLines, deal with TerrainPoints
-      var tpc = terrainPointCollisions[0];
-      var vecToState = tpc.state.pos.subtract(tpc.collisionObj);
-      console.log("TESTING WHETHER YOU CAN SUBTRACT A THING THAT HAS .x and .y FROM A VEC2");
-      console.log("tpc.state.pos: ", tpc.state.pos);
-      console.log("tpc.collisionObj: ", tpc.collisionObj);
-      console.log("vecToState: ", vecToState);
+    }
+    if (collision.collidedP1 && (!testedP1)) {
+      var point1Time = solveTimeToDistFromPoint(this.player.pos, this.player.vel, this.player.accel, collision.surface.p1, this.player.radius);
 
-      var collisionNormal = vecToState.normalize();
-      var surfaceVec = collisionNormal.perp();
+      if (point1Time && point1Time > 0 && point1Time < 200) {
+        console.log("collision ", i, " collided with p1 at time: ", lineTime);
+        var tempState1 = this.stepStateByTime(this.player, point1Time);
+        console.log("at position ", tempState1);
+        if (collision.surface.isPointWithinPerpBounds(tempState1.pos)) { // DEBUG TODO PLEASE DONT EVER LET THIS BE CALLED
+          throw "fuck you fuck everything I dont want to write a special case handler here please for the love of God dont ever let this exception get thrown";
+        }
+        var collisionHeapObj = { time: point1Time, collisionObj: new TerrainPoint(collision.surface.p1, collision.surface), state: tempState1 };
+        collisionHeap.push(collisionHeapObj);
+      }
+    }
+  }   // end massive fucking for loop. Holy hell. Now we have a minheap hopefully full of the most recent events.
 
-      var te = new TerrainCollisionEvent(tpc.time, [tpc.collisionObj], tpc.state, surfaceVec, collisionNormal);
+  var earliestCollisions = [collisionHeap.pop()];
+  while (collisionHeap.peek().time === earliestCollisions[0].time) {
+    //if (collisionHeap.peek().collisionObj instanceof TerrainLine && earliestEvents[0].collisionObj instanceof TerrainLine   //FOR DEBUG, TODO REMOVE.
+    //      && collisionHeap.peek().collisionObj.p0.x === earliestCollisions[0].collisionObj.p0.x
+    //      && collisionHeap.peek().collisionObj.p0.y === earliestCollisions[0].collisionObj.p0.y
+    //      && collisionHeap.peek().collisionObj.p1.x === earliestCollisions[0].collisionObj.p1.x
+    //      && collisionHeap.peek().collisionObj.p1.y === earliestCollisions[0].collisionObj.p1.y) 
+    //{
+    //  throw "Hmm we shouldnt have 2 of the exact same thingy.";
+    //} else if (collisionHeap.peek().collisionObj instanceof vec2 && earliestEvents[0].collisionObj instanceof vec2   //FOR DEBUG, TODO REMOVE.
+    //      && collisionHeap.peek().collisionObj.x === earliestCollisions[0].collisionObj.x
+    //      && collisionHeap.peek().collisionObj.y === earliestCollisions[0].collisionObj.y)
+    //{
+    //  throw "Hmm we shouldnt have 2 of the exact same thingy.";
+    //}
+    if (!(contains(earliestCollisions, collisionHeap.peek()))) {
+      console.log("not dupe, adding ", collisionHeap.peek());
+
+      earliestCollisions.push(collisionHeap.pop());
+    } else {
+      console.log("tried adding a dupe, not adding ", collisionHeap.peek());
+      collisionHeap.pop();
+    }
+  } //earliestEvents should now have all the earliest collisions.
+  if (earliestCollisions.length > 1) {
+    console.log("there might be nothing wrong dunno if I'm handling this but we have more than 1 earliest event.");
+  }
+
+  return this.turnCollisionsIntoEvents(earliestCollisions);
+}
+
+
+
+
+
+/**
+ * This method takes a list of collisions that occurred at the same time and decides what events need to happen.
+ * Collisions are TerrainPoints and TerrainLines.
+ * TODO decide how to handle line and point same time collisions. Go with line for now???
+ */
+PhysEng.prototype.turnCollisionsIntoEvents = function (collisions) {
+  var eventList = [];
+
+  var terrainLineCollisions = [];
+  var terrainPointCollisions = [];
+  for (var i = 0; i < collisions.length; i++) {
+    if (collisions[i].collisionObj instanceof TerrainLine) {
+      terrainLineCollisions.push(collisions[i]);
+    } else if (collisions[i].collisionObj instanceof TerrainPoint) {
+      terrainPointCollisions.push(collisions[i]);
+    } else if (collisions[i].collisionObj instanceof GoalLine) {           //DONE? TODO
+      var ge = new GoalEvent(collisions[i].time, collisions[i].collisionObj);
+      eventList.push(ge);
+    } else if (collisions[i].collisionObj instanceof Collectible) {        //TODO 
+      var ce = new CollectibleEvent(collisions[i].time);
+      eventList.push(ce);
+    }
+  }
+
+  //var collisionHeapObj = { time: point1Time, collisionObj: new TerrainPoint(collision.surface.p1, collision.surface), state: tempState1 };
+  if (terrainPointCollisions.length > 1) {            // TODO DEBUG REMOVE
+    throw "serious fucking problem here :| we got stacked points or someshit.";
+  }
+
+  if (terrainLineCollisions.length > 0) {         // THEN WE IGNORE TERRAIN POINTS???? TODO
+    if (terrainLineCollisions.length > 1) {
+      console.log("   we collided with 2 TerrainLines. Just lettin you know. ", terrainLineCollisions);
+      var combinedNormal = vec2(0, 0);
+      var collisionSurfaces = [];
+      for (var i = 0; i < terrainLineCollisions.length; i++) {
+        var vecToState = terrainLineCollisions[i].state.pos.subtract(terrainLineCollisions[i].collisionObj.p0);
+        combinedNormal = combinedNormal.add(terrainLineCollisions[i].collisionObj.normal.getFacing(vecToState));
+        collisionSurfaces.push(terrainLineCollisions[i].collisionObj);
+      }
+      combinedNormal = combinedNormal.normalize();
+      var surfaceVec = combinedNormal.perp();
+
+      var te = new TerrainCollisionEvent(terrainLineCollisions[0].time, collisionSurfaces, terrainLineCollisions[0].state, surfaceVec, combinedNormal);
       eventList.push(te);
-    } else { //nothing???
-
+    } else {    // JUST ONE TerrainLine collision.      TerrainLine(gameTimeOfCollision, collidedWithList, stateAtCollision, surfaceVec, normalVec)
+      var tlc = terrainLineCollisions[0];
+      var te = new TerrainCollisionEvent(tlc.time, [tlc.collisionObj], tlc.state, tlc.collisionObj.getSurfaceAt(tlc.state), tlc.normal);
+      eventList.push(te);
     }
+  } else if (terrainPointCollisions.length === 1) {   // no TerrainLines, deal with TerrainPoints
+    var tpc = terrainPointCollisions[0];
+    var vecToState = tpc.state.pos.subtract(tpc.collisionObj);
+    console.log("TESTING WHETHER YOU CAN SUBTRACT A THING THAT HAS .x and .y FROM A VEC2");
+    console.log("tpc.state.pos: ", tpc.state.pos);
+    console.log("tpc.collisionObj: ", tpc.collisionObj);
+    console.log("vecToState: ", vecToState);
 
-    return eventList;
+    var collisionNormal = vecToState.normalize();
+    var surfaceVec = collisionNormal.perp();
+
+    var te = new TerrainCollisionEvent(tpc.time, [tpc.collisionObj], tpc.state, surfaceVec, collisionNormal);
+    eventList.push(te);
+  } else { //nothing???
+
   }
 
-
-
-
-
-  /**
-   * Function to pop and return the most recent event. Modify when additional event heaps are added to physics engine.
-   * //DONE.
-   */
-  this.popMostRecentEvent = function () {
-    var events = [];
-    events.push(eventHeap);
-    events.push(predictedEventHeap);
-    // events.push (eventHeap.peek());    // FUTURE HEAPS.
-
-    var min = events[0].peek().time;
-    var minIndex = 0;
-    for (var i = 1; i < events.length; i++) {
-      if (min > events[i].peek().time) {
-        min = events[i].peek().time;
-        minIndex = i;
-      }
-    }
-    return events[minIndex].pop();
-  }
-
-
-
-
-
-
+  return eventList;
 }
 
 
 
-PhysEng.prototype.update = function(targetTime, newEvents) {
-  if (this.eventHeap.size() > 0 && !this.inReplay) {
-    throw "why the hell are we starting update with events still in event thing? *grumbles* better ways to implement replays....";	
-  }
-	
-  for(var i = 0; newEvents && i < newEvents.length; i++) {			//Put newEvents into eventHeap.
-    this.eventHeap.push(newEvents[i]);
-    this.replayData.push(newEvents[i]);
-  }
-		
-  //do {
-  //  tempState := attemptStep(goalDeltaTime);
-			
-  //  if tempState has new events
-  //  add tempStates events to eventHeap
-			
-  //  alter current state to reflect tempState
-			
-  //  var currentEvent = eventHeap.peek().time;
-  //  currentEvent.handle(this);		//case testing verify from the popped events time that this is the time gamestate resulted in.
-			
-  //} while (!(currentEvent instanceof RenderEvent));
+/**
+ * helper function, gets an array of all the event heaps.
+ */
+PhysEng.prototype.getEventHeapArray = function () {
+  var events = [];
+  events.push(this.inputEventHeap);
+  events.push(this.predictedEventHeap);
+  events.push(this.tweenEventHeap);
+  //events.push(this.stateEventHeap);
+  //events.push(this.tweenEventHeap);    // FUTURE HEAPS.
+
+  return events;
 }
+
+
+/**
+ * Helper function, gets the index of the heap with the lowest min time.
+ */
+PhysEng.prototype.getMinIndexInEventList = function (eventHeapList) {
+  var min = 10000000000000000;
+  var minIndex = 0;
+  for (var i = 0; i < eventHeapList.length; i++) {
+    if (eventHeapList[i].peek() && min > eventHeapList[i].peek().time) {
+      min = eventHeapList[i].peek().time;
+      minIndex = i;
+    }
+  }
+  return minIndex;
+}
+
+
+/**
+ * Helper function, gets the minimum time.
+ */
+PhysEng.prototype.getMinTimeInEventList = function (eventHeapList) {
+  var min = 10000000000000000;
+  for (var i = 0; i < eventHeapList.length; i++) {
+    if (eventHeapList[i].peek() && min > eventHeapList[i].peek().time) {
+      min = eventHeapList[i].peek().time;
+    }
+  }
+  return min;
+}
+
+
+
+/**
+ * Function to pop and return the most recent event. Modify when additional event heaps are added to physics engine.
+ * //DONE.
+ */
+PhysEng.prototype.popMostRecentEvent = function () {
+  var events = this.getEventHeapArray();
+  var minIndex = this.getMinIndexInEventList(events);
+  return events[minIndex].pop();
+}
+
+
+
+/**
+ * Function to peek and return the most recent event. Modify when additional event heaps are added to physics engine.
+ * //DONE.
+ */
+PhysEng.prototype.peekMostRecentEvent = function () {
+  var events = this.getEventHeapArray();
+  var minIndex = this.getMinIndexInEventList(events);
+  return events[minIndex].peek();
+}
+
+
+
+/**
+ * Gets the current time from physics.
+ */
+PhysEng.prototype.getTime = function () {
+  return this.timeMgr.time;
+}
+
+
+
 
 
 PhysEng.prototype.loadReplay = function(inputEventList) {
@@ -812,13 +1240,11 @@ function solveTimeToDistFromLine(curPos, curVel, accel, targetLine, distanceGoal
 }
 
 
-
+// returns { pos: newPos, vel: newVel, accel: newAccel };
 function getRotatedToXAround(origin, curPos, curVel, accel, targetLine) {  
   var v01 = targetLine.p1.subtract(targetLine.p0);
-  var horiz = new vec2(1, 0);
-  var radiansToHorizontal = Math.acos(v01.normalize().dot(horiz));
+  var radiansToHorizontal = getRadiansToHorizontal(v01);
 
-  radiansToHorizontal *= (v01.y > 0 ? -1.0 : 1.0);
   console.log("radiansToHorizontal: ", radiansToHorizontal);
   console.log("to degrees: ", radiansToHorizontal * 180 / Math.PI);
 
@@ -837,9 +1263,15 @@ function getRotatedToXAround(origin, curPos, curVel, accel, targetLine) {
   var newAccel = accel.multm(rMat);
   console.log("newAccel: ", newAccel);
   var results = { pos: newPos, vel: newVel, accel: newAccel };
+
   return results;
 }
 
+
+function getRadiansToHorizontal(vec) {
+  var radiansToHorizontal = Math.acos(vec.normalize().dot(HORIZ_NORM));
+  return radiansToHorizontal * (vec.y > 0 ? -1.0 : 1.0);
+}
 
 
  
@@ -928,438 +1360,209 @@ function contains(a, obj) {
 
 
 
+//ANIMATION STUFF
 
 
 
+//this.animationFacing = "left";          // "left" or "right" or "neutral"
+//this.animationWalking = false;         // is the player in the walking state?
+//this.animationRunning = false;         // is the player in the running state?
+//this.animationBoosting = false;         // is the player in the boost state?
+//this.animationDownBoosting = false;         // is the player in the Down boost state?
+//this.animationGroundJumping = false;    // is the player jumping from the ground?
+//this.animationDoubleJumping = false;    // is the player air jumping?
+//this.animationColliding = false;        // is the player in the collision animation?
+//this.animationFreefall = false;         // is the player in the Freefall animation?
+
+//this.animationTimeInCurrentAnimation = 0.0;   // what amount of time in seconds have we been in this animation state?
+//this.animationStartTime = 0.0;
+//this.animationAngleOfAnimation = 0.0;         // DO WE WANT THIS IN DEGREES OR RADIANS?
+//this.animationSpeed = 0.0;                    // The player speed. Used for walking / running animations.
 
 
 
+function animationSetPlayerDoubleJumping(p, time) {
+  animationReset(p);
+  p.animationFacing = (p.vel.x < 0 ? "left" : "right");
+  p.animationDoubleJumping = true;
+  p.animationTimeInCurrentAnimation = 0.0;
+  p.animationStartTime = time;
+  p.animationSpeed = 1.0;
+}
 
+function animationSetPlayerJumping(p, time, surfaceVec) {
+  animationReset(p);
+  p.animationFacing = (p.vel.x < 0 ? "left" : "right");
+  p.animationGroundJumping = true;
+  p.animationTimeInCurrentAnimation = 0.0;
+  p.animationStartTime = time;
+  p.animationSpeed = 1.0;
+  p.animationAngle = getRadiansToHorizontal(surfaceVec);
+}
 
-/*
-OLD.  __  OLD.  __  OLD.  __  OLD.  __  OLD.  __  OLD.  __  OLD.  __  OLD.  __  OLD.  __  OLD.  __  OLD.  __  OLD.  __  OLD.  __  OLD.  __  OLD.  __  OLD.  __  OLD.  __  OLD.  __  OLD.  __  OLD.  __  OLD.  __  OLD.  __  OLD.  __  OLD.  __  OLD.  __  OLD.  __  OLD.  __  OLD.  __  OLD.  __  OLD.  __  
-*/
+function animationSetPlayerWalking(p, time) {
+  animationReset(p);
+  p.animationFacing = (p.vel.x < 0 ? "left" : "right");
+  p.animationWalking = true;
+  p.animationTimeInCurrentAnimation = 0.0;
+  p.animationStartTime = time;
+  p.animationSpeed = p.vel.length();
+}
 
+function animationSetPlayerRunning(p, time) {
+  animationReset(p);
+  p.animationFacing = (p.vel.x < 0 ? "left" : "right");
+  p.animationRunning = true;
+  p.animationTimeInCurrentAnimation = 0.0;
+  p.animationStartTime = time;
+  p.animationSpeed = p.vel.length();
+}
 
+function animationSetPlayerBoosting(p, time) {
+  animationReset(p);
+  p.animationFacing = (p.vel.x < 0 ? "left" : "right");
+  p.animationBoosting = true;
+  p.animationTimeInCurrentAnimation = 0.0;
+  p.animationStartTime = time;
+}
 
+function animationSetPlayerDownBoosting(p, time) {
+  animationReset(p);
+  p.animationFacing = (p.vel.x < 0 ? "left" : "right");
+  p.animationDownBoosting = true;
+  p.animationTimeInCurrentAnimation = 0.0;
+  p.animationStartTime = time;
+}
 
+function animationSetPlayerColliding(p, time, surfaceVec) {
+  animationReset(p);
+  p.animationFacing = (p.vel.x < 0 ? "left" : "right");
+  p.animationColliding = true;
+  p.animationTimeInCurrentAnimation = 0.0;
+  p.animationStartTime = time;
+  p.animationAngle = getRadiansToHorizontal(surfaceVec);
+}
 
-
-
-var COLLISION_PRECISION_ITERATIONS = 10;
-//DEFAULT PHYSICS VALS, TWEAK HERE
-// WIDTH  = 1920 UNITS
-// HEIGHT = 1080 UNITS
-var DFLT_gravity = 0;        // FORCE EXERTED BY GRAVITY IS 400 ADDITIONAL UNITS OF VELOCITY DOWNWARD PER SECOND. 
-
-var DFLT_JUMP_HOLD_TIME = 0.15; // To jump full height, jump must be held for this long. Anything less creates a fraction of the jump height based on the fraction of the full time the button was held. TODO implement.
-
-// CONST ACCEL INPUTS
-var DFLT_gLRaccel = 800;
-var DFLT_aLRaccel = 600;
-var DFLT_aUaccel = 500;
-var DFLT_aDaccel = 500;
-var DFLT_gUaccel = 300;
-var DFLT_gDaccel = 300;
-var DFLT_gBoostLRvel = 1500;
-var DFLT_aBoostLRvel = 1500;
-var DFLT_aBoostDownVel = 1500;
-
-// CONST PULSE INPUTS
-var DFLT_jumpVelNormPulse = 2000;
-var DFLT_doubleJumpVelYPulse = 2000;
-var DFLT_doubleJumpVelYMin = 2000;
-
-// OTHER CHAR DEFAULTS
-var DFLT_numAirCharges = 1;
-var DFLT_radius = 1920 / 32;
-
-// CONST RATIOS
-var DFLT_jumpSurfaceSpeedLossRatio = 0.7;   // When jumping from the ground, the characters velocity vector is decreased by this ratio before jump pulse is added. 
-var DFLT_bounceSpeedLossRatio = 0.9;
-
-
-
-// CHECKS FOR COLLISIONS, HANDLES THEIR TIME STEPS, AND THEN CALLS airStep AND / OR surfaceStep WHERE APPLICABLE
-// eventList is a list of event objects that occurred since last update, sorted by the order in which they occurred.
-PhysEng.prototype.update = function (timeDelta, eventList) { // ______timeDelta IS ALWAYS A FLOAT REPRESENTING THE FRACTION OF A SECOND ELAPSED, WHERE 1.0 IS ONE FULL SECOND. _____________                           
-  FRAMECOUNTER++;
-  if (PHYS_DEBUG) {
-    //console.log("\nEntered update(timeDelta), timeDelta = ", timeDelta);
-    this.printState(true, false, false);
-  }
-
-  var state = new TempState(this.player.pos, this.player.vel, this.player.radius, 0.0);   //creates the initial state of the TempPlayer.
-  eventList.push(new RenderEvent(timeDelta)); //Set up the last event in the array to be our render event, so that the loop completes up to the render time.
-
-  var timeCompleted = 0.0;
-  for (i = 0; i < eventList.length; i++) { //Handle all the events that have happened since last frame at their respective times.
-    var event = eventList[i];
-    if (!eventList[i] instanceof RenderEvent) {
-      //console.log("about to stepToEndOfEvent. Event: ", event);
-    }
-    var terrainNotToCheck = [];
-    this.stepToEndOfEvent(state, event, terrainNotToCheck); // Guarantees time has completed up to the event and the event has been handled.
-    state = new TempState(this.player.pos, this.player.vel, this.player.radius, 0.0);
-  }                                                       // PHYSICS ARE UP TO DATE. GO AHEAD AND RENDER.
-
-  this.player.timeDelta = 0.0;
-  // WE ARE NOW DONE WITH THE ENTIRE UPDATE. HOPEFULLY NOTHING WENT WRONG.
-
-  if (FRAMECOUNTER === PRINTEVERY) {
-    FRAMECOUNTER = 0;
-  }
+function animationSetPlayerFreefall(p, time) {
+  animationReset(p);
+  p.animationFacing = (p.vel.x < 0 ? "left" : "right");
+  p.animationFreefall = true;
+  p.animationTimeInCurrentAnimation = 0.0;
+  p.animationStartTime = time;
 }
 
 
 
 
-// Step normally until the end of the event and then handles any intermediate events recursively before handling the event.
-PhysEng.prototype.stepToEndOfEvent = function (state, event, doNotCheck) {
-  //while (!eventDone) {                   //The physics step loop. Checks for collisions / lockbreaks and discovers the time they occur at. Continues stepping physics until it is caught up to "timeDelta".
-  //console.log("START stepToEndOfEvent");
-  var newEvents = [];
-  var stepState; var indexContained
-  if (this.player.surfaceOn === null) {               //In the air, call airStep
-    //console.log("player airborne, event.time: ", event.time);
-    stepState = this.airStep(state, event.time, doNotCheck); // TODO STATE SHOULD HAVE EVENTS NOT TerrainSurfaces.
-    for (var k = 0; k < stepState.eventList.length; k++) {
-      //console.log("new events added in stepToEndOfEvent, ", stepState.eventList.length);
+function animationReset(p) {
+  p.animationWalking = false;         // is the player in the walking state?
+  p.animationRunning = false;         // is the player in the running state?
+  p.animationBoosting = false;         // is the player in the boost state?
+  p.animationDownBoosting = false;         // is the player in the boost state?
+  p.animationGroundJumping = false;    // is the player jumping from the ground?
+  p.animationDoubleJumping = false;    // is the player air jumping?
+  p.animationColliding = false;        // is the player in the collision animation?
+  p.animationFreefall = false;         // is the player in the Freefall animation?
+  p.animationAngle = 0.0;
 
-      newEvents.push(stepState.eventList[k]);              
-
-    }
-
-  } else {                             //On surface, call surfaceStep 
-    console.log("player NOT airborne, event.time: ", event.time);
-    stepState = this.surfaceStep(state, event.time, doNotCheck);
-    for (var k = 0; k < stepState.eventList.length; k++) {
-
-      newEvents.push(stepState.eventList[k]);            
-
-    }
-  }
-
-  var newTerrainEvents = [];
-  var newCollectibleEvents = [];
-  var goal = false;
-  var collectibles = false;
-  if (newEvents.length > 0) { // WE DIDNT FINISH, A NEW EVENT HAPPENED. ALT state.timeDelta < event.time
-    //console.log("newEvents.length > 0");
-    for (var j = 0; j < newEvents.length; j++) {         //THESE SHOULD BE EVENTS THAT CONTAIN TERRAIN COLLISIONS.
-      if (newEvents[j] instanceof TerrainSurface) {      //Something we should react to hitting.
-        newTerrainEvents.push(newEvents[j]);
-      } else if (newEvents[j] instanceof GoalEvent) {
-        goal = true;
-      } else if (newEvents[j] instanceof CollectibleEvent) {
-        collectibles = true;
-        newCollectibleEvents.push(newEvents[j]);
-      }
-    }
-
-
-    if (goal) {
-      // TODO HANDLE GOAL
-      return;
-    } else if (collectibles) {
-      // TODO HANDLE COLLECTIBLES
-    } else if (newTerrainEvents.length > 0) {
-      //console.log("newTerrainEvents.length > 0");
-      for (var k = 0; k < newTerrainEvents.length; k++) {
-        doNotCheck.push(newTerrainEvents[k].id);
-      }
-      console.log("stepstate: ", stepState);
-      this.handleTerrainAirCollision(stepState, newTerrainEvents); // TODO REFACTOR TO PASS COLLISION OBJECT WITH ADDITIONAL DATA. SEE handleTerrainAirCollision COMMENTS FOR MORE INFO.
-    }
-    stepState = new TempState(this.player.pos, this.player.vel, this.player.radius, this.player.timeDelta);
-    this.stepToEndOfEvent(stepState, event, doNotCheck);
-  } else {                           // newEvents.length = 0, and WE DID FINISH
-    this.player.pos = stepState.pos;
-    this.player.vel = stepState.vel;
-    this.player.timeDelta = stepState.timeDelta;
-    //console.log("CALLING EVENTS HANDLER!!!!!!!", event);
-    event.handler(this);              // LET THE EVENTS HANDLER DO WHAT IT NEEDS TO TO UPDATE THE PHYSICS STATE, AND CONTINUE ON IN TIME TO THE NEXT EVENT.
-  }
-
-  //}                                 //COMPLETED TIMESTEP UP TO WHEN EVENT HAPPENED.
-
-
+  p.animationSpeed = null;
 }
 
 
 
-// Returns the players new position and velocity (in a TempState object) after an airStep of this length. Does not modify values.
-PhysEng.prototype.airStep = function (state, timeGoal, doNotCheck) {
-  var startTime = state.timeDelta;
-  //console.log("in airStep. timeGoal: ", timeGoal);
-  //console.log("startTime: ", startTime);
-  //this.accelState.update(this.inputState);
-  var accelVec = this.accelState.accelVec;
-  //console.log("accelVec before adding: ", accelVec);
-  var deltaTime = timeGoal - startTime;
-  var lastVel = state.vel;
-  var lastPos = state.pos;
-  var multVel = lastVel.multf(deltaTime);
-  var multAcc = accelVec.multf(deltaTime * deltaTime / 2);
-  //console.log("lastVel: ", lastVel);
-  //console.log("this.inputState: ", this.inputState);
-  var newVel = lastVel.add(accelVec.multf(deltaTime));
-  var newPos = lastPos.add(multVel.add(multAcc));
-
-  var tempState = new TempState(newPos, newVel, this.player.radius, timeGoal);
-  var collisionData = getCollisionData(tempState, currentLevel.terrainList, doNotCheck);
-  var returnState;
-  if (!collisionData.collided) {  //IF WE DIDNT COLLIDE, THIS SHOULD BE GOOD? TODO CHECK TO MAKE SURE WE DIDNT MOVE MORE THAN RADIUS IN THIS STEP.
-    returnState = tempState;
-  } else {                        //WE COLLIDED WITH SHIT, HANDLE RECURSIVELY, TODO DONE?
-    var minCollisionTime = startTime;
-    var maxCollisionTime = timeGoal;
-    var newTime = (maxCollisionTime + minCollisionTime) / 2.0;
-    var collisions = collisionData.collidedWith;
-    //newVel = lastVel.add(accelVec.multf(newTime - startTime));
-    //newPos = lastPos.add(lastVel.add(newVel).divf(2.0));
-
-    tempState = new TempState(newPos, newVel, this.player.radius, newTime);
-    for (var i = 1; i < COLLISION_PRECISION_ITERATIONS || (collisionData.collided && i < 20); i++) { //find collision point
-      if (i >= COLLISION_PRECISION_ITERATIONS) {
-        console.log("Extra collision test ", i, ", startTime ", startTime, " timeGoal ", timeGoal, " newTime ", newTime);
-      }
-
-      if (!collisionData.collided) {  // NO COLLISION
-        minCollisionTime = newTime;
-      } else {                        // COLLIDED
-        maxCollisionTime = newTime;
-        collisions = collisionData.collidedWith;
-      }
-
-      newTime = (maxCollisionTime + minCollisionTime) / 2.0;
-      deltaTime = newTime - startTime;
-      multVel = lastVel.multf(deltaTime);
-      multAcc = accelVec.multf(deltaTime * deltaTime / 2);
-      newVel = lastVel.add(accelVec.multf(deltaTime));
-      newPos = lastPos.add(multVel.add(multAcc));
-
-      tempState = new TempState(newPos, newVel, this.player.radius, newTime);
-      collisionData = getCollisionDataInList(tempState, collisions, doNotCheck);
-    }   // tempstate is collision point.                                              //Optimize by passing directly later, storing in named var for clarities sake for now.
-
-    if (!collisionData.collided) {  // NO COLLISION
-      minCollisionTime = newTime;
-    } else {                        // COLLIDED
-      maxCollisionTime = newTime;
-      collisions = collisionData.collidedWith;
-    }
-
-
-    newTime = (maxCollisionTime + minCollisionTime) / 2.0;
-    deltaTime = newTime - startTime;
-    multVel = lastVel.multf(deltaTime);
-    multAcc = accelVec.multf(deltaTime * deltaTime / 2);
-    newVel = lastVel.add(accelVec.multf(deltaTime));
-    newPos = lastPos.add(multVel.add(multAcc));
-
-    tempState = new TempState(newPos, newVel, this.player.radius, newTime);
-
-
-    returnState = tempState;
-    returnState.eventList = collisions; // TODO IMPLEMENT EVENT TYPE TO BE RETURNED IN THE CASE OF A COLLISION.
-    if (PHYS_DEBUG && collisions.length > 1) {                                            //DEBUG CASE CHECKING, REMOVE WHEN PHYSICS IS BUG FREE.
-      //console.log("collisions.length() shouldnt be > 1 if we didnt collide with a corner");
-    }
-
-  } // done with stepping
-  //console.log("airStep returnState: ", returnState);
-  return returnState;
-
-}
 
 
 
-// A step while the player is in the surface. Returns the players new position and velocity and time and any events that happened (in a TempState object) after attempting surfaceStep of this length. Does not modify values.
-PhysEng.prototype.surfaceStep = function (state, timeGoal, doNotCheck) {
-  console.log("in unimplemented surfaceStep.");
-  var collisionData = getCollisionData(state, terrainList, [this.player.surfaceOn.id]);
-  
-  if (!collisionData.collided) {
-    // WE ARE NOW IN THE AIR. RECURSIVELY FIND WHERE WE LEFT THE SURFACE, HANDLE THAT, THEN STEP ACCORDINGLY DEPENDING ON WHAT WE'RE ON AFTERWARDS.
-  } else if (collisionData.collidedWith.length === 1 && collisionData.collidedWith[0] === this.player.surfaceOn) {
-    // WE ARE STILL ON THE SURFACE WE WERE ON LAST FRAME, NO OTHER COLLISIONS, HANDLE NORMALLY, TODO
-  } else {     
-    // WE COLLIDED With SOMEthING NEW, HANDLE COLLISIONS RECURSIVELY OR SOMESHIT, TODO
-
-  }
-  return state;
-  // REMEMBER TO UPDATE this.player.timeDelta to the state where the surfaceStep ended.
-}
-
-
-
-//This code handles a terrain collision. TODO REFACTOR TO TAKE A COLLISION OBJECT THAT HAS A NORMAL OF COLLISION, AND A SINGLE SURFACE THAT MAY BE LOCKED TO, IF ANY. THIS WILL COVER MULTICOLLISIONS AND CORNERS / ENDPOINT CASES.
-// RETURNS NOTHING, SIMPLY SETS STATES.
-PhysEng.prototype.handleTerrainAirCollision = function (ballState, stuffWeCollidedWith) {
-  //console.log("START handleTerrainAirCollision");
-  var normalBallVel = ballState.vel.normalize();
-  var angleToNormal;
-  var collisionVec;
-  //if (stuffWeCollidedWith.length > 1) {
-  console.log("radius = ", ballState.radius);
-  collisionVec = stuffWeCollidedWith[0].getNormalAt(ballState.pos, ballState.radius);
-  //console.log(collisionVec);
-  for (var i = 1; i < stuffWeCollidedWith.length; i++) {
-    collisionVec = collisionVec.add(stuffWeCollidedWith[i].getNormalAt(ballState.pos, ballState.radius));
-    //console.log("dealing with a multiple thing collision...");
-  }
-  angleToNormal = Math.acos(collisionVec.normalize().dot(normalBallVel));
-  var collisionVecNorm = collisionVec.normalize();
-  console.log("collisionVecNorm = ", collisionVecNorm);
-  //} else {
-  //angleToNormal = Math.acos(collisionVec.getNormalAt(ballState.pos).dot(normalBallVel));
-  //}
-
-
-  var COLLISION_GLANCING_ENOUGH_TO_AUTO_LOCK = false; //TODO do some math
-  if (COLLISION_GLANCING_ENOUGH_TO_AUTO_LOCK) {
-    console.log("auto locked!?!?");
-    throw "AUTO LOCKED";
-    var surfaceVecNorm = collisionVecNorm.perp();      //TODO OHGOD REFACTOR TO THIS METHOD TAKING A COLLISION OBJECT THAT STORES NORMALS AND THE SINGLE SURFACE TO LOCK TO
-    var surfaceAngle = surfaceVecNorm.dot(normalBallVel);
-
-    //var velocityMag = ballState.vel.length();                     // DISABLED FOR REALISTIC PHYSICS
-    //var surfaceInvertAngle = surfaceVec.negate().dot(normalBallVel);
-
-    //if (surfaceAngle > surfaceInvertAngle) {
-    //  surfaceVec = surfaceVec.negate();
-    //}
-    //this.player.vel = surfaceVec.multf(velocityMag);              // END DISABLED FOR REALISTIC PHYSICS
-
-    this.player.pos = ballState.pos;
-    this.player.vel = projectVec2(ballState.vel, surfaceVecNorm);
-    this.player.airBorne = false;
-    this.player.surfaceLocked = inputState.lock;
-
-
-    // IF PLAYER IS HOLDING LOCK, ATTEMP TO LOCK IF WITHIN BOUNDARIES! TODO IS THE NEGATIVE LOCK_MIN_ANGLE CHECK NEEDED!!!?
-  } else if (this.inputState.lock && (angleToNormal > LOCK_MIN_ANGLE || angleToNormal < -LOCK_MIN_ANGLE)) {
-    console.log("locked!?!?");
-    throw "LOCKED";
-    //var velocityMag = ballState.vel.length();                 // COMMENTED OUT FOR REALISTIC PHYSICS
-    //var surfaceVecNorm = stuffWeCollidedWith[0].getSurfaceAt(ballState.pos); // REFACTOR TO USE NEW COLLISION OBJECT
-    //var surfaceAngle = surfaceVecNorm.dot(normalBallVel);
-    //var surfaceInvertAngle = (surfaceVec.negate()).dot(normalBallVel);
-
-    //if (surfaceAngle > surfaceInvertAngle) {
-    //  surfaceVec = surfaceVec.negate();
-    //}
-    //this.player.vel = surfaceVec.multf(velocityMag);          // END COMMENTED OUT FOR REALISTIC PHYSICS
-
-
-    var surfaceVecNorm = collisionVecNorm.perp();       // REALISTIC ADDITIONS START
-    this.player.vel = projectVec2(ballState.vel, surfaceVecNorm);                                             // TODO DOES NOT TAKE INTO ACCOUNT TOUCHING THE END OF A LINE.
-    // REALISTIC ADDITIONS END
-    this.player.pos = ballState.pos;
-    this.player.airBorne = false;
-    this.player.surfaceLocked = inputState.lock;
-    this.player.surfaceOn = stuffWeCollidedWith[0]; // TODO REFACTOR TO USE NEW COLLISION OBJECT
-
-
-    // BOUNCE. TODO implement addition of normalVector * jumpVel to allow jump being held to bounce him higher?   perhaps just buffer jump events.      
-  } else {
-    //throw "BOUNCE";
-    //console.log(collisionVec.normalize());
-    this.player.vel = getReflectionVector(normalBallVel, stuffWeCollidedWith[0].getNormalAt(ballState.pos, ballState.radius)).multf(ballState.vel.length() * DFLT_bounceSpeedLossRatio); //TODO REFACTOR TO USE NEW COLLISION OBJECT
-    //this.player.vel = getReflectionVector(ballState.vel, collisionVec.normalize()).multf(DFLT_bounceSpeedLossRatio); //TODO REFACTOR TO USE NEW COLLISION OBJECT          // COLLISIONVEC AVERAGE VERSION
-    this.player.pos = ballState.pos;
-    this.player.airBorne = true;
-    //this.player.surfaceOn = null;      //TODO remove. This shouldnt be necessary as should be set when a player leaves a surface.
-  }
-  this.player.timeDelta = ballState.timeDelta;
-}
 
 // Self explanatory. For debug purposes.
 PhysEng.prototype.printState = function (printExtraPlayerDebug, printExtraControlsDebug, printExtraPhysDebug) {
-  if (FRAMECOUNTER === PRINTEVERY)
-  {
+  //if (FRAMECOUNTER === PRINTEVERY) {
 
-    console.log("Player: ");
-    console.log("  pos: %.2f, %.2f", this.player.pos.x, this.player.pos.y);
-    console.log("  vel: %.2f, %.2f", this.player.vel.x, this.player.vel.y);
-    if (printExtraPlayerDebug) {
-      //console.log("  radius: %.2f", this.player.radius);
-      console.log("  onGround: %s", this.player.onGround);
-      console.log("  gLocked: %s", this.player.gLocked);
-      console.log("  surfaceOn: %s", this.player.surfaceOn);
-    }
-    console.log("");
+  //  console.log("Player: ");
+  //  console.log("  pos: %.2f, %.2f", this.player.pos.x, this.player.pos.y);
+  //  console.log("  vel: %.2f, %.2f", this.player.vel.x, this.player.vel.y);
+  //  if (printExtraPlayerDebug) {
+  //    //console.log("  radius: %.2f", this.player.radius);
+  //    console.log("  onGround: %s", this.player.onGround);
+  //    console.log("  gLocked: %s", this.player.gLocked);
+  //    console.log("  surfaceOn: %s", this.player.surfaceOn);
+  //  }
+  //  console.log("");
 
-    if (printExtraControlsDebug) {
-      console.log("Controls: ");
+  //  if (printExtraControlsDebug) {
+  //    console.log("Controls: ");
 
-      console.log("  gLRaccel: %.2f", this.player.controlParameters.gLRaccel);
-      console.log("  aLRaccel: %.2f", this.player.controlParameters.aLRaccel);
-      console.log("  gUaccel: %.2f", this.player.controlParameters.gUaccel);
-      console.log("  gDaccel: %.2f", this.player.controlParameters.gDaccel);
-      console.log("  aUaccel: %.2f", this.player.controlParameters.aUaccel);
-      console.log("  aDaccel: %.2f", this.player.controlParameters.aDaccel);
-      console.log("  gBoostLRvel: %.2f", this.player.controlParameters.gBoostLRvel);
-      console.log("  aBoostLRvel: %.2f", this.player.controlParameters.aBoostLRvel);
-      console.log("  aBoostDownVel: %.2f", this.player.controlParameters.aBoostDownVel);
-      console.log("  jumpVelNormPulse: %.2f", this.player.controlParameters.jumpVelNormPulse);
-      console.log("  doubleJumpVelYPulse: %.2f", this.player.controlParameters.doubleJumpVelYPulse);
-      console.log("  doubleJumpVelYMin: %.2f", this.player.controlParameters.doubleJumpVelYMin);
-      console.log("  numAirCharges: %.2f", this.player.controlParameters.numAirCharges);
-      console.log("  dragBase: %.2f", this.player.controlParameters.dragBase);
-      console.log("  dragTerminalVel: %.2f", this.player.controlParameters.dragTerminalVel);
-      console.log("  dragExponent: %.2f", this.player.controlParameters.dragExponent);
-      console.log("");
-    }
+  //    console.log("  gLRaccel: %.2f", this.player.controlParams.gLRaccel);
+  //    console.log("  aLRaccel: %.2f", this.player.controlParams.aLRaccel);
+  //    console.log("  gUaccel: %.2f", this.player.controlParams.gUaccel);
+  //    console.log("  gDaccel: %.2f", this.player.controlParams.gDaccel);
+  //    console.log("  aUaccel: %.2f", this.player.controlParams.aUaccel);
+  //    console.log("  aDaccel: %.2f", this.player.controlParams.aDaccel);
+  //    console.log("  gBoostLRvel: %.2f", this.player.controlParams.gBoostLRvel);
+  //    console.log("  aBoostLRvel: %.2f", this.player.controlParams.aBoostLRvel);
+  //    console.log("  aBoostDownVel: %.2f", this.player.controlParams.aBoostDownVel);
+  //    console.log("  jumpVelNormPulse: %.2f", this.player.controlParams.jumpVelNormPulse);
+  //    console.log("  doubleJumpVelYPulse: %.2f", this.player.controlParams.doubleJumpVelYPulse);
+  //    console.log("  doubleJumpVelYMin: %.2f", this.player.controlParams.doubleJumpVelYMin);
+  //    console.log("  numAirCharges: %.2f", this.player.controlParams.numAirCharges);
+  //    console.log("  dragBase: %.2f", this.player.controlParams.dragBase);
+  //    console.log("  dragTerminalVel: %.2f", this.player.controlParams.dragTerminalVel);
+  //    console.log("  dragExponent: %.2f", this.player.controlParams.dragExponent);
+  //    console.log("");
+  //  }
 
 
-    if (printExtraPhysDebug) {
+  //  if (printExtraPhysDebug) {
 
-      console.log("PhysParams: ");
-      console.log("  gravity: %.2f", this.phys.gravity);
-      console.log("");
-    }
-    console.log("");
-  }
+  //    console.log("PhysParams: ");
+  //    console.log("  gravity: %.2f", this.phys.gravity);
+  //    console.log("");
+  //  }
+  //  console.log("");
+  //}
+  console.log(this);
 }
 
 // Self explanatory. For debug purposes.
 PhysEng.prototype.printStartState = function () {
-  console.log("Created PhysEng");
-  console.log("Controls: ");
-  console.log("  gLRaccel: %.2f", this.player.controlParameters.gLRaccel);
-  console.log("  aLRaccel: %.2f", this.player.controlParameters.aLRaccel);
-  console.log("  gUaccel: %.2f", this.player.controlParameters.gUaccel);
-  console.log("  gDaccel: %.2f", this.player.controlParameters.gDaccel);
-  console.log("  aUaccel: %.2f", this.player.controlParameters.aUaccel);
-  console.log("  aDaccel: %.2f", this.player.controlParameters.aDaccel);
-  console.log("  gBoostLRvel: %.2f", this.player.controlParameters.gBoostLRvel);
-  console.log("  aBoostLRvel: %.2f", this.player.controlParameters.aBoostLRvel);
-  console.log("  aBoostDownVel: %.2f", this.player.controlParameters.aBoostDownVel);
-  console.log("  jumpVelNormPulse: %.2f", this.player.controlParameters.jumpVelNormPulse);
-  console.log("  doubleJumpVelYPulse: %.2f", this.player.controlParameters.doubleJumpVelYPulse);
-  console.log("  doubleJumpVelYMin: %.2f", this.player.controlParameters.doubleJumpVelYMin);
-  console.log("  numAirCharges: %.2f", this.player.controlParameters.numAirCharges);
-  console.log("  dragBase: %.2f", this.player.controlParameters.dragBase);
-  console.log("  dragTerminalVel: %.2f", this.player.controlParameters.dragTerminalVel);
-  console.log("  dragExponent: %.2f", this.player.controlParameters.dragExponent);
-  console.log("");
+  //console.log("Created PhysEng");
+  //console.log("Controls: ");
+  //console.log("  gLRaccel: %.2f", this.player.controlParams.gLRaccel);
+  //console.log("  aLRaccel: %.2f", this.player.controlParams.aLRaccel);
+  //console.log("  gUaccel: %.2f", this.player.controlParams.gUaccel);
+  //console.log("  gDaccel: %.2f", this.player.controlParams.gDaccel);
+  //console.log("  aUaccel: %.2f", this.player.controlParams.aUaccel);
+  //console.log("  aDaccel: %.2f", this.player.controlParams.aDaccel);
+  //console.log("  gBoostLRvel: %.2f", this.player.controlParams.gBoostLRvel);
+  //console.log("  aBoostLRvel: %.2f", this.player.controlParams.aBoostLRvel);
+  //console.log("  aBoostDownVel: %.2f", this.player.controlParams.aBoostDownVel);
+  //console.log("  jumpVelNormPulse: %.2f", this.player.controlParams.jumpVelNormPulse);
+  //console.log("  doubleJumpVelYPulse: %.2f", this.player.controlParams.doubleJumpVelYPulse);
+  //console.log("  doubleJumpVelYMin: %.2f", this.player.controlParams.doubleJumpVelYMin);
+  //console.log("  numAirCharges: %.2f", this.player.controlParams.numAirCharges);
+  //console.log("  dragBase: %.2f", this.player.controlParams.dragBase);
+  //console.log("  dragTerminalVel: %.2f", this.player.controlParams.dragTerminalVel);
+  //console.log("  dragExponent: %.2f", this.player.controlParams.dragExponent);
+  //console.log("");
 
-  console.log("PhysParams: ");
-  console.log("  gravity: %.2f", this.phys.gravity);
-  console.log("");
+  //console.log("PhysParams: ");
+  //console.log("  gravity: %.2f", this.phys.gravity);
+  //console.log("");
 
-  console.log("Player: ");
-  console.log("  radius: %.2f", this.player.radius);
-  console.log("  starting pos: %.2f, %.2f", this.player.pos.x, this.player.pos.y);
-  console.log("  starting vel: %.2f, %.2f", this.player.vel.x, this.player.vel.y);
-  console.log("  onGround: %s", this.player.onGround);
-  console.log("  gLocked: %s", this.player.gLocked);
-  console.log("  surfaceOn: %s", this.player.surfaceOn);
-  console.log("");
-  console.log("");
+  //console.log("Player: ");
+  //console.log("  radius: %.2f", this.player.radius);
+  //console.log("  starting pos: %.2f, %.2f", this.player.pos.x, this.player.pos.y);
+  //console.log("  starting vel: %.2f, %.2f", this.player.vel.x, this.player.vel.y);
+  //console.log("  onGround: %s", this.player.onGround);
+  //console.log("  gLocked: %s", this.player.gLocked);
+  //console.log("  surfaceOn: %s", this.player.surfaceOn);
+  //console.log("");
+  //console.log("");
+  console.log(this);
 }
+
+
+
 
 
 
@@ -1378,30 +1581,19 @@ CHILD.prototype.method = function () {
 
 
 // MAIN CODE TESTING BS HERE
-//var physParams = new PhysParams(DFLT_gravity);
-//var controlParams = new ControlParams(DFLT_gLRaccel, DFLT_aLRaccel, DFLT_aUaccel, DFLT_aDaccel, DFLT_gUaccel, DFLT_gDaccel, DFLT_gBoostLRvel, DFLT_aBoostLRvel, DFLT_aBoostDownVel, DFLT_jumpVelNormPulse, DFLT_doubleJumpVelYPulse, DFLT_doubleJumpVelYMin, DFLT_numAirCharges, 0.0, 100000000, 2, DFLT_jumpSurfaceSpeedLossRatio);
-//var playerModel = new PlayerModel(controlParams, DFLT_radius, new vec2(800, -400), null);
-//var physeng = new PhysEng(physParams, playerModel);
-//physeng.update(0.001, []);
-//physeng.update(0.002, []);
-//physeng.update(0.005, []);
-//physeng.update(0.010, [new InputEventRight(0.005, true)]);
-//physeng.update(0.050, [new InputEventRight(0.005, false), new InputEventLeft(0.010, true)]);
-//physeng.update(0.200, [new InputEventUp(0.084, true)]);
-//physeng.update(0.010, [new InputEventLeft(0.0005, false)]);
-//physeng.update(0.035, [new InputEventUp(0.03, false)]);
-
-
-
-
-
-
-// PHYS EFFICIENCY PROFILE STUFF
-
-var time_in_update = 0.0;
-var time_in_other = 0.0; //etc
-
-
+var terrainManager = new TerrainManager();
+var physParams = new PhysParams(DFLT_gravity, DFLT_lockThreshold, DFLT_autoLockThreshold);
+var controlParams = new ControlParams(DFLT_gLRaccel, DFLT_aLRaccel, DFLT_aUaccel, DFLT_aDaccel, DFLT_gUaccel, DFLT_gDaccel, DFLT_gBoostLRvel, DFLT_aBoostLRvel, DFLT_aBoostDownVel, DFLT_jumpVelNormPulse, DFLT_doubleJumpVelYPulse, DFLT_doubleJumpVelYMin, DFLT_numAirCharges, 0.0, 100000000, 2, DFLT_jumpSurfaceSpeedLossRatio, DFLT_reverseAirJumpSpeed);
+var playerModel = new PlayerModel(controlParams, physParams, 0.0, DFLT_radius, new vec2(800, -400), new vec2(0, -0), new vec2(0, -0), null);
+var physEng = new PhysEng(playerModel, terrainManager);
+physEng.update(0.001, []);
+physEng.update(0.002, []);
+physEng.update(0.005, []);
+physEng.update(0.010, [new InputEventRight(0.005, true)]);
+physEng.update(0.050, [new InputEventRight(0.005, false), new InputEventLeft(0.010, true)]);
+physEng.update(0.200, [new InputEventUp(0.084, true)]);
+physEng.update(0.010, [new InputEventLeft(0.0005, false)]);
+physEng.update(0.035, [new InputEventUp(0.03, false)]);
 
 
 
@@ -1410,38 +1602,3 @@ var time_in_other = 0.0; //etc
   this.ctx.font = "30px Arial";
     this.ctx.fillText("Hello World",200 + player.model.pos.x - (initWidth/ctx.canvas.width) * (ctx.canvas.width/ initScale / 2),100 + player.model.pos.y - (initWidth/ctx.canvas.width) * (ctx.canvas.height/ initScale / 2) );
 */
-
-
-/*
-TO TOP _____ TO TOP _____ TO TOP _____ TO TOP _____ TO TOP _____ TO TOP _____ TO TOP _____ TO TOP _____ TO TOP _____ TO TOP _____ TO TOP _____ TO TOP _____ TO TOP _____ TO TOP _____ TO TOP _____ TO TOP _____ TO TOP _____ TO TOP _____ 
-*/
-/*
- * The physics engine. These are helper functions used to base the games physics around.
- * May later be extended to support different player characters with different physics properties.
- * Author Travis Drake
- */
-var PHYS_DEBUG = true;
-
-var HALF_PI = Math.PI / 2.0;
-
-var LOCK_MIN_ANGLE = 45.0 / 180 * Math.PI;  //ANGLE OF COLLISION BELOW WHICH NOT TO BOUNCE.
-var PRINTEVERY = 240;
-var FRAMECOUNTER = 0;
-
-var printFor = 5;
-var printed = 0;
-
-//var CONST_DRAG = 0.5;
-
-
-// this should work in just about any browser, and allows us to use performance.now() successfully no matter the browser.
-// source http://www.sitepoint.com/discovering-the-high-resolution-time-api/
-window.performance = window.performance || {};
-performance.now = (function () {
-  return performance.now ||
-         performance.mozNow ||
-         performance.msNow ||
-         performance.oNow ||
-         performance.webkitNow ||
-         function () { return new Date().getTime(); };
-})();
