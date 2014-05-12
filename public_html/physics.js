@@ -587,7 +587,7 @@ function PhysEng(playerModel, terrainManager) {
 
 
   this.inReplay = false;
-  this.isPaused = false;
+  this.isPaused = true;
   this.ReplayData = [];
 	
 	
@@ -598,7 +598,7 @@ function PhysEng(playerModel, terrainManager) {
  * Update function for physEng. If you want it to use browser time you need to add a renderEvent at the browser timestamp to newEvents before passing it into update.
  */
 PhysEng.prototype.update = function (time, newEvents) {
-  console.log("time ", time);
+  //console.log("time ", time);
   newEvents.push(new RenderEvent(time));
   this.updatePhys(newEvents, DEBUG_EVENT_AT_A_TIME);
 }
@@ -631,7 +631,7 @@ PhysEng.prototype.updatePhys = function (newEvents, stepToRender) {
       if (renderEventCount > 1) {
         throw "recieved 2 render events in 1 update, cannot continue.";
       }
-      console.log("convertEventBrowserTime for a renderEvent");
+      //console.log("convertEventBrowserTime for a renderEvent");
       this.convertEventBrowserTime(newEvents[i]);
     }
 
@@ -648,6 +648,7 @@ PhysEng.prototype.updatePhys = function (newEvents, stepToRender) {
     //update player state to resulting state.
     this.player.updateToState(stepResult.state);
 
+
     //if stepResult has new events
     for (var i = 0; stepResult.events && i < stepResult.events.length; i++) {
       //add new events events to eventHeap
@@ -658,8 +659,8 @@ PhysEng.prototype.updatePhys = function (newEvents, stepToRender) {
     }
 
     var currentEvent = this.popMostRecentEvent();
-    console.log("stepResult: ", stepResult);
-    console.log("currentEvent: ", currentEvent);
+    //console.log("stepResult: ", stepResult);
+    //console.log("currentEvent: ", currentEvent);
     if (currentEvent.time != stepResult.state.time) {     //DEBUG CASE TESTING TODO REMOVE
       throw "times dont match between the event and the stepResult.state";
     }
@@ -667,8 +668,10 @@ PhysEng.prototype.updatePhys = function (newEvents, stepToRender) {
 
     this.syncEvent();
   } while (stepToRender && (!currentEvent instanceof RenderEvent));
-  console.log("finished do while loop in update, currentEvent = ", currentEvent);
-
+  //console.log("finished do while loop in update, currentEvent = ", currentEvent);
+  console.log(this.player.pos);
+  console.log("");
+  console.log(stepResult.state.pos);
   return this.player.completionState;
 }
 
@@ -711,6 +714,10 @@ PhysEng.prototype.unpause = function (browserTime) {
 }
 
 
+PhysEng.prototype.start = function () {
+  this.unpause(performance.now() / 1000);
+}
+
 
 /**
  * converts an event created with browser time to the proper gameTime.
@@ -740,7 +747,7 @@ PhysEng.prototype.convertEventBrowserTime = function (event) {
  */
 PhysEng.prototype.attemptNextStep = function (goalGameTime) {
   var stepCount = 1;
-  console.log(this.player);
+  //console.log(this.player);
   while (this.player.vel.multf(goalGameTime / stepCount).lengthsq() > this.MAX_MOVE_DISTANCE_SQ)   // Figure out how many steps to divide this step into.
   {
     stepCount *= 2;
@@ -760,6 +767,8 @@ PhysEng.prototype.attemptNextStep = function (goalGameTime) {
     tempState = this.stepStateByTime(this.player, tweenTime);
 
     collisionList = getCollisionsInList(tempState, this.tm.terrainList, []);    //TODO MINIMIZE THIS LIST SIZE, THIS IS IDIOTIC
+
+    console.log(tweenTime);
   }
 
   var events = [];
@@ -1043,6 +1052,9 @@ PhysEng.prototype.getMinTimeInEventList = function (eventHeapList) {
     if (eventHeapList[i].peek() && min > eventHeapList[i].peek().time) {
       min = eventHeapList[i].peek().time;
     }
+  }
+  if (min === 10000000000000000) {
+    min = null;
   }
   return min;
 }

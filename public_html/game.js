@@ -132,13 +132,27 @@ function GameEngine(player) {
     this.player.inputs = this.input;
 
 
-    this.physParams = new PhysParams(DFLT_gravity);
-    this.controlParams = new ControlParams(DFLT_gLRaccel, DFLT_aLRaccel, DFLT_aUaccel, DFLT_aDaccel, DFLT_gUaccel, DFLT_gDaccel, DFLT_gBoostLRvel, DFLT_aBoostLRvel, DFLT_aBoostDownVel, DFLT_jumpVelNormPulse, DFLT_doubleJumpVelYPulse, DFLT_doubleJumpVelYMin, DFLT_numAirCharges, 0.0, 100000000, 2, DFLT_jumpSurfaceSpeedLossRatio);
-    this.playerModel = new PlayerModel(this.controlParams, DFLT_radius, new vec2(800, -400), null);
-    this.physEng = new PhysEng(this.physParams, this.playerModel);
-    this.player.model = this.playerModel;              // backwards add a playerModel to player.
-    this.eventsSinceLastFrame = [];
+    //this.physParams = new PhysParams(DFLT_gravity);
+    //this.controlParams = new ControlParams(DFLT_gLRaccel, DFLT_aLRaccel, DFLT_aUaccel, DFLT_aDaccel, DFLT_gUaccel, DFLT_gDaccel, DFLT_gBoostLRvel, DFLT_aBoostLRvel, DFLT_aBoostDownVel, DFLT_jumpVelNormPulse, DFLT_doubleJumpVelYPulse, DFLT_doubleJumpVelYMin, DFLT_numAirCharges, 0.0, 100000000, 2, DFLT_jumpSurfaceSpeedLossRatio);
+    //this.playerModel = new PlayerModel(this.controlParams, DFLT_radius, new vec2(800, -400), null);
+    //this.physEng = new PhysEng(this.physParams, this.playerModel);
+  //this.player.model = this.playerModel;              // backwards add a playerModel to player.
+    this.initializePhysEng(currentLevel);
+
     this.lastFrameTime = performance.now();
+}
+
+
+
+GameEngine.prototype.initializePhysEng = function (selectedLevel) {
+  this.physParams = new PhysParams(DFLT_gravity, DFLT_lockThreshold, DFLT_autoLockThreshold);
+  this.controlParams = new ControlParams(DFLT_gLRaccel, DFLT_aLRaccel, DFLT_aUaccel, DFLT_aDaccel, DFLT_gUaccel, DFLT_gDaccel, DFLT_gBoostLRvel, DFLT_aBoostLRvel, DFLT_aBoostDownVel, DFLT_jumpVelNormPulse, DFLT_doubleJumpVelYPulse, DFLT_doubleJumpVelYMin, DFLT_numAirCharges, 0.0, 100000000, 2, DFLT_jumpSurfaceSpeedLossRatio, DFLT_reverseAirJumpSpeed);
+  this.playerModel = new PlayerModel(this.controlParams, this.physParams, 0.0, DFLT_radius, new vec2(0, 0), new vec2(0, -0), new vec2(0, -0), null);
+  this.physEng = new PhysEng(this.playerModel, selectedLevel);
+  this.player.model = this.playerModel;              // backwards add a playerModel to player.
+
+
+  this.eventsSinceLastFrame = [];
 }
 
 
@@ -162,6 +176,8 @@ GameEngine.prototype.start = function() {
   console.log("starting game");
   //var lastTime = performance.now();
   //var newTime;
+  this.physEng.start();
+
     var that = this;
     (function gameLoop() {
       that.loop();
@@ -537,7 +553,7 @@ GameEngine.prototype.update = function() {
     if (this.eventsSinceLastFrame.length > 0) {
       console.log("we have events");
     }
-    this.physEng.update(timeDelta / 1000, this.eventsSinceLastFrame);
+    this.physEng.update(thisFrameTime / 1000, this.eventsSinceLastFrame);
 
     this.eventsSinceLastFrame = [];
     for (var i = 0; i < entitiesCount; i++) {
@@ -620,7 +636,7 @@ levelTimer.prototype.updateTime = function() {
 	newC.width = '150';
 	document.body.appendChild(newC);
 */
-	ctx2.clearRect(0,0,canvas2.width,canvas2.height);
+	ctx2.clearRect(0,0,canvas2.width,canvas2.height);   
 	timeTest(ctx2);
 	//console.log("Time = " + min + ":" + add + sec);
 
@@ -667,7 +683,7 @@ var ASSET_MANAGER = new AssetManager();
 var gameEngine;
 var player;
 
-var currentLevel;
+var currentLevel = new TerrainManager();
 for(var i = 0; i < imagePaths.length; i++) {
     ASSET_MANAGER.queueDownload(imagePaths[i]);
 }
@@ -717,7 +733,6 @@ ASSET_MANAGER.downloadAll(function() {
     //    gameEngine.addEntity(new Unit("assets/enemy.jpg", enemy[i][0],enemy[i][1]));
     //}
     //    gameEngine.addEntity(new TerrainLine(new vec2(200,200+50), new vec2(200+250,200+150), player));
-    currentLevel = new TerrainManager();
     
     gameEngine.addEntity(currentLevel);
     new MapEditor(currentLevel);
