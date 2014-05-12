@@ -1,7 +1,38 @@
 /*
- * Physics.js
- * terrainManager gets passed
+ * The physics engine. This is a complex system that uses no timers, but rather mathematically discretizes
+ * all events across time into component events, predicts future events, and only acts upon events that are reached.
+ * RenderEvents are passed into the physics engine to choose what time for the engine to determine the events up to.
+ * 
+ * May later be extended to support different player characters with different physics properties.
+ *
+ * Author Travis Drake
+ * All rights reserved.
  */
+var HALF_PI = Math.PI / 2.0;
+
+//var LOCK_MIN_ANGLE = 45.0 / 180 * Math.PI;  //ANGLE OF COLLISION BELOW WHICH NOT TO BOUNCE.
+var PRINTEVERY = 240;
+var FRAMECOUNTER = 0;
+
+var printFor = 5;
+var printed = 0;
+
+//var CONST_DRAG = 0.5;
+
+
+// this should work in just about any browser, and allows us to use performance.now() successfully no matter the browser.
+// source http://www.sitepoint.com/discovering-the-high-resolution-time-api/
+window.performance = window.performance || {};
+performance.now = (function () {
+  return performance.now ||
+         performance.mozNow ||
+         performance.msNow ||
+         performance.oNow ||
+         performance.webkitNow ||
+         function () { return new Date().getTime(); };
+})();
+
+
 // DO A THING WITH A DRAG LOOKUP TABLE TODO PLZ
 
 
@@ -16,6 +47,7 @@ var COLLISION_PRECISION_ITERATIONS = 10;
 // HEIGHT = 1080 UNITS
 var DFLT_gravity = 0;        // FORCE EXERTED BY GRAVITY IS 400 ADDITIONAL UNITS OF VELOCITY DOWNWARD PER SECOND. 
 var DFLT_autoLockThreshold = 200;
+var DFLT_lockThreshold = 1000;
 
 var DFLT_JUMP_HOLD_TIME = 0.15; // To jump full height, jump must be held for this long. Anything less creates a fraction of the jump height based on the fraction of the full time the button was held. TODO implement.
 
@@ -103,7 +135,8 @@ function StepResult (state, eventArray) {
 
 
 
-/**PhysParams object contains all the physics values. These will not change between characters. 
+/**
+ * PhysParams object contains all the physics values. These will not change between characters. 
  * This exists because it will be used later on to implement other terrain types, whose static
  * effect values will be passed in here.
  */
@@ -116,19 +149,20 @@ function PhysParams(gravity, autoLockThreshold) {
 }
 
 
+
 /**This object contains all the values that are relative to the PLAYER. 
  * IE, anything that would be specific to different selectable characters.
  */
 function ControlParams(gLRaccel, aLRaccel, aUaccel, aDaccel, gUaccel, gDaccel,
   gBoostLRvel, aBoostLRvel, aBoostDownVel, jumpVelNormPulse, doubleJumpVelYPulse,
   doubleJumpVelYMin, numAirCharges, dragBaseAmt, dragTerminalVel, dragExponent,
-  jumpSurfaceSpeedLossRatio, reverseAirJumpSpeed) {
+  jumpSurfaceSpeedLossRatio, reverseAirJumpSpeed, lockThreshold) {
 
-  if (!(gLRaccel && aLRaccel && aUaccel && aDaccel && gUaccel && gDaccel &&
+  if (!(gLRaccel && aLRaccel && aUaccel && aDaccel && gUaccel && gDaccel &&   //DEBUG TODO REMOVE
   gBoostLRvel && aBoostLRvel && aBoostDownVel && jumpVelNormPulse && doubleJumpVelYPulse &&
   doubleJumpVelYMin && numAirCharges && dragBaseAmt && dragTerminalVel && dragExponent &&
-  jumpSurfaceSpeedLossRatio && reverseAirJumpSpeed)) {
-    throw "missing PhysParams";
+  jumpSurfaceSpeedLossRatio && reverseAirJumpSpeed && lockThreshold)) {
+    throw "missing ControlParams";
   }
 
   this.gLRaccel = gLRaccel;                 //x acceleration exerted by holding Left or Right on the surface.
@@ -145,6 +179,7 @@ function ControlParams(gLRaccel, aLRaccel, aUaccel, aDaccel, gUaccel, gDaccel,
   this.doubleJumpVelYMin = doubleJumpVelYMin;           //min y velocity that a double jump must result in.
   this.jumpSurfaceSpeedLossRatio = jumpSurfaceSpeedLossRatio;   // When jumping from the ground, the characters velocity vector is decreased by this ratio before jump pulse is added. 
   this.reverseAirJumpSpeed = reverseAirJumpSpeed;
+  this.lockThreshold = lockThreshold;                 //Force of a collision after which locking is disallowed.
 
   this.numAirCharges = numAirCharges;       //number of boost / double jumps left in the air.
 
@@ -271,8 +306,6 @@ function PlayerModel(controlParams, physParams, time, radius, pos, vel, accel   
       console.log("pos: ", state.pos);
       console.log("vel: ", state.vel);
       console.log("accel: ", state.accel);
-      console.log("time: ", state.time);
-      console.log("time: ", state.time);
       throw "Missing fields in state.";
     }
     this.time = state.time;
@@ -286,15 +319,14 @@ function PlayerModel(controlParams, physParams, time, radius, pos, vel, accel   
 	
 
   this.leaveGround = function () { // TODO write code to handle leaving the ground here.
-    this.surfaceOn = null;
-    this.onGround = false;
-    this.gLocked = false;
+    this.surface = null;
+    this.locked = false;
   }
 	
 	// Figures out which vector update call to use and then updates vectors.
   this.updateVecs = function (inputState) {
     //console.log(" in AccelState update function. inputState ", inputState);
-    if (!this.player.surfaceOn) {
+    if (!this.player.surface) {
       //console.log("    Calling updateAir, player.surfaceOn === null.");
       this.updateVecsAir(inputState);
     } else {
@@ -330,7 +362,7 @@ function PlayerModel(controlParams, physParams, time, radius, pos, vel, accel   
       }
     }
 
-    var surface = this.surfaceOn;
+    var surface = this.surface;
     var baseForceNormalized = baseForceVec.normalize();
     var angleToNormal = Math.acos(surface.getNormalAt(this.pos).dot(baseForceNormalized));
 
@@ -348,7 +380,7 @@ function PlayerModel(controlParams, physParams, time, radius, pos, vel, accel   
     } else {                                                                    // we are being pushed away from teh surface we are on. Updating states to have left the ground, and then calling updateAirStates.
       console.log("   we are being pushed AWAY from the surface we are on. Simply calling updateAirStates.");
       this.leaveGround();
-      this.updateAirStates(inputState);
+      this.updateVecsAir(inputState);
     }
   }
   
@@ -439,34 +471,23 @@ PlayerModel.prototype.jump = function () {
 
 
 
-//var DFLT_JUMP_HOLD_TIME = 0.15; // To jump full height, jump must be held for this long. Anything less creates a fraction of the jump height based on the fraction of the full time the button was held. TODO implement.
+/**
+ * Function that locks the playerModel to a surface. TerrainSurface or TerrainPoint.
+ */
+PlayerModel.prototype.lockTo = function (surface, surfaceVecNorm) {
+  //var velocityMag = ballState.vel.length();                 // COMMENTED OUT FOR REALISTIC PHYSICS
+  //var surfaceVecNorm = stuffWeCollidedWith[0].getSurfaceAt(ballState.pos); // REFACTOR TO USE NEW COLLISION OBJECT
+  //var surfaceAngle = surfaceVecNorm.dot(normalBallVel);
+  //var surfaceInvertAngle = (surfaceVec.negate()).dot(normalBallVel);
 
-//// CONST ACCEL INPUTS
-//var DFLT_gLRaccel = 800;
-//var DFLT_aLRaccel = 600;
-//var DFLT_aUaccel = 500;
-//var DFLT_aDaccel = 500;
-//var DFLT_gUaccel = 300;
-//var DFLT_gDaccel = 300;
-//var DFLT_gBoostLRvel = 1500;
-//var DFLT_aBoostLRvel = 1500;
-//var DFLT_aBoostDownVel = 1500;
-
-//// CONST PULSE INPUTS
-//var DFLT_jumpVelNormPulse = 2000;
-//var DFLT_doubleJumpVelYPulse = 2000;
-//var DFLT_doubleJumpVelYMin = 2000;
-
-//// OTHER CHAR DEFAULTS
-//var DFLT_numAirCharges = 1;
-//var DFLT_radius = 1920 / 32;
-
-//// CONST RATIOS
-//var DFLT_jumpSurfaceSpeedLossRatio = 0.7;   // When jumping from the ground, the characters velocity vector is decreased by this ratio before jump pulse is added. 
-//var DFLT_bounceSpeedLossRatio = 0.9;
-//var DFLT_reverseAirJumpSpeed = 300;
-
-
+  //if (surfaceAngle > surfaceInvertAngle) {
+  //  surfaceVec = surfaceVec.negate();
+  //}
+  //this.player.vel = surfaceVec.multf(velocityMag);          // END COMMENTED OUT FOR REALISTIC PHYSICS
+  this.vel = projectVec2(this.vel, surfaceVecNorm);    //GROUNDBOOST TODO
+  p.airBorne = false;
+  p.locked = input.lock;
+}
 
 		
 
@@ -1400,318 +1421,9 @@ function animationReset(p) {
 
 
 
-
-
-/*
-OLD.  __  OLD.  __  OLD.  __  OLD.  __  OLD.  __  OLD.  __  OLD.  __  OLD.  __  OLD.  __  OLD.  __  OLD.  __  OLD.  __  OLD.  __  OLD.  __  OLD.  __  OLD.  __  OLD.  __  OLD.  __  OLD.  __  OLD.  __  OLD.  __  OLD.  __  OLD.  __  OLD.  __  OLD.  __  OLD.  __  OLD.  __  OLD.  __  OLD.  __  OLD.  __  
-*/
-
-
-
-
-
-
-
-
-// CHECKS FOR COLLISIONS, HANDLES THEIR TIME STEPS, AND THEN CALLS airStep AND / OR surfaceStep WHERE APPLICABLE
-// eventList is a list of event objects that occurred since last update, sorted by the order in which they occurred.
-PhysEng.prototype.update = function (timeDelta, eventList) { // ______timeDelta IS ALWAYS A FLOAT REPRESENTING THE FRACTION OF A SECOND ELAPSED, WHERE 1.0 IS ONE FULL SECOND. _____________                           
-  FRAMECOUNTER++;
-  if (PHYS_DEBUG) {
-    //console.log("\nEntered update(timeDelta), timeDelta = ", timeDelta);
-    this.printState(true, false, false);
-  }
-
-  var state = new TempState(this.player.pos, this.player.vel, this.player.radius, 0.0);   //creates the initial state of the TempPlayer.
-  eventList.push(new RenderEvent(timeDelta)); //Set up the last event in the array to be our render event, so that the loop completes up to the render time.
-
-  var timeCompleted = 0.0;
-  for (i = 0; i < eventList.length; i++) { //Handle all the events that have happened since last frame at their respective times.
-    var event = eventList[i];
-    if (!eventList[i] instanceof RenderEvent) {
-      //console.log("about to stepToEndOfEvent. Event: ", event);
-    }
-    var terrainNotToCheck = [];
-    this.stepToEndOfEvent(state, event, terrainNotToCheck); // Guarantees time has completed up to the event and the event has been handled.
-    state = new TempState(this.player.pos, this.player.vel, this.player.radius, 0.0);
-  }                                                       // PHYSICS ARE UP TO DATE. GO AHEAD AND RENDER.
-
-  this.player.timeDelta = 0.0;
-  // WE ARE NOW DONE WITH THE ENTIRE UPDATE. HOPEFULLY NOTHING WENT WRONG.
-
-  if (FRAMECOUNTER === PRINTEVERY) {
-    FRAMECOUNTER = 0;
-  }
-}
-
-
-
-
-// Step normally until the end of the event and then handles any intermediate events recursively before handling the event.
-PhysEng.prototype.stepToEndOfEvent = function (state, event, doNotCheck) {
-  //while (!eventDone) {                   //The physics step loop. Checks for collisions / lockbreaks and discovers the time they occur at. Continues stepping physics until it is caught up to "timeDelta".
-  //console.log("START stepToEndOfEvent");
-  var newEvents = [];
-  var stepState; var indexContained
-  if (this.player.surfaceOn === null) {               //In the air, call airStep
-    //console.log("player airborne, event.time: ", event.time);
-    stepState = this.airStep(state, event.time, doNotCheck); // TODO STATE SHOULD HAVE EVENTS NOT TerrainSurfaces.
-    for (var k = 0; k < stepState.eventList.length; k++) {
-      //console.log("new events added in stepToEndOfEvent, ", stepState.eventList.length);
-
-      newEvents.push(stepState.eventList[k]);              
-
-    }
-
-  } else {                             //On surface, call surfaceStep 
-    console.log("player NOT airborne, event.time: ", event.time);
-    stepState = this.surfaceStep(state, event.time, doNotCheck);
-    for (var k = 0; k < stepState.eventList.length; k++) {
-
-      newEvents.push(stepState.eventList[k]);            
-
-    }
-  }
-
-  var newTerrainEvents = [];
-  var newCollectibleEvents = [];
-  var goal = false;
-  var collectibles = false;
-  if (newEvents.length > 0) { // WE DIDNT FINISH, A NEW EVENT HAPPENED. ALT state.timeDelta < event.time
-    //console.log("newEvents.length > 0");
-    for (var j = 0; j < newEvents.length; j++) {         //THESE SHOULD BE EVENTS THAT CONTAIN TERRAIN COLLISIONS.
-      if (newEvents[j] instanceof TerrainSurface) {      //Something we should react to hitting.
-        newTerrainEvents.push(newEvents[j]);
-      } else if (newEvents[j] instanceof GoalEvent) {
-        goal = true;
-      } else if (newEvents[j] instanceof CollectibleEvent) {
-        collectibles = true;
-        newCollectibleEvents.push(newEvents[j]);
-      }
-    }
-
-
-    if (goal) {
-      // TODO HANDLE GOAL
-      return;
-    } else if (collectibles) {
-      // TODO HANDLE COLLECTIBLES
-    } else if (newTerrainEvents.length > 0) {
-      //console.log("newTerrainEvents.length > 0");
-      for (var k = 0; k < newTerrainEvents.length; k++) {
-        doNotCheck.push(newTerrainEvents[k].id);
-      }
-      console.log("stepstate: ", stepState);
-      this.handleTerrainAirCollision(stepState, newTerrainEvents); // TODO REFACTOR TO PASS COLLISION OBJECT WITH ADDITIONAL DATA. SEE handleTerrainAirCollision COMMENTS FOR MORE INFO.
-    }
-    stepState = new TempState(this.player.pos, this.player.vel, this.player.radius, this.player.timeDelta);
-    this.stepToEndOfEvent(stepState, event, doNotCheck);
-  } else {                           // newEvents.length = 0, and WE DID FINISH
-    this.player.pos = stepState.pos;
-    this.player.vel = stepState.vel;
-    this.player.timeDelta = stepState.timeDelta;
-    //console.log("CALLING EVENTS HANDLER!!!!!!!", event);
-    event.handler(this);              // LET THE EVENTS HANDLER DO WHAT IT NEEDS TO TO UPDATE THE PHYSICS STATE, AND CONTINUE ON IN TIME TO THE NEXT EVENT.
-  }
-
-  //}                                 //COMPLETED TIMESTEP UP TO WHEN EVENT HAPPENED.
-
-
-}
-
-
-
-// Returns the players new position and velocity (in a TempState object) after an airStep of this length. Does not modify values.
-PhysEng.prototype.airStep = function (state, timeGoal, doNotCheck) {
-  var startTime = state.timeDelta;
-  //console.log("in airStep. timeGoal: ", timeGoal);
-  //console.log("startTime: ", startTime);
-  //this.accelState.update(this.inputState);
-  var accelVec = this.accelState.accelVec;
-  //console.log("accelVec before adding: ", accelVec);
-  var deltaTime = timeGoal - startTime;
-  var lastVel = state.vel;
-  var lastPos = state.pos;
-  var multVel = lastVel.multf(deltaTime);
-  var multAcc = accelVec.multf(deltaTime * deltaTime / 2);
-  //console.log("lastVel: ", lastVel);
-  //console.log("this.inputState: ", this.inputState);
-  var newVel = lastVel.add(accelVec.multf(deltaTime));
-  var newPos = lastPos.add(multVel.add(multAcc));
-
-  var tempState = new TempState(newPos, newVel, this.player.radius, timeGoal);
-  var collisionData = getCollisionData(tempState, currentLevel.terrainList, doNotCheck);
-  var returnState;
-  if (!collisionData.collided) {  //IF WE DIDNT COLLIDE, THIS SHOULD BE GOOD? TODO CHECK TO MAKE SURE WE DIDNT MOVE MORE THAN RADIUS IN THIS STEP.
-    returnState = tempState;
-  } else {                        //WE COLLIDED WITH SHIT, HANDLE RECURSIVELY, TODO DONE?
-    var minCollisionTime = startTime;
-    var maxCollisionTime = timeGoal;
-    var newTime = (maxCollisionTime + minCollisionTime) / 2.0;
-    var collisions = collisionData.collidedWith;
-    //newVel = lastVel.add(accelVec.multf(newTime - startTime));
-    //newPos = lastPos.add(lastVel.add(newVel).divf(2.0));
-
-    tempState = new TempState(newPos, newVel, this.player.radius, newTime);
-    for (var i = 1; i < COLLISION_PRECISION_ITERATIONS || (collisionData.collided && i < 20); i++) { //find collision point
-      if (i >= COLLISION_PRECISION_ITERATIONS) {
-        console.log("Extra collision test ", i, ", startTime ", startTime, " timeGoal ", timeGoal, " newTime ", newTime);
-      }
-
-      if (!collisionData.collided) {  // NO COLLISION
-        minCollisionTime = newTime;
-      } else {                        // COLLIDED
-        maxCollisionTime = newTime;
-        collisions = collisionData.collidedWith;
-      }
-
-      newTime = (maxCollisionTime + minCollisionTime) / 2.0;
-      deltaTime = newTime - startTime;
-      multVel = lastVel.multf(deltaTime);
-      multAcc = accelVec.multf(deltaTime * deltaTime / 2);
-      newVel = lastVel.add(accelVec.multf(deltaTime));
-      newPos = lastPos.add(multVel.add(multAcc));
-
-      tempState = new TempState(newPos, newVel, this.player.radius, newTime);
-      collisionData = getCollisionDataInList(tempState, collisions, doNotCheck);
-    }   // tempstate is collision point.                                              //Optimize by passing directly later, storing in named var for clarities sake for now.
-
-    if (!collisionData.collided) {  // NO COLLISION
-      minCollisionTime = newTime;
-    } else {                        // COLLIDED
-      maxCollisionTime = newTime;
-      collisions = collisionData.collidedWith;
-    }
-
-
-    newTime = (maxCollisionTime + minCollisionTime) / 2.0;
-    deltaTime = newTime - startTime;
-    multVel = lastVel.multf(deltaTime);
-    multAcc = accelVec.multf(deltaTime * deltaTime / 2);
-    newVel = lastVel.add(accelVec.multf(deltaTime));
-    newPos = lastPos.add(multVel.add(multAcc));
-
-    tempState = new TempState(newPos, newVel, this.player.radius, newTime);
-
-
-    returnState = tempState;
-    returnState.eventList = collisions; // TODO IMPLEMENT EVENT TYPE TO BE RETURNED IN THE CASE OF A COLLISION.
-    if (PHYS_DEBUG && collisions.length > 1) {                                            //DEBUG CASE CHECKING, REMOVE WHEN PHYSICS IS BUG FREE.
-      //console.log("collisions.length() shouldnt be > 1 if we didnt collide with a corner");
-    }
-
-  } // done with stepping
-  //console.log("airStep returnState: ", returnState);
-  return returnState;
-
-}
-
-
-
-// A step while the player is in the surface. Returns the players new position and velocity and time and any events that happened (in a TempState object) after attempting surfaceStep of this length. Does not modify values.
-PhysEng.prototype.surfaceStep = function (state, timeGoal, doNotCheck) {
-  console.log("in unimplemented surfaceStep.");
-  var collisionData = getCollisionData(state, terrainList, [this.player.surfaceOn.id]);
-  
-  if (!collisionData.collided) {
-    // WE ARE NOW IN THE AIR. RECURSIVELY FIND WHERE WE LEFT THE SURFACE, HANDLE THAT, THEN STEP ACCORDINGLY DEPENDING ON WHAT WE'RE ON AFTERWARDS.
-  } else if (collisionData.collidedWith.length === 1 && collisionData.collidedWith[0] === this.player.surfaceOn) {
-    // WE ARE STILL ON THE SURFACE WE WERE ON LAST FRAME, NO OTHER COLLISIONS, HANDLE NORMALLY, TODO
-  } else {     
-    // WE COLLIDED With SOMEthING NEW, HANDLE COLLISIONS RECURSIVELY OR SOMESHIT, TODO
-
-  }
-  return state;
-  // REMEMBER TO UPDATE this.player.timeDelta to the state where the surfaceStep ended.
-}
-
-
-
-//This code handles a terrain collision. TODO REFACTOR TO TAKE A COLLISION OBJECT THAT HAS A NORMAL OF COLLISION, AND A SINGLE SURFACE THAT MAY BE LOCKED TO, IF ANY. THIS WILL COVER MULTICOLLISIONS AND CORNERS / ENDPOINT CASES.
-// RETURNS NOTHING, SIMPLY SETS STATES.
-PhysEng.prototype.handleTerrainAirCollision = function (ballState, stuffWeCollidedWith) {
-  //console.log("START handleTerrainAirCollision");
-  var normalBallVel = ballState.vel.normalize();
-  var angleToNormal;
-  var collisionVec;
-  //if (stuffWeCollidedWith.length > 1) {
-  console.log("radius = ", ballState.radius);
-  collisionVec = stuffWeCollidedWith[0].getNormalAt(ballState.pos, ballState.radius);
-  //console.log(collisionVec);
-  for (var i = 1; i < stuffWeCollidedWith.length; i++) {
-    collisionVec = collisionVec.add(stuffWeCollidedWith[i].getNormalAt(ballState.pos, ballState.radius));
-    //console.log("dealing with a multiple thing collision...");
-  }
-  angleToNormal = Math.acos(collisionVec.normalize().dot(normalBallVel));
-  var collisionVecNorm = collisionVec.normalize();
-  console.log("collisionVecNorm = ", collisionVecNorm);
-  //} else {
-  //angleToNormal = Math.acos(collisionVec.getNormalAt(ballState.pos).dot(normalBallVel));
-  //}
-
-
-  var COLLISION_GLANCING_ENOUGH_TO_AUTO_LOCK = false; //TODO do some math
-  if (COLLISION_GLANCING_ENOUGH_TO_AUTO_LOCK) {
-    console.log("auto locked!?!?");
-    throw "AUTO LOCKED";
-    var surfaceVecNorm = collisionVecNorm.perp();      //TODO OHGOD REFACTOR TO THIS METHOD TAKING A COLLISION OBJECT THAT STORES NORMALS AND THE SINGLE SURFACE TO LOCK TO
-    var surfaceAngle = surfaceVecNorm.dot(normalBallVel);
-
-    //var velocityMag = ballState.vel.length();                     // DISABLED FOR REALISTIC PHYSICS
-    //var surfaceInvertAngle = surfaceVec.negate().dot(normalBallVel);
-
-    //if (surfaceAngle > surfaceInvertAngle) {
-    //  surfaceVec = surfaceVec.negate();
-    //}
-    //this.player.vel = surfaceVec.multf(velocityMag);              // END DISABLED FOR REALISTIC PHYSICS
-
-    this.player.pos = ballState.pos;
-    this.player.vel = projectVec2(ballState.vel, surfaceVecNorm);
-    this.player.airBorne = false;
-    this.player.surfaceLocked = inputState.lock;
-
-
-    // IF PLAYER IS HOLDING LOCK, ATTEMP TO LOCK IF WITHIN BOUNDARIES! TODO IS THE NEGATIVE LOCK_MIN_ANGLE CHECK NEEDED!!!?
-  } else if (this.inputState.lock && (angleToNormal > LOCK_MIN_ANGLE || angleToNormal < -LOCK_MIN_ANGLE)) {
-    console.log("locked!?!?");
-    throw "LOCKED";
-    //var velocityMag = ballState.vel.length();                 // COMMENTED OUT FOR REALISTIC PHYSICS
-    //var surfaceVecNorm = stuffWeCollidedWith[0].getSurfaceAt(ballState.pos); // REFACTOR TO USE NEW COLLISION OBJECT
-    //var surfaceAngle = surfaceVecNorm.dot(normalBallVel);
-    //var surfaceInvertAngle = (surfaceVec.negate()).dot(normalBallVel);
-
-    //if (surfaceAngle > surfaceInvertAngle) {
-    //  surfaceVec = surfaceVec.negate();
-    //}
-    //this.player.vel = surfaceVec.multf(velocityMag);          // END COMMENTED OUT FOR REALISTIC PHYSICS
-
-
-    var surfaceVecNorm = collisionVecNorm.perp();       // REALISTIC ADDITIONS START
-    this.player.vel = projectVec2(ballState.vel, surfaceVecNorm);                                             // TODO DOES NOT TAKE INTO ACCOUNT TOUCHING THE END OF A LINE.
-    // REALISTIC ADDITIONS END
-    this.player.pos = ballState.pos;
-    this.player.airBorne = false;
-    this.player.surfaceLocked = inputState.lock;
-    this.player.surfaceOn = stuffWeCollidedWith[0]; // TODO REFACTOR TO USE NEW COLLISION OBJECT
-
-
-    // BOUNCE. TODO implement addition of normalVector * jumpVel to allow jump being held to bounce him higher?   perhaps just buffer jump events.      
-  } else {
-    //throw "BOUNCE";
-    //console.log(collisionVec.normalize());
-    this.player.vel = getReflectionVector(normalBallVel, stuffWeCollidedWith[0].getNormalAt(ballState.pos, ballState.radius)).multf(ballState.vel.length() * DFLT_bounceSpeedLossRatio); //TODO REFACTOR TO USE NEW COLLISION OBJECT
-    //this.player.vel = getReflectionVector(ballState.vel, collisionVec.normalize()).multf(DFLT_bounceSpeedLossRatio); //TODO REFACTOR TO USE NEW COLLISION OBJECT          // COLLISIONVEC AVERAGE VERSION
-    this.player.pos = ballState.pos;
-    this.player.airBorne = true;
-    //this.player.surfaceOn = null;      //TODO remove. This shouldnt be necessary as should be set when a player leaves a surface.
-  }
-  this.player.timeDelta = ballState.timeDelta;
-}
-
 // Self explanatory. For debug purposes.
 PhysEng.prototype.printState = function (printExtraPlayerDebug, printExtraControlsDebug, printExtraPhysDebug) {
-  if (FRAMECOUNTER === PRINTEVERY)
-  {
+  if (FRAMECOUNTER === PRINTEVERY) {
 
     console.log("Player: ");
     console.log("  pos: %.2f, %.2f", this.player.pos.x, this.player.pos.y);
@@ -1796,6 +1508,9 @@ PhysEng.prototype.printStartState = function () {
 
 
 
+
+
+
 /* EXAMPLE INHERITANCE
 function CHILD(param1, param2, ....etc) {
   PARENT.apply(this, [PARENTparam1, PARENTparam2, ....etc])
@@ -1827,54 +1542,7 @@ CHILD.prototype.method = function () {
 
 
 
-
-
-// PHYS EFFICIENCY PROFILE STUFF
-
-var time_in_update = 0.0;
-var time_in_other = 0.0; //etc
-
-
-
-
-
-
 /* SHIT THAT PRINTS TO THE SCREEN, USE PER FRAME FOR TESTING PERHAPS.
   this.ctx.font = "30px Arial";
     this.ctx.fillText("Hello World",200 + player.model.pos.x - (initWidth/ctx.canvas.width) * (ctx.canvas.width/ initScale / 2),100 + player.model.pos.y - (initWidth/ctx.canvas.width) * (ctx.canvas.height/ initScale / 2) );
 */
-
-
-/*
-TO TOP _____ TO TOP _____ TO TOP _____ TO TOP _____ TO TOP _____ TO TOP _____ TO TOP _____ TO TOP _____ TO TOP _____ TO TOP _____ TO TOP _____ TO TOP _____ TO TOP _____ TO TOP _____ TO TOP _____ TO TOP _____ TO TOP _____ TO TOP _____ 
-*/
-/*
- * The physics engine. These are helper functions used to base the games physics around.
- * May later be extended to support different player characters with different physics properties.
- * Author Travis Drake
- */
-var PHYS_DEBUG = true;
-
-var HALF_PI = Math.PI / 2.0;
-
-var LOCK_MIN_ANGLE = 45.0 / 180 * Math.PI;  //ANGLE OF COLLISION BELOW WHICH NOT TO BOUNCE.
-var PRINTEVERY = 240;
-var FRAMECOUNTER = 0;
-
-var printFor = 5;
-var printed = 0;
-
-//var CONST_DRAG = 0.5;
-
-
-// this should work in just about any browser, and allows us to use performance.now() successfully no matter the browser.
-// source http://www.sitepoint.com/discovering-the-high-resolution-time-api/
-window.performance = window.performance || {};
-performance.now = (function () {
-  return performance.now ||
-         performance.mozNow ||
-         performance.msNow ||
-         performance.oNow ||
-         performance.webkitNow ||
-         function () { return new Date().getTime(); };
-})();

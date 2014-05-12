@@ -1,57 +1,9 @@
-﻿
-
-//this.surface = surfaceOrNull;   // what surface is the player on?
-//this.locked = false;     // is the player locked to the ground?
-
-
-//this.roundingPoint = false;
-//this.pointBeingRounded = null;
-//this.angleAroundPoint = 0.0;   //RADIANS OR DEGREES I HAVE NO IDEA
-//this.rotationDirection = false; // TRUE IF CLOCKWISE, FALSE IF COUNTER-CLOCKWISE.
-
-
-
-//this.animationFacing = "left";          // "left" or "right" or "neutral"
-//this.animationWalking = false;         // is the player in the walking state?
-//this.animationRunning = false;         // is the player in the running state?
-//this.animationBoosting = false;         // is the player in the boost state?
-//this.animationBoosting = false;         // is the player in the boost state?
-//this.animationgroundJumping = false;    // is the player jumping from the ground?
-//this.animationDoubleJumping = false;    // is the player air jumping?
-//this.animationColliding = false;        // is the player in the collision animation?
-//this.animationFreefall = false;         // is the player in the Freefall animation?
-
-//this.animationTimeInCurrentAnimation = 0.0;   // what amount of time in seconds have we been in this animation state?
-//this.animationStartTime = 0.0;
-//this.animationAngleOfAnimation = 0.0;         // DO WE WANT THIS IN DEGREES OR RADIANS?
-//this.animationSpeed = 0.0;                    // The player speed. Used for walking / running animations.
-
-////END ANIMATION FIELDS
-
-//this.controlParameters = controlParams;
-//this.physParameters = physParameters;
-//this.inputState = new InputState();
-
-//// PLAYER STATE
-//this.surfaceOn = surfaceOrNull;   // what surface is the player on?
-//this.onGround = true;     // is the player on a surface?
-//this.gLocked = false;     // is the player locked to the ground?
-
-
-//this.roundingPoint = false;
-//this.pointBeingRounded = null;
-//this.angleAroundPoint = 0.0;   //RADIANS OR DEGREES I HAVE NO IDEA
-//this.rotationDirection = false; // TRUE IF CLOCKWISE, FALSE IF COUNTER-CLOCKWISE.
-
-//this.airChargeCount = controlParams.numAirCharges; //number of boosts / double jumps left.
-
-//this.updateToState = function (state) 
-//this.leaveGround = function () { // TODO write code to handle leaving the ground here.
-//this.updateVecs = function (inputState) {
-//this.updateVecsGround = function (inputState) {  // DONE? TEST
-//this.updateVecsAir = function (inputState) 
-
-
+﻿/**
+ * event.js
+ * Contains all of the key physics events that make up the game engine.
+ * @author Travis Drake
+ * All rights reserved.
+ */
 
 // Event class. All events interpreted by the physics engine must extend this, as seen below. 
 // Currently input and render events exist. Physics events will probably follow shortly (for example, when the player passes from one terrain line to another, etc).
@@ -369,14 +321,14 @@ CollisionEvent.handler = function (physEng) {
 
 
 // Event class for the TerrainCollision Event when the player runs into a TerrainLine. 
-function TerrainCollisionEvent(gameTimeOfCollision, collidedWithList, stateAtCollision, surfaceVec, normalVec, allowAuto) {
+function TerrainCollisionEvent(gameTimeOfCollision, collidedWithList, stateAtCollision, surfaceVec, normalVec, allowLock) {
   CollisionEvent.apply(this, [gameTimeOfCollision, collidedWithList, stateAtCollision]);
   //this.time
   //this.collidedWithList = collidedWithList;
   //this.state = stateAtCollision;
   this.surfaceVec = surfaceVec;
-  this.normalVec = normalVec;
-  this.allowAuto = allowAuto;
+  this.normalVec = normalVec; //the collision normal vector.
+  this.allowLock = allowLock;
 
 
 
@@ -385,21 +337,16 @@ function TerrainCollisionEvent(gameTimeOfCollision, collidedWithList, stateAtCol
     var input = p.inputState;
 
     var normalBallVel = p.vel.normalize();
-    var angleToNormal;
-    var collisionVec;
-    //if (stuffWeCollidedWith.length > 1) {
-    console.log("radius = ", p.radius);
-    collisionVec = this.normalVec;
+    var collisionVec = this.normalVec;
 
+    var collisionForceVec = projectVec2(p.vel, this.normalVec);
+    var collisionForceVecLen = collisionForceVec.length();
 
-    var COLLISION_GLANCING_ENOUGH_TO_AUTO_LOCK = allowAuto;
-    if (projectVec2(p.vel, this.normalVec).length() < p.physParameters.autoLockThreshold) {
-
-    }
-    if (COLLISION_GLANCING_ENOUGH_TO_AUTO_LOCK) {
-      console.log("auto locked!?!?");
+    
+    if (this.allowLock && collisionForceVecLen < p.physParameters.autoLockThreshold) {
+      console.log("TerrainCollisionEvent auto locked!?!?");
       var surfaceVecNorm = collisionVecNorm.perp();      //TODO OHGOD REFACTOR TO THIS METHOD TAKING A COLLISION OBJECT THAT STORES NORMALS AND THE SINGLE SURFACE TO LOCK TO
-      var surfaceAngle = surfaceVecNorm.dot(normalBallVel);
+
 
       //var velocityMag = ballState.vel.length();                     // DISABLED FOR REALISTIC PHYSICS
       //var surfaceInvertAngle = surfaceVec.negate().dot(normalBallVel);
@@ -408,47 +355,25 @@ function TerrainCollisionEvent(gameTimeOfCollision, collidedWithList, stateAtCol
       //  surfaceVec = surfaceVec.negate();
       //}
       //this.player.vel = surfaceVec.multf(velocityMag);              // END DISABLED FOR REALISTIC PHYSICS
+      p.lockTo(surface, surfaceVecNorm);
 
-      this.player.pos = this.state.pos;
-      this.player.vel = projectVec2(this.state.vel, surfaceVecNorm);
-      this.player.airBorne = false;
-      this.player.surfaceLocked = inputState.lock;
+      animationSetPlayerRunning(p, this.time);
+    } else if (input.lock && this.allowLock && collisionForceVecLen < p.controlParameters.lockThreshold) {
+      // IF PLAYER IS HOLDING LOCK, ATTEMPT TO LOCK IF WITHIN BOUNDARIES! TODO IS THE NEGATIVE LOCK_MIN_ANGLE CHECK NEEDED!!!?
+      console.log("TerrainCollisionEvent locked!?!?");
 
-
-      // IF PLAYER IS HOLDING LOCK, ATTEMP TO LOCK IF WITHIN BOUNDARIES! TODO IS THE NEGATIVE LOCK_MIN_ANGLE CHECK NEEDED!!!?
-    } else if (this.inputState.lock && (angleToNormal > LOCK_MIN_ANGLE || angleToNormal < -LOCK_MIN_ANGLE)) {
-      console.log("locked!?!?");
-      throw "LOCKED";
-      //var velocityMag = ballState.vel.length();                 // COMMENTED OUT FOR REALISTIC PHYSICS
-      //var surfaceVecNorm = stuffWeCollidedWith[0].getSurfaceAt(ballState.pos); // REFACTOR TO USE NEW COLLISION OBJECT
-      //var surfaceAngle = surfaceVecNorm.dot(normalBallVel);
-      //var surfaceInvertAngle = (surfaceVec.negate()).dot(normalBallVel);
-
-      //if (surfaceAngle > surfaceInvertAngle) {
-      //  surfaceVec = surfaceVec.negate();
-      //}
-      //this.player.vel = surfaceVec.multf(velocityMag);          // END COMMENTED OUT FOR REALISTIC PHYSICS
-
-
-      var surfaceVecNorm = collisionVecNorm.perp();       // REALISTIC ADDITIONS START
-      this.player.vel = projectVec2(this.state.vel, surfaceVecNorm);                                             // TODO DOES NOT TAKE INTO ACCOUNT TOUCHING THE END OF A LINE.
-      // REALISTIC ADDITIONS END
-      this.player.pos = this.state.pos;
-      this.player.airBorne = false;
-      this.player.surfaceLocked = inputState.lock;
-      this.player.surfaceOn = this.collidedWithList[0]; // TODO REFACTOR TO USE NEW COLLISION OBJECT
-
-
-      // BOUNCE. TODO implement addition of normalVector * jumpVel to allow jump being held to bounce him higher?   perhaps just buffer jump events.      
+      p.lockTo(surface, surfaceVecNorm);
+      animationSetPlayerRunning(p, this.time);
     } else {
-      //console.log(collisionVec.normalize());
-      this.player.vel = getReflectionVector(normalBallVel, this.collidedWithList[0].getNormalAt(this.state.pos, this.state.radius)).multf(this.state.vel.length() * DFLT_bounceSpeedLossRatio); //TODO REFACTOR TO USE NEW COLLISION OBJECT
+      // BOUNCE. TODO implement addition of normalVector * jumpVel to allow jump being held to bounce him higher?   perhaps just buffer jump events.      
+      p.vel = getReflectionVector(p.vel, collisionVec).multf(DFLT_bounceSpeedLossRatio); //TODO REFACTOR TO USE NEW COLLISION OBJECT
       //this.player.vel = getReflectionVector(ballState.vel, collisionVec.normalize()).multf(DFLT_bounceSpeedLossRatio); //TODO REFACTOR TO USE NEW COLLISION OBJECT          // COLLISIONVEC AVERAGE VERSION
-      this.player.pos = this.state.pos;
-      this.player.airBorne = true;
+      p.pos = this.state.pos;
+      p.leaveGround();
+      p.airBorne = true;
       //this.player.surfaceOn = null;      //TODO remove. This shouldnt be necessary as should be set when a player leaves a surface.
     }
-    this.player.timeDelta = this.state.timeDelta;
+    console.log("fin TerrainCollisionEvent");
   }
 }
 TerrainCollisionEvent.prototype = new CollisionEvent();
@@ -470,7 +395,7 @@ function GoalEvent(eventTime, goalObject) { // eventTime is gameTime at which th
 
   this.handler = function (physEng) {
     var p = physEng.player;
-    p.completionState = new CompletionState(p, this.time, new State(p.time, p.radius, p.pos, p.vel, p.accel), goalObject.goalNumber, p.replay);
+    p.completionState = new CompletionState(p, this.time, new State(p.time, p.radius, p.pos, p.vel, p.accel), this.goalObject.goalNumber, p.replay);
   }
 }
 GoalEvent.prototype = new Event();
