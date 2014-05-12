@@ -1,7 +1,8 @@
 ﻿/**
  * event.js
  * Contains all of the key physics events that make up the game engine.
- * @author Travis Drake
+ *
+ * Author Travis Drake
  * All rights reserved.
  */
 
@@ -499,7 +500,8 @@ EndCornerArcEvent.prototype = new PredictedEvent();
 
 
 
-/* Event class for the DragTableEvent
+/* 
+ * Event class for the DragTableEvent
  * @param predictedTime     the gametime at which the event will occur.
  * @param dependencyMask    used to bitwise and shit for predictions that are only affected by specific things. MAY NOT USE?
  */
