@@ -7,6 +7,7 @@
 html, body { width:100%; height:100%; } /* just to be sure these are full screen*/
 canvas { display:block; } /* To remove the scrollbars */
 </style>
+<link rel="stylesheet" type="text/css" href="css/style3.css" />
 
     <meta charset="utf-8" />
     <title>Game Project Shell</title>
@@ -36,6 +37,15 @@ canvas { display:block; } /* To remove the scrollbars */
 
 </head>
 <body>
+	<div class="overlay overlay-slidedown">
+		<nav>
+			<ul>
+				<li>Resume</li>
+				<li>Restart</li>
+				<li>Exit</li>
+			</ul>
+		</nav>
+	</div>
 <!--       <div>
             <form action="result.php" method="post">
                 <label for="username">User name</label>
@@ -46,10 +56,7 @@ canvas { display:block; } /* To remove the scrollbars */
             </form>
         </div>-->
 
-        <canvas id="gameWorld" style="position:absolute; border: 0px solid brown; z-index: 1; background: white"></canvas>
-		<canvas id="time" style="position:absolute; z-index: 2;  left:1150px; top:25px; background: white" height="50px" width="100px"></canvas>
-		<canvas id="score" style="position:absolute; z-index: 2;  left:25px; top:25px; background: white" height="50px" width="100px"></canvas>
-		<canvas id="pause" style="position:absolute; z-index: 2; left:475px; top:150px; background: white; display: none" height="400" width="350"></canvas>
-		<!--<canvas id="time" style="z-index: 2; background: red"></canvas>-->
+	<script src="classie.js"></script>
+        <canvas id="gameWorld" style="border: 0px solid brown; background: white"></canvas>
 </body>
 </html>

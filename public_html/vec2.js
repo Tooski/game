@@ -28,6 +28,11 @@ vec2.prototype.multv = function (v) // multiply vectors, this * v
 vec2.prototype.multf = function (f)  // multiply vector by float, this * s           
 { return new vec2(f * this.x, f * this.y); }
 
+vec2.prototype.multm = function (m)
+{return new vec2(m[0][0]*this.x + m[0][1]*this.y,
+       m[1][0]*this.x + m[1][1]*this.y );
+}
+
 vec2.prototype.divf = function (f) // divide vector by float, this / s
 { return this.multf(1.0 / f); }
 
@@ -37,8 +42,12 @@ vec2.prototype.dot = function(v) {  // returns the dot product of this.dot(v) ak
   return this.x * v.x + this.y * v.y;
 }
 
-vec2.prototype.length = function() {  // returns the magnitude of the vector. (Or Euclidean length of the vectors line).
+vec2.prototype.length = function () {  // returns the magnitude of the vector. (Or Euclidean length of the vectors line).
   return Math.sqrt(this.x * this.x + this.y * this.y);
+}
+
+vec2.prototype.lengthsq = function () {  // returns the square of the vector.
+  return this.x * this.x + this.y * this.y;
 }
 
 vec2.prototype.normalize = function() { // normalizes a vector so that its length is equal to 1.0. Useful for math.
@@ -63,7 +72,36 @@ vec2.prototype.toString = function () {
 
 
 vec2.prototype.equals = function(otherVec) {
-    return otherVec instanceof vec2 && this.x === otherVec.x && this.y === otherVec.y;
+  return otherVec instanceof vec2 && this.x === otherVec.x && this.y === otherVec.y;
+}
+
+
+/**
+ * Hopefully this will return whichever vector, this or this.negate(), that most faces towards otherVec
+ */
+vec2.prototype.getFacing = function (otherVec) {
+  if (this.dot(otherVec.normalize()) < 0) {
+    return (this.negate());
+  } else {
+    return this;
+  }
 }
 
 //console.log("vec2(2.0, 1.0).multf(3.0), %2.2f, %2.2f", (new vec2(2.0, 1.0).multf(3.0)).x, (new vec2(2.0, 1.0).multf(3.0)).y);
+
+
+
+
+function getRotationMatDegrees(degrees) {
+  var radians = -(degrees * Math.PI / 180);
+  var s = Math.sin(radians);
+  var c = Math.cos(radians);
+  return [[c, -s], [s, c]];
+}
+
+function getRotationMatRad(radians) {
+  var s = Math.sin(radians);
+  var c = Math.cos(radians);
+  return [[c, -s], [s, c]];
+}
+

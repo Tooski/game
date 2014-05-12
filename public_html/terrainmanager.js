@@ -4,6 +4,7 @@ function TerrainManager() {
     this.terrainList = [];
     this.closedTerrain = [];
     this.terrainListByID = {};
+    this.playerStartPos = new vec2(0, 0);
  //  this.loadFromFile();
 }
 
