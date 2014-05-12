@@ -289,18 +289,6 @@ GameEngine.prototype.startInput = function() {
             //console.log("Lock pressed");
           } else if (e.keyCode === gameEngine.input.pauseKey && gameEngine.input.pausePressed === false) {
             gameEngine.setPause(true, performance.now());
-			if (!showPause) {
-				var pause = document.getElementById('pause');
-				pause.style.display = '';
-				showPause = true;
-				levelTime.pause();
-			}
-			else {
-				var pause = document.getElementById('pause');
-				pause.style.display = 'none';
-				showPause = false;
-				levelTime.start();
-			}
             //console.log("Pause pressed");
 			    }
         }
@@ -390,6 +378,20 @@ GameEngine.prototype.setBoost = function (upOrDown, time) {
 }
 
 GameEngine.prototype.setPause = function (upOrDown, time) {
+	if (!showPause) {
+		this.eventsSinceLastFrame.push(new PauseEvent((time - this.lastFrameTime) / 1000));
+		var pause = document.getElementById('pause');
+		pause.style.display = '';
+		showPause = true;
+		levelTime.pause();
+	}
+	else {
+		this.eventsSinceLastFrame.push(new UnpauseEvent((time - this.lastFrameTime) / 1000));
+		var pause = document.getElementById('pause');
+		pause.style.display = 'none';
+		showPause = false;
+		levelTime.start();
+	}
   if (this.input.pausePressed !== upOrDown) {
     this.input.pausePressed = upOrDown;
     this.input.pausePressedTimestamp = time;
