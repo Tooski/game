@@ -7,45 +7,27 @@
  */
 
 
-
 //FUCKING EVENT TYPE BITMASK VALUES BECAUSE JAVASCRIPT INHERITANCE DOESNT EXIST GG I GIVE UP NOT FUCKING DEALING WITH THIS SHIT ANYMORE FUCK IT ALLL
-//ALSO SERVES TO PRIORITIZE EVENTS RECIEVED AT THE SAME TIME. THE LOWER THE EVENT ON THIS LIST, THE HIGHER THE PRIORITY.
 var E_NEXT_BIT = 1;
-var E_EVENT_MASK = E_NEXT_BIT;
-E_NEXT_BIT *= 2;
-
-//LOWEST PRIORITY, HANDLED LAST.           
-var E_RENDER_MASK = E_NEXT_BIT;
-E_NEXT_BIT *= 2;
-
-var E_PAUSE_MASK = E_NEXT_BIT;
-E_NEXT_BIT *= 2;
-
-var E_PREDICTED_MASK = E_NEXT_BIT;
-E_NEXT_BIT *= 2;
-
-var E_COLLISION_MASK = E_NEXT_BIT;
-E_NEXT_BIT *= 2;
-
-var E_SYNC_MASK = E_NEXT_BIT;
-E_NEXT_BIT *= 2;
-
-var E_BROWSER_TIME_MASK = E_NEXT_BIT;
-E_NEXT_BIT *= 2;
-
-var E_REPLAY_EVENT_MASK = E_NEXT_BIT;
-E_NEXT_BIT *= 2;
-
-
-
-
 var E_INPUT_MASK = E_NEXT_BIT;
 E_NEXT_BIT *= 2;
-
+var E_RENDER_MASK = E_NEXT_BIT;
+E_NEXT_BIT *= 2;
+var E_PREDICTED_MASK = E_NEXT_BIT;
+E_NEXT_BIT *= 2;
+var E_COLLISION_MASK = E_NEXT_BIT;
+E_NEXT_BIT *= 2;
+var E_PAUSE_MASK = E_NEXT_BIT;
+E_NEXT_BIT *= 2;
 var E_COLLECTIBLE_MASK = E_NEXT_BIT;
 E_NEXT_BIT *= 2;
-
 var E_GOAL_MASK = E_NEXT_BIT;
+E_NEXT_BIT *= 2;
+var E_SYNC_MASK = E_NEXT_BIT;
+E_NEXT_BIT *= 2;
+var E_BROWSER_TIME_MASK = E_NEXT_BIT;
+E_NEXT_BIT *= 2;
+var E_REPLAY_EVENT_MASK = E_NEXT_BIT;
 E_NEXT_BIT *= 2;
 
 
@@ -208,9 +190,9 @@ function InputEventJump(browserTime, pressed, eventTime) {   //
   InputEvent.apply(this, [browserTime, pressed, eventTime]);
   this.handler = function (physEng) {          //THIS CODE HANDLES INPUT CHANGES. 
     var p = physEng.player;
-    var input = p.inputState;
     //console.log("Handling input jump event. pressed = ", this.pressed);
     if (pressed) {
+      var input = p.inputState;
       input.jump = true;
 
       if (p.surface) {  //handle jumping from a surface
