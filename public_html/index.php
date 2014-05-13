@@ -31,8 +31,10 @@ canvas { display:block; } /* To remove the scrollbars */
     <script type="text/javascript" src="./save.js"></script>
     <script type="text/javascript" src="./load.js"></script>
     <script type="text/javascript" src="./mapeditor.js"></script>
-    <script type="text/javascript" scr="./remapping.js"></script>
+    <script type="text/javascript" src="./remapping.js"></script>
     <script type="text/javascript" src="./game.js"></script>
+	<script type="text/javascript" src="./stageBoard.js"></script>
+    <script type="text/javascript" src="./gameMainManu.js"></script>
 
 </head>
 <body>
@@ -51,5 +53,13 @@ canvas { display:block; } /* To remove the scrollbars */
 		<canvas id="score" style="position:absolute; z-index: 2;  left:25px; top:25px; background: white" height="50px" width="100px"></canvas>
 		<canvas id="pause" style="position:absolute; z-index: 2; left:475px; top:150px; background: white; display: none" height="400" width="350"></canvas>
 		<!--<canvas id="time" style="z-index: 2; background: red"></canvas>-->
+		
+		
+	<!--<div>
+		<script src="classie.js"></script>
+        <canvas id="gameWorld" style="border: 0px solid brown; background: white; display : none"></canvas>
+		<canvas id="game_manu_board" style= "display : block" width="400" height="350"></canvas>
+		<canvas id="stage_board" style= "display : none" width="400" height="350"></canvas>
+	</div>-->
 </body>
 </html>
