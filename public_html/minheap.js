@@ -177,7 +177,7 @@ MinHeap.prototype.pop = function() {
 		this.heap[0] = this.heap.pop();
 		this.heapify(0);
 	} else {
-		value = this.heap.pop();
+	  value = this.heap.pop();
 	}
 	return value;
 };

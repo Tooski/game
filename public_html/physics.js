@@ -83,7 +83,7 @@ var DFLT_reverseAirJumpSpeed = 300;
 var MAX_MOVE_FRACTION_OF_RADIUS = 1.0;
 var HORIZ_NORM = new vec2(1.0, 0.0);
 var REPLAY_SYNC_INTERVAL = 1.0;
-var DEBUG_EVENT_AT_A_TIME = true;
+var DEBUG_EVENT_AT_A_TIME = false;
 var DEBUG_MAX_TIMESTEP = 0.016;
 
 
@@ -558,11 +558,13 @@ function PhysEng(playerModel, terrainManager) {
   this.timeMgr = new TimeManager(0.0, 0.0, 0.0, 1); // TODO DO THE THING
 
   //The events that will need to be handled.
-  this.inputEventHeap = new MinHeap(null, function (e1, e2) {
+  this.primaryEventHeap = new MinHeap(null, function (e1, e2) {
     if (!e1) throw "e1 null";         //DEBUG TODO REMOVE ALL THESE IFS.
     if (!e2) throw "e2 null";
-    if (!e1 instanceof InputEvent) throw "e1 not an InputEvent";
-    if (!e2 instanceof InputEvent) throw "e2 not an InputEvent";
+    if (!(e1.time || e1.time === 0)) throw "e1 null";         //DEBUG TODO REMOVE ALL THESE IFS.
+    if (!(e2.time || e2.time === 0)) throw "e2 null";
+    if (!((e1.mask & E_INPUT_MASK) || (e1.mask & E_RENDER_MASK) || (e1.mask & E_SYNC_MASK))) throw "e1 not an InputEvent, renderevent, or sync event.";
+    if (!((e2.mask & E_INPUT_MASK) || (e2.mask & E_RENDER_MASK) || (e2.mask & E_SYNC_MASK))) throw "e2 not an InputEvent, renderevent, or sync event.";
 
     return e1.time == e2.time ? (e1.browserTime == e2.browserTime ? 0 : e1.browserTime < e2.browserTime ? -1 : 1) : e1.time < e2.time ? -1 : 1;
   });
@@ -600,7 +602,7 @@ function PhysEng(playerModel, terrainManager) {
 PhysEng.prototype.update = function (time, newEvents) {
   //console.log("time ", time);
   newEvents.push(new RenderEvent(time));
-  this.updatePhys(newEvents, DEBUG_EVENT_AT_A_TIME);
+  this.updatePhys(newEvents, !DEBUG_EVENT_AT_A_TIME);
 }
 
 
@@ -608,8 +610,9 @@ PhysEng.prototype.update = function (time, newEvents) {
  * Update function for physEng. If you want it to use browser time you need to add a renderEvent at the browser timestamp to newEvents before passing it into update.
  */
 PhysEng.prototype.updatePhys = function (newEvents, stepToRender) {
-  if (this.inputEventHeap.size() > 0 && !this.inReplay) {
-    //throw "why the hell are we starting update with events still in inputEventHeap thing? *grumbles* better ways to implement replays....";
+  if (this.primaryEventHeap.size() > 0 && !this.inReplay) {
+    console.log(this.primaryEventHeap);
+    throw "why the hell are we starting update with events still in primaryEventHeap thing? *grumbles* better ways to implement replays....";
   }
   if (this.tweenEventHeap.size() > 0 && !this.inReplay) {
     throw "why the hell are we starting update with events still in tweenEventHeap thing?";
@@ -621,22 +624,7 @@ PhysEng.prototype.updatePhys = function (newEvents, stepToRender) {
 
   //var gameTime = this.timeMgr.convertBrowserTime(targetBrowserTime);
 
-  var renderEventCount = 0;
-  for (var i = 0; i < newEvents.length; i++) {			//Put newEvents into eventHeap.
-    if (newEvents[i] instanceof InputEvent) {
-      this.convertEventBrowserTime(newEvents[i]);
-      this.player.replayData.push(newEvents[i]);
-    } else if (newEvents[i] instanceof RenderEvent) {
-      renderEventCount++;
-      if (renderEventCount > 1) {
-        throw "recieved 2 render events in 1 update, cannot continue.";
-      }
-      //console.log("convertEventBrowserTime for a renderEvent");
-      this.convertEventBrowserTime(newEvents[i]);
-    }
-
-    this.inputEventHeap.push(newEvents[i]);
-  }
+  this.addNewEventsToEventHeap(newEvents);
 
 
   var eventsArray = this.getEventHeapArray();
@@ -647,6 +635,8 @@ PhysEng.prototype.updatePhys = function (newEvents, stepToRender) {
 
     //update player state to resulting state.
     this.player.updateToState(stepResult.state);
+    this.timeMgr.time = stepResult.state.time;
+    //console.log(this.timeMgr.time);
 
 
     //if stepResult has new events
@@ -657,8 +647,10 @@ PhysEng.prototype.updatePhys = function (newEvents, stepToRender) {
       }
       this.tweenEventHeap.push(stepResult.events[i]);
     }
+    //console.log("before pop: ", this.primaryEventHeap.size());
 
     var currentEvent = this.popMostRecentEvent();
+    //console.log("after pop: ", this.primaryEventHeap.size());
     //console.log("stepResult: ", stepResult);
     //console.log("currentEvent: ", currentEvent);
     if (currentEvent.time != stepResult.state.time) {     //DEBUG CASE TESTING TODO REMOVE
@@ -667,7 +659,15 @@ PhysEng.prototype.updatePhys = function (newEvents, stepToRender) {
     currentEvent.handler(this);
 
     this.syncEvent();
-  } while (stepToRender && (!currentEvent instanceof RenderEvent));
+  } while (stepToRender && (!(currentEvent.mask & E_RENDER_MASK)));
+  console.log(currentEvent);
+  console.log("(!(currentEvent.mask & E_RENDER_MASK))", (!(currentEvent.mask & E_RENDER_MASK)));
+  if (currentEvent.time != this.timeMgr.time) {
+    console.log("Current events time: ", currentEvent.time);
+    console.log("this.timeMgr.time: ", this.timeMgr.time);
+    throw "see above";
+  }
+  //console.log("after while: ", this.primaryEventHeap);
   //console.log("finished do while loop in update, currentEvent = ", currentEvent);
   //console.log(this.player.pos);
   //console.log("");
@@ -686,6 +686,30 @@ PhysEng.prototype.syncEvent = function () {
   }
 }
 
+
+
+
+/**
+ * adds the new events to the eventHeap
+ */
+PhysEng.prototype.addNewEventsToEventHeap = function (newEvents) {
+  var renderEventCount = 0;
+  for (var i = 0; i < newEvents.length; i++) {			//Put newEvents into eventHeap.
+    if (newEvents[i].mask & E_INPUT_MASK) {
+      this.convertEventBrowserTime(newEvents[i]);
+      this.player.replayData.push(newEvents[i]);
+    } else if (newEvents[i].mask & E_RENDER_MASK) {
+      renderEventCount++;
+      if (renderEventCount > 1) {
+        throw "recieved 2 render events in 1 update, cannot continue.";
+      }
+      //console.log("convertEventBrowserTime for a renderEvent");
+      this.convertEventBrowserTime(newEvents[i]);
+    }
+
+    this.primaryEventHeap.push(newEvents[i]);
+  }
+}
 
 
 /**
@@ -952,7 +976,7 @@ PhysEng.prototype.turnCollisionsIntoEvents = function (collisions) {
   var terrainLineCollisions = [];
   var terrainPointCollisions = [];
   for (var i = 0; i < collisions.length; i++) {
-    if (collisions[i].collisionObj instanceof TerrainLine) {
+    if (collisions[i].collisionObj instanceof TerrainLine) {            //TODO replace with polymorphism that fucking works.
       terrainLineCollisions.push(collisions[i]);
     } else if (collisions[i].collisionObj instanceof TerrainPoint) {
       terrainPointCollisions.push(collisions[i]);
@@ -1017,7 +1041,7 @@ PhysEng.prototype.turnCollisionsIntoEvents = function (collisions) {
  */
 PhysEng.prototype.getEventHeapArray = function () {
   var events = [];
-  events.push(this.inputEventHeap);
+  events.push(this.primaryEventHeap);
   events.push(this.predictedEventHeap);
   events.push(this.tweenEventHeap);
   //events.push(this.stateEventHeap);
@@ -1090,6 +1114,7 @@ PhysEng.prototype.peekMostRecentEvent = function () {
  */
 PhysEng.prototype.getTime = function () {
   return this.timeMgr.time;
+  //return 12.000;
 }
 
 

@@ -6,10 +6,47 @@
  * All rights reserved.
  */
 
+
+//FUCKING EVENT TYPE BITMASK VALUES BECAUSE JAVASCRIPT INHERITANCE DOESNT EXIST GG I GIVE UP NOT FUCKING DEALING WITH THIS SHIT ANYMORE FUCK IT ALLL
+var E_NEXT_BIT = 1;
+var E_INPUT_MASK = E_NEXT_BIT;
+E_NEXT_BIT *= 2;
+var E_RENDER_MASK = E_NEXT_BIT;
+E_NEXT_BIT *= 2;
+var E_PREDICTED_MASK = E_NEXT_BIT;
+E_NEXT_BIT *= 2;
+var E_COLLISION_MASK = E_NEXT_BIT;
+E_NEXT_BIT *= 2;
+var E_PAUSE_MASK = E_NEXT_BIT;
+E_NEXT_BIT *= 2;
+var E_COLLECTIBLE_MASK = E_NEXT_BIT;
+E_NEXT_BIT *= 2;
+var E_GOAL_MASK = E_NEXT_BIT;
+E_NEXT_BIT *= 2;
+var E_SYNC_MASK = E_NEXT_BIT;
+E_NEXT_BIT *= 2;
+var E_BROWSER_TIME_MASK = E_NEXT_BIT;
+E_NEXT_BIT *= 2;
+var E_REPLAY_EVENT_MASK = E_NEXT_BIT;
+E_NEXT_BIT *= 2;
+
+
+//var p = new InputEventRight(1.0);         //masking test. Fuck javascript, seriously.
+//console.log(p);
+//if ((p.mask & E_RENDER_MASK) > 0) {
+//  throw "failed";
+//} else if ((p.mask & E_INPUT_MASK) > 0) {
+//  throw "worked!";
+//} else {
+//  throw "failed to work at all";
+//}
+
+
 // Event class. All events interpreted by the physics engine must extend this, as seen below. 
 // Currently input and render events exist. Physics events will probably follow shortly (for example, when the player passes from one terrain line to another, etc).
 function Event(eventTime) {    //eventTime is the gameTime that the event occurs at.
   this.time = eventTime;
+  this.mask = 0;
 }
 
 Event.prototype.handler = function (physEng) {   // NEEDS TO BE OVERRIDDEN IN CHILDREN CLASSES
@@ -21,6 +58,9 @@ Event.prototype.handler = function (physEng) {   // NEEDS TO BE OVERRIDDEN IN CH
 // InputEvent class for input events. These are the events that would be stored in a replay file and consist of any human input to the physics engine (Character control).
 function InputEvent(browserTime, pressed, eventTime) {   //
   Event.apply(this, [eventTime])
+  this.mask += E_INPUT_MASK;
+  this.mask += E_REPLAY_EVENT_MASK;
+
   this.valid = eventTime ? true : false;
   this.pressed = pressed;       // PRESSED DOWN OR RELEASED
   this.browserTime = browserTime;
@@ -237,8 +277,13 @@ InputEventLock.prototype = new InputEvent();
 
 
 // PauseEvent class for pausing the physics engine.
-function PauseEvent(eventTime) {   //takes browser time.
+function PauseEvent(browserTime, eventTime) {   //takes browser time.
   Event.apply(this, [eventTime]);
+  this.mask += E_PAUSE_MASK;
+  this.mask += E_BROWSER_TIME_MASK;
+
+  this.browserTime = browserTime;
+
   this.handler = function (physEng) {          //THIS CODE HANDLES INPUT CHANGES.  
     var p = physEng.player;
     if (physEng.isPaused) {  // DEBUG TODO REMOVE
@@ -256,8 +301,12 @@ PauseEvent.prototype = new Event();
 
 
 // UnpauseEvent class for unpausing the physics engine. 
-function UnpauseEvent(eventTime) {   //takes browser time.
+function UnpauseEvent(browserTime, eventTime) {   //takes browser time.
   Event.apply(this, [eventTime]);
+  this.mask += E_PAUSE_MASK;
+  this.mask += E_BROWSER_TIME_MASK;
+
+  this.browserTime = browserTime;
 
   this.handler = function (physEng) {          //THIS CODE HANDLES INPUT CHANGES. 
     var p = physEng.player;
@@ -301,6 +350,7 @@ UnpauseEvent.prototype = new Event();
 // Event class for the Collectible Event when the player runs into a collectible. 
 function CollectibleEvent(eventTime) { // eventTime is gameTime at which the event occurs.
   Event.apply(this, [eventTime])
+  this.mask += E_COLLECTIBLE_MASK;
 
   this.handler = function (physEng) {
     var p = physEng.player;
@@ -318,7 +368,8 @@ CollectibleEvent.prototype = new Event();
 // Abstract event class for the Collision Event when the player runs into a Level element. 
 function CollisionEvent(gameTimeOfCollision, collidedWithList, stateAtCollision) {
   Event.apply(this, [gameTimeOfCollision])
-  
+  this.mask += E_COLLISION_MASK;
+
   this.collidedWithList = collidedWithList;
   this.state = stateAtCollision;
 }
@@ -402,6 +453,7 @@ TerrainCollisionEvent.prototype = new CollisionEvent();
 // Event class for the Goal Event. TODO IMPLEMENT, NEEDS TO STORE WHICH GOAL AND ANY OTHER RELEVENT VICTORY INFORMATION.
 function GoalEvent(eventTime, goalObject) { // eventTime is gameTime at which the event occurs.
   Event.apply(this, [eventTime])
+  this.mask += E_GOAL_MASK;
 
   this.goalObject = goalObject;
 
@@ -420,6 +472,8 @@ GoalEvent.prototype = new Event();
 // Event class for the render event. One of these should be the last event in the eventList array passed to update. NOT STORED IN REPLAYS.
 function RenderEvent(browserTime, eventTime) {   //
   Event.apply(this, [eventTime])
+  this.mask += E_RENDER_MASK;
+
   this.valid = true;
   this.browserTime = browserTime;
 
@@ -441,6 +495,8 @@ RenderEvent.prototype = new Event();
 // Event class for the ReplaySync event. STORED IN REPLAYS, used to ensure float rounding differences from same calcs at different times doesnt desync replays.
 function ReplaySyncEvent(eventTime, state) {  // eventTime is gameTime at which the render occurs.  TODO IMPLEMENT SO THAT THIS WILL OVERRIDE ANYTHING AT THE SAME TIME IN THE LIST.
   Event.apply(this, [eventTime])
+  this.mask += E_SYNC_MASK;
+
   if (eventTime !== state.time) {
     throw "ReplaySyncEvent time and its states time dont match";
   }
@@ -466,6 +522,8 @@ ReplaySyncEvent.prototype = new Event();
  */
 function PredictedEvent(predictedTime, dependencyMask) {  
   Event.apply(this, [predictedTime])
+  this.mask += E_PREDICTED_MASK;
+
   this.dependencyMask = dependencyMask;    
 }
 PredictedEvent.prototype = new Event();
@@ -552,7 +610,6 @@ DragTableEvent.prototype = new PredictedEvent();
 //}
 //xEvent.prototype = new PredictedEvent();
 ////xEvent.prototype.constructor = xEvent;
-
 
 
 

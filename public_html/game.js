@@ -560,7 +560,10 @@ GameEngine.prototype.update = function() {
     if (this.eventsSinceLastFrame.length > 0) {
       console.log("we have events");
     }
+    
     this.physEng.update(thisFrameTime / 1000, this.eventsSinceLastFrame);
+
+    //console.log("Time = " + this.physEng.getTime());
 
     this.eventsSinceLastFrame = [];
     for (var i = 0; i < entitiesCount; i++) {
@@ -645,7 +648,6 @@ levelTimer.prototype.updateTime = function() {
 */
 	ctx2.clearRect(0,0,canvas2.width,canvas2.height);   
 	timeTest(ctx2);
-	console.log("Time = " + physEng.getTime());
 
 }
 
