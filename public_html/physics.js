@@ -566,7 +566,7 @@ function PhysEng(playerModel, terrainManager) {
     if (!((e1.mask & E_INPUT_MASK) || (e1.mask & E_RENDER_MASK) || (e1.mask & E_SYNC_MASK))) throw "e1 not an InputEvent, renderevent, or sync event.";
     if (!((e2.mask & E_INPUT_MASK) || (e2.mask & E_RENDER_MASK) || (e2.mask & E_SYNC_MASK))) throw "e2 not an InputEvent, renderevent, or sync event.";
 
-    return e1.time == e2.time ? (e1.browserTime == e2.browserTime ? 0 : e1.browserTime < e2.browserTime ? -1 : 1) : e1.time < e2.time ? -1 : 1;
+    return e1.time == e2.time ? (e1.mask === e2.mask ? 0 : e1.mask > e2.mask ? -1 : 1) : e1.time < e2.time ? -1 : 1;
   });
 
 
@@ -611,7 +611,7 @@ PhysEng.prototype.update = function (time, newEvents) {
  */
 PhysEng.prototype.updatePhys = function (newEvents, stepToRender) {
   if (this.primaryEventHeap.size() > 0 && !this.inReplay) {
-    console.log(this.primaryEventHeap);
+    console.log(this.primaryEventHeap.size(), this.primaryEventHeap);
     throw "why the hell are we starting update with events still in primaryEventHeap thing? *grumbles* better ways to implement replays....";
   }
   if (this.tweenEventHeap.size() > 0 && !this.inReplay) {
