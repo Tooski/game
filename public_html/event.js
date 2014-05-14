@@ -79,7 +79,7 @@ function InputEvent(browserTime, pressed, eventTime) {   //
   this.mask += E_INPUT_MASK;
   this.mask += E_REPLAY_EVENT_MASK;
 
-  this.valid = eventTime ? true : false;
+  this.validTime = eventTime ? true : false;
   this.pressed = pressed;       // PRESSED DOWN OR RELEASED
   this.browserTime = browserTime;
 }
@@ -112,6 +112,7 @@ function InputEventRight(browserTime, pressed, eventTime) {   //
     } else {
       console.log("we reached a state where a right input was illogically pressed or released.");
     }
+    physEng.updatePredicted();
   }
 }
 InputEventRight.prototype = new InputEvent();
@@ -140,6 +141,7 @@ function InputEventLeft(browserTime, pressed, eventTime) {   //
     } else {
       console.log("we reached a state where a left input was illogically pressed or released.");
     }
+    physEng.updatePredicted();
   }
 }
 InputEventLeft.prototype = new InputEvent();
@@ -167,6 +169,7 @@ function InputEventUp(browserTime, pressed, eventTime) {   //
     } else {
       console.log("we reached a state where an up input was illogically pressed or released.");
     }
+    physEng.updatePredicted();
   }
 }
 InputEventUp.prototype = new InputEvent();
@@ -195,6 +198,7 @@ function InputEventDown(browserTime, pressed, eventTime) {   //
     } else {
       console.log("we reached a state where a down input was illogically pressed or released.");
     }
+    physEng.updatePredicted();
   }
 }
 InputEventDown.prototype = new InputEvent();
@@ -227,6 +231,7 @@ function InputEventJump(browserTime, pressed, eventTime) {   //
       //TODO HANDLE HOW LONG BUTTON WAS HELD FOR. WILL NEED TO HAVE DELAY ON WHEN JUMP STARTS.
       input.jump = false;
     }
+    physEng.updatePredicted();
   }
 }
 InputEventJump.prototype = new InputEvent();
@@ -252,6 +257,7 @@ function InputEventBoost(browserTime, pressed, eventTime) {   //TODO
     //}
     p.updateVecs(curInputState);
   }
+  physEng.updatePredicted();
 }
 InputEventBoost.prototype = new InputEvent();
 //InputEventBoost.prototype.constructor = InputEventBoost;
@@ -283,6 +289,7 @@ function InputEventLock(browserTime, pressed, eventTime) {   //
     } else {
       console.log("we reached a state where a lock input was illogically pressed or released.");
     }
+    physEng.updatePredicted();
   }
 }
 InputEventLock.prototype = new InputEvent();
@@ -372,6 +379,7 @@ function CollectibleEvent(eventTime) { // eventTime is gameTime at which the eve
 
   this.handler = function (physEng) {
     var p = physEng.player;
+    physEng.updatePredicted();
     return;     //TODO IMPLEMENT
   }
 }
@@ -455,6 +463,7 @@ function TerrainCollisionEvent(gameTimeOfCollision, collidedWithList, stateAtCol
       p.airBorne = true;
     }
     console.log("fin TerrainCollisionEvent");
+    physEng.updatePredicted();
   }
 }
 TerrainCollisionEvent.prototype = new CollisionEvent();
@@ -492,12 +501,9 @@ function RenderEvent(browserTime, eventTime) {   //
   Event.apply(this, [eventTime])
   this.mask += E_RENDER_MASK;
 
-  this.valid = true;
+  this.validTime = eventTime ? true : false;
   this.browserTime = browserTime;
 
-  if (!eventTime) {
-    this.valid = false;
-  }
   this.handler = function (physEng) {
     var p = physEng.player;
     return true;
@@ -568,6 +574,7 @@ function SurfaceEndEvent(predictedTime, dependencyMask) { // predictedTime shoul
     //player.pointBeingRounded = null;
     //player.angleAroundPoint = 0.0;   //RADIANS OR DEGREES I HAVE NO IDEA
     //player.rotationDirection = false; // TRUE IF CLOCKWISE, FALSE IF COUNTER-CLOCKWISE.
+    physEng.updatePredicted();
     return;
   }
 }
@@ -586,6 +593,7 @@ function EndCornerArcEvent(nextSurface, predictedTime, dependencyMask) { // pred
   this.nextSurface = nextSurface;
   this.handler = function (physEng) {
     var p = physEng.player;
+    physEng.updatePredicted();
     return;                               //TODO
   }
 }
@@ -605,6 +613,7 @@ function DragTableEvent(predictedTime, dependencyMask, upOrDown) { // predictedT
 
   this.handler = function (physEng) {
     var p = physEng.player;
+    physEng.updatePredicted();
     return;                               //TODO
   }
 }

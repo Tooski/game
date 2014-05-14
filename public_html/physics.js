@@ -8,7 +8,16 @@
  * Author Travis Drake
  * All rights reserved.
  */
-var HALF_PI = Math.PI / 2.0;
+
+
+//IF FALSE, RUN NORMALLY
+var DEBUG_STEP =                                    false;
+
+//IF FALSE ONLY STEPS TO RENDEREVENTS
+var DEBUG_EVENT_AT_A_TIME =                         true && DEBUG_STEP; //only true if debug step is also true. Saves me the time of changing 2 variables to switch between normal state and debug state.
+
+//DEBUG FRAME TIME
+var DEBUG_MAX_TIMESTEP = 0.1;
 
 
 // this should work in just about any browser, and allows us to use performance.now() successfully no matter the browser.
@@ -28,7 +37,8 @@ performance.now = (function () {
 
 
 
-
+//CONSTANTS
+var HALF_PI = Math.PI / 2.0;
 
 
 
@@ -75,12 +85,6 @@ var MAX_MOVE_FRACTION_OF_RADIUS = 1.0;
 var HORIZ_NORM = new vec2(1.0, 0.0);
 var REPLAY_SYNC_INTERVAL = 1.0;
 
-
-var DEBUG_EVENT_AT_A_TIME = false;
-var DEBUG_MAX_TIMESTEP = 0.016;
-
-
-var DEBUG_STEP = true;
 
 // this thing is just useful for storing potential states in an object.
 function State(time, radius, pos, vel, accel
@@ -312,9 +316,9 @@ function PlayerModel(controlParams, physParams, time, radius, pos, vel, accel, s
     if (!(
       (state.time  || state.time === 0) &&
       (state.radius || state.radius === 0)  &&
-      (state.pos || state.pos === 0) &&
-     (state.vel || state.vel === 0) &&
-      (state.accel || state.accel === 0))) {
+      (state.pos) &&
+     (state.vel) &&
+      (state.accel))) {
       console.log("Missing fields in state.");
       console.log("time: ", state.time);
       console.log("radius: ", state.radius);
@@ -337,8 +341,8 @@ function PlayerModel(controlParams, physParams, time, radius, pos, vel, accel, s
     this.surface = null;
     this.locked = false;
   }
-	
-	// Figures out which vector update call to use and then updates vectors.
+
+  // Figures out which vector update call to use and then updates vectors.
   this.updateVecs = function (inputState) {
     //console.log(" in AccelState update function. inputState ", inputState);
     if (!this.surface) {
@@ -513,9 +517,6 @@ function PhysEng(gameEngine, playerModel) {
   if (!playerModel) {
     throw "need to pass a playerModel into PhysEng constructor.";
   }
-  if (!terrainManager) {
-    throw "need to pass a terrainManager into PhysEng constructor.";
-  }
   if (!gameEngine) {
     throw "need to pass a gameEngine into PhysEng constructor.";
   }
@@ -526,6 +527,7 @@ function PhysEng(gameEngine, playerModel) {
 
   // The above but squared. Useful
   this.MAX_MOVE_DIST_SQ = this.MAX_MOVE_DIST * this.MAX_MOVE_DIST;
+
 
   this.debugInputs = [];
 
@@ -578,38 +580,50 @@ function PhysEng(gameEngine, playerModel) {
     this.printStartState();
 }
 
+
+
 /**
  * Update function for physEng. If you want it to use browser time you need to add a renderEvent at the browser timestamp to newEvents before passing it into update.
  */
 PhysEng.prototype.update = function (time, newEvents) {
-  if (!DEBUG_STEP) {                                      // Stops update from running, but adds inputs at the current time in the physEng.
+  if (!DEBUG_STEP) {                                      //UPDATE RUNNING NORMALL
     this.tm = currentLevel;
+    //console.log("time???, ", time);
     newEvents.push(new RenderEvent(time));
     this.updatePhys(newEvents, !DEBUG_EVENT_AT_A_TIME);
-  } else {
+
+
+  } else {                                                // USING DEBUG STEPPING, 
     for (var i = 0; i < newEvents.length; i++) {
-      newEvents[i].time = this.getTime;
+      newEvents[i].time = this.getTime();
+      newEvents[i].validTime = true;
       this.debugInputs.push(newEvents[i]);
     }
   }
 }
 
 
+
 /**
  * runs a debug step instead of a full step.
  */
 PhysEng.prototype.stepDebug = function () {
-  this.tm = currentLevel;
-
-  if (DEBUG_EVENT_AT_A_TIME) {
-    // adds a new renderEvent to the predicted event heap. will be overwritten if a different event happens.
-    this.predictedEvents.push(new RenderEvent(0.0, this.getTime() + DEBUG_MAX_TIMESTEP));
-    this.updatePhys(this.debugInputs, !DEBUG_EVENT_AT_A_TIME);
-  } else {
-    this.primaryEventHeap.push(new RenderEvent(0.0, this.getTime() + DEBUG_MAX_TIMESTEP));
-    this.updatePhys(this.debugInputs, !DEBUG_EVENT_AT_A_TIME);
+  if (DEBUG_STEP) {
+    this.tm = currentLevel;
+    if (DEBUG_EVENT_AT_A_TIME) {
+      // adds a new renderEvent to the predicted event heap. will be overwritten if a different event happens.
+      this.predictedEventHeap.push(new RenderEvent(0.0, DEBUG_MAX_TIMESTEP + (this.getTime())));
+      //console.log("(this.getTime()) + DEBUG_MAX_TIMESTEP = ", DEBUG_MAX_TIMESTEP + (this.getTime()));
+      this.updatePhys(this.debugInputs, !DEBUG_EVENT_AT_A_TIME);
+      this.debugInputs = [];
+    } else {
+      this.primaryEventHeap.push(new RenderEvent(0.0, DEBUG_MAX_TIMESTEP + (this.getTime())));
+      this.updatePhys(this.debugInputs, !DEBUG_EVENT_AT_A_TIME);
+      this.debugInputs = [];
+    }
   }
 }
+
 
 
 /**
@@ -633,9 +647,11 @@ PhysEng.prototype.updatePhys = function (newEvents, stepToRender) {
   this.addNewEventsToEventHeap(newEvents);
 
 
-  var eventsArray = this.getEventHeapArray();
   do {    // The stepping loop.
+    var eventsArray = this.getEventHeapArray();
     var targetTime = this.getMinTimeInEventList(eventsArray);
+    //console.log("starting do: while step loop, targetTime = ", targetTime);
+    //console.log("all EventHeaps", eventsArray);
     var stepResult = this.attemptNextStep(targetTime); //stepResult .state .success .events
 
 
@@ -664,7 +680,8 @@ PhysEng.prototype.updatePhys = function (newEvents, stepToRender) {
     }
     currentEvent.handler(this);
 
-    this.syncEvent();
+    //console.log("ending iteration of do: while step loop, currentEvent = ", currentEvent);
+    this.trySync();
   } while (stepToRender && (!(currentEvent.mask & E_RENDER_MASK)));
   //console.log(currentEvent);
   //console.log("(!(currentEvent.mask & E_RENDER_MASK))", (!(currentEvent.mask & E_RENDER_MASK)));
@@ -682,14 +699,24 @@ PhysEng.prototype.updatePhys = function (newEvents, stepToRender) {
 }
 
 
+
 /**
  * checks to see if a syncEvent should be added to the current replay, and adds it if so.
  */
-PhysEng.prototype.syncEvent = function () {
+PhysEng.prototype.trySync = function () {
   if (!this.inReplay && this.time > this.lastSyncEventTime + REPLAY_SYNC_INTERVAL) {    // We need to add a syncEvent to the replay.
     this.replayData.push(new ReplaySyncEvent(this.time, this.player.state));
     this.lastSyncEventTime = this.getTime();
   }
+}
+
+
+
+/**
+ * updates the predicted events.
+ */
+PhysEng.prototype.updatePredicted = function () {
+  this.predictedEventHeap = getNewPredictedHeap();
 }
 
 
@@ -701,10 +728,10 @@ PhysEng.prototype.syncEvent = function () {
 PhysEng.prototype.addNewEventsToEventHeap = function (newEvents) {
   var renderEventCount = 0;
   for (var i = 0; i < newEvents.length; i++) {			//Put newEvents into eventHeap.
-    if (newEvents[i].mask & E_INPUT_MASK) {
+    if ((newEvents[i].mask & E_INPUT_MASK) && !newEvents[i].validTime) {
       this.convertEventBrowserTime(newEvents[i]);
       this.player.replayData.push(newEvents[i]);
-    } else if (newEvents[i].mask & E_RENDER_MASK) {
+    } else if ((newEvents[i].mask & E_RENDER_MASK) && !newEvents[i].validTime) {
       renderEventCount++;
       if (renderEventCount > 1) {
         throw "recieved 2 render events in 1 update, cannot continue.";
@@ -716,6 +743,7 @@ PhysEng.prototype.addNewEventsToEventHeap = function (newEvents) {
     this.primaryEventHeap.push(newEvents[i]);
   }
 }
+
 
 
 /**
@@ -756,9 +784,14 @@ PhysEng.prototype.unpause = function (browserTime) {
 }
 
 
+
+/**
+ * Any other code to start the physics enging should go here.
+ */
 PhysEng.prototype.start = function () {
   this.unpause(performance.now() / 1000);
 }
+
 
 
 /**
@@ -789,19 +822,25 @@ PhysEng.prototype.convertEventBrowserTime = function (event) {
  */
 PhysEng.prototype.attemptNextStep = function (goalGameTime) {
   var stepCount = 1;
-  //console.log(this.player);
-  while (this.player.vel.multf(goalGameTime / stepCount).lengthsq() > this.MAX_MOVE_DISTANCE_SQ)   // Figure out how many steps to divide this step into.
-  {
-    stepCount *= 2;
-  }
-
   var startGameTime = this.player.time;
   var deltaTime = goalGameTime - startGameTime;
+
+  var velStep = new vec2(this.player.vel.x, this.player.vel.y);
+  velStep = velStep.multf(deltaTime);
+
+  while (velStep.lengthsq() > this.MAX_MOVE_DIST_SQ)   // Figure out how many steps to divide this step into.
+  {
+    velStep = velStep.divf(2);
+    stepCount *= 2;
+  } 
+
 
   var stepFraction = 0.0;
   var collisionList = [];
   var tweenTime;
   var tempState;
+
+  //console.log("   CollisionList.length: ", collisionList.length, " stepCount: ", stepCount);
   for (var i = 1; i < stepCount && collisionList.length === 0; i++) {     // Take steps.
     stepFraction = i / stepCount;
     tweenTime = startGameTime + stepFraction * deltaTime;
@@ -810,7 +849,7 @@ PhysEng.prototype.attemptNextStep = function (goalGameTime) {
 
     collisionList = getCollisionsInList(tempState, this.tm.terrainList, []);    //TODO MINIMIZE THIS LIST SIZE, THIS IS IDIOTIC
 
-    console.log(tweenTime);
+    //console.log("      tweenStepping, i: ", i, " tweenTime: ", tweenTime);
   }
 
   var events = [];
@@ -818,6 +857,8 @@ PhysEng.prototype.attemptNextStep = function (goalGameTime) {
     events = findEventsFromCollisions(collisionList);         // a bunch of TerrainCollisionEvent's hopefully?
     tempState = events[0].state;
     this.resetPredicted();
+    //console.log("  ended tweenStepping loop early");
+    //console.log("  collisions: ", collisionList);
     //TODO HANDLE PREDICTING EVENTS HERE.
   }
   //else if (tweenTime !== goalGameTime) {
@@ -830,12 +871,15 @@ PhysEng.prototype.attemptNextStep = function (goalGameTime) {
   //}
   else {                // TRY FINAL STEP
     tweenTime = goalGameTime;
+    //console.log("  finalStepping, i: ", stepCount, " tweenTime: ", tweenTime);
     tempState = this.stepStateByTime(this.player, tweenTime);
     collisionList = getCollisionsInList(tempState, this.tm.terrainList, []);    //TODO MINIMIZE THIS LIST SIZE, THIS IS IDIOTIC
-    console.log(this.tm);
+    //console.log(this.tm);
     if (collisionList.length > 0) {   // WE COLLIDED WITH STUFF AND EXITED THE LOOP EARLY
       events = findEventsFromCollisions(collisionList);
       tempState = events[0].state;
+      //console.log("  collided on last step.");
+      //console.log("  collisions: ", collisionList);
     }
   }
   var results = new StepResult(tempState, events);
@@ -991,7 +1035,7 @@ PhysEng.prototype.findEventsFromCollisions = function (collisionList) {
  * TODO decide how to handle line and point same time collisions. Go with line for now???
  */
 PhysEng.prototype.turnCollisionsIntoEvents = function (collisions) {
-  var eventList = [];
+  var eventList = [];http://puu.sh/8LFZq.jpg
 
   var terrainLineCollisions = [];
   var terrainPointCollisions = [];
@@ -1674,19 +1718,19 @@ CHILD.prototype.method = function () {
 
 
 // MAIN CODE TESTING BS HERE
-var terrainManager = new TerrainManager();
-var physParams = new PhysParams(DFLT_gravity, DFLT_lockThreshold, DFLT_autoLockThreshold);
-var controlParams = new ControlParams(DFLT_gLRaccel, DFLT_aLRaccel, DFLT_aUaccel, DFLT_aDaccel, DFLT_gUaccel, DFLT_gDaccel, DFLT_gBoostLRvel, DFLT_aBoostLRvel, DFLT_aBoostDownVel, DFLT_jumpVelNormPulse, DFLT_doubleJumpVelYPulse, DFLT_doubleJumpVelYMin, DFLT_numAirCharges, 0.0, 100000000, 2, DFLT_jumpSurfaceSpeedLossRatio, DFLT_reverseAirJumpSpeed);
-var playerModel = new PlayerModel(controlParams, physParams, 0.0, DFLT_radius, new vec2(800, -400), new vec2(0, -0), new vec2(0, -0), null);
-var physEng = new PhysEng(playerModel, terrainManager);
-physEng.update(0.001, []);
-physEng.update(0.002, []);
-physEng.update(0.005, []);
-physEng.update(0.010, [new InputEventRight(0.005, true)]);
-physEng.update(0.050, [new InputEventRight(0.005, false), new InputEventLeft(0.010, true)]);
-physEng.update(0.200, [new InputEventUp(0.084, true)]);
-physEng.update(0.010, [new InputEventLeft(0.0005, false)]);
-physEng.update(0.035, [new InputEventUp(0.03, false)]);
+//var terrainManager = new TerrainManager();
+//var physParams = new PhysParams(DFLT_gravity, DFLT_lockThreshold, DFLT_autoLockThreshold);
+//var controlParams = new ControlParams(DFLT_gLRaccel, DFLT_aLRaccel, DFLT_aUaccel, DFLT_aDaccel, DFLT_gUaccel, DFLT_gDaccel, DFLT_gBoostLRvel, DFLT_aBoostLRvel, DFLT_aBoostDownVel, DFLT_jumpVelNormPulse, DFLT_doubleJumpVelYPulse, DFLT_doubleJumpVelYMin, DFLT_numAirCharges, 0.0, 100000000, 2, DFLT_jumpSurfaceSpeedLossRatio, DFLT_reverseAirJumpSpeed);
+//var playerModel = new PlayerModel(controlParams, physParams, 0.0, DFLT_radius, new vec2(800, -400), new vec2(0, -0), new vec2(0, -0), null);
+//var physEng = new PhysEng(playerModel, terrainManager);
+//physEng.update(0.001, []);
+//physEng.update(0.002, []);
+//physEng.update(0.005, []);
+//physEng.update(0.010, [new InputEventRight(0.005, true)]);
+//physEng.update(0.050, [new InputEventRight(0.005, false), new InputEventLeft(0.010, true)]);
+//physEng.update(0.200, [new InputEventUp(0.084, true)]);
+//physEng.update(0.010, [new InputEventLeft(0.0005, false)]);
+//physEng.update(0.035, [new InputEventUp(0.03, false)]);
 
 
 

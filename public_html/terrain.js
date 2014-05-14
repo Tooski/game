@@ -147,36 +147,10 @@ function TerrainLine(point0, point1, player, adjacent0, adjacent1, normal) {
   };
 
 
-  /**
-   * Tests a point to see if it lies within the rays passing through each point at either end of teh line segment that are perpendicular to the line segment.
-   */
-  this.isPointWithinPerpBounds = function (point) {
-    var pA = this.p0;              // TerrainLine point 1
-    var pB = this.p1;              // TerrainLine point 2
-    var pC = point;                // center of the ball
-
-    var vAB = pB.subtract(pA);     // vector from A to B
-    var vAC = pC.subtract(pA);     // vector from A to the ball
-    var vBC = pC.subtract(pB);     // vector from B to the ball
-    //console.log(pA + " " + pB + " " + pC);
-    var vAD = projectVec2(vAC, vAB); //project the vector to the ball onto the surface.
-    var pD = pA.add(vAD);            // find the perpendicular intersect of the surface.
-    var vCD = pC.subtract(pD);       // find the vector from ball to the perpendicular intersection.
-    
-    var vABlensq = vAB.lengthsq();
-
-    if (vAD.lengthsq() < vABlensq && vAB.subtract(vAD).lengthsq() < vABlensq) {
-      // THEN THE CENTER OF OUR CIRCLE IS WITHIN THE PERPENDICULAR BOUNDS OF THE LINE SEGMENT, AND CIRCLE IS LESS THAN RADIUS AWAY FROM THE LINE.
-      return true;
-    } else {
-      return false;
-    }
-  }
-
-
 
   /**
-   * Checks for a collision and returns data { collision, collidedLine, collidedP0, collidedP1, perpendicularIntersect };
+   * Checks for a collision and 
+   * returns data { collision, collidedLine, collidedP0, collidedP1, perpendicularIntersect };
    */
   this.collidesData = function (point, radius, ctx) { // OVERRIDES THE COLLIDEABLE METHOD!!  If collidesWith is modified, this needs to match.
     var pA = this.p0;              // TerrainLine point 1
@@ -233,6 +207,35 @@ function TerrainLine(point0, point1, player, adjacent0, adjacent1, normal) {
 
     return data;
   };
+
+
+
+
+  /**
+   * Tests a point to see if it lies within the rays passing through each point at either end of teh line segment that are perpendicular to the line segment.
+   */
+  this.isPointWithinPerpBounds = function (point) {
+    var pA = this.p0;              // TerrainLine point 1
+    var pB = this.p1;              // TerrainLine point 2
+    var pC = point;                // center of the ball
+
+    var vAB = pB.subtract(pA);     // vector from A to B
+    var vAC = pC.subtract(pA);     // vector from A to the ball
+    var vBC = pC.subtract(pB);     // vector from B to the ball
+    //console.log(pA + " " + pB + " " + pC);
+    var vAD = projectVec2(vAC, vAB); //project the vector to the ball onto the surface.
+    var pD = pA.add(vAD);            // find the perpendicular intersect of the surface.
+    var vCD = pC.subtract(pD);       // find the vector from ball to the perpendicular intersection.
+
+    var vABlensq = vAB.lengthsq();
+
+    if (vAD.lengthsq() < vABlensq && vAB.subtract(vAD).lengthsq() < vABlensq) {
+      // THEN THE CENTER OF OUR CIRCLE IS WITHIN THE PERPENDICULAR BOUNDS OF THE LINE SEGMENT, AND CIRCLE IS LESS THAN RADIUS AWAY FROM THE LINE.
+      return true;
+    } else {
+      return false;
+    }
+  }
 }
 TerrainLine.prototype = new TerrainSurface();      //Establishes this as a child of TerrainSurface.
 TerrainLine.prototype.constructor = TerrainLine;   //Establishes this as having its own constructor.

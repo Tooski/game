@@ -566,7 +566,7 @@ GameEngine.prototype.update = function() {
     this.lastFrameTime = thisFrameTime;
   //console.log("");
     if (this.eventsSinceLastFrame.length > 0) {
-      console.log("we have events");
+      //console.log("we have events");
     }
     
     this.physEng.update(thisFrameTime / 1000, this.eventsSinceLastFrame);
