@@ -553,6 +553,7 @@ function PhysEng(playerModel, terrainManager) {
 
   // The level terrainManager.
   this.tm = terrainManager;
+  console.log(this.tm.terrainList);
   this.player.pos = this.tm.playerStartPos;    //sets player position to the level starting position.
 
   this.timeMgr = new TimeManager(0.0, 0.0, 0.0, 1); // TODO DO THE THING
