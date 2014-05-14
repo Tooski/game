@@ -1,4 +1,4 @@
-﻿"use strict";
+﻿
 /**
  * event.js
  * Contains all of the key physics events that make up the game engine.

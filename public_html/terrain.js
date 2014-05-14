@@ -1,4 +1,4 @@
-﻿"use strict";
+﻿
 /* 
  * terrain.js
  * Skeleton class containing the getters physics will need from a terrain object.

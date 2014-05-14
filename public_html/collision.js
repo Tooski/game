@@ -1,4 +1,4 @@
-﻿"use strict";
+﻿
 /* 
  * collision.js, currently skeleton class explaining what the physics engine needs collision-wise.
  * 
