@@ -526,13 +526,18 @@ PlayerModel.prototype.lockTo = function (surface, surfaceVecNorm) {
 
 
 // Physics Engine constructor.
-function PhysEng(playerModel, terrainManager) {
+function PhysEng(gameEngine, playerModel) {
   if (!playerModel) {
     throw "need to pass a playerModel into PhysEng constructor.";
   }
   if (!terrainManager) {
     throw "need to pass a terrainManager into PhysEng constructor.";
   }
+  if (!gameEngine) {
+    throw "need to pass a gameEngine into PhysEng constructor.";
+  }
+  this.gameEngine = gameEngine;
+  this.tm = null;
   // Self explanitory
   this.MAX_MOVE_DIST = playerModel.radius * MAX_MOVE_FRACTION_OF_RADIUS;
 
@@ -552,8 +557,7 @@ function PhysEng(playerModel, terrainManager) {
   this.player = playerModel;                       
 
   // The level terrainManager.
-  this.tm = terrainManager;
-  console.log(this.tm.terrainList);
+  this.tm = currentLevel;
   this.player.pos = this.tm.playerStartPos;    //sets player position to the level starting position.
 
   this.timeMgr = new TimeManager(0.0, 0.0, 0.0, 1); // TODO DO THE THING
@@ -602,6 +606,7 @@ function PhysEng(playerModel, terrainManager) {
  */
 PhysEng.prototype.update = function (time, newEvents) {
   //console.log("time ", time);
+  this.tm = currentLevel;
   newEvents.push(new RenderEvent(time));
   this.updatePhys(newEvents, !DEBUG_EVENT_AT_A_TIME);
 }
@@ -661,8 +666,8 @@ PhysEng.prototype.updatePhys = function (newEvents, stepToRender) {
 
     this.syncEvent();
   } while (stepToRender && (!(currentEvent.mask & E_RENDER_MASK)));
-  console.log(currentEvent);
-  console.log("(!(currentEvent.mask & E_RENDER_MASK))", (!(currentEvent.mask & E_RENDER_MASK)));
+  //console.log(currentEvent);
+  //console.log("(!(currentEvent.mask & E_RENDER_MASK))", (!(currentEvent.mask & E_RENDER_MASK)));
   if (currentEvent.time != this.timeMgr.time) {
     console.log("Current events time: ", currentEvent.time);
     console.log("this.timeMgr.time: ", this.timeMgr.time);
@@ -731,11 +736,13 @@ PhysEng.prototype.pause = function () {
  * need to pass in the browserTime.
  */
 PhysEng.prototype.unpause = function (browserTime) {
-  if (!physEng.isPaused) {            //DEBUG TODO REMOVE
+  if (!this.isPaused) {            //DEBUG TODO REMOVE
     throw "trying to unpause when physEng is already unpaused";
   }
   this.timeMgr.referenceBrowserTime = browserTime;
   this.isPaused = false;
+
+  console.log(this.tm);
 }
 
 
@@ -813,7 +820,7 @@ PhysEng.prototype.attemptNextStep = function (goalGameTime) {
     tweenTime = goalGameTime;
     tempState = this.stepStateByTime(this.player, tweenTime);
     collisionList = getCollisionsInList(tempState, this.tm.terrainList, []);    //TODO MINIMIZE THIS LIST SIZE, THIS IS IDIOTIC
-
+    console.log(this.tm);
     if (collisionList.length > 0) {   // WE COLLIDED WITH STUFF AND EXITED THE LOOP EARLY
       events = findEventsFromCollisions(collisionList);
       tempState = events[0].state;

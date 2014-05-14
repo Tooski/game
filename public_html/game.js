@@ -137,18 +137,18 @@ function GameEngine(player) {
     //this.playerModel = new PlayerModel(this.controlParams, DFLT_radius, new vec2(800, -400), null);
     //this.physEng = new PhysEng(this.physParams, this.playerModel);
   //this.player.model = this.playerModel;              // backwards add a playerModel to player.
-    this.initializePhysEng(currentLevel);
+    this.initializePhysEng();
 
     this.lastFrameTime = performance.now();
 }
 
 
 
-GameEngine.prototype.initializePhysEng = function (selectedLevel) {
+GameEngine.prototype.initializePhysEng = function () {
   this.physParams = new PhysParams(DFLT_gravity, DFLT_lockThreshold, DFLT_autoLockThreshold);
   this.controlParams = new ControlParams(DFLT_gLRaccel, DFLT_aLRaccel, DFLT_aUaccel, DFLT_aDaccel, DFLT_gUaccel, DFLT_gDaccel, DFLT_gBoostLRvel, DFLT_aBoostLRvel, DFLT_aBoostDownVel, DFLT_jumpVelNormPulse, DFLT_doubleJumpVelYPulse, DFLT_doubleJumpVelYMin, DFLT_numAirCharges, 0.0, 100000000, 2, DFLT_jumpSurfaceSpeedLossRatio, DFLT_reverseAirJumpSpeed);
   this.playerModel = new PlayerModel(this.controlParams, this.physParams, 0.0, DFLT_radius, new vec2(0, 0), new vec2(0, -0), new vec2(0, -0), null);
-  this.physEng = new PhysEng(this.playerModel, selectedLevel);
+  this.physEng = new PhysEng(this, this.playerModel);
   this.player.model = this.playerModel;              // backwards add a playerModel to player.
 
 
