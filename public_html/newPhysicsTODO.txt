@@ -1,18 +1,28 @@
-
-Update code flow to match new flow diagram
-
-refactor to InputEvent heap. if live, ASSERT always empty at end of update. (No inputs should be able to be passed to update with a timestep AFTER the update time unless replay).
-add PredictedEvent heap that is reset upon input changes or collisions.
-add EndEvent heap that causes an event handling the end of something (essentially the expiration of a timer that started at a previous event).
-
 CRITICAL:
-	;;HALF DONE? PUT IN OWN FUNCTION;; FIX HOW BALL IS BEING STEPPED ROFL PRETTY SURE MINE IS COMPLETELY WRONG. MAYBE TEST THOUGH BECAUSE MY APPROX MIGHT BE RIGHT BECAUSE CONSTANT ACCELS?
-		The equation for the ball's position at a given time t is:
-		x(t) = 1/2 * Accelx * t^2 + Velx * t + x
-				PRETTY SURE I'M USING A BAD CALCULATION RIGHT NOW.
-		Implement getNewStateAtTime(timeDeltaFromCurPlayerModelState) which returns the above calculations into the new state. ENSURE EVERYWHERE IN THE CODE THAT STEPS TO NEW STATE USES THIS METHOD.
+	add new key event to send a stepDebug() message to physics.
+
+	create a test thing to test things.
+
+	Stop checking the terrainline locked to, and its adjacent lines.
+
+	why doesnt collision checking work? for fucks sake 
+		man the fuck up and deal with it tonight.
+
+
 		
-	;;In skeleton;; ADD HACKEY MAX_MOVE_DISTANCE as fraction of radius. Use to ensure small steps between collision checks to avoid frame aliasing against line endpoints.
+	Add logic to getTimeToSurfaceEnd to check if its going to collide with
+			an adjacent line before the actual endPoint.
+			
+	Add adjacentCollisions to deal with ^ or collisions with non-adjacents
+			while locked, so that we dont bounce back through the line we
+			were on.
+		
+
+
+
+/predicted events "cancel" these on clear, only add if there are 
+	things that dont get cancelled/ 
+		--> add EndEvent heap that causes an event handling the end of something (essentially the expiration of a timer that started at a previous event).
 
 	
 DEBUG:
@@ -20,13 +30,7 @@ DEBUG:
 		add code to print thingsToPrintDebug[] objects in red. Or something. Idfk.
 		add debugLine object. Copy of terrainLines and shit but draws in red or whatever.
 
-OBJECT CollisionData:				Collision.js
-	RETURN:
-		What was collided with.
-		The EXACT time of the collision
-		The collisions normalVec and surfaceVec (which represents the perp to the normalVec, not necessarily the surface collided with) ONLY IF THIS IS A SURFACE THAT MAY BE COLLIDED WITH.		
-	
-COLLISION TESTING:					Collision.js
+COLLISION TESTING ???:					Collision.js
 	Refactor CollisionData object to include the time of the collision(s).
 	Refactor getCollisionData to do all collision testing and call the calculus methods and return the time of most relevant collision(s) in a CollisionData object.
 	Do not check getCollisionData collisions against currently "on" surfaces, or its predecessor or successor terrain (Stored in playerModel state).
@@ -36,18 +40,6 @@ COLLISION TIME RETRIEVAL:
 		Implement new methods getTimeToLine
 	
 		
-COLLISION HANDLING:					Physics.js
-	BOUNCE: 
-		Write function to project velocity of ball onto the collision normal of surface to retrieve the collision force vector. Use this to decide whether or not to allow bounce.
-				Positive y means collision force downwards so do snapping logic there
-				Negative y means collision force upwards, always bounce unless lock is held.
-	LOCK:
-		As with bounce above, project velocity of ball onto collision normal of surface, but then compare to velocity of ball projected onto surface vector itself. 1:1 ratio is how dustforce allows groundboosting, but others may be used.
-
-
-
-
-
 
 FURTHER DOWN THE LINE:
 	add InputBuffer heap. Inputs that end up ignored upon happening may be buffered. This buffer is checked on relevent events (jump buffered on a new collision? etc).

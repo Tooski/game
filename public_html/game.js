@@ -28,6 +28,11 @@ var DFLT_radius = 1920 / 16;
 // CONST RATIOS
 var DFLT_jumpSurfaceSpeedLossRatio = 0.7;   // When jumping from the ground, the characters velocity vector is decreased by this ratio before jump pulse is added. 
 */
+
+var DEBUG_KEY = 191; //BACKSPACE DEBUGSTEP
+
+
+
 window.requestAnimFrame = (function() {
     return window.requestAnimationFrame ||
             window.webkitRequestAnimationFrame ||
@@ -311,7 +316,10 @@ GameEngine.prototype.startInput = function() {
     }, false);
     
     this.ctx.canvas.addEventListener("keyup", function (e) {
-      if (e.keyCode === gameEngine.input.leftKey && gameEngine.input.leftPressed === true) {
+      if (e.keyCode === DEBUG_KEY) {
+        e.preventDefault();
+        gameEngine.physEng.stepDebug();
+      } else if (e.keyCode === gameEngine.input.leftKey && gameEngine.input.leftPressed === true) {
         gameEngine.setLeft(false, performance.now());
       } else if (e.keyCode === gameEngine.input.upKey && gameEngine.input.upPressed === true) {
         gameEngine.setUp(false, performance.now());

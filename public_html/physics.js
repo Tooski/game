@@ -10,15 +10,6 @@
  */
 var HALF_PI = Math.PI / 2.0;
 
-//var LOCK_MIN_ANGLE = 45.0 / 180 * Math.PI;  //ANGLE OF COLLISION BELOW WHICH NOT TO BOUNCE.
-var PRINTEVERY = 240;
-var FRAMECOUNTER = 0;
-
-var printFor = 5;
-var printed = 0;
-
-//var CONST_DRAG = 0.5;
-
 
 // this should work in just about any browser, and allows us to use performance.now() successfully no matter the browser.
 // source http://www.sitepoint.com/discovering-the-high-resolution-time-api/
@@ -83,26 +74,18 @@ var DFLT_reverseAirJumpSpeed = 300;
 var MAX_MOVE_FRACTION_OF_RADIUS = 1.0;
 var HORIZ_NORM = new vec2(1.0, 0.0);
 var REPLAY_SYNC_INTERVAL = 1.0;
+
+
 var DEBUG_EVENT_AT_A_TIME = false;
 var DEBUG_MAX_TIMESTEP = 0.016;
 
+
+var DEBUG_STEP = true;
 
 // this thing is just useful for storing potential states in an object.
 function State(time, radius, pos, vel, accel
   //, accelPrime, accelDPrime									// DO WE INCLUDE SUB ACCEL DERIVS?
 		) {
-
-  this.time = time;
-  this.radius = radius;
-  this.pos = pos;
-  this.vel = vel;
-  this.accel = accel;
-  //this.accelPrime = accelPrime;
-  //this.accelDPrime = accelDPrime;
-}
-function State(time, radius, pos, vel, accel 
-  //, accelPrime, accelDPrime									// DO WE INCLUDE SUB ACCEL DERIVS?
-		) { // overloaded constructor
 
   this.time = time;
   this.radius = radius;
@@ -544,6 +527,8 @@ function PhysEng(gameEngine, playerModel) {
   // The above but squared. Useful
   this.MAX_MOVE_DIST_SQ = this.MAX_MOVE_DIST * this.MAX_MOVE_DIST;
 
+  this.debugInputs = [];
+
   //The previous real timestamp given to update.
   this.prevBrowserTime = 0.0;
 
@@ -552,6 +537,14 @@ function PhysEng(gameEngine, playerModel) {
 
   //The gameTime of the last sync event.
   this.lastSyncEventTime = 0.0;
+
+
+
+
+  this.inReplay = false;
+  this.isPaused = true;
+  this.ReplayData = [];
+
 
   // the players character model
   this.player = playerModel;                       
@@ -563,22 +556,11 @@ function PhysEng(gameEngine, playerModel) {
   this.timeMgr = new TimeManager(0.0, 0.0, 0.0, 1); // TODO DO THE THING
 
   //The events that will need to be handled.
-  this.primaryEventHeap = new MinHeap(null, function (e1, e2) {
-    if (!e1) throw "e1 null";         //DEBUG TODO REMOVE ALL THESE IFS.
-    if (!e2) throw "e2 null";
-    if (!(e1.time || e1.time === 0)) throw "e1 null";         //DEBUG TODO REMOVE ALL THESE IFS.
-    if (!(e2.time || e2.time === 0)) throw "e2 null";
-    if (!((e1.mask & E_INPUT_MASK) || (e1.mask & E_RENDER_MASK) || (e1.mask & E_SYNC_MASK))) throw "e1 not an InputEvent, renderevent, or sync event.";
-    if (!((e2.mask & E_INPUT_MASK) || (e2.mask & E_RENDER_MASK) || (e2.mask & E_SYNC_MASK))) throw "e2 not an InputEvent, renderevent, or sync event.";
-
-    return e1.time == e2.time ? (e1.mask === e2.mask ? 0 : e1.mask > e2.mask ? -1 : 1) : e1.time < e2.time ? -1 : 1;
-  });
+  this.primaryEventHeap = getNewPrimaryHeap();
 
 
   //The predicted events. This is cleared and re-predicted every time the inputs to PhysEng are modified.
-  this.predictedEventHeap = new MinHeap(null, function (e1, e2) {
-    return e1.time == e2.time ? 0 : e1.time < e2.time ? -1 : 1;
-  });
+  this.predictedEventHeap = getNewPredictedHeap();
 
 
   //The tween events. This is should always be empty at the end of a step.
@@ -591,11 +573,6 @@ function PhysEng(gameEngine, playerModel) {
   //this.stateEventHeap = new MinHeap(null, function (e1, e2) {
   //  return e1.time == e2.time ? 0 : e1.time < e2.time ? -1 : 1;
   //});
-
-
-  this.inReplay = false;
-  this.isPaused = true;
-  this.ReplayData = [];
 	
 	
     this.printStartState();
@@ -605,10 +582,33 @@ function PhysEng(gameEngine, playerModel) {
  * Update function for physEng. If you want it to use browser time you need to add a renderEvent at the browser timestamp to newEvents before passing it into update.
  */
 PhysEng.prototype.update = function (time, newEvents) {
-  //console.log("time ", time);
+  if (!DEBUG_STEP) {                                      // Stops update from running, but adds inputs at the current time in the physEng.
+    this.tm = currentLevel;
+    newEvents.push(new RenderEvent(time));
+    this.updatePhys(newEvents, !DEBUG_EVENT_AT_A_TIME);
+  } else {
+    for (var i = 0; i < newEvents.length; i++) {
+      newEvents[i].time = this.getTime;
+      this.debugInputs.push(newEvents[i]);
+    }
+  }
+}
+
+
+/**
+ * runs a debug step instead of a full step.
+ */
+PhysEng.prototype.stepDebug = function () {
   this.tm = currentLevel;
-  newEvents.push(new RenderEvent(time));
-  this.updatePhys(newEvents, !DEBUG_EVENT_AT_A_TIME);
+
+  if (DEBUG_EVENT_AT_A_TIME) {
+    // adds a new renderEvent to the predicted event heap. will be overwritten if a different event happens.
+    this.predictedEvents.push(new RenderEvent(0.0, this.getTime() + DEBUG_MAX_TIMESTEP));
+    this.updatePhys(this.debugInputs, !DEBUG_EVENT_AT_A_TIME);
+  } else {
+    this.primaryEventHeap.push(new RenderEvent(0.0, this.getTime() + DEBUG_MAX_TIMESTEP));
+    this.updatePhys(this.debugInputs, !DEBUG_EVENT_AT_A_TIME);
+  }
 }
 
 
@@ -616,7 +616,7 @@ PhysEng.prototype.update = function (time, newEvents) {
  * Update function for physEng. If you want it to use browser time you need to add a renderEvent at the browser timestamp to newEvents before passing it into update.
  */
 PhysEng.prototype.updatePhys = function (newEvents, stepToRender) {
-  if (this.primaryEventHeap.size() > 0 && !this.inReplay) {
+  if (this.primaryEventHeap.size() > 0 && !this.inReplay && !DEBUG_STEP) {
     console.log(this.primaryEventHeap.size(), this.primaryEventHeap);
     throw "why the hell are we starting update with events still in primaryEventHeap thing? *grumbles* better ways to implement replays....";
   }
@@ -719,6 +719,16 @@ PhysEng.prototype.addNewEventsToEventHeap = function (newEvents) {
 
 
 /**
+ * Resets the predictedEventHeap.
+ */
+PhysEng.resetPredicted = function () {
+  this.predictedEventHeap = getNewPredictedHeap();
+}
+
+
+
+
+/**
  * pauses the physics engine.
  */
 PhysEng.prototype.pause = function () {
@@ -807,6 +817,8 @@ PhysEng.prototype.attemptNextStep = function (goalGameTime) {
   if (collisionList.length > 0) {   // WE COLLIDED WITH STUFF AND EXITED THE LOOP EARLY, handle.
     events = findEventsFromCollisions(collisionList);         // a bunch of TerrainCollisionEvent's hopefully?
     tempState = events[0].state;
+    this.resetPredicted();
+    //TODO HANDLE PREDICTING EVENTS HERE.
   }
   //else if (tweenTime !== goalGameTime) {
   //  console.log("tweenTime: ", tweenTime, " goalGameTime: ", goalGameTime);
@@ -1380,26 +1392,6 @@ function closestPositive(value1, value2) {
 
 
 
-// ARRAY SHIT
-
-
-// Checks to see if array a contains Object obj.
-function contains(a, obj) {
-  var i = a.length;
-  while (i--) {
-    if (a[i] === obj) {
-      return i;
-    }
-  }
-  return null;
-}
-
-
-
-
-
-
-
 
 
 
@@ -1605,6 +1597,62 @@ PhysEng.prototype.printStartState = function () {
   //console.log("");
   console.log(this);
 }
+
+
+//STATIC HELPERS
+
+
+
+
+
+/**
+ * gets a new predicted heap. Helper method to prevent dupe code and clear up constructor.
+ */
+function getNewPredictedHeap() {
+  return new MinHeap(null, function (e1, e2) {
+    return e1.time == e2.time ? 0 : e1.time < e2.time ? -1 : 1;
+  });
+}
+
+
+
+/**
+ * gets a new primary heap. Helper method to prevent dupe code and clear up constructor.
+ */
+function getNewPrimaryHeap() {
+  return new MinHeap(null, function (e1, e2) {
+    if (!e1) throw "e1 null";         //DEBUG TODO REMOVE ALL THESE IFS.
+    if (!e2) throw "e2 null";
+    if (!(e1.time || e1.time === 0)) throw "e1 null";         //DEBUG TODO REMOVE ALL THESE IFS.
+    if (!(e2.time || e2.time === 0)) throw "e2 null";
+    if (!((e1.mask & E_INPUT_MASK) || (e1.mask & E_RENDER_MASK) || (e1.mask & E_SYNC_MASK))) throw "e1 not an InputEvent, renderevent, or sync event.";
+    if (!((e2.mask & E_INPUT_MASK) || (e2.mask & E_RENDER_MASK) || (e2.mask & E_SYNC_MASK))) throw "e2 not an InputEvent, renderevent, or sync event.";
+
+    return e1.time == e2.time ? (e1.mask === e2.mask ? 0 : e1.mask > e2.mask ? -1 : 1) : e1.time < e2.time ? -1 : 1;
+  });
+}
+
+
+
+
+
+
+
+// ARRAY SHIT
+
+
+// Checks to see if array a contains Object obj.
+function contains(a, obj) {
+  var i = a.length;
+  while (i--) {
+    if (a[i] === obj) {
+      return i;
+    }
+  }
+  return null;
+}
+
+
 
 
 
