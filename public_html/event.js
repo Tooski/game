@@ -1,4 +1,5 @@
-﻿/**
+﻿"use strict";
+/**
  * event.js
  * Contains all of the key physics events that make up the game engine.
  *
@@ -413,6 +414,20 @@ CollisionEvent.handler = function (physEng) {
 // Event class for the TerrainCollision Event when the player runs into a TerrainLine. 
 function TerrainCollisionEvent(gameTimeOfCollision, collidedWithList, stateAtCollision, surfaceVec, normalVec, allowLock) {
   CollisionEvent.apply(this, [gameTimeOfCollision, collidedWithList, stateAtCollision]);
+  if (!((gameTimeOfCollision || gameTimeOfCollision === 0) &&
+        (collidedWithList) &&
+        (stateAtCollision) &&
+        (surfaceVec) &&
+        (normalVec) &&
+        (allowLock === true || allowLock === false))) {
+    console.log(gameTimeOfCollision, collidedWithList, stateAtCollision, surfaceVec, normalVec, allowLock);
+    throw "missing params.";
+  }
+  console.log("");
+  console.log("");
+  console.log("stateAtCollision: ", stateAtCollision);
+  console.log("");
+  console.log("");
   //this.time
   //this.collidedWithList = collidedWithList;
   //this.state = stateAtCollision;
@@ -428,15 +443,20 @@ function TerrainCollisionEvent(gameTimeOfCollision, collidedWithList, stateAtCol
 
     var normalBallVel = p.vel.normalize();
     var collisionVec = this.normalVec;
-
+    var collisionVecNorm = collisionVec.normalize();
+    //console.log(this.normalVec);
     var collisionForceVec = projectVec2(p.vel, this.normalVec);
     var collisionForceVecLen = collisionForceVec.length();
 
     
-    if (this.allowLock && collisionForceVecLen < p.physParameters.autoLockThreshold) {
+    if (this.allowLock && collisionForceVecLen < p.physParams.autoLockThreshold) {
       console.log("TerrainCollisionEvent auto locked!?!?");
       var surfaceVecNorm = collisionVecNorm.perp();      //TODO OHGOD REFACTOR TO THIS METHOD TAKING A COLLISION OBJECT THAT STORES NORMALS AND THE SINGLE SURFACE TO LOCK TO
-
+      if (this.collidedWithList.length > 1) {
+        throw "allowLock is true but theres multiple things in collidedWithList.";
+      }
+      
+      var surface = this.collidedWithList[0];
 
       //var velocityMag = ballState.vel.length();                     // DISABLED FOR REALISTIC PHYSICS
       //var surfaceInvertAngle = surfaceVec.negate().dot(normalBallVel);
@@ -445,13 +465,18 @@ function TerrainCollisionEvent(gameTimeOfCollision, collidedWithList, stateAtCol
       //  surfaceVec = surfaceVec.negate();
       //}
       //this.player.vel = surfaceVec.multf(velocityMag);              // END DISABLED FOR REALISTIC PHYSICS
+      console.log("collidedWithList: ", collidedWithList);
       p.lockTo(surface, surfaceVecNorm);
 
       animationSetPlayerRunning(p, this.time);
-    } else if (input.lock && this.allowLock && collisionForceVecLen < p.physParameters.lockThreshold) {
+    } else if (input.lock && this.allowLock && collisionForceVecLen < p.physParams.lockThreshold) {
       // IF PLAYER IS HOLDING LOCK, ATTEMPT TO LOCK IF WITHIN BOUNDARIES! TODO IS THE NEGATIVE LOCK_MIN_ANGLE CHECK NEEDED!!!?
       console.log("TerrainCollisionEvent locked!?!?");
-
+      if (this.collidedWithList.length > 1) {
+        throw "allowLock is true but theres multiple things in collidedWithList.";
+      }
+      var surface = this.collidedWithList[0];
+      console.log("collidedWithList: ", this.collidedWithList);
       p.lockTo(surface, surfaceVecNorm);
       animationSetPlayerRunning(p, this.time);
     } else {
@@ -460,7 +485,6 @@ function TerrainCollisionEvent(gameTimeOfCollision, collidedWithList, stateAtCol
       //this.player.vel = getReflectionVector(ballState.vel, collisionVec.normalize()).multf(DFLT_bounceSpeedLossRatio); //TODO REFACTOR TO USE NEW COLLISION OBJECT          // COLLISIONVEC AVERAGE VERSION
       p.pos = this.state.pos;
       p.leaveGround();
-      p.airBorne = true;
     }
     console.log("fin TerrainCollisionEvent");
     physEng.updatePredicted();

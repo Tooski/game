@@ -1,4 +1,5 @@
-﻿/* 
+﻿"use strict";
+/* 
  * terrain.js
  * Skeleton class containing the getters physics will need from a terrain object.
  * Skeleton by Travis Drake
@@ -92,7 +93,7 @@ function TerrainLine(point0, point1, player, adjacent0, adjacent1, normal) {
 
 
   this.getSurfaceAt = function (ballLocation) {
-    return (vec2(this.p1 - this.p0)).normalize();
+    return this.p1.subtract(this.p0).normalize();
   };
 
 
@@ -165,25 +166,33 @@ function TerrainLine(point0, point1, player, adjacent0, adjacent1, normal) {
     var pD = pA.add(vAD);            // find the perpendicular intersect of the surface.
     var vCD = pC.subtract(pD);       // find the vector from ball to the perpendicular intersection.
 
-    var data = { collision: false, collidedLine: false, collidedP0: false, collidedP1: false, surface: this, perpendicularIntersect: pD };
+    var dcollision = false;
+    var dcollidedLine = false;
+    var dcollidedP0 = false;
+    var dcollidedP1 = false;
+    var dsurface = this;
+    var dperpendicularIntersect = pD;
+
     var radiussq = radius * radius;
     var vABlensq = vAB.lengthsq();
-    if (vAC.lengthsq() <= radiussq) {
-      data.collision = true;
-      data.collidedP0 = true;
+
+
+    if (vAC.lengthsq() <= radiussq) {      // hit P0
+      dcollision = true;
+      dcollidedP0 = true;
+      console.log("hit P0.");
     }
-    if (vBC.lengthsq() <= radiussq) {
-      data.collision = true;
-      data.collidedP1 = true;
+    if (vBC.lengthsq() <= radiussq) {       // hit P1
+      dcollision = true;
+      dcollidedP1 = true;
+      console.log("hit P1.");
     }
     if (vCD.lengthsq() <= radiussq && vAD.lengthsq() < vABlensq && vAB.subtract(vAD).lengthsq() < vABlensq) {
       // THEN THE CENTER OF OUR CIRCLE IS WITHIN THE PERPENDICULAR BOUNDS OF THE LINE SEGMENT, AND CIRCLE IS LESS THAN RADIUS AWAY FROM THE LINE.
-      //console.log("Within perpendicular line bounds.");
-      data.collision = true;
-      data.collidedLine = true;
+      console.log("Within perpendicular line bounds AND collided.");
+      dcollision = true;
+      dcollidedLine = true;
     } else {
-      // WE ARE OFF THE SIDES OF THE PERPENDICULAR BOUNDING BOX, BUT WE STILL COLLIDED WITH THE LINES ENDPOINT.
-      //console.log("Outside line bounds, hit endpoint");
       // No collision, unless we're missing a case in which case add additional detection here.
     }
 
@@ -204,7 +213,8 @@ function TerrainLine(point0, point1, player, adjacent0, adjacent1, normal) {
 
       ctx.stroke();
     }
-
+    var data = { collided: dcollision, collidedLine: dcollidedLine, collidedP0: dcollidedP0, collidedP1: dcollidedP1, surface: dsurface, perpendicularIntersect: dperpendicularIntersect };
+    //console.log("data: ", data);
     return data;
   };
 

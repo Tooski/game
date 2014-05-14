@@ -1,4 +1,5 @@
-﻿/* 
+﻿"use strict";
+/* 
  * collision.js, currently skeleton class explaining what the physics engine needs collision-wise.
  * 
  */
@@ -60,13 +61,15 @@ function TerrainPoint(pos, terrainLine) {
 //What I will be calling in the recursive physics bounds checking function to check the initial collision list.
 //doNotCheck may be empty.
 function getCollisionsInList(ballState, collidersToCheck, doNotCheck) {
+  "use strict";
   //code to check for collisions ONLY WITH THE THINGS IN THE PASSED LIST! Should be about the same as the above method but only searches this specific list, and returns the subset of it that is still being collided with.
   var stuffWeCollidedWith = [];
+  //console.log("collidersToCheck, ", collidersToCheck);
   for (var i = 0; i < collidersToCheck.length; i++) {
-    
     if (!contains(doNotCheck, collidersToCheck[i].id)) {
-      //data { collision, collidedLine, collidedP0, collidedP1, surface, perpendicularIntersect }
+      //data { collided, collidedLine, collidedP0, collidedP1, surface, perpendicularIntersect }
       var data = collidersToCheck[i].collidesData(ballState.pos, ballState.radius);
+      //console.log(data);
       if (data.collided) {
         stuffWeCollidedWith.push(data);
       }
@@ -89,6 +92,6 @@ function getCollisionsInList(ballState, collidersToCheck, doNotCheck) {
   if (stuffWeCollidedWith.length > 0) {
     didWeCollide = true;
   }
-
+  //console.log("stuffWeCollidedWith:", stuffWeCollidedWith);
   return stuffWeCollidedWith;
 }
