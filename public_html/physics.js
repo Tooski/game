@@ -1,4 +1,4 @@
-"use strict";
+
 /*
  * The physics engine. This is a complex system that uses no timers, but rather mathematically discretizes
  * all events across time into component events, predicts future events, and only acts upon events that are reached.
