@@ -19,7 +19,7 @@ var DEBUG_STEP =                                    false;
 var DEBUG_EVENT_AT_A_TIME =                         true && DEBUG_STEP; //only true if debug step is also true. Saves me the time of changing 2 variables to switch between normal state and debug state.
 
 //DEBUG FRAME TIME
-var DEBUG_MAX_TIMESTEP = 0.1;
+var DEBUG_MAX_TIMESTEP = 0.01;
 
 
 // this should work in just about any browser, and allows us to use performance.now() successfully no matter the browser.
@@ -265,6 +265,10 @@ function PlayerModel(controlParams, physParams, time, radius, pos, vel, accel, s
 
   this.replayData = [];
 
+
+  this.doNotCheckStepSurfaces = [];
+
+
   /**
    * ANIMATION FIELDS FOR MIKE!
    */
@@ -365,57 +369,6 @@ function PlayerModel(controlParams, physParams, time, radius, pos, vel, accel, s
     var baseForceY = this.physParams.gravity;
 
     if (inputState.up) {
-      baseForceY -= this.controlParams.gUaccel;
-    } else if (inputState.down) {
-      baseForceY += this.controlParams.gDaccel;
-    }
-
-    if (inputState.left) {
-      baseForceX -= this.controlParams.gLRaccel;
-    } else if (inputState.down) {
-      baseForceX += this.controlParams.gLRaccel;
-    }
-
-
-    var baseForceVec = new vec2(baseForceX, baseForceY);
-    if (inputState.additionalVecs) {                          // if theres an additional vector of force to consider
-      for (var i = 0; i < additionalVecs.length; i++) {
-        baseForceVec = baseForceVec.add(inputState.additionalVecs[i]);
-      }
-    }
-
-    var surface = this.surface;
-    var baseForceNormalized = baseForceVec.normalize();
-    console.log("surface, ", surface);
-    console.log("surface.getNormalAt(this.pos, this.radius), ", surface.getNormalAt(this.pos, this.radius));
-    var angleToNormal = Math.acos(surface.getNormalAt(this.pos, this.radius).dot(baseForceNormalized));
-
-    if (inputState.lock) {                                                     // If we are locked to the surface we are on.
-      console.log("   we are being locked to the surface we are on.");
-      var surfaceDir = this.vel;
-      this.accel = projectVec2(baseForceVec, surfaceDir);
-    } else if (angleToNormal > HALF_PI || angleToNormal < -HALF_PI) {          // If the baseForceVec is pushing us towards the surface we're on:
-      console.log("   we are being pushed towards the surface we are on.");
-      // WE ASSUME PLAYER'S VELOCITY VECTOR IS ALREADY ALIGNED WITH THE SURFACE.
-      // ___+____+____+___ magnitude acceleration along a sloped surface = magnitude of force * sin(angle between force and surface normal)
-      var surfaceDir = surface.getSurfaceAt(this.pos, this.radius);
-      this.accel = projectVec2(baseForceVec, surfaceDir);
-      //var angleToSurface = Math.acos(surfaceVec.normalize().dot(baseForceNormalized));
-    } else {                                                                    // we are being pushed away from teh surface we are on. Updating states to have left the ground, and then calling updateAirStates.
-      console.log("   we are being pushed AWAY from the surface we are on. Simply calling updateAirStates.");
-      this.leaveGround();
-      this.updateVecsAir(inputState);
-    }
-  }
-  
-
-  // updates the accel vector based in the provided inputs based on the character being in the air state.
-  this.updateVecsAir = function (inputState) {  // DONE? TEST
-    console.log("in AccelState.updateAir(), setting accelVec. ");
-    var baseForceX = 0.0;
-    var baseForceY = this.physParams.gravity;
-
-    if (inputState.up) {
       //console.log("   inputState.up true");
       baseForceY -= this.controlParams.aUaccel;
     } else if (inputState.down) {
@@ -427,6 +380,85 @@ function PlayerModel(controlParams, physParams, time, radius, pos, vel, accel, s
       //console.log("   inputState.left true");
       baseForceX -= this.controlParams.aLRaccel;
     } else if (inputState.right) {
+      //console.log("   inputState.right true");
+      baseForceX += this.controlParams.aLRaccel;
+    }
+
+
+    var baseForceVec = new vec2(baseForceX, baseForceY);
+    if (inputState.additionalVecs) {                          // if theres an additional vector of force to consider
+      for (var i = 0; i < additionalVecs.length; i++) {
+        baseForceVec = baseForceVec.add(inputState.additionalVecs[i]);
+      }
+    }
+
+
+
+    var surface = this.surface;
+    var baseForceNormalized = baseForceVec.normalize();
+    console.log("");
+    console.log("");
+    console.log("in updateVecsGround(),  surface: ", surface);
+    console.log("surface.getNormalAt(this.pos, this.radius), ", surface.getNormalAt(this.pos, this.radius));
+    console.log("baseForceVec.lengthsq(), ", baseForceVec.lengthsq());
+    var angleToNormal = Math.acos(surface.getNormalAt(this.pos, this.radius).dot(baseForceNormalized));
+
+    if (angleToNormal > HALF_PI) {
+      console.log("GREATER angleToNormal, ", angleToNormal)
+    } else if (angleToNormal < -HALF_PI) {
+      console.log("LESSER  angleToNormal, ", angleToNormal)
+
+    } else {
+      console.log("BETWEEN angleToNormal, ", angleToNormal)
+
+    }
+
+
+    if (baseForceVec.lengthsq() === 0) {
+      console.log("   we are not being pushed, just chill");
+      this.accel = new vec2(0, 0);
+    } else if (inputState.lock) {                                                     // If we are locked to the surface we are on.
+      console.log("   we are being locked to the surface we are on.");
+      var surfaceDir = this.vel;
+      this.accel = projectVec2(baseForceVec, surfaceDir);
+    } else if (angleToNormal >= HALF_PI || angleToNormal <= -HALF_PI) {          // If the baseForceVec is pushing us towards the surface we're on:
+      console.log("   we are being pushed TOWARDS the surface we are on.");
+      // WE ASSUME PLAYER'S VELOCITY VECTOR IS ALREADY ALIGNED WITH THE SURFACE.
+      // ___+____+____+___ magnitude acceleration along a sloped surface = magnitude of force * sin(angle between force and surface normal)
+      var surfaceDir = surface.getSurfaceAt(this.pos, this.radius);
+      console.log("surfaceDir: ", surfaceDir);
+      this.accel = projectVec2(baseForceVec, surfaceDir);
+      console.log("this.accel: ", this.accel);
+      //var angleToSurface = Math.acos(surfaceVec.normalize().dot(baseForceNormalized));
+    } else  {  // we are being pushed away from the surface we are on. Updating states to have left the ground, and then calling updateAirStates.
+      console.log("   we are being pushed AWAY from the surface we are on. Simply calling updateAirStates.");
+      this.doNotCheckStepSurfaces.push(this.surface);
+      this.leaveGround();
+      this.updateVecsAir(inputState);
+    }
+  }
+  
+
+  // updates the accel vector based in the provided inputs based on the character being in the air state.
+  this.updateVecsAir = function (inputState) {  // DONE? TEST
+    console.log("in updateVecsAir, setting accelVec. ");
+    var baseForceX = 0.0;
+    var baseForceY = this.physParams.gravity;
+
+    if (inputState.up) {
+      //console.log("   inputState.up true");
+      baseForceY -= this.controlParams.aUaccel;
+    }
+    if (inputState.down) {
+      //console.log("   inputState.down true");
+      baseForceY += this.controlParams.aDaccel;
+    }
+
+    if (inputState.left) {
+      //console.log("   inputState.left true");
+      baseForceX -= this.controlParams.aLRaccel;
+    }
+    if (inputState.right) {
       //console.log("   inputState.right true");
       baseForceX += this.controlParams.aLRaccel;
     }
@@ -516,6 +548,7 @@ PlayerModel.prototype.lockTo = function (surface, surfaceVecNorm) {
   //this.player.vel = surfaceVec.multf(velocityMag);          // END COMMENTED OUT FOR REALISTIC PHYSICS
   this.surface = surface;
   this.vel = projectVec2(this.vel, surfaceVecNorm);    //GROUNDBOOST TODO                     TODO HANDLE IF THIS IS A POINT.
+  this.updateVecs();
   this.airBorne = false;
   this.locked = this.inputState.lock;
 }
@@ -551,8 +584,6 @@ function PhysEng(gameEngine, playerModel) {
 
   //The gameTime of the last sync event.
   this.lastSyncEventTime = 0.0;
-
-
 
 
   this.inReplay = false;
@@ -714,6 +745,118 @@ PhysEng.prototype.updatePhys = function (newEvents, stepToRender) {
 
 
 
+
+
+/**
+ * attempts to step playerModel to the provided time.
+ */
+PhysEng.prototype.attemptNextStep = function (goalGameTime) {
+  console.log("");
+  console.log("");
+  console.log("new attemptNextStep, goalGameTime: ", goalGameTime);
+  var stepCount = 1;
+  var startGameTime = this.player.time;
+  var deltaTime = goalGameTime - startGameTime;
+
+
+  var velStep = new vec2(this.player.vel.x, this.player.vel.y);
+  velStep = velStep.multf(deltaTime);
+
+  while (velStep.lengthsq() > this.MAX_MOVE_DIST_SQ)   // Figure out how many steps to divide this step into.
+  {
+    velStep = velStep.divf(2);
+    stepCount *= 2;
+  }
+
+
+
+  var stepFraction = 0.0;
+  var collisionList = [];
+  var tweenTime;
+  var tempState;
+
+  //console.log("   CollisionList.length: ", collisionList.length, " stepCount: ", stepCount);
+  for (var i = 1; i < stepCount && collisionList.length === 0; i++) {     // DO check steps.
+    var doNotCheck = this.getNewDoNotCheck();
+    console.log("doNotCheck, ", doNotCheck);
+    stepFraction = i / stepCount;
+    tweenTime = startGameTime + stepFraction * deltaTime;
+
+    tempState = this.stepStateByTime(this.player, tweenTime);
+    collisionList = getCollisionsInList(tempState, this.tm.terrainList, doNotCheck);    //TODO MINIMIZE THIS LIST SIZE, THIS IS IDIOTIC
+
+    //console.log("      tweenStepping, i: ", i, " tweenTime: ", tweenTime);
+  }
+
+  var events = [];
+  if (collisionList.length > 0) {   // WE COLLIDED WITH STUFF AND EXITED THE LOOP EARLY, handle.
+    events = this.findEventsFromCollisions(collisionList);         // a bunch of TerrainCollisionEvent's hopefully?
+    tempState = events[0].state;
+    this.resetPredicted();
+    //console.log("  ended tweenStepping loop early");
+    //console.log("  collisions: ", collisionList);
+    //TODO HANDLE PREDICTING EVENTS HERE.
+  }
+    //else if (tweenTime !== goalGameTime) {
+    //  console.log("tweenTime: ", tweenTime, " goalGameTime: ", goalGameTime);
+    //  throw "yeah I'm gonna need to manually update to goalTime cuz this isnt working";
+    //} 
+    //else {                                                        // NO COLLISIONS.
+    //  console.log("attemptNextStep, no collisions and resulting times matched:");
+    //  console.log("tweenTime: ", tweenTime, " goalGameTime: ", goalGameTime);
+    //}
+  else {                // TRY FINAL STEP
+    var doNotCheck = this.getNewDoNotCheck();
+    console.log("doNotCheck, ", doNotCheck);
+    tweenTime = goalGameTime;
+    //console.log("  finalStepping, i: ", stepCount, " tweenTime: ", tweenTime);
+    tempState = this.stepStateByTime(this.player, tweenTime);
+    collisionList = getCollisionsInList(tempState, this.tm.terrainList, doNotCheck);    //TODO MINIMIZE THIS LIST SIZE, THIS IS IDIOTIC
+    //console.log(this.tm.terrainList);
+    //console.log(this.tm);
+    if (collisionList.length > 0) {   // WE COLLIDED WITH STUFF AND EXITED THE LOOP EARLY
+      events = this.findEventsFromCollisions(collisionList);
+      tempState = events[0].state;
+      //console.log("  collided on last step.");
+      //console.log("  collisions: ", collisionList);
+    }
+  }
+  var results = new StepResult(tempState, events);
+  //TODO UPDATE PLAYER HERE???
+  return results;
+}
+
+
+// Universal method to step a state forward to a time, no logic involved.
+// COMPLETELY AND UTTERLY DONE. I THINK.
+PhysEng.prototype.stepStateByTime = function (state, targetGameTime) {
+  var startTime = state.time;
+  //console.log("in stepStateByTime. targetGameTime: ", targetGameTime);
+  //console.log("startTime: ", state.time);
+  //console.log("state: ", state);
+  var deltaTime = targetGameTime - startTime;
+  var multVel = state.vel.multf(deltaTime);
+  var multAcc = state.accel.multf(deltaTime * deltaTime / 2);
+
+  var newPos = state.pos.add(multVel.add(multAcc));
+
+  var newVel = state.vel.add(state.accel.multf(deltaTime));
+
+  return new State(targetGameTime, state.radius, newPos, newVel, state.accel);
+}
+
+function CollisionHeapObj(state, collisionObj) {
+  if (!state || !collisionObj) {
+    throw "missing state or collisionObj in CollisionHeapObj constructor";
+  }
+  this.time = state.time;
+  this.collisionObj = collisionObj;
+  this.state = state;
+  this.id = collisionObj.id;
+}
+
+
+
 /**
  * checks to see if a syncEvent should be added to the current replay, and adds it if so.
  */
@@ -846,7 +989,9 @@ PhysEng.prototype.convertEventBrowserTime = function (event) {
  * constructs and returns the doNotCheck terrainList.
  */
 PhysEng.prototype.getNewDoNotCheck = function () {
+  //var doNotCheck = this.player.doNotCheckStepSurfaces;    //
   var doNotCheck = [];    //
+
   if (this.player.surface) {
     doNotCheck.push(this.player.surface);
     if (this.player.surface.adjacent0) {
@@ -856,112 +1001,13 @@ PhysEng.prototype.getNewDoNotCheck = function () {
       doNotCheck.push(this.player.surface.adjacent1);
     }
   }
+
+  this.player.doNotCheckStepSurfaces = [];
+
   return doNotCheck;
 }
 
 
-/**
- * attempts to step playerModel to the provided time.
- */
-PhysEng.prototype.attemptNextStep = function (goalGameTime) {
-  "use strict";
-  var stepCount = 1;
-  var startGameTime = this.player.time;
-  var deltaTime = goalGameTime - startGameTime;
-
-
-  var velStep = new vec2(this.player.vel.x, this.player.vel.y);
-  velStep = velStep.multf(deltaTime);
-
-  while (velStep.lengthsq() > this.MAX_MOVE_DIST_SQ)   // Figure out how many steps to divide this step into.
-  {
-    velStep = velStep.divf(2);
-    stepCount *= 2;
-  }
-
-  var doNotCheck = this.getNewDoNotCheck();
-
-
-  var stepFraction = 0.0;
-  var collisionList = [];
-  var tweenTime;
-  var tempState;
-
-  //console.log("   CollisionList.length: ", collisionList.length, " stepCount: ", stepCount);
-  for (var i = 1; i < stepCount && collisionList.length === 0; i++) {     // Take steps.
-    stepFraction = i / stepCount;
-    tweenTime = startGameTime + stepFraction * deltaTime;
-
-    tempState = this.stepStateByTime(this.player, tweenTime);
-    collisionList = getCollisionsInList(tempState, this.tm.terrainList, doNotCheck);    //TODO MINIMIZE THIS LIST SIZE, THIS IS IDIOTIC
-
-    //console.log("      tweenStepping, i: ", i, " tweenTime: ", tweenTime);
-  }
-
-  var events = [];
-  if (collisionList.length > 0) {   // WE COLLIDED WITH STUFF AND EXITED THE LOOP EARLY, handle.
-    events = this.findEventsFromCollisions(collisionList);         // a bunch of TerrainCollisionEvent's hopefully?
-    tempState = events[0].state;
-    this.resetPredicted();
-    //console.log("  ended tweenStepping loop early");
-    //console.log("  collisions: ", collisionList);
-    //TODO HANDLE PREDICTING EVENTS HERE.
-  }
-  //else if (tweenTime !== goalGameTime) {
-  //  console.log("tweenTime: ", tweenTime, " goalGameTime: ", goalGameTime);
-  //  throw "yeah I'm gonna need to manually update to goalTime cuz this isnt working";
-  //} 
-  //else {                                                        // NO COLLISIONS.
-  //  console.log("attemptNextStep, no collisions and resulting times matched:");
-  //  console.log("tweenTime: ", tweenTime, " goalGameTime: ", goalGameTime);
-  //}
-  else {                // TRY FINAL STEP
-    tweenTime = goalGameTime;
-    //console.log("  finalStepping, i: ", stepCount, " tweenTime: ", tweenTime);
-    tempState = this.stepStateByTime(this.player, tweenTime);
-    collisionList = getCollisionsInList(tempState, this.tm.terrainList, doNotCheck);    //TODO MINIMIZE THIS LIST SIZE, THIS IS IDIOTIC
-    //console.log(this.tm.terrainList);
-    //console.log(this.tm);
-    if (collisionList.length > 0) {   // WE COLLIDED WITH STUFF AND EXITED THE LOOP EARLY
-      events = this.findEventsFromCollisions(collisionList);
-      tempState = events[0].state;
-      //console.log("  collided on last step.");
-      //console.log("  collisions: ", collisionList);
-    }
-  }
-  var results = new StepResult(tempState, events);
-  //TODO UPDATE PLAYER HERE???
-  return results;
-}
-
-
-// Universal method to step a state forward to a time, no logic involved.
-// COMPLETELY AND UTTERLY DONE. I THINK.
-PhysEng.prototype.stepStateByTime = function (state, targetGameTime) {
-  var startTime = state.time;
-  //console.log("in stepStateByTime. targetGameTime: ", targetGameTime);
-  //console.log("startTime: ", state.time);
-  //console.log("state: ", state);
-  var deltaTime = targetGameTime - startTime;
-  var multVel = state.vel.multf(deltaTime);
-  var multAcc = state.accel.multf(deltaTime * deltaTime / 2);
-
-  var newPos = state.pos.add(multVel.add(multAcc));
-
-  var newVel = state.vel.add(state.accel.multf(deltaTime));
-
-  return new State(targetGameTime, state.radius, newPos, newVel, state.accel);
-}
-
-function CollisionHeapObj(state, collisionObj) {
-  if (!state || !collisionObj) {
-    throw "missing state or collisionObj in CollisionHeapObj constructor";
-  }
-  this.time = state.time;
-  this.collisionObj = collisionObj;
-  this.state = state;
-  this.id = collisionObj.id;
-}
 
 /**
  * Determines the time of the collisions and then return the earliest, those that tie for the earliest.
@@ -1337,7 +1383,7 @@ function solveQuadratic(a, b, c) {
       var t = Math.sqrt(x);
       var y = (bNeg + t) / (aDoubled);
       var z = (bNeg - t) / (aDoubled);
-      console.log("roots are ", y, ", ", z);
+      //console.log("roots are ", y, ", ", z);
       roots.push(y);
       roots.push(z);
     }
@@ -1437,15 +1483,15 @@ function solveTimeToDistFromLine(curPos, curVel, accel, targetLine, distanceGoal
   var rotated = getRotatedToXAround(targetLine.p0, curPos, curVel, accel, targetLine);
   var distance = (rotated.pos.y > 0 ? rotated.pos.y - distanceGoal : rotated.pos.y + distanceGoal);
   var time = solveTimeToPoint1D(distance, rotated.vel.y, rotated.accel.y);
-  console.log("curPos: ", curPos);
-  console.log("curVel: ", curVel);
-  console.log("accel: ", accel);
-  console.log("targetLine: ", targetLine);
-  console.log("distanceGoal: ", distanceGoal);
+  //console.log("curPos: ", curPos);
+  //console.log("curVel: ", curVel);
+  //console.log("accel: ", accel);
+  //console.log("targetLine: ", targetLine);
+  //console.log("distanceGoal: ", distanceGoal);
 
-  console.log("rotated: ", rotated);
-  console.log("distance: ", distance);
-  console.log("Solved time, time at: ", time);
+  //console.log("rotated: ", rotated);
+  //console.log("distance: ", distance);
+  //console.log("Solved time, time at: ", time);
   return time;
 }
 
@@ -1531,7 +1577,7 @@ function closestPositive(value1, value2) {
     toReturn = value1;             // value1 occurs earlier
     //console.log("   value1 and value2 are both positive, return the smaller one. value1 occurs earlier, v1: ", value1, ", v2: ", value2);
   }
-  console.log("   returning closest: ", toReturn);
+  //console.log("   returning closest: ", toReturn);
   return toReturn;                          //TODO DEBUG could be totally wrong with this, may require a different test.
 }
 
