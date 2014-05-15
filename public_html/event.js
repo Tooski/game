@@ -28,6 +28,12 @@ E_NEXT_BIT *= 2;
 var E_COLLISION_MASK = E_NEXT_BIT;
 E_NEXT_BIT *= 2;
 
+var E_LINE_COLLISION_MASK = E_NEXT_BIT;
+E_NEXT_BIT *= 2;
+
+var E_POINT_COLLISION_MASK = E_NEXT_BIT;
+E_NEXT_BIT *= 2;
+
 var E_SYNC_MASK = E_NEXT_BIT;
 E_NEXT_BIT *= 2;
 
@@ -393,11 +399,10 @@ CollectibleEvent.prototype = new Event();
 
 
 // Abstract event class for the Collision Event when the player runs into a Level element. 
-function CollisionEvent(gameTimeOfCollision, collidedWithList, stateAtCollision) {
+function CollisionEvent(gameTimeOfCollision, stateAtCollision) {
   Event.apply(this, [gameTimeOfCollision])
   this.mask += E_COLLISION_MASK;
 
-  this.collidedWithList = collidedWithList;
   this.state = stateAtCollision;
 }
 CollisionEvent.prototype = new Event();
@@ -411,9 +416,11 @@ CollisionEvent.handler = function (physEng) {
 
 
 
-// Event class for the TerrainCollision Event when the player runs into a TerrainLine. 
-function TerrainCollisionEvent(gameTimeOfCollision, collidedWithList, stateAtCollision, surfaceVec, normalVec, allowLock) {
-  CollisionEvent.apply(this, [gameTimeOfCollision, collidedWithList, stateAtCollision]);
+/**
+ * Event class for the TerrainLineCollision Event when the player runs into a TerrainLine. 
+ */
+function TerrainLineCollisionEvent(gameTimeOfCollision, collidedWithList, stateAtCollision, surfaceVec, normalVec, allowLock) {
+  CollisionEvent.apply(this, [gameTimeOfCollision, stateAtCollision]);
   if (!((gameTimeOfCollision || gameTimeOfCollision === 0) &&
         (collidedWithList) &&
         (stateAtCollision) &&
@@ -428,9 +435,11 @@ function TerrainCollisionEvent(gameTimeOfCollision, collidedWithList, stateAtCol
   console.log("stateAtCollision: ", stateAtCollision);
   console.log("");
   console.log("");
+  this.mask += E_LINE_COLLISION_MASK;
   //this.time
   //this.collidedWithList = collidedWithList;
   //this.state = stateAtCollision;
+  this.collidedWithList = collidedWithList;
   this.surfaceVec = surfaceVec;
   this.normalVec = normalVec; //the collision normal vector.
   this.allowLock = allowLock;
@@ -448,14 +457,14 @@ function TerrainCollisionEvent(gameTimeOfCollision, collidedWithList, stateAtCol
     var collisionForceVec = projectVec2(p.vel, this.normalVec);
     var collisionForceVecLen = collisionForceVec.length();
 
-    
+
     if (this.allowLock && collisionForceVecLen < p.physParams.autoLockThreshold) {
-      console.log("TerrainCollisionEvent auto locked!?!?");
+      console.log("TerrainLineCollisionEvent auto locked!?!?");
       var surfaceVecNorm = collisionVecNorm.perp();      //TODO OHGOD REFACTOR TO THIS METHOD TAKING A COLLISION OBJECT THAT STORES NORMALS AND THE SINGLE SURFACE TO LOCK TO
       if (this.collidedWithList.length > 1) {
         throw "allowLock is true but theres multiple things in collidedWithList.";
       }
-      
+
       var surface = this.collidedWithList[0];
 
       //var velocityMag = ballState.vel.length();                     // DISABLED FOR REALISTIC PHYSICS
@@ -486,12 +495,103 @@ function TerrainCollisionEvent(gameTimeOfCollision, collidedWithList, stateAtCol
       p.pos = this.state.pos;
       p.leaveGround();
     }
-    console.log("fin TerrainCollisionEvent");
+    console.log("fin TerrainLineCollisionEvent");
     physEng.updatePredicted();
   }
 }
-TerrainCollisionEvent.prototype = new CollisionEvent();
-//TerrainCollisionEvent.prototype.constructor = TerrainCollisionEvent;
+TerrainLineCollisionEvent.prototype = new CollisionEvent();
+//TerrainLineCollisionEvent.prototype.constructor = TerrainLineCollisionEvent;
+
+
+
+
+
+
+/**
+ * Event class for the TerrainPointCollisionEvent Event when the player runs into a TerrainLine. 
+ */
+function TerrainPointCollisionEvent(gameTimeOfCollision, terrainPointCollidedWith, stateAtCollision, surfaceVec, normalVec, allowLock) {
+  CollisionEvent.apply(this, [gameTimeOfCollision, stateAtCollision]);
+  if (!((gameTimeOfCollision || gameTimeOfCollision === 0) &&
+        (terrainPointCollidedWith) &&
+        (stateAtCollision) &&
+        (surfaceVec) &&
+        (normalVec) &&
+        (allowLock === true || allowLock === false))) {
+    console.log(gameTimeOfCollision, collidedWithList, stateAtCollision, surfaceVec, normalVec, allowLock);
+    throw "missing params.";
+  }
+  console.log("");
+  console.log("");
+  console.log("stateAtCollision: ", stateAtCollision);
+  console.log("");
+  console.log("");
+  this.mask += E_POINT_COLLISION_MASK;
+  //this.time
+  //this.collidedWithList = collidedWithList;
+  //this.state = stateAtCollision;
+  this.tp = terrainPointCollidedWith;
+  this.surfaceVec = surfaceVec;
+  this.normalVec = normalVec; //the collision normal vector.
+  this.allowLock = allowLock;
+
+
+
+  this.handler = function (physEng) {
+    var p = physEng.player;
+    var input = p.inputState;
+
+    var normalBallVel = p.vel.normalize();
+    var collisionVec = this.normalVec;
+    var collisionVecNorm = collisionVec.normalize();
+    //console.log(this.normalVec);
+    var collisionForceVec = projectVec2(p.vel, this.normalVec);
+    var collisionForceVecLen = collisionForceVec.length();
+
+
+    if (this.allowLock && collisionForceVecLen < p.physParams.autoLockThreshold) {
+      console.log("TerrainPointCollisionEvent auto locked!?!?");
+      var surfaceVecNorm = collisionVecNorm.perp();      //TODO OHGOD REFACTOR TO THIS METHOD TAKING A COLLISION OBJECT THAT STORES NORMALS AND THE SINGLE SURFACE TO LOCK TO
+      if (this.collidedWithList.length > 1) {
+        throw "allowLock is true but theres multiple things in collidedWithList.";
+      }
+
+      var surface = this.collidedWithList[0];
+
+      //var velocityMag = ballState.vel.length();                     // DISABLED FOR REALISTIC PHYSICS
+      //var surfaceInvertAngle = surfaceVec.negate().dot(normalBallVel);
+
+      //if (surfaceAngle > surfaceInvertAngle) {
+      //  surfaceVec = surfaceVec.negate();
+      //}
+      //this.player.vel = surfaceVec.multf(velocityMag);              // END DISABLED FOR REALISTIC PHYSICS
+      console.log("collidedWithList: ", collidedWithList);
+      p.lockTo(surface, surfaceVecNorm);
+
+      animationSetPlayerRunning(p, this.time);
+    } else if (input.lock && this.allowLock && collisionForceVecLen < p.physParams.lockThreshold) {
+      // IF PLAYER IS HOLDING LOCK, ATTEMPT TO LOCK IF WITHIN BOUNDARIES! TODO IS THE NEGATIVE LOCK_MIN_ANGLE CHECK NEEDED!!!?
+      console.log("TerrainCollisionEvent locked!?!?");
+      if (this.collidedWithList.length > 1) {
+        throw "allowLock is true but theres multiple things in collidedWithList.";
+      }
+      var surface = this.collidedWithList[0];
+      console.log("collidedWithList: ", this.collidedWithList);
+      p.lockTo(surface, surfaceVecNorm);
+      animationSetPlayerRunning(p, this.time);
+    } else {
+      // BOUNCE. TODO implement addition of normalVector * jumpVel to allow jump being held to bounce him higher?   perhaps just buffer jump events.      
+      p.vel = getReflectionVector(p.vel, collisionVec).multf(DFLT_bounceSpeedLossRatio); //TODO REFACTOR TO USE NEW COLLISION OBJECT
+      //this.player.vel = getReflectionVector(ballState.vel, collisionVec.normalize()).multf(DFLT_bounceSpeedLossRatio); //TODO REFACTOR TO USE NEW COLLISION OBJECT          // COLLISIONVEC AVERAGE VERSION
+      p.pos = this.state.pos;
+      p.leaveGround();
+    }
+    console.log("fin TerrainPointCollisionEvent");
+    physEng.updatePredicted();
+  }
+}
+TerrainPointCollisionEvent.prototype = new CollisionEvent();
+//TerrainPointCollisionEvent.prototype.constructor = TerrainPointCollisionEvent;
 
 
 

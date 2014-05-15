@@ -10,6 +10,7 @@
  * All rights reserved.
  */
 
+var DEBUG_DRAW = [];
 
 //IF FALSE, RUN NORMALLY
 var DEBUG_STEP =                                    false;
@@ -385,6 +386,8 @@ function PlayerModel(controlParams, physParams, time, radius, pos, vel, accel, s
 
     var surface = this.surface;
     var baseForceNormalized = baseForceVec.normalize();
+    console.log("surface, ", surface);
+    console.log("surface.getNormalAt(this.pos, this.radius), ", surface.getNormalAt(this.pos, this.radius));
     var angleToNormal = Math.acos(surface.getNormalAt(this.pos, this.radius).dot(baseForceNormalized));
 
     if (inputState.lock) {                                                     // If we are locked to the surface we are on.
@@ -596,6 +599,11 @@ function PhysEng(gameEngine, playerModel) {
  */
 PhysEng.prototype.update = function (time, newEvents) {
   if (!DEBUG_STEP) {                                      //UPDATE RUNNING NORMALL
+    for (var i = 0; i < newEvents.length; i++) {
+      newEvents[i].time = this.getTime();
+      newEvents[i].validTime = true;
+      this.debugInputs.push(newEvents[i]);
+    }
     this.tm = currentLevel;
     //console.log("time???, ", time);
     newEvents.push(new RenderEvent(time));
@@ -688,6 +696,7 @@ PhysEng.prototype.updatePhys = function (newEvents, stepToRender) {
       console.log("stepResult: ", stepResult);
       throw "times dont match between the event and the stepResult.state";
     }
+    //console.log(currentEvent);
     currentEvent.handler(this);
 
     //console.log("ending iteration of do: while step loop, currentEvent = ", currentEvent);
@@ -941,9 +950,13 @@ PhysEng.prototype.stepStateByTime = function (state, targetGameTime) {
 }
 
 function CollisionHeapObj(state, collisionObj) {
+  if (!state || !collisionObj) {
+    throw "missing state or collisionObj in CollisionHeapObj constructor";
+  }
   this.time = state.time;
   this.collisionObj = collisionObj;
   this.state = state;
+  this.id = collisionObj.id;
 }
 
 /**
@@ -997,7 +1010,7 @@ PhysEng.prototype.findEventsFromCollisions = function (collisionList) {
           console.log("collision ", i, " collided with p0 at time: ", point0Time);
           var tempState0 = this.stepStateByTime(this.player, point0Time);
           console.log("at position ", tempState0);
-          var collisionHeapObj = new CollisionHeapObj(tempState0, new TerrainPoint(collision.surface.p0, collision.surface));
+          var collisionHeapObj = new CollisionHeapObj(tempState0, new TerrainPoint(collision.surface.p0, collision.surface, collision.surface.adjacent0));
           collisionHeap.push(collisionHeapObj);
         }
         testedP0 = true;
@@ -1006,7 +1019,7 @@ PhysEng.prototype.findEventsFromCollisions = function (collisionList) {
           console.log("collision ", i, " collided with p1 at time: ", point1Time);
           var tempState1 = this.stepStateByTime(this.player, point1Time);
           console.log("at position ", tempState1);
-          var collisionHeapObj = new CollisionHeapObj(tempState1, new TerrainPoint(collision.surface.p1, collision.surface));
+          var collisionHeapObj = new CollisionHeapObj(tempState1, new TerrainPoint(collision.surface.p1, collision.surface, collision.surface.adjacent1));
           collisionHeap.push(collisionHeapObj);
         }
         testedP1 = true;
@@ -1028,7 +1041,7 @@ PhysEng.prototype.findEventsFromCollisions = function (collisionList) {
 
         //  throw "fuck you fuck everything I dont want to write a special case handler here please for the love of God dont ever let this exception get thrown";
         //}
-        var collisionHeapObj = new CollisionHeapObj(tempState0, new TerrainPoint(collision.surface.p0, collision.surface));
+        var collisionHeapObj = new CollisionHeapObj(tempState0, new TerrainPoint(collision.surface.p0, collision.surface, collision.surface.adjacent0));
         collisionHeap.push(collisionHeapObj);
       } else {
 
@@ -1049,7 +1062,7 @@ PhysEng.prototype.findEventsFromCollisions = function (collisionList) {
 
         //  throw "fuck you fuck everything I dont want to write a special case handler here please for the love of God dont ever let this exception get thrown";
         //}
-        var collisionHeapObj = new CollisionHeapObj(tempState1, new TerrainPoint(collision.surface.p1, collision.surface));
+        var collisionHeapObj = new CollisionHeapObj(tempState1, new TerrainPoint(collision.surface.p1, collision.surface, collision.surface.adjacent1));
         collisionHeap.push(collisionHeapObj);
       }
     }
@@ -1106,10 +1119,15 @@ PhysEng.prototype.turnCollisionsIntoEvents = function (collisions) {
   var terrainLineCollisions = [];
   var terrainPointCollisions = [];
   for (var i = 0; i < collisions.length; i++) {
+    
     if (collisions[i].collisionObj instanceof TerrainLine) {            //TODO replace with polymorphism that fucking works.
-      terrainLineCollisions.push(collisions[i]);
+      if (!contains(terrainLineCollisions, collisions[i].collisionObj)) {
+        terrainLineCollisions.push(collisions[i]);
+      }
     } else if (collisions[i].collisionObj instanceof TerrainPoint) {
-      terrainPointCollisions.push(collisions[i]);
+      if (!contains(terrainPointCollisions, collisions[i].collisionObj)) {
+        terrainPointCollisions.push(collisions[i]);
+      }
     } else if (collisions[i].collisionObj instanceof GoalLine) {           //DONE? TODO
       var ge = new GoalEvent(collisions[i].time, collisions[i].collisionObj);
       eventList.push(ge);
@@ -1117,10 +1135,18 @@ PhysEng.prototype.turnCollisionsIntoEvents = function (collisions) {
       var ce = new CollectibleEvent(collisions[i].time);
       eventList.push(ce);
     }
+
   }
   console.log("terrainLineCollisions: ", terrainLineCollisions);
-  //var collisionHeapObj = { time: point1Time, collisionObj: new TerrainPoint(collision.surface.p1, collision.surface), state: tempState1 };
+  //var collisionHeapObj = { time: point1Time, collisionObj: new TerrainPoint(collision.surface.p1, collision.surface, collision.surface.adjacent1), state: tempState1 };
+
+  if (terrainPointCollisions.length > 0 && terrainLineCollisions.length > 0) {            // TODO DEBUG REMOVE
+    console.log("terrainLineCollisions, ", terrainLineCollisions);
+    console.log("terrainPointCollisions, ", terrainPointCollisions);
+    throw "serious fucking problem here, got collisions with point AND line.";
+  }
   if (terrainPointCollisions.length > 1) {            // TODO DEBUG REMOVE
+    console.log("terrainPointCollisions, ", terrainPointCollisions);
     throw "serious fucking problem here :| we got stacked points or someshit.";
   }
 
@@ -1137,11 +1163,11 @@ PhysEng.prototype.turnCollisionsIntoEvents = function (collisions) {
       combinedNormal = combinedNormal.normalize();
       var surfaceVec = combinedNormal.perp();
 
-      var te = new TerrainCollisionEvent(terrainLineCollisions[0].time, collisionSurfaces, terrainLineCollisions[0].state, surfaceVec, combinedNormal, allowLock);
+      var te = new TerrainLineCollisionEvent(terrainLineCollisions[0].time, collisionSurfaces, terrainLineCollisions[0].state, surfaceVec, combinedNormal, allowLock);
       eventList.push(te);
     } else {    // JUST ONE TerrainLine collision.      TerrainLine(gameTimeOfCollision, collidedWithList, stateAtCollision, surfaceVec, normalVec)
       var tlc = terrainLineCollisions[0];
-      var te = new TerrainCollisionEvent(tlc.time, [tlc.collisionObj], tlc.state, tlc.collisionObj.getSurfaceAt(tlc.state), tlc.collisionObj.normal, allowLock);
+      var te = new TerrainLineCollisionEvent(tlc.time, [tlc.collisionObj], tlc.state, tlc.collisionObj.getSurfaceAt(tlc.state), tlc.collisionObj.normal, allowLock);
       eventList.push(te);
     }
   } else if (terrainPointCollisions.length === 1) {   // no TerrainLines, deal with TerrainPoints
@@ -1151,10 +1177,10 @@ PhysEng.prototype.turnCollisionsIntoEvents = function (collisions) {
     var collisionNormal = vecToState.normalize();
     var surfaceVec = collisionNormal.perp();
 
-    var te = new TerrainCollisionEvent(tpc.time, [tpc.collisionObj], tpc.state, surfaceVec, collisionNormal, allowLock);
+    var te = new TerrainPointCollisionEvent(tpc.time, tpc.collisionObj, tpc.state, surfaceVec, collisionNormal, allowLock);
     eventList.push(te);
   } else { //nothing???
-
+    throw "multiple terrainPointCollisions??? " + terrainPointCollisions;
   }
 
   return eventList;
@@ -1445,12 +1471,6 @@ function getRotatedToXAround(origin, curPos, curVel, accel, targetLine) {
   var results = { pos: newPos, vel: newVel, accel: newAccel };
 
   return results;
-}
-
-
-function getRadiansToHorizontal(vec) {
-  var radiansToHorizontal = Math.acos(vec.normalize().dot(HORIZ_NORM));
-  return radiansToHorizontal * (vec.y > 0 ? -1.0 : 1.0);
 }
 
 
@@ -1767,12 +1787,16 @@ function getNewPrimaryHeap() {
 // Checks to see if array a contains Object obj.
 function contains(a, obj) {
   if (!(obj.id)) {
+    console.log("obj w/ no ID: ", obj);
+    console.log("array: ", a);
     throw "!obj.id";
   }
   var i = a.length;
   while (i--) {
+    console.log("obj: ", obj);
+    console.log("array: ", a);
     if (a[i].id === obj.id) {
-      return i;
+      return true;
     } else {
       console.log("a[i] ", a[i]);
       console.log("obj ", obj);

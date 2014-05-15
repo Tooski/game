@@ -6,6 +6,46 @@
 var PRINT_EVERY = 240;
 var COLLISION_TEST_COUNT = 0;
 
+
+function DebugLine(p0, p1, lineWidth, color) {
+  this.color = color;
+  this.lineWidth = lineWidth;
+  this.p0 = p0;
+  this.p1 = p1;
+}
+
+
+function DebugPoint(p, lineWidth, color) {
+  this.color = color;
+  this.lineWidth = lineWidth;
+  this.p = p;
+}
+
+
+drawDebug = function (ctx, drawList) {
+
+  ctx.beginPath();
+
+  for (var i = 0; i < DEBUG_DRAW.length; i++) {
+
+    var oldLineWidth = ctx.lineWidth;
+    ctx.lineWidth = drawList[i].lineWidth;
+    //ctx.lineCap = "round";
+
+    //ctx.lineJoin = "round";
+    ctx.miterLimit = 3;
+    var oldStroke = ctx.strokeStyle;
+    ctx.strokeStyle = drawList[i].color;
+    ctx.moveTo(drawList[i].p0.x, drawList[i].p0.y);
+    ctx.lineTo(drawList[i].p1.x, drawList[i].p1.y);
+  }
+  ctx.stroke();
+
+  ctx.strokeStyle = oldStroke;
+  ctx.lineWidth = oldLineWidth;
+}
+
+
   // Collideable parent class for all things collideable with by a collider.
 function Collideable() {
   Entity.apply(this);
@@ -36,24 +76,75 @@ function CollisionResults(collided, collisionList) {
 /**
  * TerrainPoint object. Useful for collision data info.
  */
-function TerrainPoint(pos, leftLine, rightLine) {
+function TerrainPoint(pos, line0, line1) {
   this.x = pos.x;
-  this.y = pos.y;
-  this.leftLine = leftLine;
-  this.rightLine = rightLine;
-}
-function TerrainPoint(pos, terrainLine) {
-  this.x = pos.x;
-  this.y = pos.y;
-  if (pos === terrainLine.p0) {
-    this.leftLine = terrainLine.adjacent0;
-    this.rightLine = terrainLine;
-  } else if (pos === terrainLine.p1) {
-    this.leftLine = terrainLine;
-    this.rightLine = terrainLine.adjacent1;
+  this.y = pos.y
+  this.id = "" + (this.x * (this.x - this.y)) + " " + (this.y * (this.y - this.x));
+
+  this.line0 = line0;
+  this.line1 = line1;
+
+  this.angle0 = "";
+  this.angle1 = "";
+
+
+
+  if (line0) {
+    if (!line1) {   //Line 0 only
+
+
+
+    } else {        //Both lines
+
+
+      var p00 = line0.p0.subtract(pos);
+      var p01 = line0.p1.subtract(pos);
+      var v0 = p01.subtract(p00);
+      var p10 = line1.p0.subtract(pos);
+      var p11 = line1.p1.subtract(pos);
+      var v1 = p11.subtract(p10);
+
+      var perp0 = v0.perp().normalize();
+      var perp1 = v1.perp().normalize();
+
+      DEBUG_DRAW.push(new TerrainLine(pos, pos.add(perp0.multf(50))));
+      DEBUG_DRAW.push(new TerrainLine(pos, pos.add(perp1.multf(50))));
+
+      this.angle0 = getRadiansToHorizontal(perp0);
+      this.angle1 = getRadiansToHorizontal(perp1);
+
+      //if (line0.p0 === pos) {
+      //  if (line1.p0 === pos) {
+      //    throw "lines dont connect p0 to p1, might be allowable";
+      //  } else if (line1.p1 === pos) {
+
+      //  } else {
+      //    throw "isnt a point on line1";
+      //  }
+      //} else if (line0.p1 === pos) {
+      //  if (line1.p0 === pos) {
+
+      //  } else if (line1.p1 === pos) {
+
+      //    throw "lines dont connect p0 to p1, might be allowable";
+      //  } else {
+      //    throw "isnt a point on line1";
+      //  }
+      //} else {
+      //  throw "isnt a point on line0";
+      //}
+    }
+
+
+  } else if (line1) {//Line 1 only
+
+
+
   } else {
-    throw "bad pos / terrainLine combo in TerrainPoint constructor";
-  } 
+    throw "no line passed into TerrainPoint constructor.";
+  }
+
+  console.log("angle0, ", this.angle0, ", angle1, ", this.angle1);
 }
 
 
