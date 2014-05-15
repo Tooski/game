@@ -599,11 +599,6 @@ function PhysEng(gameEngine, playerModel) {
  */
 PhysEng.prototype.update = function (time, newEvents) {
   if (!DEBUG_STEP) {                                      //UPDATE RUNNING NORMALL
-    for (var i = 0; i < newEvents.length; i++) {
-      newEvents[i].time = this.getTime();
-      newEvents[i].validTime = true;
-      this.debugInputs.push(newEvents[i]);
-    }
     this.tm = currentLevel;
     //console.log("time???, ", time);
     newEvents.push(new RenderEvent(time));
@@ -756,17 +751,26 @@ PhysEng.prototype.resetPredicted = function () {
 PhysEng.prototype.addNewEventsToEventHeap = function (newEvents) {
   var renderEventCount = 0;
   for (var i = 0; i < newEvents.length; i++) {			//Put newEvents into eventHeap.
-    if ((newEvents[i].mask & E_INPUT_MASK) && !newEvents[i].validTime) {
-      this.convertEventBrowserTime(newEvents[i]);
-      this.player.replayData.push(newEvents[i]);
-    } else if ((newEvents[i].mask & E_RENDER_MASK) && !newEvents[i].validTime) {
+    if ((newEvents[i].mask & E_BROWSER_TIME_MASK) && !newEvents[i].validTime) {
+      if ((newEvents[i].mask & E_RENDER_MASK)) {
+        renderEventCount++;
+        if (renderEventCount > 1) {
+          throw "recieved 2 render events in 1 update, cannot continue.";
+        }
+        //console.log("convertEventBrowserTime for a renderEvent");
+        this.convertEventBrowserTime(newEvents[i]);
+      } else {
+        this.convertEventBrowserTime(newEvents[i]);
+        this.player.replayData.push(newEvents[i]);
+      }
+    } else if ((newEvents[i].mask & E_RENDER_MASK)) {
       renderEventCount++;
       if (renderEventCount > 1) {
         throw "recieved 2 render events in 1 update, cannot continue.";
       }
       //console.log("convertEventBrowserTime for a renderEvent");
       this.convertEventBrowserTime(newEvents[i]);
-    }
+    } 
 
     this.primaryEventHeap.push(newEvents[i]);
   }

@@ -85,8 +85,12 @@ function InputEvent(browserTime, pressed, eventTime) {   //
   Event.apply(this, [eventTime])
   this.mask += E_INPUT_MASK;
   this.mask += E_REPLAY_EVENT_MASK;
+  if (browserTime) {
+    this.mask += E_BROWSER_TIME_MASK;
+  }
 
-  this.validTime = eventTime ? true : false;
+  this.validTime = eventTime >= 0 ? true : false;
+
   this.pressed = pressed;       // PRESSED DOWN OR RELEASED
   this.browserTime = browserTime;
 }
@@ -316,6 +320,7 @@ function PauseEvent(browserTime, eventTime) {   //takes browser time.
 
   this.browserTime = browserTime;
 
+  this.validTime = eventTime >= 0 ? true : false;
   this.handler = function (physEng) {          //THIS CODE HANDLES INPUT CHANGES.  
     var p = physEng.player;
     if (physEng.isPaused) {  // DEBUG TODO REMOVE
@@ -340,12 +345,14 @@ function UnpauseEvent(browserTime, eventTime) {   //takes browser time.
 
   this.browserTime = browserTime;
 
+  this.validTime = eventTime >= 0 ? true : false;
+
   this.handler = function (physEng) {          //THIS CODE HANDLES INPUT CHANGES. 
     var p = physEng.player;
     if (!physEng.isPaused) {//DEBUG TODO REMOVE
       throw "trying to unpause when physEng is already unpaused";
     }
-    physEng.unpause(this.time);
+    physEng.unpause(this.browserTime);
   }
 }
 UnpauseEvent.prototype = new Event();
@@ -624,8 +631,9 @@ GoalEvent.prototype = new Event();
 function RenderEvent(browserTime, eventTime) {   //
   Event.apply(this, [eventTime])
   this.mask += E_RENDER_MASK;
+  this.mask += E_BROWSER_TIME_MASK;
 
-  this.validTime = eventTime ? true : false;
+  this.validTime = eventTime >= 0 ? true : false;
   this.browserTime = browserTime;
 
   this.handler = function (physEng) {
