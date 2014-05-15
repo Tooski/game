@@ -1793,17 +1793,16 @@ function contains(a, obj) {
   if (!(obj.id)) {
     console.log("obj w/ no ID: ", obj);
     console.log("array: ", a);
-    throw "!obj.id";
+    throw "!obj.id, ^";
   }
   var i = a.length;
   while (i--) {
-    console.log("obj: ", obj);
-    console.log("array: ", a);
+    //console.log("obj contained: ", obj);
+    //console.log("array: ", a);
     if (a[i].id === obj.id) {
       return true;
     } else {
-      console.log("a[i] ", a[i]);
-      console.log("obj ", obj);
+
     }
   }
   return null;

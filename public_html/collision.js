@@ -176,7 +176,7 @@ function getCollisionsInList(ballState, collidersToCheck, doNotCheck) {
       //}
 
     } else {
-      console.log("doNotCheck contained colliders[i]: ", collidersToCheck[i]);
+      //console.log("doNotCheck contained colliders[i]: ", collidersToCheck[i]);
     }
   }
   var didWeCollide = false;
