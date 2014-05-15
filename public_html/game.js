@@ -296,14 +296,14 @@ GameEngine.prototype.startInput = function() {
           } else if (e.keyCode === gameEngine.input.pauseKey && gameEngine.input.pausePressed === false) {
             gameEngine.setPause(true, performance.now());
 	if (!showPause) {
-		//this.eventsSinceLastFrame.push(new PauseEvent((time - this.lastFrameTime) / 1000));
+		this.eventsSinceLastFrame.push(new PauseEvent((time - this.lastFrameTime) / 1000));
 		var pause = document.getElementById('pause');
 		pause.style.display = '';
 		showPause = true;
 		levelTime.pause();
 	}
 	else {
-		//this.eventsSinceLastFrame.push(new UnpauseEvent((time - this.lastFrameTime) / 1000));
+		this.eventsSinceLastFrame.push(new UnpauseEvent((time - this.lastFrameTime) / 1000));
 		var pause = document.getElementById('pause');
 		pause.style.display = 'none';
 		showPause = false;
@@ -409,7 +409,23 @@ GameEngine.prototype.setPause = function (upOrDown, time) {
   if (this.input.pausePressed !== upOrDown) {
     this.input.pausePressed = upOrDown;
     this.input.pausePressedTimestamp = time;
-  } 
+  }
+  if (upOrDown) {
+	if (!showPause) {
+		//this.eventsSinceLastFrame.push(new PauseEvent((time - this.lastFrameTime) / 1000));
+		var pause = document.getElementById('pause');
+		pause.style.display = '';
+		showPause = true;
+		levelTime.pause();
+	}
+	else {
+		//this.eventsSinceLastFrame.push(new UnpauseEvent((time - this.lastFrameTime) / 1000));
+		var pause = document.getElementById('pause');
+		pause.style.display = 'none';
+		showPause = false;
+		levelTime.start();
+	}
+  }
 }
 
 //Function that allows the changing of the control mapping
@@ -572,6 +588,7 @@ GameEngine.prototype.update = function() {
     this.physEng.update(thisFrameTime / 1000, this.eventsSinceLastFrame);
 
     //console.log("Time = " + this.physEng.getTime());
+	console.log(this.physEng.timeMgr.time);
 
     this.eventsSinceLastFrame = [];
     for (var i = 0; i < entitiesCount; i++) {
@@ -827,7 +844,13 @@ function scoreTest(ctx) {
     ctx.fillText("30,000",20,35);
 }
 
-
+//Create pause menu buttons
+function pauseFill(ctx) {
+	ctx.beginPath();
+    ctx.fillStyle="blue";
+    ctx.fillRect(172,500,300,100);
+    ctx.stroke();
+}
 
 function Rectangle(x1,y1,x2,y2) {
     this.x1 = x1;
