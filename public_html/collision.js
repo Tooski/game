@@ -66,7 +66,7 @@ function getCollisionsInList(ballState, collidersToCheck, doNotCheck) {
   var stuffWeCollidedWith = [];
   //console.log("collidersToCheck, ", collidersToCheck);
   for (var i = 0; i < collidersToCheck.length; i++) {
-    if (!contains(doNotCheck, collidersToCheck[i].id)) {
+    if (!contains(doNotCheck, collidersToCheck[i])) {
       //data { collided, collidedLine, collidedP0, collidedP1, surface, perpendicularIntersect }
       var data = collidersToCheck[i].collidesData(ballState.pos, ballState.radius);
       //console.log(data);

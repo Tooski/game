@@ -385,17 +385,17 @@ function PlayerModel(controlParams, physParams, time, radius, pos, vel, accel, s
 
     var surface = this.surface;
     var baseForceNormalized = baseForceVec.normalize();
-    var angleToNormal = Math.acos(surface.getNormalAt(this.pos).dot(baseForceNormalized));
+    var angleToNormal = Math.acos(surface.getNormalAt(this.pos, this.radius).dot(baseForceNormalized));
 
     if (inputState.lock) {                                                     // If we are locked to the surface we are on.
-      //console.log("   we are being locked to the surface we are on.");
+      console.log("   we are being locked to the surface we are on.");
       var surfaceDir = this.vel;
       this.accel = projectVec2(baseForceVec, surfaceDir);
     } else if (angleToNormal > HALF_PI || angleToNormal < -HALF_PI) {          // If the baseForceVec is pushing us towards the surface we're on:
-      //console.log("   we are being pushed towards the surface we are on.");
+      console.log("   we are being pushed towards the surface we are on.");
       // WE ASSUME PLAYER'S VELOCITY VECTOR IS ALREADY ALIGNED WITH THE SURFACE.
       // ___+____+____+___ magnitude acceleration along a sloped surface = magnitude of force * sin(angle between force and surface normal)
-      var surfaceDir = this.vel;
+      var surfaceDir = surface.getSurfaceAt(this.pos, this.radius);
       this.accel = projectVec2(baseForceVec, surfaceDir);
       //var angleToSurface = Math.acos(surfaceVec.normalize().dot(baseForceNormalized));
     } else {                                                                    // we are being pushed away from teh surface we are on. Updating states to have left the ground, and then calling updateAirStates.
@@ -640,7 +640,7 @@ PhysEng.prototype.stepDebug = function () {
  */
 PhysEng.prototype.updatePhys = function (newEvents, stepToRender) {
   if (this.primaryEventHeap.size() > 0 && !this.inReplay && !DEBUG_STEP) {
-    //console.log(this.primaryEventHeap.size(), this.primaryEventHeap);
+    console.log(this.primaryEventHeap.size(), this.primaryEventHeap);
     throw "why the hell are we starting update with events still in primaryEventHeap thing? *grumbles* better ways to implement replays....";
   }
   if (this.tweenEventHeap.size() > 0 && !this.inReplay) {
@@ -667,7 +667,6 @@ PhysEng.prototype.updatePhys = function (newEvents, stepToRender) {
     //update player state to resulting state.
     this.player.updateToState(stepResult.state);
     this.timeMgr.time = stepResult.state.time;
-    //console.log(this.timeMgr.time);
 
 
     //if stepResult has new events
@@ -771,11 +770,12 @@ PhysEng.prototype.addNewEventsToEventHeap = function (newEvents) {
  * pauses the physics engine.
  */
 PhysEng.prototype.pause = function () {
-  if (physEng.isPaused) {  // DEBUG TODO REMOVE
-    throw "already paused";
+  if (this.isPaused) {  // DEBUG TODO REMOVE
+    throw "trying to pause when PhysEng is already paused";
   }
   this.timeMgr.referenceGameTime = this.timeMgr.time;
   this.isPaused = true;
+  console.log("Pausing in PhysEng. TimeManager after: ", this.timeMgr);
 }
 
 
@@ -786,12 +786,12 @@ PhysEng.prototype.pause = function () {
  */
 PhysEng.prototype.unpause = function (browserTime) {
   if (!this.isPaused) {            //DEBUG TODO REMOVE
-    throw "trying to unpause when physEng is already unpaused";
+    throw "trying to unpause when PhysEng is already unpaused";
   }
   this.timeMgr.referenceBrowserTime = browserTime;
   this.isPaused = false;
 
-  console.log(this.tm);
+  console.log("Unpausing in PhysEng. TimeManager after: ", this.timeMgr);
 }
 
 
@@ -965,19 +965,23 @@ PhysEng.prototype.findEventsFromCollisions = function (collisionList) {
     if (collision.collidedLine) {
       testedLine = true;
       var lineTime = this.player.time + solveTimeToDistFromLine(this.player.pos, this.player.vel, this.player.accel, collision.surface, this.player.radius);
-      //console.log("");
-      //console.log("");
-      //console.log("Player state at step start: ");
-      //console.log("Player pos: ", this.player.pos);
-      //console.log("Player vel: ", this.player.vel);
-      //console.log("Player accel: ", this.player.accel);
-      //console.log("Player time: ", this.player.time);
-      //console.log("");
-      //console.log("collision ", i, " collided with line at time: ", lineTime);
       var tempState = this.stepStateByTime(this.player, lineTime);
-      //console.log("at position ", tempState); 
-      //console.log("");
-      //console.log("");
+
+      if (DEBUG_STEP) {
+        console.log("");
+        console.log("");
+        console.log("Player state at step start: ");
+        console.log("Player pos: ", this.player.pos);
+        console.log("Player vel: ", this.player.vel);
+        console.log("Player accel: ", this.player.accel);
+        console.log("Player time: ", this.player.time);
+        console.log("");
+        console.log("collision ", i, " collided with line at time: ", lineTime);
+        console.log("at position ", tempState);
+        console.log("");
+        console.log("");
+      }
+
 
       if (collision.surface.isPointWithinPerpBounds(tempState.pos) && lineTime && lineTime > 0 && lineTime < 200) {   // Ensures that the real collision was with the line and not the points.
         var collisionHeapObj = new CollisionHeapObj(tempState, collision.surface);
@@ -1740,12 +1744,12 @@ function getNewPredictedHeap() {
  */
 function getNewPrimaryHeap() {
   return new MinHeap(null, function (e1, e2) {
-    if (!e1) throw "e1 null";         //DEBUG TODO REMOVE ALL THESE IFS.
-    if (!e2) throw "e2 null";
-    if (!(e1.time || e1.time === 0)) throw "e1 null";         //DEBUG TODO REMOVE ALL THESE IFS.
-    if (!(e2.time || e2.time === 0)) throw "e2 null";
-    if (!((e1.mask & E_INPUT_MASK) || (e1.mask & E_RENDER_MASK) || (e1.mask & E_SYNC_MASK))) throw "e1 not an InputEvent, renderevent, or sync event.";
-    if (!((e2.mask & E_INPUT_MASK) || (e2.mask & E_RENDER_MASK) || (e2.mask & E_SYNC_MASK))) throw "e2 not an InputEvent, renderevent, or sync event.";
+    if (!e1) throw "event1 null " + e1;         //DEBUG TODO REMOVE ALL THESE IFS.
+    if (!e2) throw "event2 null " + e2;
+    if (!(e1.time || e1.time === 0)) throw "e1 time null";         //DEBUG TODO REMOVE ALL THESE IFS.
+    if (!(e2.time || e2.time === 0)) throw "e2 time null";
+    if (!((e1.mask & E_INPUT_MASK) || (e1.mask & E_RENDER_MASK) || (e1.mask & E_SYNC_MASK) || (e1.mask & E_PAUSE_MASK))) throw "e1 not an InputEvent, renderevent, pauseEvent, or sync event.";
+    if (!((e2.mask & E_INPUT_MASK) || (e2.mask & E_RENDER_MASK) || (e2.mask & E_SYNC_MASK) || (e2.mask & E_PAUSE_MASK))) throw "e2 not an InputEvent, renderevent, pauseEvent, or sync event.";
 
     return e1.time == e2.time ? (e1.mask === e2.mask ? 0 : e1.mask > e2.mask ? -1 : 1) : e1.time < e2.time ? -1 : 1;
   });
@@ -1762,10 +1766,16 @@ function getNewPrimaryHeap() {
 
 // Checks to see if array a contains Object obj.
 function contains(a, obj) {
+  if (!(obj.id)) {
+    throw "!obj.id";
+  }
   var i = a.length;
   while (i--) {
-    if (a[i] === obj) {
+    if (a[i].id === obj.id) {
       return i;
+    } else {
+      console.log("a[i] ", a[i]);
+      console.log("obj ", obj);
     }
   }
   return null;
