@@ -295,20 +295,6 @@ GameEngine.prototype.startInput = function() {
             //console.log("Lock pressed");
           } else if (e.keyCode === gameEngine.input.pauseKey && gameEngine.input.pausePressed === false) {
             gameEngine.setPause(true, performance.now());
-	if (!showPause) {
-		this.eventsSinceLastFrame.push(new PauseEvent((time - this.lastFrameTime) / 1000));
-		var pause = document.getElementById('pause');
-		pause.style.display = '';
-		showPause = true;
-		levelTime.pause();
-	}
-	else {
-		this.eventsSinceLastFrame.push(new UnpauseEvent((time - this.lastFrameTime) / 1000));
-		var pause = document.getElementById('pause');
-		pause.style.display = 'none';
-		showPause = false;
-		levelTime.start();
-	}
             //console.log("Pause pressed");
 			    }
         }
@@ -410,16 +396,17 @@ GameEngine.prototype.setPause = function (upOrDown, time) {
     this.input.pausePressed = upOrDown;
     this.input.pausePressedTimestamp = time;
   }
+  var time = performance.now();
   if (upOrDown) {
 	if (!showPause) {
-		//this.eventsSinceLastFrame.push(new PauseEvent((time - this.lastFrameTime) / 1000));
+		this.eventsSinceLastFrame.push(new PauseEvent((time) / 1000));
 		var pause = document.getElementById('pause');
 		pause.style.display = '';
 		showPause = true;
 		levelTime.pause();
 	}
 	else {
-		//this.eventsSinceLastFrame.push(new UnpauseEvent((time - this.lastFrameTime) / 1000));
+		this.eventsSinceLastFrame.push(new UnpauseEvent((time) / 1000));
 		var pause = document.getElementById('pause');
 		pause.style.display = 'none';
 		showPause = false;
@@ -588,7 +575,7 @@ GameEngine.prototype.update = function() {
     this.physEng.update(thisFrameTime / 1000, this.eventsSinceLastFrame);
 
     //console.log("Time = " + this.physEng.getTime());
-	console.log(this.physEng.timeMgr.time);
+	//console.log(this.physEng.timeMgr.time);
 
     this.eventsSinceLastFrame = [];
     for (var i = 0; i < entitiesCount; i++) {
@@ -605,6 +592,13 @@ GameEngine.prototype.update = function() {
         }
     }
     }
+	ctx2.clearRect(0,0,canvas2.width,canvas2.height);   
+	//timeTest(ctx2);
+	ctx2.font =  "20px Arial";
+	var time = this.physEng.timeMgr.time;
+	var display = time.toFixed(2);
+    //ctx.fillText(min + ":" + add + sec,30,35);
+	ctx2.fillText(display,30,35);
 };
 
 GameEngine.prototype.loop = function() {
@@ -671,8 +665,8 @@ levelTimer.prototype.updateTime = function() {
 	newC.width = '150';
 	document.body.appendChild(newC);
 */
-	ctx2.clearRect(0,0,canvas2.width,canvas2.height);   
-	timeTest(ctx2);
+	//ctx2.clearRect(0,0,canvas2.width,canvas2.height);   
+	//timeTest(ctx2);
 
 }
 
