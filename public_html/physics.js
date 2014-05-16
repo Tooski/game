@@ -912,9 +912,9 @@ PhysEng.prototype.trySync = function () {
  */
 PhysEng.prototype.updatePredicted = function () {           //TODO FINISH
   this.resetPredicted();
-  if (this.player.surface) {
-    var surfaceEndevent = this.getPredictedSurfaceEnd();
-  }
+  //if (this.player.surface) {
+  //  var surfaceEndevent = this.getPredictedSurfaceEnd();
+  //}
   
 
   //this.roundingPoint = false;
