@@ -912,6 +912,18 @@ PhysEng.prototype.trySync = function () {
  */
 PhysEng.prototype.updatePredicted = function () {           //TODO FINISH
   this.resetPredicted();
+  if (this.player.surface) {
+    var surfaceEndevent = this.getPredictedSurfaceEnd();
+  }
+  
+
+  //this.roundingPoint = false;
+  //this.pointBeingRounded = null;
+  //this.angleAroundPoint = 0.0;   //RADIANS OR DEGREES I HAVE NO IDEA
+  //this.rotationDirection = false; // TRUE IF CLOCKWISE, FALSE IF COUNTER-CLOCKWISE.
+  if (this.player.roundingPoint) {
+
+  }
 }
 
 
@@ -1401,6 +1413,14 @@ function getReflectionVector(velVec, normalVec) {
 
 
 
+
+
+/**
+ * gets the time that it takes a ball with the given velocity to go from the given angle to the targetAngle.
+ */
+function getTimeToAngle(radius, velocity, startAngle, targetAngle) {
+  //var 2 * Math.PI
+}
 
 
 //TEST REFLECTION
