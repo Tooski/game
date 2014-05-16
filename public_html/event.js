@@ -462,6 +462,10 @@ function TerrainLineCollisionEvent(gameTimeOfCollision, collidedWithList, stateA
 
     var normalBallVel = p.vel.normalize();
     var collisionVec = this.normalVec;
+
+
+
+
     var collisionVecNorm = collisionVec.normalize();
     //console.log(this.normalVec);
     var collisionForceVec = projectVec2(p.vel, this.normalVec);

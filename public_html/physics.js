@@ -11,6 +11,7 @@
  */
 
 
+
 //IF FALSE, RUN NORMALLY
 var DEBUG_STEP =                                    false;
 
@@ -40,7 +41,7 @@ performance.now = (function () {
 
 //CONSTANTS
 var HALF_PI = Math.PI / 2.0;
-
+var TIME_EPSILON_SQ = 0.000000000001;
 
 
 //DEFAULT PHYSICS VALS, TWEAK HERE
@@ -619,9 +620,7 @@ function PhysEng(gameEngine, playerModel) {
 
 
   //The tween events. This is should always be empty at the end of a step.
-  this.tweenEventHeap = new MinHeap(null, function (e1, e2) {
-    return e1.time == e2.time ? 0 : e1.time < e2.time ? -1 : 1;
-  });
+  this.tweenEventHeap = getNewTweenHeap();
 
 
   ////The state events, such as time a dash will end. Modified at certain times.
@@ -685,7 +684,7 @@ PhysEng.prototype.stepDebug = function () {
 PhysEng.prototype.updatePhys = function (newEvents, stepToRender) {
   if (this.primaryEventHeap.size() > 0 && !this.inReplay && !DEBUG_STEP) {
     console.log(this.primaryEventHeap.size(), this.primaryEventHeap);
-    throw "why the hell are we starting update with events still in primaryEventHeap thing? *grumbles* better ways to implement replays....";
+    throw "why the hell are we starting update with events still in primaryEventHeap thing?";
   }
   if (this.tweenEventHeap.size() > 0 && !this.inReplay) {
     console.log("this.tweenEventHeap, ", this.tweenEventHeap);
@@ -715,11 +714,6 @@ PhysEng.prototype.updatePhys = function (newEvents, stepToRender) {
     var stepResult = this.attemptNextStep(targetTime); //stepResult .state .success .events
 
 
-    //update player state to resulting state.
-    this.player.updateToState(stepResult.state);
-    this.timeMgr.time = stepResult.state.time;
-
-
     //if stepResult has new events
     for (var i = 0; stepResult.events && i < stepResult.events.length; i++) {
       //add new events events to eventHeap
@@ -728,19 +722,46 @@ PhysEng.prototype.updatePhys = function (newEvents, stepToRender) {
       }
       this.tweenEventHeap.push(stepResult.events[i]);
     }
+    var currentEvent = this.peekMostRecentEvent();
     //console.log("before pop: ", this.primaryEventHeap.size());
-
-    var currentEvent = this.popMostRecentEvent();
     //console.log("after pop: ", this.primaryEventHeap.size());
     //console.log("stepResult: ", stepResult);
     //console.log("currentEvent: ", currentEvent);
-    if (currentEvent.time != stepResult.state.time) {     //DEBUG CASE TESTING TODO REMOVE
+
+
+    var timeDifference = (currentEvent.time - stepResult.state.time);
+    if (timeDifference * timeDifference > TIME_EPSILON_SQ) {     //DEBUG CASE TESTING TODO REMOVE??
+                                        //IF NOT THROWN, EVENT IS IGNORED.
+      console.log("");
+      console.log("");
       console.log("currentEvent: ", currentEvent);
       console.log("stepResult: ", stepResult);
-      throw "times dont match between the event and the stepResult.state";
+      console.log("timeDifference * timeDifference, ", timeDifference * timeDifference);
+      console.log("TIME_EPSILON_SQ, ", TIME_EPSILON_SQ);
+      console.log("times dont match between the event and the stepResult.state");
+
+      //throw "times dont match between the event and the stepResult.state";
+
+
+      this.tweenEventHeap = getNewTweenHeap();
+      var tempState = this.stepStateByTime(this.player, targetTime);
+      //update player state to resulting state.
+      currentEvent = this.popMostRecentEvent();
+      this.player.updateToState(tempState);
+      this.timeMgr.time = tempState.time;
+      
+    } else {
+      this.popMostRecentEvent()
+      //update player state to resulting state.
+      this.player.updateToState(stepResult.state);
+      this.timeMgr.time = stepResult.state.time;
     }
+
+
+
     //console.log(currentEvent);
     currentEvent.handler(this);
+
 
     //console.log("ending iteration of do: while step loop, currentEvent = ", currentEvent);
     this.trySync();
@@ -1006,8 +1027,8 @@ PhysEng.prototype.convertEventBrowserTime = function (event) {
  * constructs and returns the doNotCheck terrainList.
  */
 PhysEng.prototype.getNewDoNotCheck = function () {
-  //var doNotCheck = this.player.doNotCheckStepSurfaces;    //
-  var doNotCheck = [];    //
+  var doNotCheck = this.player.doNotCheckStepSurfaces;    //
+  //var doNotCheck = [];    //
 
   if (this.player.surface) {
     doNotCheck.push(this.player.surface);
@@ -1230,10 +1251,19 @@ PhysEng.prototype.turnCollisionsIntoEvents = function (collisions) {
       combinedNormal = combinedNormal.normalize();
       var surfaceVec = combinedNormal.perp();
 
+      if (DEBUG_DRAW) {
+        var collisionPoint = terrainLineCollisions[0].state.pos.subtract(combinedNormal.multf(terrainLineCollisions[0].state.radius));
+        DEBUG_DRAW_BLUE.push(new DebugLine(collisionPoint, collisionPoint.add(combinedNormal.multf(100))));
+      }
       var te = new TerrainLineCollisionEvent(terrainLineCollisions[0].time, collisionSurfaces, terrainLineCollisions[0].state, surfaceVec, combinedNormal, allowLock);
       eventList.push(te);
     } else {    // JUST ONE TerrainLine collision.      TerrainLine(gameTimeOfCollision, collidedWithList, stateAtCollision, surfaceVec, normalVec)
       var tlc = terrainLineCollisions[0];
+
+      if (DEBUG_DRAW) {
+        var collisionPoint = terrainLineCollisions[0].state.pos.subtract(tlc.collisionObj.normal.multf(terrainLineCollisions[0].state.radius));
+        DEBUG_DRAW_BLUE.push(new DebugLine(collisionPoint, collisionPoint.add(tlc.collisionObj.normal.multf(100))));
+      }
       var te = new TerrainLineCollisionEvent(tlc.time, [tlc.collisionObj], tlc.state, tlc.collisionObj.getSurfaceAt(tlc.state), tlc.collisionObj.normal, allowLock);
       eventList.push(te);
     }
@@ -1243,6 +1273,11 @@ PhysEng.prototype.turnCollisionsIntoEvents = function (collisions) {
 
     var collisionNormal = vecToState.normalize();
     var surfaceVec = collisionNormal.perp();
+
+    if (DEBUG_DRAW) {
+      var collisionPoint = terrainPointCollisions[0].state.pos.subtract(collisionNormal.multf(terrainPointCollisions[0].state.radius));
+      DEBUG_DRAW_BLUE.push(new DebugLine(collisionPoint, collisionPoint.add(collisionNormal.multf(100))));
+    }
 
     var te = new TerrainPointCollisionEvent(tpc.time, tpc.collisionObj, tpc.state, surfaceVec, collisionNormal, allowLock);
     eventList.push(te);
@@ -1820,6 +1855,18 @@ PhysEng.prototype.printStartState = function () {
  * gets a new predicted heap. Helper method to prevent dupe code and clear up constructor.
  */
 function getNewPredictedHeap() {
+  return new MinHeap(null, function (e1, e2) {
+    return e1.time == e2.time ? 0 : e1.time < e2.time ? -1 : 1;
+  });
+}
+
+
+
+
+/**
+ * gets a new tween heap. Helper method to prevent dupe code and clear up constructor.
+ */
+function getNewTweenHeap() {
   return new MinHeap(null, function (e1, e2) {
     return e1.time == e2.time ? 0 : e1.time < e2.time ? -1 : 1;
   });

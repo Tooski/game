@@ -114,35 +114,18 @@ function TerrainLine(point0, point1, player, adjacent0, adjacent1, normal) {
     var collision = false;
     var radiussq = radius * radius;
     var vABlensq = vAB.lengthsq();
-    if (vCD.lengthsq() <= radiussq && vAD.lengthsq() < vABlensq && vAB.subtract(vAD).lengthsq() < vABlensq) {
+    if (vCD.lengthsq() < radiussq && vAD.lengthsq() < vABlensq && vAB.subtract(vAD).lengthsq() < vABlensq) {
       // THEN THE CENTER OF OUR CIRCLE IS WITHIN THE PERPENDICULAR BOUNDS OF THE LINE SEGMENT, AND CIRCLE IS LESS THAN RADIUS AWAY FROM THE LINE.
       //console.log("Within perpendicular line bounds.");
       collision = true;
-    } else if (vAC.lengthsq() <= radiussq || vBC.lengthsq() <= radiussq) {
+    } else if (vAC.lengthsq() < radiussq || vBC.lengthsq() < radiussq) {
       // WE ARE OFF THE SIDES OF THE PERPENDICULAR BOUNDING BOX, BUT WE STILL COLLIDED WITH THE LINES ENDPOINT.
       //console.log("Outside line bounds, hit endpoint");
       collision = true;
     } else {
       // No collision, unless we're missing a case in which case add additional detection here.
     }
-    if (DEBUG_TERRAIN && ctx) {
-      ctx.strokeStyle = collision ? "Red" : "Black";
 
-
-      ctx.beginPath();
-      ctx.lineWidth = 3;
-
-      ctx.moveTo(point.x, point.y);
-      ctx.lineTo(pB.x, pB.y);
-
-      ctx.moveTo(point.x, point.y);
-      ctx.lineTo(pA.x, pA.y);
-
-      ctx.moveTo(point.x, point.y);
-      ctx.lineTo(pD.x, pD.y);
-
-      ctx.stroke();
-    }
 
     return collision;
   };
@@ -177,17 +160,17 @@ function TerrainLine(point0, point1, player, adjacent0, adjacent1, normal) {
     var vABlensq = vAB.lengthsq();
 
 
-    if (vAC.lengthsq() <= radiussq) {      // hit P0
+    if (vAC.lengthsq() < radiussq) {      // hit P0
       dcollision = true;
       dcollidedP0 = true;
       console.log("hit P0.");
     }
-    if (vBC.lengthsq() <= radiussq) {       // hit P1
+    if (vBC.lengthsq() < radiussq) {       // hit P1
       dcollision = true;
       dcollidedP1 = true;
       console.log("hit P1.");
     }
-    if (vCD.lengthsq() <= radiussq && vAD.lengthsq() < vABlensq && vAB.subtract(vAD).lengthsq() < vABlensq) {
+    if (vCD.lengthsq() < radiussq && vAD.lengthsq() < vABlensq && vAB.subtract(vAD).lengthsq() < vABlensq) {
       // THEN THE CENTER OF OUR CIRCLE IS WITHIN THE PERPENDICULAR BOUNDS OF THE LINE SEGMENT, AND CIRCLE IS LESS THAN RADIUS AWAY FROM THE LINE.
       console.log("Within perpendicular line bounds AND collided.");
       dcollision = true;
@@ -196,23 +179,6 @@ function TerrainLine(point0, point1, player, adjacent0, adjacent1, normal) {
       // No collision, unless we're missing a case in which case add additional detection here.
     }
 
-
-    if (DEBUG_TERRAIN && ctx) {
-      ctx.strokeStyle = collision ? "Red" : "Black";
-      ctx.beginPath();
-      ctx.lineWidth = 3;
-
-      ctx.moveTo(point.x, point.y);
-      ctx.lineTo(pB.x, pB.y);
-
-      ctx.moveTo(point.x, point.y);
-      ctx.lineTo(pA.x, pA.y);
-
-      ctx.moveTo(point.x, point.y);
-      ctx.lineTo(pD.x, pD.y);
-
-      ctx.stroke();
-    }
     var data = { collided: dcollision, collidedLine: dcollidedLine, collidedP0: dcollidedP0, collidedP1: dcollidedP1, surface: dsurface, perpendicularIntersect: dperpendicularIntersect };
     //console.log("data: ", data);
     return data;

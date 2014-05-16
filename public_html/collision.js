@@ -33,7 +33,7 @@ function DebugCircle(pos, radius, lineWidth) {
 }
 
 
-drawDebug = function (ctx, drawList) {
+drawDebug = function (ctx) {
   ctx.save();
   var oldStroke = ctx.strokeStyle;
   var oldLineWidth = ctx.lineWidth;
@@ -43,19 +43,19 @@ drawDebug = function (ctx, drawList) {
   ctx.beginPath();
   ctx.strokeStyle = "#FF0000";
   for (var i = 0; i < DEBUG_DRAW_RED.length; i++) {
-    if (drawList[i] instanceof DebugLine) {
-      ctx.lineWidth = drawList[i].lineWidth;
+    if (DEBUG_DRAW_RED[i] instanceof DebugLine) {
+      ctx.lineWidth = DEBUG_DRAW_RED[i].lineWidth;
       //ctx.lineCap = "round";
 
       //ctx.lineJoin = "round";
-      ctx.moveTo(drawList[i].p0.x, drawList[i].p0.y);
-      ctx.lineTo(drawList[i].p1.x, drawList[i].p1.y);
-    } else if (drawList[i] instanceof DebugPoint) {
-      ctx.moveTo(ctx.moveTo(drawList[i].p.x - 1, drawList[i].p.y - 1));
-      ctx.fillRect(drawList[i].p.x - 1, drawList[i].p.y - 1, 3, 3);
-    } else if (drawList[i] instanceof DebugCircle) {
-      ctx.moveTo(drawList[i].p.x, drawList[i].p.y);
-      ctx.arc(drawList[i].p.x, drawList[i].p.y, drawList[i].radius, 0, 2 * Math.PI, false);
+      ctx.moveTo(DEBUG_DRAW_RED[i].p0.x, DEBUG_DRAW_RED[i].p0.y);
+      ctx.lineTo(DEBUG_DRAW_RED[i].p1.x, DEBUG_DRAW_RED[i].p1.y);
+    } else if (DEBUG_DRAW_RED[i] instanceof DebugPoint) {
+      ctx.moveTo(ctx.moveTo(DEBUG_DRAW_RED[i].p.x - 1, DEBUG_DRAW_RED[i].p.y - 1));
+      ctx.fillRect(DEBUG_DRAW_RED[i].p.x - 1, DEBUG_DRAW_RED[i].p.y - 1, 3, 3);
+    } else if (DEBUG_DRAW_RED[i] instanceof DebugCircle) {
+      ctx.moveTo(DEBUG_DRAW_RED[i].p.x, DEBUG_DRAW_RED[i].p.y);
+      ctx.arc(DEBUG_DRAW_RED[i].p.x, DEBUG_DRAW_RED[i].p.y, DEBUG_DRAW_RED[i].radius, 0, 2 * Math.PI, false);
     }
   }
   ctx.stroke();
@@ -64,19 +64,19 @@ drawDebug = function (ctx, drawList) {
   ctx.beginPath();
   ctx.strokeStyle = "#00FF00";
   for (var i = 0; i < DEBUG_DRAW_GREEN.length; i++) {
-    if (drawList[i] instanceof DebugLine) {
-      ctx.lineWidth = drawList[i].lineWidth;
+    if (DEBUG_DRAW_GREEN[i] instanceof DebugLine) {
+      ctx.lineWidth = DEBUG_DRAW_GREEN[i].lineWidth;
       //ctx.lineCap = "round";
 
       //ctx.lineJoin = "round";
-      ctx.moveTo(drawList[i].p0.x, drawList[i].p0.y);
-      ctx.lineTo(drawList[i].p1.x, drawList[i].p1.y);
-    } else if (drawList[i] instanceof DebugPoint) {
-      ctx.moveTo(ctx.moveTo(drawList[i].p.x - 1, drawList[i].p.y - 1));
-      ctx.fillRect(drawList[i].p.x - 1, drawList[i].p.y - 1, 3, 3);
-    } else if (drawList[i] instanceof DebugCircle) {
-      ctx.moveTo(drawList[i].p.x, drawList[i].p.y);
-      ctx.arc(drawList[i].p.x, drawList[i].p.y, drawList[i].radius, 0, 2 * Math.PI, false);
+      ctx.moveTo(DEBUG_DRAW_GREEN[i].p0.x, DEBUG_DRAW_GREEN[i].p0.y);
+      ctx.lineTo(DEBUG_DRAW_GREEN[i].p1.x, DEBUG_DRAW_GREEN[i].p1.y);
+    } else if (DEBUG_DRAW_GREEN[i] instanceof DebugPoint) {
+      ctx.moveTo(ctx.moveTo(DEBUG_DRAW_GREEN[i].p.x - 1, DEBUG_DRAW_GREEN[i].p.y - 1));
+      ctx.fillRect(DEBUG_DRAW_GREEN[i].p.x - 1, DEBUG_DRAW_GREEN[i].p.y - 1, 3, 3);
+    } else if (DEBUG_DRAW_GREEN[i] instanceof DebugCircle) {
+      ctx.moveTo(DEBUG_DRAW_GREEN[i].p.x, DEBUG_DRAW_GREEN[i].p.y);
+      ctx.arc(DEBUG_DRAW_GREEN[i].p.x, DEBUG_DRAW_GREEN[i].p.y, DEBUG_DRAW_GREEN[i].radius, 0, 2 * Math.PI, false);
     }
   }
   ctx.stroke();
@@ -85,19 +85,19 @@ drawDebug = function (ctx, drawList) {
   ctx.beginPath();
   ctx.strokeStyle = "#0000FF";
   for (var i = 0; i < DEBUG_DRAW_BLUE.length; i++) {
-    if (drawList[i] instanceof DebugLine) {
-      ctx.lineWidth = drawList[i].lineWidth;
+    if (DEBUG_DRAW_BLUE[i] instanceof DebugLine) {
+      ctx.lineWidth = DEBUG_DRAW_BLUE[i].lineWidth;
       //ctx.lineCap = "round";
 
       //ctx.lineJoin = "round";
-      ctx.moveTo(drawList[i].p0.x, drawList[i].p0.y);
-      ctx.lineTo(drawList[i].p1.x, drawList[i].p1.y);
-    } else if (drawList[i] instanceof DebugPoint) {
-      ctx.moveTo(ctx.moveTo(drawList[i].p.x - 1, drawList[i].p.y - 1));
-      ctx.fillRect(drawList[i].p.x - 1, drawList[i].p.y - 1, 3, 3);
-    } else if (drawList[i] instanceof DebugCircle) {
-      ctx.moveTo(drawList[i].p.x, drawList[i].p.y);
-      ctx.arc(drawList[i].p.x, drawList[i].p.y, drawList[i].radius, 0, 2 * Math.PI, false);
+      ctx.moveTo(DEBUG_DRAW_BLUE[i].p0.x, DEBUG_DRAW_BLUE[i].p0.y);
+      ctx.lineTo(DEBUG_DRAW_BLUE[i].p1.x, DEBUG_DRAW_BLUE[i].p1.y);
+    } else if (DEBUG_DRAW_BLUE[i] instanceof DebugPoint) {
+      ctx.moveTo(ctx.moveTo(DEBUG_DRAW_BLUE[i].p.x - 1, DEBUG_DRAW_BLUE[i].p.y - 1));
+      ctx.fillRect(DEBUG_DRAW_BLUE[i].p.x - 1, DEBUG_DRAW_BLUE[i].p.y - 1, 3, 3);
+    } else if (DEBUG_DRAW_BLUE[i] instanceof DebugCircle) {
+      ctx.moveTo(DEBUG_DRAW_BLUE[i].p.x, DEBUG_DRAW_BLUE[i].p.y);
+      ctx.arc(DEBUG_DRAW_BLUE[i].p.x, DEBUG_DRAW_BLUE[i].p.y, DEBUG_DRAW_BLUE[i].radius, 0, 2 * Math.PI, false);
     }
   }
   ctx.stroke();
@@ -175,8 +175,8 @@ function TerrainPoint(pos, line0, line1) {
       var perp0 = v0.perp().normalize();
       var perp1 = v1.perp().normalize();
 
-      DEBUG_DRAW.push(new TerrainLine(pos, pos.add(perp0.multf(50))));
-      DEBUG_DRAW.push(new TerrainLine(pos, pos.add(perp1.multf(50))));
+      DEBUG_DRAW_RED.push(new DebugLine(pos, pos.add(perp0.multf(50))));
+      DEBUG_DRAW_RED.push(new DebugLine(pos, pos.add(perp1.multf(50))));
 
       this.angle0 = getRadiansToHorizontal(perp0);
       this.angle1 = getRadiansToHorizontal(perp1);
