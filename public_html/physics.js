@@ -10,7 +10,6 @@
  * All rights reserved.
  */
 
-var DEBUG_DRAW = [];
 
 //IF FALSE, RUN NORMALLY
 var DEBUG_STEP =                                    false;
@@ -65,9 +64,9 @@ var DFLT_aBoostLRvel = 1500;
 var DFLT_aBoostDownVel = 1500;
 
 // CONST PULSE INPUTS
-var DFLT_jumpVelNormPulse = 2000;
-var DFLT_doubleJumpVelYPulse = 2000;
-var DFLT_doubleJumpVelYMin = 2000;
+var DFLT_jumpVelNormPulse = 600;
+var DFLT_doubleJumpVelYPulse = 600;
+var DFLT_doubleJumpVelYMin = 600;
 
 // OTHER CHAR DEFAULTS
 var DFLT_numAirCharges = 1;
@@ -268,7 +267,7 @@ function PlayerModel(controlParams, physParams, time, radius, pos, vel, accel, s
 
   this.doNotCheckStepSurfaces = [];
 
-
+  this.predictedDirty = true;
   /**
    * ANIMATION FIELDS FOR MIKE!
    */
@@ -305,7 +304,7 @@ function PlayerModel(controlParams, physParams, time, radius, pos, vel, accel, s
   this.angleAroundPoint = 0.0;   //RADIANS OR DEGREES I HAVE NO IDEA
   this.rotationDirection = false; // TRUE IF CLOCKWISE, FALSE IF COUNTER-CLOCKWISE.
 	
-
+  //console.log("controlParams.numAirCharges, ", controlParams.numAirCharges);
   this.airChargeCount = controlParams.numAirCharges; //number of boosts / double jumps left.
 	
 	
@@ -345,6 +344,8 @@ function PlayerModel(controlParams, physParams, time, radius, pos, vel, accel, s
     this.locked = false;
     this.roundingPoint = false;
     this.pointBeingRounded = null;
+    this.predictedDirty = true;
+    this.updateVecs(this.inputState);
   }
 
 
@@ -417,10 +418,13 @@ function PlayerModel(controlParams, physParams, time, radius, pos, vel, accel, s
     if (baseForceVec.lengthsq() === 0) {
       console.log("   we are not being pushed, just chill");
       this.accel = new vec2(0, 0);
-    } else if (inputState.lock) {                                                     // If we are locked to the surface we are on.
+      this.predictedDirty = true;
+    } else if (inputState.lock) {                                                // If we are locked to the surface we are on.
       console.log("   we are being locked to the surface we are on.");
       var surfaceDir = this.vel;
       this.accel = projectVec2(baseForceVec, surfaceDir);
+      this.predictedDirty = true;
+      
     } else if (angleToNormal >= HALF_PI || angleToNormal <= -HALF_PI) {          // If the baseForceVec is pushing us towards the surface we're on:
       console.log("   we are being pushed TOWARDS the surface we are on.");
       // WE ASSUME PLAYER'S VELOCITY VECTOR IS ALREADY ALIGNED WITH THE SURFACE.
@@ -428,6 +432,7 @@ function PlayerModel(controlParams, physParams, time, radius, pos, vel, accel, s
       var surfaceDir = surface.getSurfaceAt(this.pos, this.radius);
       console.log("surfaceDir: ", surfaceDir);
       this.accel = projectVec2(baseForceVec, surfaceDir);
+      this.predictedDirty = true;
       console.log("this.accel: ", this.accel);
       //var angleToSurface = Math.acos(surfaceVec.normalize().dot(baseForceNormalized));
     } else  {  // we are being pushed away from the surface we are on. Updating states to have left the ground, and then calling updateAirStates.
@@ -435,6 +440,7 @@ function PlayerModel(controlParams, physParams, time, radius, pos, vel, accel, s
       this.doNotCheckStepSurfaces.push(this.surface);
       this.leaveGround();
       this.updateVecsAir(inputState);
+      this.predictedDirty = true;
     }
   }
   
@@ -472,6 +478,7 @@ function PlayerModel(controlParams, physParams, time, radius, pos, vel, accel, s
     }
     this.accel = baseForceVec;
     //console.log(this.accel);
+    //this.predictedDirty = true;
   }
 
 }
@@ -481,7 +488,7 @@ PlayerModel.prototype.doubleJump = function () {
   var input = this.inputState;
   var velx;
   var vely;
-  this.airchargeCount--;
+  this.airChargeCount--;
 
   animationSetPlayerDoubleJumping(this, this.time);
   //add end animation event for double jump. TODO
@@ -505,6 +512,7 @@ PlayerModel.prototype.doubleJump = function () {
   }
 
   this.vel = new vec2(velx, vely);
+  //this.predictedDirty = true;
 }
 
 
@@ -521,13 +529,14 @@ PlayerModel.prototype.jump = function () {
   var velx;
   var vely;
   this.airchargeCount--;
-
-  animationSetPlayerJumping(this, this.time, this.surface);
+  console.log("this.surface", this.surface);
+  animationSetPlayerJumping(this, this.time, this.surface.getSurfaceAt(this.pos));
   //add end animation event for double jump. TODO
 
-  var jumpVec = this.surface.getNormalAt(this.pos);
+  var jumpVec = this.surface.getNormalAt(this.pos, this.radius);
   jumpVec = jumpVec.multf(this.controlParams.jumpVelNormPulse);
   this.vel = this.vel.add(jumpVec);
+  this.predictedDirty = true;
   this.leaveGround();
 }
 
@@ -546,11 +555,12 @@ PlayerModel.prototype.lockTo = function (surface, surfaceVecNorm) {
   //  surfaceVec = surfaceVec.negate();
   //}
   //this.player.vel = surfaceVec.multf(velocityMag);          // END COMMENTED OUT FOR REALISTIC PHYSICS
+  this.airChargeCount = this.controlParams.numAirCharges;
   this.surface = surface;
   this.vel = projectVec2(this.vel, surfaceVecNorm);    //GROUNDBOOST TODO                     TODO HANDLE IF THIS IS A POINT.
-  this.updateVecs();
   this.airBorne = false;
   this.locked = this.inputState.lock;
+  this.updateVecs(this.inputState);
 }
 
 		
@@ -678,12 +688,13 @@ PhysEng.prototype.updatePhys = function (newEvents, stepToRender) {
     throw "why the hell are we starting update with events still in primaryEventHeap thing? *grumbles* better ways to implement replays....";
   }
   if (this.tweenEventHeap.size() > 0 && !this.inReplay) {
+    console.log("this.tweenEventHeap, ", this.tweenEventHeap);
     throw "why the hell are we starting update with events still in tweenEventHeap thing?";
   }
   if (!newEvents) {
     throw "you need to pass an array of newEvents into physEng.update(targetBrowserTime, newEvents). It can be empty, but it must exist.";
   }
-
+  
 
   //var gameTime = this.timeMgr.convertBrowserTime(targetBrowserTime);
 
@@ -691,6 +702,12 @@ PhysEng.prototype.updatePhys = function (newEvents, stepToRender) {
 
 
   do {    // The stepping loop.
+    //seems as good a place as any to check if predictedEvents are dirty.
+    if (this.player.predictedDirty) {
+      this.player.predictedDirty = false;
+      this.updatePredicted();
+    }
+
     var eventsArray = this.getEventHeapArray();
     var targetTime = this.getMinTimeInEventList(eventsArray);
     //console.log("starting do: while step loop, targetTime = ", targetTime);
@@ -751,9 +768,9 @@ PhysEng.prototype.updatePhys = function (newEvents, stepToRender) {
  * attempts to step playerModel to the provided time.
  */
 PhysEng.prototype.attemptNextStep = function (goalGameTime) {
-  console.log("");
-  console.log("");
-  console.log("new attemptNextStep, goalGameTime: ", goalGameTime);
+  //console.log("");
+  //console.log("");
+  //console.log("new attemptNextStep, goalGameTime: ", goalGameTime);
   var stepCount = 1;
   var startGameTime = this.player.time;
   var deltaTime = goalGameTime - startGameTime;
@@ -807,7 +824,7 @@ PhysEng.prototype.attemptNextStep = function (goalGameTime) {
     //}
   else {                // TRY FINAL STEP
     var doNotCheck = this.getNewDoNotCheck();
-    console.log("doNotCheck, ", doNotCheck);
+    //console.log("doNotCheck, ", doNotCheck);
     tweenTime = goalGameTime;
     //console.log("  finalStepping, i: ", stepCount, " tweenTime: ", tweenTime);
     tempState = this.stepStateByTime(this.player, tweenTime);
@@ -1627,6 +1644,7 @@ function animationSetPlayerJumping(p, time, surfaceVec) {
   p.animationTimeInCurrentAnimation = 0.0;
   p.animationStartTime = time;
   p.animationSpeed = 1.0;
+  console.log(surfaceVec);
   p.animationAngle = getRadiansToHorizontal(surfaceVec);
 }
 

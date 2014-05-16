@@ -6,44 +6,112 @@
 var PRINT_EVERY = 240;
 var COLLISION_TEST_COUNT = 0;
 
+var DEBUG_DRAW_RED = [];
+var DEBUG_DRAW_GREEN = [];
+var DEBUG_DRAW_BLUE = [];
 
-function DebugLine(p0, p1, lineWidth, color) {
-  this.color = color;
+var DEBUG_DRAW = true;
+
+
+
+function DebugLine(p0, p1, lineWidth) {
   this.lineWidth = lineWidth;
   this.p0 = p0;
   this.p1 = p1;
 }
 
 
-function DebugPoint(p, lineWidth, color) {
-  this.color = color;
-  this.lineWidth = lineWidth;
+function DebugPoint(p) {
   this.p = p;
 }
 
 
+function DebugCircle(pos, radius, lineWidth) {
+  this.lineWidth = lineWidth;
+  this.radius = radius;
+  this.p = pos;
+}
+
+
 drawDebug = function (ctx, drawList) {
+  ctx.save();
+  var oldStroke = ctx.strokeStyle;
+  var oldLineWidth = ctx.lineWidth;
+  ctx.miterLimit = 3;
 
+  //draw red debug
   ctx.beginPath();
+  ctx.strokeStyle = "#FF0000";
+  for (var i = 0; i < DEBUG_DRAW_RED.length; i++) {
+    if (drawList[i] instanceof DebugLine) {
+      ctx.lineWidth = drawList[i].lineWidth;
+      //ctx.lineCap = "round";
 
-  for (var i = 0; i < DEBUG_DRAW.length; i++) {
+      //ctx.lineJoin = "round";
+      ctx.moveTo(drawList[i].p0.x, drawList[i].p0.y);
+      ctx.lineTo(drawList[i].p1.x, drawList[i].p1.y);
+    } else if (drawList[i] instanceof DebugPoint) {
+      ctx.moveTo(ctx.moveTo(drawList[i].p.x - 1, drawList[i].p.y - 1));
+      ctx.fillRect(drawList[i].p.x - 1, drawList[i].p.y - 1, 3, 3);
+    } else if (drawList[i] instanceof DebugCircle) {
+      ctx.moveTo(drawList[i].p.x, drawList[i].p.y);
+      ctx.arc(drawList[i].p.x, drawList[i].p.y, drawList[i].radius, 0, 2 * Math.PI, false);
+    }
+  }
+  ctx.stroke();
 
-    var oldLineWidth = ctx.lineWidth;
-    ctx.lineWidth = drawList[i].lineWidth;
-    //ctx.lineCap = "round";
+  //draw green debug
+  ctx.beginPath();
+  ctx.strokeStyle = "#00FF00";
+  for (var i = 0; i < DEBUG_DRAW_GREEN.length; i++) {
+    if (drawList[i] instanceof DebugLine) {
+      ctx.lineWidth = drawList[i].lineWidth;
+      //ctx.lineCap = "round";
 
-    //ctx.lineJoin = "round";
-    ctx.miterLimit = 3;
-    var oldStroke = ctx.strokeStyle;
-    ctx.strokeStyle = drawList[i].color;
-    ctx.moveTo(drawList[i].p0.x, drawList[i].p0.y);
-    ctx.lineTo(drawList[i].p1.x, drawList[i].p1.y);
+      //ctx.lineJoin = "round";
+      ctx.moveTo(drawList[i].p0.x, drawList[i].p0.y);
+      ctx.lineTo(drawList[i].p1.x, drawList[i].p1.y);
+    } else if (drawList[i] instanceof DebugPoint) {
+      ctx.moveTo(ctx.moveTo(drawList[i].p.x - 1, drawList[i].p.y - 1));
+      ctx.fillRect(drawList[i].p.x - 1, drawList[i].p.y - 1, 3, 3);
+    } else if (drawList[i] instanceof DebugCircle) {
+      ctx.moveTo(drawList[i].p.x, drawList[i].p.y);
+      ctx.arc(drawList[i].p.x, drawList[i].p.y, drawList[i].radius, 0, 2 * Math.PI, false);
+    }
+  }
+  ctx.stroke();
+
+  //draw blue debug
+  ctx.beginPath();
+  ctx.strokeStyle = "#0000FF";
+  for (var i = 0; i < DEBUG_DRAW_BLUE.length; i++) {
+    if (drawList[i] instanceof DebugLine) {
+      ctx.lineWidth = drawList[i].lineWidth;
+      //ctx.lineCap = "round";
+
+      //ctx.lineJoin = "round";
+      ctx.moveTo(drawList[i].p0.x, drawList[i].p0.y);
+      ctx.lineTo(drawList[i].p1.x, drawList[i].p1.y);
+    } else if (drawList[i] instanceof DebugPoint) {
+      ctx.moveTo(ctx.moveTo(drawList[i].p.x - 1, drawList[i].p.y - 1));
+      ctx.fillRect(drawList[i].p.x - 1, drawList[i].p.y - 1, 3, 3);
+    } else if (drawList[i] instanceof DebugCircle) {
+      ctx.moveTo(drawList[i].p.x, drawList[i].p.y);
+      ctx.arc(drawList[i].p.x, drawList[i].p.y, drawList[i].radius, 0, 2 * Math.PI, false);
+    }
   }
   ctx.stroke();
 
   ctx.strokeStyle = oldStroke;
   ctx.lineWidth = oldLineWidth;
+  //DEBUG_DRAW_BLUE = [];
+  //DEBUG_DRAW_GREEN = [];
+  //DEBUG_DRAW_RED = [];
+  ctx.restore();
 }
+
+
+
 
 
   // Collideable parent class for all things collideable with by a collider.

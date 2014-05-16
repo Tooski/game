@@ -91,7 +91,8 @@ AssetManager.prototype.getAsset = function(path) {
 
 
 
-function InputObject() {
+function InputObject() {// NAME THESE IN VARIABLES THAT TELL WHIH KEY THEY ARE. EG
+  // UP_ARROW = 38; this.upkey = UP_ARROW;  //etc
   this.jumpKey = 65;
   this.boostKey = 83;
   this.leftKey = 37;

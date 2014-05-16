@@ -94,7 +94,9 @@ vec2.prototype.getFacing = function (otherVec) {
 
 
 function getRadiansToHorizontal(vec) {
-  var radiansToHorizontal = Math.acos(vec.normalize().dot(HORIZ_NORM));
+  var radiansToHorizontal = Math.acos(
+    vec.normalize()
+    .dot(HORIZ_NORM));
   return radiansToHorizontal * (vec.y > 0 ? -1 : 1);
 }
 

@@ -230,19 +230,22 @@ function InputEventJump(browserTime, pressed, eventTime) {   //
 
       if (p.surface) {  //handle jumping from a surface
         p.jump();
+        console.log("ground jumping", this);
         p.updateVecs(input);
-      } else if (p.airchargeCount > 0) {          //handle jumping in the air
+        physEng.updatePredicted();
+      } else if (p.airChargeCount > 0) {          //handle jumping in the air
         p.doubleJump();
+        console.log("doubleJumping", this);
         p.updateVecs(input);
+        physEng.updatePredicted();
       } else { //cant jump right now, TODO BUFFER JUMP
-
+        console.log("airchargeCount: ", p.airChargeCount);
       }
 
     } else {  //BUTTON WAS RELEASED.
       //TODO HANDLE HOW LONG BUTTON WAS HELD FOR. WILL NEED TO HAVE DELAY ON WHEN JUMP STARTS.
       input.jump = false;
     }
-    physEng.updatePredicted();
   }
 }
 InputEventJump.prototype = new InputEvent();
@@ -267,8 +270,8 @@ function InputEventBoost(browserTime, pressed, eventTime) {   //TODO
     //  physEng.accelState.update();
     //}
     p.updateVecs(curInputState);
+    physEng.updatePredicted();
   }
-  physEng.updatePredicted();
 }
 InputEventBoost.prototype = new InputEvent();
 //InputEventBoost.prototype.constructor = InputEventBoost;
@@ -487,7 +490,7 @@ function TerrainLineCollisionEvent(gameTimeOfCollision, collidedWithList, stateA
       animationSetPlayerRunning(p, this.time);
     } else if (input.lock && this.allowLock && collisionForceVecLen < p.physParams.lockThreshold) {
       // IF PLAYER IS HOLDING LOCK, ATTEMPT TO LOCK IF WITHIN BOUNDARIES! TODO IS THE NEGATIVE LOCK_MIN_ANGLE CHECK NEEDED!!!?
-      console.log("TerrainCollisionEvent locked!?!?");
+      console.log("TerrainLineCollisionEvent locked!?!?");
       if (this.collidedWithList.length > 1) {
         throw "allowLock is true but theres multiple things in collidedWithList.";
       }
@@ -550,7 +553,6 @@ function TerrainPointCollisionEvent(gameTimeOfCollision, terrainPointCollidedWit
 
     var normalBallVel = p.vel.normalize();
     var collisionVec = this.normalVec;
-    var collisionVecNorm = collisionVec.normalize();
     //console.log(this.normalVec);
     var collisionForceVec = projectVec2(p.vel, this.normalVec);
     var collisionForceVecLen = collisionForceVec.length();
@@ -558,6 +560,7 @@ function TerrainPointCollisionEvent(gameTimeOfCollision, terrainPointCollidedWit
 
     if (this.allowLock && collisionForceVecLen < p.physParams.autoLockThreshold) {
       console.log("TerrainPointCollisionEvent auto locked!?!?");
+      var collisionVecNorm = collisionVec.normalize();
       var surfaceVecNorm = collisionVecNorm.perp();      //TODO OHGOD REFACTOR TO THIS METHOD TAKING A COLLISION OBJECT THAT STORES NORMALS AND THE SINGLE SURFACE TO LOCK TO
       if (this.collidedWithList.length > 1) {
         throw "allowLock is true but theres multiple things in collidedWithList.";
