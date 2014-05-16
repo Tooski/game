@@ -93,14 +93,14 @@ AssetManager.prototype.getAsset = function(path) {
 
 function InputObject() {// NAME THESE IN VARIABLES THAT TELL WHIH KEY THEY ARE. EG
   // UP_ARROW = 38; this.upkey = UP_ARROW;  //etc
-  this.jumpKey = 65;
-  this.boostKey = 83;
+  this.jumpKey = 32;
+  this.boostKey = 70;
   this.leftKey = 37;
   this.rightKey = 39;
   this.downKey = 40;
   this.upKey = 38;
   this.lockKey = 68;
-  this.pauseKey = 80;
+  this.pauseKey = 27;
 
   this.jumpPressed = false;
   this.jumpPressedTimestamp = 0;
@@ -424,14 +424,14 @@ GameEngine.prototype.changeKey = function(keyType) {
 
 //When called resets defaults control settings
 GameEngine.prototype.resetDefaults = function() {
-  this.input.jumpKey = 65;
-  this.input.boostKey = 83;
+  this.input.jumpKey = 32;
+  this.input.boostKey = 70;
   this.input.leftKey = 37;
   this.input.rightKey = 39;
   this.input.downKey = 40;
   this.input.upKey = 38;
   this.input.lockKey = 68;
-  this.input.pauseKey = 80;
+  this.input.pauseKey = 27;
   alert("Key mappings have been reset to default");
 }
 
