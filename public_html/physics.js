@@ -603,7 +603,8 @@ function PhysEng(gameEngine, playerModel) {
 
 
   // the players character model
-  this.player = playerModel;                       
+  this.player = playerModel;     
+  this.player.updateVecs(this.player.inputState);
 
   // The level terrainManager.
   this.tm = currentLevel;
@@ -629,7 +630,7 @@ function PhysEng(gameEngine, playerModel) {
   //});
 	
 	
-    this.printStartState();
+    this.printStartState();    
 }
 
 
