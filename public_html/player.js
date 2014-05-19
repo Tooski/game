@@ -9,14 +9,14 @@ function Player(x, y, timer) {
     Entity.call(this, null, 0, 0, 0, 0);
     this.walkingSpeed = 0.10;
     this.runningSpeed = 0.04;
-    this.boostSpeed = 0.5;
+    this.boostSpeed = 0.06;
     this.idleAnimation = new Animation(ASSET_MANAGER.getAsset("assets/HamsterSprites.png"), 0, 0, 300, 300, 0.1, 1, true, true);
     this.walkingAnimation = new Animation(ASSET_MANAGER.getAsset("assets/HamsterSprites.png"), 0, 300, 300, 300, this.walkingSpeed, 11, true, false);
     this.runningAnimation = new Animation(ASSET_MANAGER.getAsset("assets/HamsterSprites.png"), 0, 600, 300, 300, this.runningSpeed, 11, true, false);
     this.groundBoostAnimation = new Animation(ASSET_MANAGER.getAsset("assets/HamsterSprites.png"), 0, 900, 300, 300, this.boostSpeed, 4, false, false);
     this.jumpingAnimation = new Animation(ASSET_MANAGER.getAsset("assets/HamsterSprites.png"), 0, 1800, 300, 300, 0.1, 2, true, true);
     this.airBoostAnimation = new Animation(ASSET_MANAGER.getAsset("assets/HamsterSprites.png"), 0, 300, 300, 300, 0.05, 11, true, false);
-
+this.boostTime = 0;
     this.facing = true;
     this.model = null;
     this.timer = timer;
@@ -50,7 +50,7 @@ Player.prototype.update = function() {
     if (this.inputs.rightPressed) {
         this.model.animationStanding = false;
         this.model.animationFacing = "right";
-        
+
         this.facing = true;
         if (this.model.animationSpeed <= 3000) {
             this.model.animationWalking = true;
@@ -61,24 +61,34 @@ Player.prototype.update = function() {
         }
 
     }
-    
-    if (this.inputs.boostPressed) {
+
+    if (this.inputs.boostPressed || this.model.animationBoosting) {
+        this.boostTime += this.timer.gameDelta;
         this.model.animationBoosting = true;
         this.model.animationWalking = false;
-                this.model.animationStanding = false;
-
-         this.model.animationRunning = false;
-        
+        this.model.animationStanding = false;
+        this.model.animationRunning = false;
+        console.log(this.boostTime);
+        //boost durration
+        if (this.boostTime > 2) {
+            this.boostTime = 0;
+            this.groundBoostAnimation.elapsedTime = 0;
+            this.model.animationBoosting = false;
+            this.model.animationWalking = true;
+            this.model.animationRunning = false;
+            this.model.animationStanding = false;
+        }
     } else {
+        //so it returns to walking and not standing
         this.groundBoostAnimation.elapsedTime = 0;
         this.model.animationBoosting = false;
         this.model.animationWalking = true;
-         this.model.animationRunning = false;
-                 this.model.animationStanding = false;
+        this.model.animationRunning = false;
+        this.model.animationStanding = false;
 
 
     }
-    console.log(this.inputs.boostPressed);
+    
 };
 
 
@@ -100,20 +110,15 @@ Player.prototype.draw = function(ctx) {
     if (this.model.animationFacing === "left") {
         if (this.model.animationStanding) {
             this.idle(ctx, scaleFactor);
-        } else 
+        } else
         if (this.model.animationWalking) {
             this.walking(ctx, scaleFactor);
-        } else 
+        } else
         if (this.model.animationRunning) {
             this.running(ctx, scaleFactor);
-        } else 
+        } else
         if (this.model.animationBoosting === true) {
             this.groundBoost(ctx, scaleFactor);
-            if (this.groundBoostAnimation.isDone()) {
-//                this.model.animationBoosting = false;
-//                this.model.animationRunning = true;
-
-            }
         }
 
     }
@@ -123,18 +128,13 @@ Player.prototype.draw = function(ctx) {
         } else
         if (this.model.animationWalking) {
             this.walking(ctx, scaleFactor);
-        } else 
+        } else
         if (this.model.animationRunning) {
             this.running(ctx, scaleFactor);
-        } else 
+        } else
 
         if (this.model.animationBoosting) {
             this.groundBoost(ctx, scaleFactor);
-            //console.log("animation boosting ");
-            if (this.groundBoostAnimation.isDone()) {
-                //this.model.animationBoosting = false;
-                //this.model.animationRunning = true;
-            }
         }
 
     }
