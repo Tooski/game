@@ -188,6 +188,53 @@ function TerrainLine(point0, point1, player, adjacent0, adjacent1, normal) {
 
 
   /**
+   * Returns a result object detailing whether or not this adjacent is concave, and the angle between this surface and adj0.
+   * return { concave: true or false, angle } angle is in radians, the closer to Math.PI the less the angle of change between surfaces.
+   */
+  this.getAdj0Angle = function () {
+    if (this.adjacent0) {
+      var adjVec = this.adjacent0.p0.subtract(this.adjacent0.p1).normalize();
+      var thisVec = this.p1.subtract(this.p0).normalize();
+      var angleNorm = this.normal.dot(adjVec);
+      var angle = thisVec.dot(adjVec);
+      //connection to adj0 is concave when the angle between this.normal and next surface is < HALF_PI, or 90 degrees. 
+
+      var result = { concave: (angleNorm <= HALF_PI), angle: angle };
+      return result;
+
+    } else {
+      return null;
+    }
+  }
+
+
+
+
+  /**
+   * Returns a result object detailing whether or not this adjacent is concave, and the angle between this surface and adj1.
+   * return { concave: true or false, angle } angle is in radians, the closer to Math.PI the less the angle of change between surfaces.
+   */
+  this.getAdj1Angle = function () {
+    if (this.adjacent1) {
+      var adjVec = this.adjacent1.p1.subtract(this.adjacent1.p0).normalize();
+      var thisVec = this.p0.subtract(this.p1);
+      var angleNorm = this.normal.dot(adjVec);
+      var angle = thisVec.dot(adjVec);
+
+      //connection to adj0 is concave when the angle between this.normal and next surface is < HALF_PI, or 90 degrees. 
+
+      var result = { concave: (angleNorm <= HALF_PI), angle: angle };
+      return result;
+
+    } else {
+      return null;
+    }
+  }
+
+
+
+
+  /**
    * Tests a point to see if it lies within the rays passing through each point at either end of teh line segment that are perpendicular to the line segment.
    */
   this.isPointWithinPerpBounds = function (point) {

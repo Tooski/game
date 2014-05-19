@@ -44,6 +44,7 @@ drawDebug = function (ctx) {
   ctx.strokeStyle = "#FF0000";
   for (var i = 0; i < DEBUG_DRAW_RED.length; i++) {
     if (DEBUG_DRAW_RED[i] instanceof DebugLine) {
+      //throw "wut";
       ctx.lineWidth = DEBUG_DRAW_RED[i].lineWidth;
       //ctx.lineCap = "round";
 
@@ -54,8 +55,12 @@ drawDebug = function (ctx) {
       ctx.moveTo(ctx.moveTo(DEBUG_DRAW_RED[i].p.x - 1, DEBUG_DRAW_RED[i].p.y - 1));
       ctx.fillRect(DEBUG_DRAW_RED[i].p.x - 1, DEBUG_DRAW_RED[i].p.y - 1, 3, 3);
     } else if (DEBUG_DRAW_RED[i] instanceof DebugCircle) {
+      //throw "drawing circle";
+      ctx.lineWidth = DEBUG_DRAW_RED[i].lineWidth;
       ctx.moveTo(DEBUG_DRAW_RED[i].p.x, DEBUG_DRAW_RED[i].p.y);
       ctx.arc(DEBUG_DRAW_RED[i].p.x, DEBUG_DRAW_RED[i].p.y, DEBUG_DRAW_RED[i].radius, 0, 2 * Math.PI, false);
+    } else {
+      throw "what the hell man";
     }
   }
   ctx.stroke();
@@ -75,8 +80,13 @@ drawDebug = function (ctx) {
       ctx.moveTo(ctx.moveTo(DEBUG_DRAW_GREEN[i].p.x - 1, DEBUG_DRAW_GREEN[i].p.y - 1));
       ctx.fillRect(DEBUG_DRAW_GREEN[i].p.x - 1, DEBUG_DRAW_GREEN[i].p.y - 1, 3, 3);
     } else if (DEBUG_DRAW_GREEN[i] instanceof DebugCircle) {
+      //throw "drawing circle";
+      ctx.stroke();
+      ctx.beginPath();
       ctx.moveTo(DEBUG_DRAW_GREEN[i].p.x, DEBUG_DRAW_GREEN[i].p.y);
       ctx.arc(DEBUG_DRAW_GREEN[i].p.x, DEBUG_DRAW_GREEN[i].p.y, DEBUG_DRAW_GREEN[i].radius, 0, 2 * Math.PI, false);
+      ctx.stroke();
+      ctx.beginPath();
     }
   }
   ctx.stroke();
@@ -96,6 +106,7 @@ drawDebug = function (ctx) {
       ctx.moveTo(ctx.moveTo(DEBUG_DRAW_BLUE[i].p.x - 1, DEBUG_DRAW_BLUE[i].p.y - 1));
       ctx.fillRect(DEBUG_DRAW_BLUE[i].p.x - 1, DEBUG_DRAW_BLUE[i].p.y - 1, 3, 3);
     } else if (DEBUG_DRAW_BLUE[i] instanceof DebugCircle) {
+      //throw "drawing circle";
       ctx.moveTo(DEBUG_DRAW_BLUE[i].p.x, DEBUG_DRAW_BLUE[i].p.y);
       ctx.arc(DEBUG_DRAW_BLUE[i].p.x, DEBUG_DRAW_BLUE[i].p.y, DEBUG_DRAW_BLUE[i].radius, 0, 2 * Math.PI, false);
     }

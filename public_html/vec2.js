@@ -2,7 +2,8 @@
  * vec2 ported shamelessly from vec.h in the Angel openGL examples.
  * Ported by Travis Drake.
  */
-var HORIZ_NORM = vec2(1, 0);
+var HORIZ_NORM = new vec2(1, 0);
+var VERT_NORM = new vec2(0, 1);
 
 
 function vec2(x,y) {
@@ -95,10 +96,19 @@ vec2.prototype.getFacing = function (otherVec) {
 
 function getRadiansToHorizontal(vec) {
   var radiansToHorizontal = Math.acos(
-    vec.normalize()
-    .dot(HORIZ_NORM));
+    vec.normalize().dot(HORIZ_NORM));
   return radiansToHorizontal * (vec.y > 0 ? -1 : 1);
 }
+
+
+
+function getRadiansToVertical(vec) {
+  var radiansToVertical = Math.acos(
+    vec.normalize()
+    .dot(VERT_NORM));
+  return radiansToVertical * (vec.x > 0 ? -1 : 1);
+}
+
 
 
 function getRotationMatDegrees(degrees) {

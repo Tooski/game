@@ -468,7 +468,7 @@ function TerrainLineCollisionEvent(gameTimeOfCollision, collidedWithList, stateA
 
     var collisionVecNorm = collisionVec.normalize();
     //console.log(this.normalVec);
-    var collisionForceVec = projectVec2(p.vel, this.normalVec);
+    var collisionForceVec = projectVec2(p.vel, collisionVecNorm);
     var collisionForceVecLen = collisionForceVec.length();
 
 
@@ -719,6 +719,75 @@ function SurfaceEndEvent(predictedTime, dependencyMask) { // predictedTime shoul
 }
 SurfaceEndEvent.prototype = new PredictedEvent();
 //SurfaceEndEvent.prototype.constructor = SurfaceEndEvent;
+
+
+
+
+
+/* Event class for the predicted time the player will hit adjacent terrain, which is concave.
+ * @param predictedTime     the gametime at which the event will occur.
+ * @param dependencyMask    used to bitwise and shit for predictions that are only affected by specific things. MAY NOT USE?
+ */
+function SurfaceAdjacentEvent(predictedTime, dependencyMask, surface, nextSurface, angle, allowLock) { // predictedTime should be gameTime since last frame, the time the physics engine should complete up to before rendering.
+  PredictedEvent.apply(this, [predictedTime, dependencyMask])
+
+  this.surface = surface;
+  this.nextSurface = nextSurface;
+  this.angle = angle;
+  this.allowLock = allowLock;
+  this.upsideDown = (nextSurface.normal.y > 0 ? true : false);
+
+  this.handler = function (physEng) {
+    var p = physEng.player;
+    var input = p.inputState;
+
+    var normalBallVel = p.vel.normalize();
+    var collisionVecNorm = this.nextSurface.normal;
+
+
+
+    var collisionForceVec = projectVec2(p.vel, this.nextSurface.normal);
+    var collisionForceVecLen = collisionForceVec.length();
+    var surfaceVecNorm = collisionVecNorm.perp();
+
+
+    if (this.allowLock && p.physParams.surfaceSnapAngle <= this.angle && (!this.upsideDown || input.lock)) {        
+      // if we should snap to the surface without losing momentum.
+      console.log("SurfaceAdjacentEvent surface snap!?!?");
+
+
+      //var velocityMag = ballState.vel.length();                     // DISABLED FOR REALISTIC PHYSICS
+      //var surfaceInvertAngle = surfaceVec.negate().dot(normalBallVel);
+
+      //if (surfaceAngle > surfaceInvertAngle) {
+      //  surfaceVec = surfaceVec.negate();
+      //}
+      //this.player.vel = surfaceVec.multf(velocityMag);              // END DISABLED FOR REALISTIC PHYSICS
+
+      p.snapTo(this.nextSurface, surfaceVecNorm);
+
+      animationSetPlayerRunning(p, this.time);
+
+    } else if (input.lock && this.allowLock && collisionForceVecLen < p.physParams.lockThreshold) {
+      // if we should lock to the surface and lose momentum.
+      console.log("SurfaceAdjacentEvent locking!?!?");
+
+
+      p.lockTo(this.nextSurface, surfaceVecNorm);
+      animationSetPlayerRunning(p, this.time);
+
+    } else {
+      // BOUNCE. 
+      p.vel = getReflectionVector(p.vel, collisionVecNorm).multf(DFLT_bounceSpeedLossRatio); //TODO REFACTOR TO USE NEW COLLISION OBJECT
+    
+      p.leaveGround();
+    }
+    console.log("fin SurfaceAdjacentEvent");
+    physEng.updatePredicted();
+  }
+}
+SurfaceAdjacentEvent.prototype = new PredictedEvent();
+//SurfaceAdjacentEvent.prototype.constructor = SurfaceAdjacentEvent;
 
 
 

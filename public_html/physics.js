@@ -40,7 +40,8 @@ performance.now = (function () {
 
 
 //CONSTANTS
-var HALF_PI = Math.PI / 2.0;
+var HALF_PI = Math.PI / 2.0;   // AKA 90 DEGREES IN RADIANS
+
 var TIME_EPSILON_SQ = 0.000000000001;
 
 
@@ -50,6 +51,9 @@ var TIME_EPSILON_SQ = 0.000000000001;
 var DFLT_gravity = 400;        // FORCE EXERTED BY GRAVITY IS 400 ADDITIONAL UNITS OF VELOCITY DOWNWARD PER SECOND. 
 var DFLT_lockThreshold = 1000;
 var DFLT_autoLockThreshold = 200;
+
+//angle between surfaces at which the player continues onto the next surface whether locked or not.
+var DFLT_surfaceSnapAngle = -(30               / 180) * Math.PI + Math.PI;
 
 var DFLT_JUMP_HOLD_TIME = 0.15; // To jump full height, jump must be held for this long. Anything less creates a fraction of the jump height based on the fraction of the full time the button was held. TODO implement.
 
@@ -84,7 +88,8 @@ var DFLT_reverseAirJumpSpeed = 300;
  * The fraction of player radius that our max movement distance will be.
 */
 var MAX_MOVE_FRACTION_OF_RADIUS = 1.0;
-var HORIZ_NORM = new vec2(1.0, 0.0);
+
+
 var REPLAY_SYNC_INTERVAL = 1.0;
 
 
@@ -128,7 +133,7 @@ function StepResult (state, eventArray) {
  * This exists because it will be used later on to implement other terrain types, whose static
  * effect values will be passed in here.
  */
-function PhysParams(gravity, lockThreshold, autoLockThreshold) {
+function PhysParams(gravity, lockThreshold, autoLockThreshold, surfaceSnapAngle) {
   if (!((gravity || gravity === 0) && (lockThreshold || lockThreshold === 0) && (autoLockThreshold || autoLockThreshold === 0))) {
     console.log("");
     console.log("");
@@ -140,6 +145,7 @@ function PhysParams(gravity, lockThreshold, autoLockThreshold) {
   this.gravity = gravity;                           // Force of gravity. Hopefully you knew that.
   this.lockThreshold = lockThreshold;               // Force of a collision after which locking is disallowed.
   this.autoLockThreshold = autoLockThreshold;       // Force of a collision after which autoLocking is disallowed.
+  this.surfaceSnapAngle = surfaceSnapAngle;
 }
 
 
@@ -262,6 +268,9 @@ function PlayerModel(controlParams, physParams, time, radius, pos, vel, accel, s
 			//, accelPrime, accelDPrime
   ]);
 
+  this.pos = new vec2(0, 0);
+  this.vel = new vec2(0, 0);
+  this.accel = new vec2(0, 0);
 
   this.replayData = [];
 
@@ -346,6 +355,7 @@ function PlayerModel(controlParams, physParams, time, radius, pos, vel, accel, s
     this.roundingPoint = false;
     this.pointBeingRounded = null;
     this.predictedDirty = true;
+    this.airChargeCount = this.controlParams.numAirCharges;
     this.updateVecs(this.inputState);
   }
 
@@ -398,22 +408,22 @@ function PlayerModel(controlParams, physParams, time, radius, pos, vel, accel, s
 
     var surface = this.surface;
     var baseForceNormalized = baseForceVec.normalize();
-    console.log("");
-    console.log("");
-    console.log("in updateVecsGround(),  surface: ", surface);
-    console.log("surface.getNormalAt(this.pos, this.radius), ", surface.getNormalAt(this.pos, this.radius));
-    console.log("baseForceVec.lengthsq(), ", baseForceVec.lengthsq());
+    //console.log("");
+    //console.log("");
+    //console.log("in updateVecsGround(),  surface: ", surface);
+    //console.log("surface.getNormalAt(this.pos, this.radius), ", surface.getNormalAt(this.pos, this.radius));
+    //console.log("baseForceVec.lengthsq(), ", baseForceVec.lengthsq());
     var angleToNormal = Math.acos(surface.getNormalAt(this.pos, this.radius).dot(baseForceNormalized));
 
-    if (angleToNormal > HALF_PI) {
-      console.log("GREATER angleToNormal, ", angleToNormal)
-    } else if (angleToNormal < -HALF_PI) {
-      console.log("LESSER  angleToNormal, ", angleToNormal)
+    //if (angleToNormal > HALF_PI) {
+    //  console.log("GREATER angleToNormal, ", angleToNormal)
+    //} else if (angleToNormal < -HALF_PI) {
+    //  console.log("LESSER  angleToNormal, ", angleToNormal)
 
-    } else {
-      console.log("BETWEEN angleToNormal, ", angleToNormal)
+    //} else {
+    //  console.log("BETWEEN angleToNormal, ", angleToNormal)
 
-    }
+    //}
 
 
     if (baseForceVec.lengthsq() === 0) {
@@ -556,14 +566,34 @@ PlayerModel.prototype.lockTo = function (surface, surfaceVecNorm) {
   //  surfaceVec = surfaceVec.negate();
   //}
   //this.player.vel = surfaceVec.multf(velocityMag);          // END COMMENTED OUT FOR REALISTIC PHYSICS
+  this.vel = projectVec2(this.vel, surfaceVecNorm);    //GROUNDBOOST TODO                     TODO HANDLE IF THIS IS A POINT.
+  this.surfaceLock(surface);
+}
+
+
+
+/**
+ * Function that snaps the playerModel's velocity to a surface. TerrainSurface or TerrainPoint.
+ * TODO REFACTOR TO PROJECT BASED ON AN ANGLE A FRACTION BETWEEN COLLISION AND NORMAL VEC, TO ACHIEVE SOMETHING LIKE A GROUNDBOOST?
+ */
+PlayerModel.prototype.snapTo = function (surface, surfaceVecNorm) {
+  this.vel = projectVec2(this.vel, surfaceVecNorm).normalize().multf(this.vel.length());
+  this.surfaceLock(surface);
+}
+
+
+
+
+/**
+ * Helper method to cut down on code repetition in lockTo and snapTo.
+ */
+PlayerModel.prototype.surfaceLock = function (surface) {
   this.airChargeCount = this.controlParams.numAirCharges;
   this.surface = surface;
-  this.vel = projectVec2(this.vel, surfaceVecNorm);    //GROUNDBOOST TODO                     TODO HANDLE IF THIS IS A POINT.
   this.airBorne = false;
   this.locked = this.inputState.lock;
   this.updateVecs(this.inputState);
 }
-
 		
 
 
@@ -603,12 +633,13 @@ function PhysEng(gameEngine, playerModel) {
 
 
   // the players character model
-  this.player = playerModel;     
+  this.player = playerModel;
+  console.log(this.player);
   this.player.updateVecs(this.player.inputState);
 
   // The level terrainManager.
   this.tm = currentLevel;
-  this.player.pos = this.tm.playerStartPos;    //sets player position to the level starting position.
+  //this.player.pos = this.tm.playerStartPos;    //sets player position to the level starting position.
 
   this.timeMgr = new TimeManager(0.0, 0.0, 0.0, 1); // TODO DO THE THING
 
@@ -762,7 +793,9 @@ PhysEng.prototype.updatePhys = function (newEvents, stepToRender) {
 
     //console.log(currentEvent);
     currentEvent.handler(this);
-
+    if (this.player.predictedDirty) {
+      this.updatePredicted();
+    }
 
     //console.log("ending iteration of do: while step loop, currentEvent = ", currentEvent);
     this.trySync();
@@ -817,7 +850,6 @@ PhysEng.prototype.attemptNextStep = function (goalGameTime) {
   //console.log("   CollisionList.length: ", collisionList.length, " stepCount: ", stepCount);
   for (var i = 1; i < stepCount && collisionList.length === 0; i++) {     // DO check steps.
     var doNotCheck = this.getNewDoNotCheck();
-    console.log("doNotCheck, ", doNotCheck);
     stepFraction = i / stepCount;
     tweenTime = startGameTime + stepFraction * deltaTime;
 
@@ -913,9 +945,11 @@ PhysEng.prototype.trySync = function () {
  */
 PhysEng.prototype.updatePredicted = function () {           //TODO FINISH
   this.resetPredicted();
-  //if (this.player.surface) {
-  //  var surfaceEndevent = this.getPredictedSurfaceEnd();
-  //}
+  this.player.predictedDirty = false;
+  if (this.player.surface) {
+    var surfaceEndEvent = this.getSurfaceEndEvent();
+    this.predictedEventHeap.push(surfaceEndEvent);
+  }
   
 
   //this.roundingPoint = false;
@@ -935,6 +969,67 @@ PhysEng.prototype.updatePredicted = function () {           //TODO FINISH
  */
 PhysEng.prototype.resetPredicted = function () {
   this.predictedEventHeap = getNewPredictedHeap();
+}
+
+
+
+/**
+ * Gets the SurfaceEndEvent for a particular surface, if it exists.
+ */
+PhysEng.prototype.getSurfaceEndEvent = function () {
+
+  /* returns { adjNumber: 0 or 1, time, angle } where angle in radians from this surface to next surface surface. the closer to Math.PI the less the angle of change between surfaces.
+   * null if none in positive time or both not concave.*/
+  var adjData = getNextSurfaceData(this.player, this.player.surface);
+
+  //second, find the time that we will reach the end of the surface.
+  //returns { pointNumber: 0 or 1, time }
+  var endPointData = solveClosestSurfaceEndpoint(this.player, this.player.surface);
+
+  var nextSurfaceEvent;  //SurfaceAdjacentEvent(predictedTime, dependencyMask, surface, nextSurface, angle, allowLock)
+
+  if (adjData && (adjData.time || adjData.time === 0)) {
+    if (endPointData && (endPointData.time || endPointData.time === 0)) {
+      if (adjData.adjNumber === endPointData.pointNumber) {
+        // use the adjacent surface for the event. It was concave, doesnt matter what time it supposedly comes at.
+        if (adjData.time > endPointData.time) {
+          console.log("adjData.time, ", adjData.time, "endPointData.time, ", endPointData.time);
+          var adjDataState = this.stepStateByTime(this.player, adjData.time);
+          DEBUG_DRAW_GREEN.push(new DebugCircle(adjDataState.pos, this.player.radius, 5));
+          var endPointState = this.stepStateByTime(this.player, endPointData.time);
+          DEBUG_DRAW_RED.push(new DebugCircle(adjDataState.pos, this.player.radius, 5));
+          throw "Debug, but this technically shouldnt happen where endpoint was hit before the adjacent line was.";
+        }
+        //handle me.
+        nextSurfaceEvent = new SurfaceAdjacentEvent(adjData.time, 0, this.player.surface, (adjData.adjNumber === 0 ? this.player.surface.adjacent0 : this.player.surface.adjacent1), adjData.angle, true);
+        var adjDataState = this.stepStateByTime(this.player, adjData.time);
+        DEBUG_DRAW_GREEN.push(new DebugCircle(adjDataState.pos, this.player.radius, 5));
+      } else {
+        // endpoint and adjSurface are on opposite ends. Event whichever is soonest.
+        if (adjData.time < endPointData.time) {
+          // use adjacent.
+          nextSurfaceEvent = new SurfaceAdjacentEvent(adjData.time, 0, this.player.surface, (adjData.adjNumber === 0 ? this.player.surface.adjacent0 : this.player.surface.adjacent1), adjData.angle, true);
+          var adjDataState = this.stepStateByTime(this.player, adjData.time);
+          DEBUG_DRAW_GREEN.push(new DebugCircle(adjDataState.pos, this.player.radius, 5));
+        } else {
+          // use endpoint.
+        }
+      }
+    } else {
+      // no endPointData, use adjacent.
+      nextSurfaceEvent = new SurfaceAdjacentEvent(adjData.time, 0, this.player.surface, (adjData.adjNumber === 0 ? this.player.surface.adjacent0 : this.player.surface.adjacent1), adjData.angle, true);
+      var adjDataState = this.stepStateByTime(this.player, adjData.time);
+      DEBUG_DRAW_GREEN.push(new DebugCircle(adjDataState.pos, this.player.radius, 5));
+    }
+  } else if (endPointData && (endPointData.time || endPointData.time === 0)) {
+    // no adjData, use endPointData.
+  }
+  console.log(nextSurfaceEvent);
+  if (nextSurfaceEvent) {
+    //throw "lol";
+  }
+
+  return nextSurfaceEvent;
 }
 
 
@@ -1466,6 +1561,91 @@ function solveQuadratic(a, b, c) {
 
 
 
+/**
+ * Solves the time that it will take the provided state to reach either end of the surface.
+ * returns { pointNumber: 0 or 1, time }
+ */
+function solveClosestSurfaceEndpoint(state, surface) {
+  if (!state || !surface) {
+    throw "missing params " + state + surface;
+  }
+
+  var rotateResults = getRotatedToYAroundState(state, surface);
+  var rotated = rotateResults.rotState;
+
+  var distance0 = rotateResults.rotP0.y - rotated.pos.y;
+  var distance1 = rotateResults.rotP1.y - rotated.pos.y;
+  var time0 = solveTimeToPoint1D(distance0, rotated.vel.y, rotated.accel.y);
+  var time1 = solveTimeToPoint1D(distance1, rotated.vel.y, rotated.accel.y);
+  //console.log("curPos: ", curPos);
+  //console.log("curVel: ", curVel);
+  //console.log("accel: ", accel);
+  //console.log("targetLine: ", targetLine);
+  //console.log("distanceGoal: ", distanceGoal);
+
+  //console.log("rotated: ", rotated);
+  //console.log("distance: ", distance);
+  //console.log("Solved time, time at: ", time);
+  var closestPos = closestPositive(time0, time1);
+  var results;
+
+  if (closestPos === undefined || closestPos === null) {
+    //throw "yay null this might be okay but have an exception anyway!";
+  } else if (closestPos === time0) {
+    results = { pointNumber: 0, time: time0 };
+  } else if (closestPos === time1) {
+    results = { pointNumber: 1, time: time1 };
+  } else {
+    throw "what the balls man, closest positive isnt time0, time1, or null???";
+  }
+
+  return results;
+}
+
+
+
+/**
+ * Solves the time that it will take the provided state to reach the next surface, if it will.
+ * returns { adjNumber: 0 or 1, time, angle } where angle in radians from this surface to next surface surface. the closer to Math.PI the less the angle of change between surfaces.
+ * null if none in positive time or both not concave.
+ */
+function getNextSurfaceData(state, surface) {
+  var data;
+  var time0;
+  var time1;
+
+  // concave result { concave: t / f, angle } where angle in radians from this surface to next surface surface. the closer to Math.PI the less the angle of change between surfaces.
+  var concRes0 = surface.getAdj0Angle();
+  var concRes1 = surface.getAdj1Angle();
+
+  if (concRes0 && concRes0.concave) {
+    
+    time0 = solveTimeToDistFromLine(state.pos, state.vel, state.accel, surface.adjacent0, state.radius);
+  }
+  if (concRes1 && concRes1.concave) {
+
+    time1 = solveTimeToDistFromLine(state.pos, state.vel, state.accel, surface.adjacent1, state.radius);
+  }
+
+  var closestPos = closestPositive(time0, time1);
+  if (closestPos === undefined || closestPos === null) {
+    //throw "yay null this might be okay but have an exception anyway!";
+  } else if (closestPos === time0) {
+    console.log("closestPos: ", closestPos);
+    console.log("concRes0: ", concRes0);
+    console.log("time0: ", time0);
+    data = { adjNumber: 0, time: time0, angle: concRes0.angle };
+  } else if (closestPos === time1) {
+    data = { adjNumber: 1, time: time1, angle: concRes1.angle };
+  } else {
+    throw "what the balls man, closest positive isnt time0, time1, or null???";
+  }
+
+  return data;
+}
+
+
+
 /*
  * Gets the amount of time taken to travel the specified distance at the current velocity and acceleration. 1 dimensional.
  * assumes the starting position is at 0.
@@ -1484,8 +1664,8 @@ function solveTimeToPoint1D(targetDist, currentVelocity, acceleration) {
     var z;
     if (x < 0) {
       // ROOTS ARE IMAGINARY!
-      console.log("roots are imaginary, not gonna exit surface.");
-      console.log("  acceleration ", acceleration, ", currentVelocity ", currentVelocity, ", distanceToSurfaceEnd ", targetDist);
+      console.log("  roots are imaginary, not gonna exit surface.");
+      console.log("  x ", x, ", acceleration ", acceleration, ", currentVelocity ", currentVelocity, ", distanceToSurfaceEnd ", targetDist);
       return null;
     } else {
       //calculate roots
@@ -1503,6 +1683,8 @@ function solveTimeToPoint1D(targetDist, currentVelocity, acceleration) {
     }
   }
 }
+
+
 
 //Generally, targetPos is the point and distanceGoal is radius (we want to find the time when balls center point is exactly radius away from the targetPos)
 //Returns the nearest positive point in time when this will occur, or null if it wont occur.
@@ -1570,8 +1752,11 @@ function solveTimeToDistFromLine(curPos, curVel, accel, targetLine, distanceGoal
 
 
 // returns { pos: newPos, vel: newVel, accel: newAccel };
-function getRotatedToXAround(origin, curPos, curVel, accel, targetLine) {  
+function getRotatedToXAround(origin, curPos, curVel, accel, targetLine) {
   var v01 = targetLine.p1.subtract(targetLine.p0);
+  console.log(v01);
+  console.log(targetLine);
+  console.log(origin);
   var radiansToHorizontal = getRadiansToHorizontal(v01);
 
   //console.log("radiansToHorizontal: ", radiansToHorizontal);
@@ -1583,7 +1768,7 @@ function getRotatedToXAround(origin, curPos, curVel, accel, targetLine) {
   //console.log("oldPos: ", curPos);
   //console.log("rotated newPos: ", newPos);
 
-  
+
   //console.log("rotated newP1: ", v01);
 
   var newVel = curVel.multm(rMat);
@@ -1592,6 +1777,35 @@ function getRotatedToXAround(origin, curPos, curVel, accel, targetLine) {
   var newAccel = accel.multm(rMat);
   //console.log("rotated newAccel: ", newAccel);
   var results = { pos: newPos, vel: newVel, accel: newAccel };
+
+  return results;
+}
+
+
+
+// returns { rotState, rotP0, rotP1 };
+function getRotatedToYAroundState(state, targetLine) {
+  var v01 = targetLine.p1.subtract(targetLine.p0);
+  var radiansToVertical = getRadiansToVertical(v01);
+
+
+
+  var rMat = getRotationMatRad(radiansToVertical);
+
+  var newP0 = (targetLine.p0.subtract(state.pos).multm(rMat));
+  var newP1 = (targetLine.p1.subtract(state.pos).multm(rMat));
+  //console.log("oldPos: ", curPos);
+  //console.log("rotated newPos: ", newPos);
+
+
+  //console.log("rotated newP1: ", v01);
+
+  var newVel = state.vel.multm(rMat);
+  //console.log("rotated newVel: ", newVel);
+
+  var newAccel = state.accel.multm(rMat);
+  //console.log("rotated newAccel: ", newAccel);
+  var results = { rotState: new State(state.time, state.radius, state.pos, newVel, newAccel), rotP0: newP0, rotP1: newP1 };
 
   return results;
 }
@@ -1632,10 +1846,19 @@ function getTimeToVelocity(state, velTarget) {
 
 function closestPositive(value1, value2) {
   var toReturn;
+
+  if (value1 === null && value2 >= 0) {      //handle nulls.
+    return value2;
+  } else if (value2 === null && value1 >= 0) {
+    return value1;
+  }
+
+
+
   if (value1 < 0) {            // is value1 negative?
     if (value2 < 0) {
       toReturn = null;        // NO VALID ROOT, BOTH ARE BACKWARDS IN TIME
-      //console.log("   NO VALID ROOT, BOTH ARE BACKWARDS IN TIME, v1: ", value1, ", v2: ", value2);
+      console.log("   NO VALID ROOT, BOTH ARE BACKWARDS IN TIME, v1: ", value1, ", v2: ", value2);
     } else {
       toReturn = value2;           // value1 < 0 and value2 > 0 return value2
       //console.log("   value1 < 0 and value2 > 0 return value2, v1: ", value1, ", v2: ", value2);
@@ -1962,21 +2185,21 @@ CHILD.prototype.method = function () {
 
 
 // MAIN CODE TESTING BS HERE
-//var terrainManager = new TerrainManager();
-//var physParams = new PhysParams(DFLT_gravity, DFLT_lockThreshold, DFLT_autoLockThreshold);
-//var controlParams = new ControlParams(DFLT_gLRaccel, DFLT_aLRaccel, DFLT_aUaccel, DFLT_aDaccel, DFLT_gUaccel, DFLT_gDaccel, DFLT_gBoostLRvel, DFLT_aBoostLRvel, DFLT_aBoostDownVel, DFLT_jumpVelNormPulse, DFLT_doubleJumpVelYPulse, DFLT_doubleJumpVelYMin, DFLT_numAirCharges, 0.0, 100000000, 2, DFLT_jumpSurfaceSpeedLossRatio, DFLT_reverseAirJumpSpeed);
-//var playerModel = new PlayerModel(controlParams, physParams, 0.0, DFLT_radius, new vec2(800, -400), new vec2(0, -0), new vec2(0, -0), null);
-//var physEng = new PhysEng(playerModel, terrainManager);
-//physEng.update(0.001, []);
-//physEng.update(0.002, []);
-//physEng.update(0.005, []);
-//physEng.update(0.010, [new InputEventRight(0.005, true)]);
-//physEng.update(0.050, [new InputEventRight(0.005, false), new InputEventLeft(0.010, true)]);
-//physEng.update(0.200, [new InputEventUp(0.084, true)]);
-//physEng.update(0.010, [new InputEventLeft(0.0005, false)]);
-//physEng.update(0.035, [new InputEventUp(0.03, false)]);
+var currentLevel = new TerrainManager();
+var physParams = new PhysParams(DFLT_gravity, DFLT_lockThreshold, DFLT_autoLockThreshold, DFLT_surfaceSnapAngle);
+var controlParams = new ControlParams(DFLT_gLRaccel, DFLT_aLRaccel, DFLT_aUaccel, DFLT_aDaccel, DFLT_gUaccel, DFLT_gDaccel, DFLT_gBoostLRvel, DFLT_aBoostLRvel, DFLT_aBoostDownVel, DFLT_jumpVelNormPulse, DFLT_doubleJumpVelYPulse, DFLT_doubleJumpVelYMin, DFLT_numAirCharges, 0.0, 100000000, 2, DFLT_jumpSurfaceSpeedLossRatio, DFLT_reverseAirJumpSpeed);
+var playerModel = new PlayerModel(controlParams, physParams, 0.0, DFLT_radius, new vec2(0, 0), new vec2(0, 0), new vec2(0, 0), null);       //NEW
+var physEng = new PhysEng("fuck you", playerModel);
+physEng.update(0.001, []);
+physEng.update(0.002, []);
+physEng.update(0.005, []);
+physEng.update(0.010, [new InputEventRight(0.005, true)]);
+physEng.update(0.050, [new InputEventRight(0.005, false), new InputEventLeft(0.010, true)]);
+physEng.update(0.200, [new InputEventUp(0.084, true)]);
+physEng.update(0.010, [new InputEventLeft(0.0005, false)]);
+physEng.update(0.035, [new InputEventUp(0.03, false)]);
 
-
+//throw "fuck you dont print more shit to my screen. Asshat";
 
 
 /* SHIT THAT PRINTS TO THE SCREEN, USE PER FRAME FOR TESTING PERHAPS.
