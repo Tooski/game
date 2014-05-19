@@ -52,7 +52,7 @@ canvas { display:block; } /* To remove the scrollbars */
 		<canvas id="time" style="position:absolute; z-index: 2;  left:1150px; top:25px; background: white" height="50px" width="100px"></canvas>
 		<canvas id="score" style="position:absolute; z-index: 2;  left:25px; top:25px; background: white" height="50px" width="100px"></canvas>
 		<canvas id="pause" style="position:absolute; z-index: 2; left:475px; top:125px; background: white; display: none" height="525" width="350"></canvas>
-		<canvas id="remap" style="position:absolute; z-index: 3; left:475px; top:150px; background: white; display: none" height="525" width="350"></canvas>
+		<canvas id="remap" style="position:absolute; z-index: 3; left:475px; top:125px; background: white; display: none" height="525" width="350"></canvas>
 		<!--<canvas id="time" style="z-index: 2; background: red"></canvas>-->
 		
 		
