@@ -739,8 +739,13 @@ PhysEng.prototype.updatePhys = function (newEvents, stepToRender) {
     //console.log("after pop: ", this.primaryEventHeap.size());
     //console.log("stepResult: ", stepResult);
     //console.log("currentEvent: ", currentEvent);
-
+    console.log("");
+    console.log("");
+    console.log("");
     console.log("start of an update.        start of an update.        start of an update.        start of an update.        start of an update.      ");
+    console.log("  starting pos: ", this.player.pos);
+    console.log("  starting vel: ", this.player.vel);
+    console.log("  starting accel: ", this.player.accel);
     console.log("  attempting to step to Event: ", currentEvent);
     console.log("  targetTime: ", targetTime);
     //console.log("starting do: while step loop, targetTime = ", targetTime);
@@ -1519,19 +1524,22 @@ PhysEng.prototype.loadReplay = function(inputEventList) {
  * draws some debug stuff in physEng.
  */
 PhysEng.prototype.drawDebug = function (ctx) {
-  if (DRAW_DEBUG) {
+  if (DEBUG_DRAW) {
     ctx.save();
     var oldStroke = ctx.strokeStyle;
     var oldLineWidth = ctx.lineWidth;
     ctx.miterLimit = 3;
     ctx.strokeStyle = "pink";
+    ctx.lineWidth = 6;
+    ctx.beginPath();
 
     for (var i = 0; i < this.predictedEventHeap.size() ; i++) {
+      //throw "balls";
       var event = this.predictedEventHeap.heap[i];
       var tempState = stepStateToTime(this.player, event.time);
 
-      ctx.moveTo(array[i].p.x + array[i].radius, array[i].p.y);
-      ctx.arc(array[i].p.x, array[i].p.y, array[i].radius, 0, 2 * Math.PI, false);
+      ctx.moveTo(tempState.pos.x + tempState.radius, tempState.pos.y);
+      ctx.arc(tempState.pos.x, tempState.pos.y, tempState.radius, 0, 2 * Math.PI, false);
     }
 
     ctx.stroke();
@@ -1676,9 +1684,9 @@ function solveEarliestSurfaceEndpoint(state, surface) {
   if (closestPos === undefined || closestPos === null) {
     //throw "yay null this might be okay but have an exception anyway!";
   } else if (closestPos === time0) {
-    results = { pointNumber: 0, time: time0 };
+    results = { pointNumber: 0, time: state.time + time0 };
   } else if (closestPos === time1) {
-    results = { pointNumber: 1, time: time1 };
+    results = { pointNumber: 1, time: state.time + time1 };
   } else {
     throw "what the balls man, closest positive isnt time0, time1, or null???";
   }
