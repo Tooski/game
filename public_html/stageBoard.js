@@ -136,10 +136,13 @@ StageBoard.prototype.drowStageBoard = function () {
 }
 
 StageBoard.prototype.loop = function () {
-    this.my_ctx.clearRect(0, 0, this.my_ctx.canvas.width, this.my_ctx.canvas.height);
-    this.drowStageBoard();
+	if( MY_STAGE_CANVAS.style.display === "block"){
+	    this.my_ctx.clearRect(0, 0, this.my_ctx.canvas.width, this.my_ctx.canvas.height);
+		this.drowStageBoard();
 
-    this.my_where_click = null;
+		this.my_where_click = null;
+	}
+
     
 }
 
@@ -323,14 +326,17 @@ SBImageButton.prototype.setPath = function (the_where_mouse) {
 SBImageButton.prototype.startGame = function () {
     //console.log('startGame.' + stage_id + this.my_sub_stage);
     // displaying gmae... 
-	if(this.my_world_map_id ===1){
+	if(this.my_world_map_id ===1){ // play game...
 	    MY_STAGE_CANVAS.style.display = "none";
 		MY_GAME_MANU_CANVAS.style.display = "none";
-		canvas.style.display = "block";
-	} else {
+		blockDisplayGame();
+		currentLevel.loadFromFile(1);
+		// need to set the time to 0. 
+	} else { // for  going back to home....
 	    MY_STAGE_CANVAS.style.display = "none";
 		MY_GAME_MANU_CANVAS.style.display = "block";
-		canvas.style.display = "none";
+		blockDisplayGame();
+		
 	}
     
 }

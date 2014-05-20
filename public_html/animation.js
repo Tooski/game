@@ -32,6 +32,9 @@ function Animation(spriteSheet, startX, startY, frameWidth, frameHeight, frameDu
     this.loop = loop;
     //boolean reverse animation?
     this.reverse = reverse;
+    
+    this.frameHeight2 = frameHeight;
+    this.frameWidth2 = frameWidth;
 }
 
 //@param tick - game engine has clockTick from timer object in constructor and tick method returns gameDelta (change in step)
@@ -57,7 +60,7 @@ Animation.prototype.drawFrame = function (tick, ctx, x, y, scaleBy, flip, rotate
         }
         //loop is done and elapsed time >= to totaltime
     } else if (this.isDone()) {
-        return;
+        return false;
     }
     //if reverse true then frames-currentFrame() else currentFrame()
     var index = this.reverse ? this.frames - this.currentFrame() - 1 : this.currentFrame();
@@ -76,21 +79,37 @@ Animation.prototype.drawFrame = function (tick, ctx, x, y, scaleBy, flip, rotate
     var locY = y;
     var offset = vindex === 0 ? this.startX : 0;
 
+    //if(rotateBy) { 
+        //ctx.translate(this.frameWidth, this.frameHeight);
+   //     ctx.rotate(rotateBy); }
+   // ctx.save();
+    //ctx.scale(flip, 1);
+   // ctx.drawImage(this.spriteSheet,
+   //               index * this.frameWidth  + offset , vindex*this.frameHeight + this.startY,  // source from sheet
+   //               this.frameWidth, this.frameHeight,
+   //               locX  * flip - (flip === -1 ? this.frameWidth*scaleBy : 0) , locY,
+   //               this.frameWidth * scaleBy,
+   //               this.frameHeight * scaleBy);
+   // ctx.restore();
+  //  if(rotateBy) { 
+     //   ctx.translate(-this.frameWidth/2, -this.frameHeight/2);
+  //      ctx.rotate(-rotateBy);}
+  
+  
+	ctx.save();
+	ctx.translate(locX  + this.frameWidth*scaleBy / 2, locY+ this.frameHeight* scaleBy / 2);
     if(rotateBy) { 
         //ctx.translate(this.frameWidth, this.frameHeight);
         ctx.rotate(rotateBy); }
-    ctx.save();
-    ctx.scale(flip, 1);
+		ctx.scale(flip, 1);
     ctx.drawImage(this.spriteSheet,
-                  index * this.frameWidth  + offset , vindex*this.frameHeight + this.startY,  // source from sheet
-                  this.frameWidth, this.frameHeight,
-                  locX  * flip - (flip === -1 ? this.frameWidth*scaleBy : 0) , locY,
-                  this.frameWidth * scaleBy,
-                  this.frameHeight * scaleBy);
+                 index * this.frameWidth  + offset , vindex*this.frameHeight + this.startY,  // source from sheet
+               this.frameWidth, this.frameHeight,
+               - this.frameWidth*scaleBy / 2 , - this.frameHeight* scaleBy / 2,
+               this.frameWidth * scaleBy,
+                 this.frameHeight * scaleBy);
+
     ctx.restore();
-    if(rotateBy) { 
-     //   ctx.translate(-this.frameWidth/2, -this.frameHeight/2);
-        ctx.rotate(-rotateBy);}
 };
 
 Animation.prototype.drawFrameFreeze = function (tick, ctx, x, y, scaleBy, flip, rotateBy) {
@@ -153,6 +172,64 @@ Animation.prototype.drawFrameFreeze = function (tick, ctx, x, y, scaleBy, flip, 
 //    }
 
 };
+
+
+
+Animation.prototype.drawFrameFalling = function (tick, ctx, x, y, scaleBy, flip, rotateBy) {
+    
+    
+    
+    var scaleBy = scaleBy || 1;
+    var flip = flip ? -1 : 1;
+    //track each change in step
+    this.elapsedTime += tick;
+    //var is_done = false;
+    //looping through the frames - true when pressing left or right key
+    if (this.loop) {
+        //when elapsed time >= to totaltime(frameDuration * # of frames)
+        //but loop is still running
+        if (this.isDone()) {
+            this.elapsedTime = 0;
+        }
+        //loop is done and elapsed time >= to totaltime
+    } else if (this.isDone()) {
+       // return;
+       console.log(this.elapsedTime );
+  //     is_done = true;
+      this.frameHeight2 = 900;
+      this.frameWidth2 = 600;
+      //this.elapsedTime  = this.totalTime;
+    }
+    //if reverse true then frames-currentFrame() else currentFrame()
+    //var index = this.reverse ? this.frames - this.currentFrame() - 1 : this.currentFrame();
+    
+
+
+    var locX = x;
+    var locY = y;
+
+
+    if(rotateBy) { 
+        //ctx.translate(this.frameWidth, this.frameHeight);
+        ctx.rotate(rotateBy); }
+    ctx.save();
+    ctx.scale(flip, 1);
+    ctx.drawImage(this.spriteSheet,
+                  this.frameWidth2 , this.frameHeight2,  // source from sheet
+                  this.frameWidth, this.frameHeight,
+                  locX  * flip - (flip === -1 ? this.frameWidth*scaleBy : 0) , locY,
+                  this.frameWidth * scaleBy,
+                  this.frameHeight * scaleBy);
+    ctx.restore();
+    if(rotateBy) { 
+     //   ctx.translate(-this.frameWidth/2, -this.frameHeight/2);
+        ctx.rotate(-rotateBy);}
+//    if(is_done){
+//      this.elapsedTime  = this.totalTime;
+//    }
+
+};
+
 //total elapsed time / time for each frame gets and returns the current frame
 Animation.prototype.currentFrame = function () {
     return Math.floor(this.elapsedTime / this.frameDuration);
