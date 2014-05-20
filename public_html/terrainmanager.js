@@ -22,7 +22,8 @@ TerrainManager.prototype.pushTerrain = function(terrain, list) {
 
 
 TerrainManager.prototype.update = function() {
-
+    for(var i = 0; i < this.terrainList.length; i++) {
+    }
 };
 
 TerrainManager.prototype.draw = function(ctx) {
@@ -84,7 +85,7 @@ function createCurves(ctx, a0, a1, b0, b1, other, check) {
 
 TerrainManager.prototype.snapTo = function(terrain) {
        for(var i = 0; i < this.terrainList.length; i++) {
-        if (terrain !== this.terrainList[i]){
+           if (terrain !== this.terrainList[i]){
         if(!this.terrainList[i].adjacent0 && checkBounds (terrain.p0, this.terrainList[i].p0)){
             terrain.p0.x = this.terrainList[i].p0.x = (terrain.p0.x + this.terrainList[i].p0.x)/2;
             terrain.p0.y = this.terrainList[i].p0.y = (terrain.p0.y + this.terrainList[i].p0.y)/2;

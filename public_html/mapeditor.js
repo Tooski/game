@@ -20,7 +20,22 @@ function MapEditorButton(name, x, y, w, h) {
     this.ih = this.h = h;
     this.isSelected = false;
     this.collider = new MouseCollideable(true, this.x,this.y,this.w,this.h );
+    var that = this;
+        this.collider.onClick = function(e) {
+            
 
+        if(button !== that) {
+            that.isSelected = button ? !(button.isSelected = false) : true;
+            button = that;
+        } else {
+            
+            that.isSelected = false;
+            button = null;
+        }
+
+        
+    };
+    
     if(buttonListStart.x > this.x) buttonListStart.x = this.x;
     if(buttonListEnd.x < this.x + this.w) buttonListEnd.x = this.x + this.w;
     if(buttonListStart.y > this.y) buttonListStart.y = this.y;
@@ -79,24 +94,26 @@ function MapEditor(level, editMode) {
     this.createSaveButton(this.ctx);
     var that = this;
     c.addEventListener('mousedown', function(e) {
-
-       var foundButton = false;
+            
         for(var i = 0; i < buttonList.length; i++) {
             var h = collidedWith(buttonList[i].collider,e.offsetX,e.offsetY); 
             buttonList[i].isSelected = buttonList[i].isSelected ? false : h;
             button = buttonList[i];
-            buttonList[i].draw(that.ctx);
+    
             if(h) {
-                foundButton = true;
                 break;
             } 
         } 
-       console.log(button);
+         for(var i = 0; i < buttonList.length; i++) {
+                buttonList[i].draw(that.ctx);
+            }
+  
         if(button && button.onClick) {
             
             button.onClick(e);
             
-        }
+    
+    }
     }, false);
      c.addEventListener("mousemove", function(e){
         if(button && !button.isSelected && button.onDrag)  {
@@ -105,9 +122,11 @@ function MapEditor(level, editMode) {
     }, false);
 
      c.addEventListener("mouseup", function(e){
+     
         if(button && button.onRelease)  {
             button.onRelease(e);
         }
+           
     }, false);
     
     
@@ -179,16 +198,9 @@ function getMousePos( evt) {
 MapEditor.prototype.createLineButton = function(ctx) {
     var line = new MapEditorButton("Lines", 0, (buttonSize + 5) , buttonSize, buttonSize);
     var that = this;
-        line.collider.onClick = function(e) {
-        if(button !== that) {
-            that.isSelected = button ? !(button.isSelected = false) : true;
-            button = that;
-        } else {
-            that.isSelected = false;
-            button = null;
-        }
-    };
     
+    
+
 
 
 
@@ -199,20 +211,21 @@ MapEditor.prototype.createLineButton = function(ctx) {
         var left = parseInt(that.ctx.canvas.style.left);
         var top =  parseInt(that.ctx.canvas.style.top);
         if(e.offsetX >  that.ctx.canvas.width + left || e.offsetX < left ||
-           e.offsetY >  that.ctx.canvas.height + top || e.offsetX < top)
-        if(!this.line) {
-            if(!this.prev || (this.prev && !this.prev.circularID)) {
-                var xposition = localToWorld(e.offsetX, "x");
-                var yposition = localToWorld(e.offsetY, "y");
+           e.offsetY >  that.ctx.canvas.height + top || e.offsetX < top) {
+            if(!this.line) {
+                if(!this.prev || (this.prev && !this.prev.circularID)) {
+                    var xposition = localToWorld(e.offsetX, "x");
+                    var yposition = localToWorld(e.offsetY, "y");
 
-                this.line = new TerrainLine(
-                        new vec2(xposition, yposition),
-                        new vec2(xposition, yposition));
-                 that.level.pushTerrain(this.line);
+                    this.locked =  this.line = new TerrainLine(
+                            new vec2(xposition, yposition),
+                            new vec2(xposition, yposition));
+                     that.level.pushTerrain(this.line);
 
-                button.isSelected = false;
+                    button.isSelected = false;
+                }
             }
-        }
+           }
 
 //
 // 
@@ -273,11 +286,7 @@ MapEditor.prototype.createLineButton = function(ctx) {
                 var selected = itr;
                 var selectedVec = selected.p0.subtract(selected.p1).normalize();
                 itr = itr.adjacent1;
-             
-                
-      
                 var nextVec = selected.adjacent1.p1.subtract(selected.adjacent1.p0).normalize();
-
                 var potentialNormal = nextVec.perp();
                 var negPotentialNormal = potentialNormal.negate();
                 var h = Math.acos(selectedVec.dot(nextVec));
@@ -286,32 +295,21 @@ MapEditor.prototype.createLineButton = function(ctx) {
                 } else {
                    itr.normal = (selected.normal.dot(potentialNormal) < selected.normal.dot(negPotentialNormal) ? potentialNormal : negPotentialNormal );
                 }
-                
-          
-
-
-              
             }
         }
-        
-        
-        if(this.normal) {
-            var oneNormal = findNormalByMouse(e, this.normal);
-    
 
-        }
     };
     line.onRelease = function(e) {
         
         if(this.setNormals) {
-             this.setNormals = this.prev = null;
+             this.locked = this.setNormals = this.prev = null;
         }
         
         
         if(this.line && this.line.p1.x !== this.line.p0.x && this.line.p1.y !== this.line.p0.y) {
 
             that.level.snapTo(this.line);
-            this.prev = this.line;
+             this.locked = this.prev = this.line;
             
             
             
@@ -332,21 +330,6 @@ MapEditor.prototype.createLineButton = function(ctx) {
 
             }
 
-            
-            
-//             if (this.line && !this.normal) {
-//                that.level.snapTo(this.line);
-//
-//                this.normal = this.line;
-//                if(!this.normal.normal) {
-//                  this.normal.normal = new vec2(0, 0);
-////                  if (this.line.length() !== 1.0) {
-////                    console.log("normal length: ", this.line.length());
-////                    throw "ERRORRRRRRRRRRR";
-////                  }
-//                }
-//             } 
-//            this.line = null;
 
         }
     };

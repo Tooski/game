@@ -115,7 +115,6 @@ this.model.animationRunning = false;
         
         
     }
-    console.log(faling);
 };
 var faling = false;
 
