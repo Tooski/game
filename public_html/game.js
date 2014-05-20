@@ -419,6 +419,7 @@ GameEngine.prototype.controlReset = function() {
 GameEngine.prototype.addEntity = function(entity) {
     console.log('added entity');
       if(entity instanceof GUIEntity) {
+     
         this.entitiesGUI.push(entity);
     } else if (entity instanceof Entity) {
         this.entities.push(entity);
@@ -463,20 +464,16 @@ GameEngine.prototype.draw = function(drawCallback) {
     this.ctx.save();
 
     if(initScale !== 0) {
-        var hasNotChanged = canvas.width === window.innerWidth && canvas.height === window.innerHeight;
-
-        canvas.width = window.innerWidth;
-        canvas.height = window.innerHeight;
-        // initScale is the window's width / 16 / player width. this should allow everything to scale down
-        // the player will be 1/16 the width of the window at all times and everything will scale with him.
-        ctx.scale(initScale * canvas.width / initWidth, initScale * canvas.width / initWidth);
+            var hasNotChanged = canvas.width === window.innerWidth && canvas.height === window.innerHeight;
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
             if(!hasNotChanged) {
                 var item = document.getElementById('mapEditor');
                 console.log(item);
                 if(item) {
                     
                     var ctxGUI = item.getContext('2d');
-       
+
                     ctxGUI.clearRect(0, 0, ctxGUI.canvas.width, ctxGUI.canvas.height);
                     for(var i = 0; i < this.entitiesGUI.length; i++) {
                         this.entitiesGUI[i].draw(ctxGUI);
@@ -486,6 +483,12 @@ GameEngine.prototype.draw = function(drawCallback) {
             }
             
 
+            // initScale is the window's width / 16 / player width. this should allow everything to scale down
+            // the player will be 1/16 the width of the window at all times and everything will scale with him.
+            ctx.scale(initScale * canvas.width / initWidth, initScale * canvas.width / initWidth);
+            //  ctxGUI.scale(initScale * canvas.width / initWidth, initScale * canvas.width / initWidth);
+      
+  
   
         // Adjusts the canvas' move position as well as the post scaling.
         this.ctx.translate(
@@ -531,7 +534,7 @@ GameEngine.prototype.draw = function(drawCallback) {
 //        }
 //    } 
 //    
-    if(this.menu && this.menu instanceof Menu) this.menu.draw(this.ctx);
+    if(this.menu && this.menu instanceof Menu) this.menu.draw(ctxGUI);
     //this.ctx.font = "30px Arial";
     //this.ctx.fillText(player.model.pos,200 + player.model.pos.x - (initWidth/ctx.canvas.width) * (ctx.canvas.width/ initScale / 2),100 + player.model.pos.y - (initWidth/ctx.canvas.width) * (ctx.canvas.height/ initScale / 2) );
     drawDebug(this.ctx);
@@ -958,10 +961,7 @@ ASSET_MANAGER.downloadAll(function() {
 	// GameCanvas.push(canvas4);
 	 //GameCanvas.push(canvas5);
 	 //ctx5.canvas.addEventListener('click',remapClicked,false);
-          var timer = new Timer();
-     player  = new Player(canvas.width/2, canvas.height/2, timer);
-    canvas.tabIndex = 1;
-   
+
     initHeight =canvas.height = window.innerHeight;
     initWidth = canvas.width = window.innerWidth;
 
@@ -989,7 +989,7 @@ ASSET_MANAGER.downloadAll(function() {
     //    gameEngine.addEntity(new TerrainLine(new vec2(200,200+50), new vec2(200+250,200+150), player));
     
     gameEngine.addEntity(currentLevel);
-    new MapEditor(currentLevel);
+    gameEngine.addEntity(new MapEditor(currentLevel));
 	//new KeyMapping(gameEngine);
    //  gameEngine.addEntity(new BezierCurve(40,100,80,20,150,180,260,100));
     gameEngine.addEntity(gameboard);
@@ -1002,33 +1002,7 @@ ASSET_MANAGER.downloadAll(function() {
 
 
   
-    var selectedItem;
-    canvas.addEventListener('mousedown', function(e) {
-        selectedItem = collides( e.offsetX, e.offsetY);
-        if (selectedItem && selectedItem.onClick) {
-            selectedItem.onClick(e);
-        }
-    }, false);
-    canvas.addEventListener("mousemove", function(e){
 
-//        var v =  getMousePos( e);
-//        
-//         xx = e.offsetX/ initScale* (initWidth/ctx.canvas.width)
-//            -ctx.canvas.width/initScale/2* (initWidth/ctx.canvas.width) + player.model.pos.x ;
-//       yy = e.offsetY/ initScale* (initWidth/ctx.canvas.width)- 
-//            ctx.canvas.height/initScale/2* (initWidth/ctx.canvas.width)  + player.model.pos.y;
-//       
-        
-        if (selectedItem && selectedItem.onDrag) {
-            selectedItem.onDrag(e);
-        }
-    }, false);
-    canvas.addEventListener("mouseup", function(e){
-        if (selectedItem && selectedItem.onRelease) {
-            selectedItem.onRelease(e);
-        }
-        selectedItem = null;
-    }, false);
     
 });
 });

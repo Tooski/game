@@ -10,10 +10,6 @@ function Load(level) {
     this.y = 0;
     this.offset = new vec2(canvas.width/2 - this.w/2, canvas.height/2 - this.h/2);
 
-    
-    var c = new CanvasFactory({id:"menuCanvas", width:this.w, height: this.h, x: canvas.width/2 - this.w/2, y: canvas.height/2 - this.h/2});
-    this.ctx =  c.getContext('2d');
-    c.tabIndex = 1;
     var that = this;
     this.table = new MenuTable("Table", 0, 70, this.iw, 300, 10, true); 
     var cancelButton = new MenuButton("Cancel");
