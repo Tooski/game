@@ -21,18 +21,16 @@ function MapEditorButton(name, x, y, w, h) {
     this.isSelected = false;
     this.collider = new MouseCollideable(true, this.x,this.y,this.w,this.h );
     var that = this;
-        this.collider.onClick = function(e) {
-            
-
+        this.trigger = function(e) {
+         
         if(button !== that) {
             that.isSelected = button ? !(button.isSelected = false) : true;
             button = that;
         } else {
             
             that.isSelected = false;
-            button = null;
+            button = undefined;
         }
-
         
     };
     
@@ -96,11 +94,11 @@ function MapEditor(level, editMode) {
     c.addEventListener('mousedown', function(e) {
             
         for(var i = 0; i < buttonList.length; i++) {
-            var h = collidedWith(buttonList[i].collider,e.offsetX,e.offsetY); 
-            buttonList[i].isSelected = buttonList[i].isSelected ? false : h;
-            button = buttonList[i];
+
     
-            if(h) {
+            if(collidedWith(buttonList[i].collider,e.offsetX,e.offsetY)) {
+               
+                buttonList[i].trigger();
                 break;
             } 
         } 
@@ -114,11 +112,16 @@ function MapEditor(level, editMode) {
             
     
     }
+                     for(var i = 0; i < buttonList.length; i++) {
+                buttonList[i].draw(that.ctx);
+            }
     }, false);
      c.addEventListener("mousemove", function(e){
+
         if(button && !button.isSelected && button.onDrag)  {
             button.onDrag(e);
         }
+
     }, false);
 
      c.addEventListener("mouseup", function(e){
@@ -126,7 +129,9 @@ function MapEditor(level, editMode) {
         if(button && button.onRelease)  {
             button.onRelease(e);
         }
-           
+                   for(var i = 0; i < buttonList.length; i++) {
+                buttonList[i].draw(that.ctx);
+            }
     }, false);
     
     
@@ -199,7 +204,15 @@ MapEditor.prototype.createLineButton = function(ctx) {
     var line = new MapEditorButton("Lines", 0, (buttonSize + 5) , buttonSize, buttonSize);
     var that = this;
     
-    
+//        line.collider.onClick = function(e) {
+//        if(button !== that) {
+//            line.isSelected = button ? !(button.isSelected = false) : true;
+//            button = that;
+//        } else {
+//            line.isSelected = false;
+//            button = null;
+//        }
+//    };
 
 
 
@@ -276,6 +289,8 @@ MapEditor.prototype.createLineButton = function(ctx) {
            this.line.p1edit.x = (this.line.p1.x = mousePos.x) - this.line.p1edit.w/2;
            this.line.p1edit.y = (this.line.p1.y = mousePos.y) - this.line.p1edit.h/2;
            
+           console.log(this.line.p1edit);
+           
         }
         
         if(this.setNormals) {
@@ -305,7 +320,7 @@ MapEditor.prototype.createLineButton = function(ctx) {
              this.locked = this.setNormals = this.prev = null;
         }
         
-        
+         
         if(this.line && this.line.p1.x !== this.line.p0.x && this.line.p1.y !== this.line.p0.y) {
 
             that.level.snapTo(this.line);
@@ -317,11 +332,17 @@ MapEditor.prototype.createLineButton = function(ctx) {
                 
             var xposition = localToWorld(e.offsetX, "x");
             var yposition = localToWorld(e.offsetY, "y");
+
+            if(!checkBounds (this.line.p0, new vec2(xposition, yposition))) {
+      
+            
+            
             this.line = new TerrainLine(
                     new vec2(this.prev.p1.x, this.prev.p1.y),
                     new vec2(xposition, yposition));
                     
-             that.level.pushTerrain(this.line);
+                that.level.pushTerrain(this.line);
+            }
             } else {
                
                 
@@ -338,26 +359,22 @@ MapEditor.prototype.createLineButton = function(ctx) {
 MapEditor.prototype.createEraseButton = function() {
     var erase = new MapEditorButton("Erase", 0, (buttonSize + 5) * 2, buttonSize, buttonSize);
     var that = this;
-    erase.collider.onClick = function(e) {
-        if(button !== that) {
-            that.isSelected = button ? !(button.isSelected = false) : true;
-            button = that;
-        } else {
-            that.isSelected = false;
-            button = null;
-        }
-    };
+
     erase.onClick = function(e) {
         var position = new vec2(localToWorld(e.offsetX, "x"), localToWorld(e.offsetY, "y"));
         for(var i = 0; i <  that.level.terrainList.length; i++) {
+            
             if(that.level.terrainList[i].collidesWith(position, 10)) {
+                var item = that.level.terrainList[i];
                 
-                if(that.level.terrainList[i].circularID) {
+                 that.level.terrainList.splice(i, 1);
+                if(item.circularID) {
                     var start, itr;
-                    itr = start = that.level.terrainList[i];
+                    var id = item.circularID;
+                    itr = start = item;
                     while(itr.adjacent1 !== start) {
                         itr = itr.adjacent1;
-                 //       that.level.removeFrom(itr);
+              
                         for(var j = 0; j < that.level.terrainList.length; j++) {
                             if(that.level.terrainList[j].id === itr.id) {
                                 that.level.terrainList.splice(j, 1);
@@ -366,15 +383,15 @@ MapEditor.prototype.createEraseButton = function() {
                         }
                     }
                     for(var j = 0; j < that.level.closedTerrain.length; j++) {
-                        if(that.level.closedTerrain[j].id === that.level.terrainList[i].circularID) {
+                        if(that.level.closedTerrain[j].id === id) {
                                 that.level.closedTerrain.splice(j, 1);
                                 break;
                         }
                     }
+                              that.level.removeFrom(itr);
                 }
-                
-                that.level.removeFrom(that.level.terrainList[i]);
-                that.level.terrainList.splice(i, 1);
+           
+                that.level.removeFrom(item);
                 break;
             }
         }

@@ -236,7 +236,7 @@ TerrainCircular.prototype.fillTerrain = function(ctx, terrain, visited, rect, vi
                 }
             }
             
-}
+};
 
 TerrainManager.prototype.removeFrom = function(terrain) {
 
@@ -257,6 +257,8 @@ TerrainManager.prototype.removeFrom = function(terrain) {
 
         if(terrain.p0edit) removeMouseCollideable(terrain.p0edit);
         if(terrain.p1edit) removeMouseCollideable(terrain.p1edit);
+        
+        return true;
 };
 
 function checkBounds (p1, p2) {
@@ -356,6 +358,7 @@ TerrainManager.prototype.createTerrainPoints = function(terrain) {
           
         }
       };
+      
 //    }
 };
 

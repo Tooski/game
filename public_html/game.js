@@ -1005,7 +1005,26 @@ ASSET_MANAGER.downloadAll(function() {
 
 
 
-  
+   var selectedItem;
+    canvas.addEventListener('mousedown', function(e) {
+        selectedItem = collides( e.offsetX, e.offsetY);
+        if (selectedItem && selectedItem.onClick) {
+            selectedItem.onClick(e);
+        }
+    }, false);
+    canvas.addEventListener("mousemove", function(e){
+
+        
+        if (selectedItem && selectedItem.onDrag) {
+            selectedItem.onDrag(e);
+        }
+    }, false);
+    canvas.addEventListener("mouseup", function(e){
+        if (selectedItem && selectedItem.onRelease) {
+            selectedItem.onRelease(e);
+        }
+        selectedItem = null;
+    }, false);
 
     
 });

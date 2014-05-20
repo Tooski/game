@@ -3,7 +3,7 @@ var mouseCollidable = [];
     var prevScale = 1;
 
 function MouseCollideable(onGUILayer, x, y, w, h) {
-    this.onGUILayer = onGUILayer || true;
+    this.onGUILayer = onGUILayer;
     this.ix = this.x = x || 0;
     this.iy = this.y = y || 0;
     this.iw = this.w = w || 0;
@@ -29,7 +29,7 @@ MouseCollideable.onRelease = function(e) { };
 
 function collides(x, y) {
   var isCollision = false;
-
+  
   
 //      if(prevScale !== (canvas.width / initWidth)) {
 //          prevScale =(canvas.width / initWidth);
@@ -73,8 +73,10 @@ function collidedWith(value, x, y) {
             y  <= value.y + value.h &&
             y >= value.y);
     } else {
+  
         var xInit = localToWorld (x, "x") ;
         var yInit = localToWorld (y, "y") ;
+              
         return (xInit <= (value.x + value.w) &&
                   xInit >= value.x &&
                   yInit  <= value.y + value.h &&
