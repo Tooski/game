@@ -48,15 +48,15 @@ canvas { display:block; } /* To remove the scrollbars */
             </form>
         </div>-->
 
-		<canvas id="gameWorld" style="position:absolute; border: 0px solid brown; z-index: 1; background: white"></canvas>
+	<canvas id="gameWorld" style="position:absolute; display : block; border: 0px solid brown; z-index: 1; background: white"></canvas>
 		<canvas id="time" style="position:absolute; z-index: 2;  left:1150px; top:25px; background: white" height="50px" width="100px"></canvas>
 		<canvas id="score" style="position:absolute; z-index: 2;  left:25px; top:25px; background: white" height="50px" width="100px"></canvas>
 		<canvas id="pause" style="position:absolute; z-index: 2; left:475px; top:125px; background: white; display: none" height="525" width="350"></canvas>
 		<canvas id="remap" style="position:absolute; z-index: 3; left:475px; top:125px; background: white; display: none" height="525" width="350"></canvas>
-		<!--<canvas id="time" style="z-index: 2; background: red"></canvas>
+		<!--<canvas id="time" style="z-index: 2; background: red"></canvas> -->
 		
 		
-	<!--	<canvas id="time" style= "display : none; position:absolute; z-index: 2;  left:1150px; top:25px; background: white" height="50px" width="100px"></canvas>
+<!--	<canvas id="time" style= "display : none; position:absolute; z-index: 2;  left:1150px; top:25px; background: white" height="50px" width="100px"></canvas>
 		<canvas id="score" style="display : none; position:absolute; z-index: 2;  left:25px; top:25px; background: white" height="50px" width="100px"></canvas>
 		<canvas id="pause" style="display : none; position:absolute; z-index: 2; left:475px; top:125px; background: white; display: none" height="525" width="350"></canvas>
 		<canvas id="remap" style="display : none; position:absolute; z-index: 3; left:475px; top:125px; background: white; display: none" height="525" width="350"></canvas>
@@ -65,6 +65,6 @@ canvas { display:block; } /* To remove the scrollbars */
         <canvas id="gameWorld" style="border: 0px solid brown; background: white; display : none"></canvas>
 		<canvas id="game_manu_board" style= "display : block" width="400" height="350"></canvas>
 		<canvas id="stage_board" style= "display : none" width="400" height="350"></canvas>
-	</div> -->
+	</div>-->
 </body>
 </html>
