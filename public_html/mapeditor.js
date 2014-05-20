@@ -351,8 +351,31 @@ MapEditor.prototype.createEraseButton = function() {
         var position = new vec2(localToWorld(e.offsetX, "x"), localToWorld(e.offsetY, "y"));
         for(var i = 0; i <  that.level.terrainList.length; i++) {
             if(that.level.terrainList[i].collidesWith(position, 10)) {
+                
+                if(that.level.terrainList[i].circularID) {
+                    var start, itr;
+                    itr = start = that.level.terrainList[i];
+                    while(itr.adjacent1 !== start) {
+                        itr = itr.adjacent1;
+                 //       that.level.removeFrom(itr);
+                        for(var j = 0; j < that.level.terrainList.length; j++) {
+                            if(that.level.terrainList[j].id === itr.id) {
+                                that.level.terrainList.splice(j, 1);
+                                break;
+                            }
+                        }
+                    }
+                    for(var j = 0; j < that.level.closedTerrain.length; j++) {
+                        if(that.level.closedTerrain[j].id === that.level.terrainList[i].circularID) {
+                                that.level.closedTerrain.splice(j, 1);
+                                break;
+                        }
+                    }
+                }
+                
                 that.level.removeFrom(that.level.terrainList[i]);
                 that.level.terrainList.splice(i, 1);
+                break;
             }
         }
     };

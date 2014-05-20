@@ -133,6 +133,7 @@ function TerrainCircular(circular, closedTerrain) {
     this.circular = circular;
     for (var item in this.circular){
         this.circular[item].circularID = this.id;
+        
     }
     closedTerrain.push(this);
 }
