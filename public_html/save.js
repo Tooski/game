@@ -5,10 +5,13 @@ function Save(terrainList) {
     this.ih = this.h = 400; 
     this.iw = this.w = 400;
     this.x = 0, this.y = 0;
+    
     this.offset = new vec2(canvas.width/2 - this.w/2, canvas.height/2 - this.h/2);
+    this.init(this.offset, this.w, this.h);
 
     
     var that = this;
+    
     this.table = new MenuTable("Table", 0, 70, this.iw, 300, 10, true, this.ctx);
     var cancelButton = new MenuButton("Cancel");
     cancelButton.collider.onRelease = function(e) {
@@ -250,7 +253,6 @@ function Save(terrainList) {
     this.buttons.setParent(this);
     this.buttons.setOffset(this.offset);
     
-    this.init(this.offset, this.w, this.h);
 };
 
 Save.prototype = new Menu();

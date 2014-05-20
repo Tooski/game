@@ -9,9 +9,9 @@ function Load(level) {
     this.x = 0;
     this.y = 0;
     this.offset = new vec2(canvas.width/2 - this.w/2, canvas.height/2 - this.h/2);
-
+    this.init(this.offset, this.w, this.h);
     var that = this;
-    this.table = new MenuTable("Table", 0, 70, this.iw, 300, 10, true); 
+    this.table = new MenuTable("Table", 0, 70, this.iw, 300, 10, true, this.ctx); 
     var cancelButton = new MenuButton("Cancel");
     cancelButton.collider.onRelease = function(e) {
         gameEngine.menu = null;
@@ -54,7 +54,7 @@ function Load(level) {
     this.buttons = new MenuButtonGroup(0,0,this.iw,50, 10);
     this.buttons.addButtons([cancelButton,loadButton]);
     this.buttons.setParent(this);
-    this.init(this.offset, this.w, this.h);
+   
 
 };
 

@@ -22,9 +22,6 @@ E_NEXT_BIT *= 2;
 var E_PAUSE_MASK = E_NEXT_BIT;
 E_NEXT_BIT *= 2;
 
-var E_PREDICTED_MASK = E_NEXT_BIT;
-E_NEXT_BIT *= 2;
-
 var E_COLLISION_MASK = E_NEXT_BIT;
 E_NEXT_BIT *= 2;
 
@@ -32,6 +29,9 @@ var E_LINE_COLLISION_MASK = E_NEXT_BIT;
 E_NEXT_BIT *= 2;
 
 var E_POINT_COLLISION_MASK = E_NEXT_BIT;
+E_NEXT_BIT *= 2;
+
+var E_PREDICTED_MASK = E_NEXT_BIT;
 E_NEXT_BIT *= 2;
 
 var E_SYNC_MASK = E_NEXT_BIT;
@@ -490,7 +490,7 @@ function TerrainLineCollisionEvent(gameTimeOfCollision, collidedWithList, stateA
       //}
       //this.player.vel = surfaceVec.multf(velocityMag);              // END DISABLED FOR REALISTIC PHYSICS
       console.log("collidedWithList: ", collidedWithList);
-      p.lockTo(surface, surfaceVecNorm);
+      p.lockTo(surface, this.surfaceVec.normalize());
 
       animationSetPlayerRunning(p, this.time);
     } else if (input.lock && this.allowLock && collisionForceVecLen < p.physParams.lockThreshold) {
@@ -501,7 +501,7 @@ function TerrainLineCollisionEvent(gameTimeOfCollision, collidedWithList, stateA
       }
       var surface = this.collidedWithList[0];
       console.log("collidedWithList: ", this.collidedWithList);
-      p.lockTo(surface, surfaceVecNorm);
+      p.lockTo(surface, surfaceVec.normalize());
       animationSetPlayerRunning(p, this.time);
     } else {
       // BOUNCE. TODO implement addition of normalVector * jumpVel to allow jump being held to bounce him higher?   perhaps just buffer jump events.      

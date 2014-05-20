@@ -41,8 +41,9 @@ performance.now = (function () {
 //CONSTANTS
 var HALF_PI = Math.PI / 2.0;   // AKA 90 DEGREES IN RADIANS
 
-var TIME_EPSILON_SQ = 0.000000000001;
-var COLLISION_EPSILON_SQ = 0.0000;
+var TIME_EPSILON = 0.00000001;
+var TIME_EPSILON_SQ = TIME_EPSILON * TIME_EPSILON;
+var COLLISION_EPSILON_SQ = 0.0000; // fuck the police
 
 
 //DEFAULT PHYSICS VALS, TWEAK HERE
@@ -53,7 +54,7 @@ var DFLT_lockThreshold = 1000;
 var DFLT_autoLockThreshold = 500;
 
 //angle between surfaces at which the player continues onto the next surface whether locked or not.
-var DFLT_surfaceSnapAngle = -(30               / 180) * Math.PI + Math.PI;
+var DFLT_surfaceSnapAngle = -(45               / 180) * Math.PI + Math.PI;
 
 var DFLT_JUMP_HOLD_TIME = 0.15; // To jump full height, jump must be held for this long. Anything less creates a fraction of the jump height based on the fraction of the full time the button was held. TODO implement.
 
@@ -347,6 +348,7 @@ function PlayerModel(controlParams, physParams, time, radius, pos, vel, accel, s
     this.predictedDirty = true;
     this.airChargeCount = this.controlParams.numAirCharges;
     this.updateVecs(this.inputState);
+    animationSetPlayerFreefall(this, this.time);
   }
 
 
@@ -805,6 +807,10 @@ PhysEng.prototype.updatePhys = function (newEvents, stepToRender) {
 
 
 
+    if (!(currentEvent.mask & E_RENDER_MASK)) {
+      console.log("    handling non-render event. Event: ", currentEvent);
+
+    }
     //console.log(currentEvent);
     currentEvent.handler(this);
     if (this.player.predictedDirty) {
@@ -951,7 +957,10 @@ PhysEng.prototype.updatePredicted = function () {           //TODO FINISH
   this.player.predictedDirty = false;
   if (this.player.surface) {
     var surfaceEndEvent = this.getSurfaceEndEvent();
-    this.predictedEventHeap.push(surfaceEndEvent);
+    if (surfaceEndEvent) {
+      console.log("adding surfaceEndEvent to predictedEvents. Event: ", surfaceEndEvent);
+      this.predictedEventHeap.push(surfaceEndEvent);
+    }
   }
   
 
@@ -1003,7 +1012,7 @@ PhysEng.prototype.getSurfaceEndEvent = function () {
           var adjDataState = stepStateToTime(this.player, adjData.time);
           //DEBUG_DRAW_GREEN.push(new DebugCircle(adjDataState.pos, this.player.radius, 5));
 
-
+          console.log("gray thing");
           var endPointState = stepStateToTime(this.player, endPointData.time);
           DEBUG_DRAW_GRAY.push(new DebugCircle(endPointState.pos, this.player.radius, 5));
           
@@ -1022,6 +1031,7 @@ PhysEng.prototype.getSurfaceEndEvent = function () {
           //DEBUG_DRAW_GREEN.push(new DebugCircle(adjDataState.pos, this.player.radius, 5));
         } else {
           // use endpoint.
+          console.log("gray thing");
           var endPointState = stepStateToTime(this.player, endPointData.time);
           DEBUG_DRAW_GRAY.push(new DebugCircle(endPointState.pos, this.player.radius, 5));
         }
@@ -1034,10 +1044,10 @@ PhysEng.prototype.getSurfaceEndEvent = function () {
     }
   } else if (endPointData && (endPointData.time || endPointData.time === 0)) {
     // no adjData, use endPointData.
+    console.log("gray thing");
     var endPointState = stepStateToTime(this.player, endPointData.time);
     DEBUG_DRAW_GRAY.push(new DebugCircle(endPointState.pos, this.player.radius, 5));
   }
-  console.log(nextSurfaceEvent);
   if (nextSurfaceEvent) {
     //throw "lol";
   }
@@ -1533,9 +1543,21 @@ PhysEng.prototype.drawDebug = function (ctx) {
     var oldStroke = ctx.strokeStyle;
     var oldLineWidth = ctx.lineWidth;
     ctx.miterLimit = 3;
+
+    if (this.player.surface) {
+      ctx.strokeStyle = "maroon";
+      ctx.lineWidth = 6;
+      ctx.beginPath();
+      var surface = this.player.surface;
+      ctx.moveTo(surface.p0.x, surface.p0.y);
+      ctx.lineTo(surface.p1.x, surface.p1.y)
+      ctx.stroke();
+    }
+
     ctx.strokeStyle = "pink";
     ctx.lineWidth = 6;
     ctx.beginPath();
+
 
     for (var i = 0; i < this.predictedEventHeap.size() ; i++) {
       //throw "balls";
@@ -2066,23 +2088,23 @@ function closestPositive(value1, value2) {
   var toReturn = null;
 
   //console.log("            Closest positive, ", "value1:  ", value1, "value2:  ", value2);
-  if (value1 === null && value2 >= 0) {      //handle nulls.
+  if (value1 === null && value2 >= TIME_EPSILON) {      //handle nulls.
     return value2;
-  } else if (value2 === null && value1 >= 0) {
+  } else if (value2 === null && value1 >= TIME_EPSILON) {
     return value1;
   }
 
 
 
-  if (value1 < 0) {            // is value1 negative?
-    if (value2 < 0) {
+  if (value1 <= TIME_EPSILON) {            // is value1 negative?     //hackey bullshit to stop infinite looping???? TODO ????
+    if (value2 <= TIME_EPSILON) {
       toReturn = null;        // NO VALID ROOT, BOTH ARE BACKWARDS IN TIME
       console.log("         NO VALID ROOT, BOTH ARE BACKWARDS IN TIME, v1: ", value1, ", v2: ", value2);
     } else {
       toReturn = value2;           // value1 < 0 and value2 > 0 return value2
       //console.log("   value1 < 0 and value2 > 0 return value2, v1: ", value1, ", v2: ", value2);
     }
-  } else if (value2 < 0) {     // is value2 negative? we know value1 is positive.
+  } else if (value2 <= TIME_EPSILON) {     // is value2 negative? we know value1 is positive.
     toReturn = value1;             // value1 WASNT NEGATIVE AND value2 WAS SO RETURN value1
     //console.log("   value1 WASNT NEGATIVE AND value2 WAS SO RETURN value1, v1: ", value1, ", v2: ", value2);
   } else if (value1 > value2) {     // value1 and value2 are both positive, return the smaller one
@@ -2188,6 +2210,7 @@ function animationSetPlayerColliding(p, time, surfaceVec) {
   p.animationStartTime = time;
   p.animationAngle = getRadiansToHorizontal(surfaceVec);
 }
+
 
 function animationSetPlayerFreefall(p, time) {
   animationReset(p);
