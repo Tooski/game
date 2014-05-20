@@ -7,7 +7,6 @@
 html, body { width:100%; height:100%; } /* just to be sure these are full screen*/
 canvas { display:block; } /* To remove the scrollbars */
 </style>
-<link rel="stylesheet" type="text/css" href="css/style3.css" />
 
     <meta charset="utf-8" />
     <title>Game Project Shell</title>
@@ -32,20 +31,12 @@ canvas { display:block; } /* To remove the scrollbars */
     <script type="text/javascript" src="./save.js"></script>
     <script type="text/javascript" src="./load.js"></script>
     <script type="text/javascript" src="./mapeditor.js"></script>
-    <script type="text/javascript" scr="./remapping.js"></script>
-    <script type="text/javascript" src="./game.js"></script>
+    <script type="text/javascript" src="./remapping.js"></script>
+	<script type="text/javascript" src="./stageBoard.js"></script>
+    <script type="text/javascript" src="./gameMainManu.js"></script>
 
 </head>
 <body>
-	<div class="overlay overlay-slidedown">
-		<nav>
-			<ul>
-				<li>Resume</li>
-				<li>Restart</li>
-				<li>Exit</li>
-			</ul>
-		</nav>
-	</div>
 <!--       <div>
             <form action="result.php" method="post">
                 <label for="username">User name</label>
@@ -56,7 +47,19 @@ canvas { display:block; } /* To remove the scrollbars */
             </form>
         </div>-->
 
-	<script src="classie.js"></script>
-        <canvas id="gameWorld" style="border: 0px solid brown; background: white"></canvas>
+        <canvas id="gameWorld" style="position:absolute; border: 0px solid brown; z-index: 1; background: white"></canvas>
+		<canvas id="time" style="position:absolute; z-index: 2;  left:1150px; top:25px; background: white" height="50px" width="100px"></canvas>
+		<canvas id="score" style="position:absolute; z-index: 2;  left:25px; top:25px; background: white" height="50px" width="100px"></canvas>
+		<canvas id="pause" style="position:absolute; z-index: 2; left:475px; top:125px; background: white; display: none" height="525" width="350"></canvas>
+		<canvas id="remap" style="position:absolute; z-index: 3; left:475px; top:150px; background: white; display: none" height="525" width="350"></canvas>
+		<!--<canvas id="time" style="z-index: 2; background: red"></canvas>-->
+		
+		
+	<!--<div>
+		<script src="classie.js"></script>
+        <canvas id="gameWorld" style="border: 0px solid brown; background: white; display : none"></canvas>
+		<canvas id="game_manu_board" style= "display : block" width="400" height="350"></canvas>
+		<canvas id="stage_board" style= "display : none" width="400" height="350"></canvas>
+	</div>-->
 </body>
 </html>

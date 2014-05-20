@@ -114,11 +114,11 @@ function TerrainLine(point0, point1, player, adjacent0, adjacent1, normal) {
     var collision = false;
     var radiussq = radius * radius;
     var vABlensq = vAB.lengthsq();
-    if (vCD.lengthsq() < radiussq && vAD.lengthsq() < vABlensq && vAB.subtract(vAD).lengthsq() < vABlensq) {
+    if (vCD.lengthsq() < radiussq - COLLISION_EPSILON_SQ && vAD.lengthsq() < vABlensq - COLLISION_EPSILON_SQ && vAB.subtract(vAD).lengthsq() < vABlensq - COLLISION_EPSILON_SQ) {
       // THEN THE CENTER OF OUR CIRCLE IS WITHIN THE PERPENDICULAR BOUNDS OF THE LINE SEGMENT, AND CIRCLE IS LESS THAN RADIUS AWAY FROM THE LINE.
       //console.log("Within perpendicular line bounds.");
       collision = true;
-    } else if (vAC.lengthsq() < radiussq || vBC.lengthsq() < radiussq) {
+    } else if (vAC.lengthsq() < radiussq - COLLISION_EPSILON_SQ || vBC.lengthsq() < radiussq - COLLISION_EPSILON_SQ) {
       // WE ARE OFF THE SIDES OF THE PERPENDICULAR BOUNDING BOX, BUT WE STILL COLLIDED WITH THE LINES ENDPOINT.
       //console.log("Outside line bounds, hit endpoint");
       collision = true;
@@ -160,23 +160,26 @@ function TerrainLine(point0, point1, player, adjacent0, adjacent1, normal) {
     var vABlensq = vAB.lengthsq();
 
 
-    if (vAC.lengthsq() < radiussq) {      // hit P0
+    if (vAC.lengthsq() < radiussq - COLLISION_EPSILON_SQ) {      // hit P0
       dcollision = true;
       dcollidedP0 = true;
       console.log("hit P0.");
     }
-    if (vBC.lengthsq() < radiussq) {       // hit P1
+    if (vBC.lengthsq() < radiussq - COLLISION_EPSILON_SQ) {       // hit P1
       dcollision = true;
       dcollidedP1 = true;
       console.log("hit P1.");
     }
-    if (vCD.lengthsq() < radiussq && vAD.lengthsq() < vABlensq && vAB.subtract(vAD).lengthsq() < vABlensq) {
+    if (vCD.lengthsq() < radiussq - COLLISION_EPSILON_SQ && vAD.lengthsq() < vABlensq - COLLISION_EPSILON_SQ && vAB.subtract(vAD).lengthsq() < vABlensq - COLLISION_EPSILON_SQ) {
       // THEN THE CENTER OF OUR CIRCLE IS WITHIN THE PERPENDICULAR BOUNDS OF THE LINE SEGMENT, AND CIRCLE IS LESS THAN RADIUS AWAY FROM THE LINE.
-      console.log("Within perpendicular line bounds AND collided.");
+      console.log("    Within perpendicular line bounds AND collided.  =-=-=-=-=-=-=-=-=-=--=-=-=-=-=-=-=-=-=");
+      DEBUG_DRAW_RED.push(new DebugCircle(point, radius, 5));
+      DEBUG_DRAW_GREEN.push(new DebugLine(this.p0, this.p1, 5));
       dcollision = true;
       dcollidedLine = true;
     } else {
       // No collision, unless we're missing a case in which case add additional detection here.
+      //DEBUG_DRAW_BLUE.push(new DebugCircle(point, radius, 5));
     }
 
     var data = { collided: dcollision, collidedLine: dcollidedLine, collidedP0: dcollidedP0, collidedP1: dcollidedP1, surface: dsurface, perpendicularIntersect: dperpendicularIntersect };

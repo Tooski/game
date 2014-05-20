@@ -579,6 +579,7 @@ GameEngine.prototype.draw = function(drawCallback) {
     //this.ctx.font = "30px Arial";
     //this.ctx.fillText(player.model.pos,200 + player.model.pos.x - (initWidth/ctx.canvas.width) * (ctx.canvas.width/ initScale / 2),100 + player.model.pos.y - (initWidth/ctx.canvas.width) * (ctx.canvas.height/ initScale / 2) );
     drawDebug(this.ctx);
+    this.physEng.drawDebug(this.ctx);
     this.ctx.restore();
     if (drawCallback) {
       drawCallback(this);

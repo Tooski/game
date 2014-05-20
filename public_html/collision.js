@@ -9,6 +9,12 @@ var COLLISION_TEST_COUNT = 0;
 var DEBUG_DRAW_RED = [];
 var DEBUG_DRAW_GREEN = [];
 var DEBUG_DRAW_BLUE = [];
+var DEBUG_DRAW_ORANGE = [];
+var DEBUG_DRAW_BROWN = [];
+var DEBUG_DRAW_GRAY = [];
+var DEBUG_DRAW_TAN = [];
+var DEBUG_DRAW_YELLOW = [];
+var DEBUG_DRAW_LIGHTBLUE = [];
 
 var DEBUG_DRAW = true;
 
@@ -39,83 +45,17 @@ drawDebug = function (ctx) {
   var oldLineWidth = ctx.lineWidth;
   ctx.miterLimit = 3;
 
-  //draw red debug
-  ctx.beginPath();
-  ctx.strokeStyle = "#FF0000";
-  for (var i = 0; i < DEBUG_DRAW_RED.length; i++) {
-    console.log("    DEBUG_DRAW_RED[", i, "] ", DEBUG_DRAW_RED[i]);
-    if (DEBUG_DRAW_RED[i] instanceof DebugLine) {
-      //throw "wut";
+  drawDebugArray(DEBUG_DRAW_RED, "red", ctx);
+  drawDebugArray(DEBUG_DRAW_GREEN, "#00FF00", ctx);
+  drawDebugArray(DEBUG_DRAW_BLUE, "blue", ctx);
+  drawDebugArray(DEBUG_DRAW_ORANGE, "orange", ctx);
+  drawDebugArray(DEBUG_DRAW_BROWN, "brown", ctx);
+  drawDebugArray(DEBUG_DRAW_GRAY, "gray", ctx);
+  drawDebugArray(DEBUG_DRAW_TAN, "tan", ctx);
+  drawDebugArray(DEBUG_DRAW_YELLOW, "yellow", ctx);
+  drawDebugArray(DEBUG_DRAW_LIGHTBLUE, "lightblue", ctx);
 
-      ctx.lineWidth = DEBUG_DRAW_RED[i].lineWidth;
-      //ctx.lineCap = "round";
 
-      //ctx.lineJoin = "round";
-      ctx.moveTo(DEBUG_DRAW_RED[i].p0.x, DEBUG_DRAW_RED[i].p0.y);
-      ctx.lineTo(DEBUG_DRAW_RED[i].p1.x, DEBUG_DRAW_RED[i].p1.y);
-    } else if (DEBUG_DRAW_RED[i] instanceof DebugPoint) {
-      ctx.moveTo(ctx.moveTo(DEBUG_DRAW_RED[i].p.x - 1, DEBUG_DRAW_RED[i].p.y - 1));
-      ctx.fillRect(DEBUG_DRAW_RED[i].p.x - 1, DEBUG_DRAW_RED[i].p.y - 1, 3, 3);
-    } else if (DEBUG_DRAW_RED[i] instanceof DebugCircle) {
-      //throw "drawing circle";
-      ctx.lineWidth = DEBUG_DRAW_RED[i].lineWidth;
-      ctx.moveTo(DEBUG_DRAW_RED[i].p.x, DEBUG_DRAW_RED[i].p.y);
-      ctx.arc(DEBUG_DRAW_RED[i].p.x, DEBUG_DRAW_RED[i].p.y, DEBUG_DRAW_RED[i].radius, 0, 2 * Math.PI, false);
-    } else {
-      throw "what the hell man";
-    }
-  }
-  ctx.stroke();
-
-  //draw green debug
-  ctx.beginPath();
-  ctx.strokeStyle = "#00FF00";
-  for (var i = 0; i < DEBUG_DRAW_GREEN.length; i++) {
-    console.log("    DEBUG_DRAW_GREEN[", i, "] ", DEBUG_DRAW_GREEN[i]);
-    if (DEBUG_DRAW_GREEN[i] instanceof DebugLine) {
-      ctx.lineWidth = DEBUG_DRAW_GREEN[i].lineWidth;
-      //ctx.lineCap = "round";
-
-      //ctx.lineJoin = "round";
-      ctx.moveTo(DEBUG_DRAW_GREEN[i].p0.x, DEBUG_DRAW_GREEN[i].p0.y);
-      ctx.lineTo(DEBUG_DRAW_GREEN[i].p1.x, DEBUG_DRAW_GREEN[i].p1.y);
-    } else if (DEBUG_DRAW_GREEN[i] instanceof DebugPoint) {
-      ctx.moveTo(ctx.moveTo(DEBUG_DRAW_GREEN[i].p.x - 1, DEBUG_DRAW_GREEN[i].p.y - 1));
-      ctx.fillRect(DEBUG_DRAW_GREEN[i].p.x - 1, DEBUG_DRAW_GREEN[i].p.y - 1, 3, 3);
-    } else if (DEBUG_DRAW_GREEN[i] instanceof DebugCircle) {
-      //throw "drawing circle";
-      ctx.stroke();
-      ctx.beginPath();
-      ctx.moveTo(DEBUG_DRAW_GREEN[i].p.x, DEBUG_DRAW_GREEN[i].p.y);
-      ctx.arc(DEBUG_DRAW_GREEN[i].p.x, DEBUG_DRAW_GREEN[i].p.y, DEBUG_DRAW_GREEN[i].radius, 0, 2 * Math.PI, false);
-      ctx.stroke();
-      ctx.beginPath();
-    }
-  }
-  ctx.stroke();
-
-  //draw blue debug
-  ctx.beginPath();
-  ctx.strokeStyle = "#0000FF";
-  for (var i = 0; i < DEBUG_DRAW_BLUE.length; i++) {
-    //console.log("    DEBUG_DRAW_BLUE[", i, "] ", DEBUG_DRAW_BLUE[i]);
-    if (DEBUG_DRAW_BLUE[i] instanceof DebugLine) {
-      ctx.lineWidth = DEBUG_DRAW_BLUE[i].lineWidth;
-      //ctx.lineCap = "round";
-
-      //ctx.lineJoin = "round";
-      ctx.moveTo(DEBUG_DRAW_BLUE[i].p0.x, DEBUG_DRAW_BLUE[i].p0.y);
-      ctx.lineTo(DEBUG_DRAW_BLUE[i].p1.x, DEBUG_DRAW_BLUE[i].p1.y);
-    } else if (DEBUG_DRAW_BLUE[i] instanceof DebugPoint) {
-      ctx.moveTo(ctx.moveTo(DEBUG_DRAW_BLUE[i].p.x - 1, DEBUG_DRAW_BLUE[i].p.y - 1));
-      ctx.fillRect(DEBUG_DRAW_BLUE[i].p.x - 1, DEBUG_DRAW_BLUE[i].p.y - 1, 3, 3);
-    } else if (DEBUG_DRAW_BLUE[i] instanceof DebugCircle) {
-      //throw "drawing circle";
-      ctx.moveTo(DEBUG_DRAW_BLUE[i].p.x, DEBUG_DRAW_BLUE[i].p.y);
-      ctx.arc(DEBUG_DRAW_BLUE[i].p.x, DEBUG_DRAW_BLUE[i].p.y, DEBUG_DRAW_BLUE[i].radius, 0, 2 * Math.PI, false);
-    }
-  }
-  ctx.stroke();
 
   ctx.strokeStyle = oldStroke;
   ctx.lineWidth = oldLineWidth;
@@ -125,6 +65,33 @@ drawDebug = function (ctx) {
   ctx.restore();
 }
 
+
+
+
+function drawDebugArray(array, color, ctx) {
+  //draw blue debug
+  ctx.beginPath();
+  ctx.strokeStyle = color;
+  for (var i = 0; i < array.length; i++) {
+    //console.log("    DEBUG_DRAW_BLUE[", i, "] ", DEBUG_DRAW_BLUE[i]);
+    if (array[i] instanceof DebugLine) {
+      ctx.lineWidth = array[i].lineWidth;
+      //ctx.lineCap = "round";
+
+      //ctx.lineJoin = "round";
+      ctx.moveTo(array[i].p0.x, array[i].p0.y);
+      ctx.lineTo(array[i].p1.x, array[i].p1.y);
+    } else if (array[i] instanceof DebugPoint) {
+      ctx.moveTo(ctx.moveTo(array[i].p.x - 1, array[i].p.y - 1));
+      ctx.fillRect(array[i].p.x - 1, array[i].p.y - 1, 3, 3);
+    } else if (array[i] instanceof DebugCircle) {
+      //throw "drawing circle";
+      ctx.moveTo(array[i].p.x + array[i].radius, array[i].p.y);
+      ctx.arc(array[i].p.x, array[i].p.y, array[i].radius, 0, 2 * Math.PI, false);
+    }
+  }
+  ctx.stroke();
+}
 
 
 

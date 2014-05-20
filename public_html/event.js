@@ -445,6 +445,7 @@ function TerrainLineCollisionEvent(gameTimeOfCollision, collidedWithList, stateA
   console.log("stateAtCollision: ", stateAtCollision);
   console.log("");
   console.log("");
+  //DEBUG_DRAW_BROWN.push(new DebugCircle(stateAtCollision.pos, stateAtCollision.radius, 5));
   this.mask += E_LINE_COLLISION_MASK;
   //this.time
   //this.collidedWithList = collidedWithList;
