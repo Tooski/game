@@ -15,6 +15,7 @@ Menu.prototype.init = function(offset, w, h) {
     if(!menuCtx) {
         var c = new CanvasFactory({id:"menuCanvas", width:this.w, height: this.h, x: this.offset.x || 0, y: this.offset.y || 0});
         menuCtx =  c.getContext('2d');
+        menuCtx.canvas = c;
         c.tabIndex = 1;
         
     }

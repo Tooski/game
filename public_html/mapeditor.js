@@ -408,7 +408,7 @@ MapEditor.prototype.createLoadButton = function(ctx) {
 
        
   
-        if(!this.load) this.load = new Load(that.level, ctx);
+        this.load = new Load(that.level, ctx);
         gameEngine.menu =this.load;
         gameEngine.menu.focus();
        this.isSelected = button = null;
@@ -427,27 +427,8 @@ MapEditor.prototype.createSaveButton = function(ctx) {
     var that = this;
     save.onRelease = function(e) {
         console.log(e);
-        
-//        var terrain = [];
-//        that.level.terrainList.forEach (function(ter) {
-//            
-//            if(ter.adjacent0) var adj0 = ter.adjacent0.id.toString();
-//            if(ter.adjacent1) var adj1 = ter.adjacent1.id.toString();
-//            if(ter.normal) var norm = ter.normal;
-//            terrain.push({
-//                "id" : ter.id,
-//                "p0" : { "x" : ter.p0.x, "y" : ter.p0.y },
-//                "p1" : { "x" : ter.p1.x, "y" : ter.p1.y },
-//                "normal" : { "x" : norm.x, "y" : norm.y },
-//                "adjacent0" : adj0,
-//                "adjacent1" : adj1 }
-//                );
-//            }
-//        );
-//    game.settings.post({"data" : JSON.stringify(terrain)});
 
-
-   if(!this.save ) this.save = new Save(that.level.terrainList, ctx);
+     this.save = new Save(that.level.terrainList, ctx);
 
         gameEngine.menu = this.save ;
         gameEngine.menu.focus();
