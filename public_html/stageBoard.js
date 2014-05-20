@@ -76,12 +76,13 @@ StageBoard.prototype.setActions = function () {
         var i, k;
         for (i = 0; i < that.my_image_button_arr.length; i++) {
             if (that.my_image_button_arr[i].isOnButton(the_point, that.my_world_map_id)) {
-               // console.log(i);
+                console.log(i);
                 if (k = that.my_image_button_arr[i].canPlay()) {
                     break;
                 }
             }
         }
+		console.log(k);
         if (k) {
             //that.my_image_button_arr[i].addOnePoint();
             that.my_image_button_arr[i].startGame();
@@ -128,7 +129,7 @@ StageBoard.prototype.drowStageBoard = function () {
     }
 
     for (var i = 0; i < this.my_image_button_arr.length; i++) {
-        if (this.my_world_map_id === this.my_image_button_arr[i].my_world_map_id) {
+        if (this.my_world_map_id === this.my_image_button_arr[i].my_world_map_id || this.my_image_button_arr[i].my_world_map_id === -1) {
             this.my_image_button_arr[i].drowButton(this.my_ctx, this.my_where_mouse);
         }
         
@@ -153,7 +154,8 @@ StageBoard.prototype.loop = function () {
 function SBImageButton() {
     this.my_sub_stage = null;
     this.my_world_map_id = null;
-    this.my_point = 0;
+    this.my_point = 11;// need to set up by 0... later
+	
     this.my_left_top = { x: null, y: null };
     this.my_scales = { width: null, height: null };
     this.my_icon_path_arr = [];
@@ -198,7 +200,7 @@ SBImageButton.prototype.isOnButton = function (the_where_mouse, the_world_map_id
     var y = the_where_mouse.y;
     //console.log(the_button.my_scales.x + ", " + right + ", " + top + ", " + bottom + ", " + x + ", " + y + ", ");
     if (x > left && x < right && y > top && y < bottom) {
-        if(!the_world_map_id || this.my_world_map_id == the_world_map_id){
+        if(!the_world_map_id || this.my_world_map_id == the_world_map_id || this.my_world_map_id === -1){
             return true;
         }
         
@@ -283,6 +285,9 @@ SBImageButton.prototype.setPath = function (the_where_mouse) {
                 case 7:
                     this.my_icon_path = ON_M_STAGE_7_PATH;
                     break;
+				case -1:
+					this.my_icon_path = IM_ON_BACK_PATH;
+                    break;
                 default:
                     break;
             }
@@ -312,6 +317,9 @@ SBImageButton.prototype.setPath = function (the_where_mouse) {
                 case 7:
                     this.my_icon_path = OPEN_STAGE_7_PATH;
                     break;
+				case -1:
+					this.my_icon_path = IM_BACK_PATH;
+                    break;
                 default:
                     break;
             }
@@ -326,11 +334,46 @@ SBImageButton.prototype.setPath = function (the_where_mouse) {
 SBImageButton.prototype.startGame = function () {
     //console.log('startGame.' + stage_id + this.my_sub_stage);
     // displaying gmae... 
-	if(this.my_world_map_id ===1){ // play game...
-	    MY_STAGE_CANVAS.style.display = "none";
+	if(this.my_world_map_id === -1){
+		switch (this.my_sub_stage) {
+			case -1:
+				MY_STAGE_CANVAS.style.display = "none";
+				MY_GAME_MANU_CANVAS.style.display = "block";
+				break;
+
+			default: // if do not have game... will return to main cavas.
+				break;
+		}
+	
+	
+	}else if(this.my_world_map_id ===1){ // play game...
+		MY_STAGE_CANVAS.style.display = "none";
 		MY_GAME_MANU_CANVAS.style.display = "none";
-		blockDisplayGame();
-		currentLevel.loadFromFile(1);
+		
+		switch (this.my_sub_stage) {
+			case 1:
+				currentLevel.loadFromFile(15);
+				blockDisplayGame();
+				break;
+			case 2: // need anthoer id...
+				currentLevel.loadFromFile(14);
+				blockDisplayGame();
+				break;
+			case 3:
+				currentLevel.loadFromFile(19);
+				blockDisplayGame();
+				break;
+				
+			case 4:
+				currentLevel.loadFromFile(17);
+				blockDisplayGame();
+				break;
+			default: // if do not have game... will return to main cavas.
+				MY_GAME_MANU_CANVAS.style.display = "block";
+				break;
+		}
+
+		
 		// need to set the time to 0. 
 	} else { // for  going back to home....
 	    MY_STAGE_CANVAS.style.display = "none";
@@ -349,6 +392,10 @@ var STEP_UP_POINT = 10;
 var STAGE_ASSET_MANAGER = new AssetManager();
 
 var ST_BOARD_BACK_PATH = "./img/bg_stage_board.png";
+
+
+var IM_BACK_PATH = "./img/back_button.png";
+var IM_ON_BACK_PATH = "./img/on_back_button.png";
 
 var LOCK_IM_PATH = "./img/lock.png";
 var OPEN_STAGE_1_PATH = "./img/stage_mark_1.png";
@@ -370,6 +417,10 @@ var ON_M_STAGE_7_PATH = "./img/select_stage_mark_7.png";
 STAGE_ASSET_MANAGER.queueDownload(ST_BOARD_BACK_PATH);
 
 STAGE_ASSET_MANAGER.queueDownload(LOCK_IM_PATH);
+STAGE_ASSET_MANAGER.queueDownload(IM_BACK_PATH);
+
+STAGE_ASSET_MANAGER.queueDownload(IM_ON_BACK_PATH);
+
 STAGE_ASSET_MANAGER.queueDownload(OPEN_STAGE_1_PATH);
 STAGE_ASSET_MANAGER.queueDownload(OPEN_STAGE_2_PATH);
 STAGE_ASSET_MANAGER.queueDownload(OPEN_STAGE_3_PATH);
@@ -401,8 +452,13 @@ STAGE_ASSET_MANAGER.downloadAll(function () {
     // setting the background.
     my_stage_board.setBackground(ST_BOARD_BACK_PATH);
     // sub_level, top left x, top_left y, ctx
-
-
+	
+	var back_button = new SBImageButton();
+	// world -1, and sub -1 = back buttom.
+	back_button.init(-1, -1, 0, 0, stage_ctx);
+	my_stage_board.pushButton(back_button);
+	
+	
     // latter... 
     // get datas for wold map.. and just looping it. 
     // need, worldmap id, substage id, position of button.? do i do by ramdomly???
