@@ -133,6 +133,7 @@ function InputObject() {// NAME THESE IN VARIABLES THAT TELL WHIH KEY THEY ARE. 
 
 function GameEngine(player) {
     this.entities = [];
+     this.entitiesGUI = [];
     this.menu;
     this.ctx = null;
     this.click = null;
@@ -234,68 +235,6 @@ GameEngine.prototype.startInput = function() {
     }, false);
 
     this.ctx.canvas.addEventListener("keydown", function (e) {
-      if (gameEngine.input.editKeys) {
-        console.log("why are we editing?");
-          if (gameEngine.input.selectedKeyVal === "LEFT") {
-            gameEngine.input.leftKey = e.keyCode;
-			gameEngine.input.leftString = String.fromCharCode(e.keyCode);
-            alert("Left movement has been remapped");
-			ctx5.clearRect(0,0,canvas5.width,canvas5.height);
-			gameEngine.remapFill(ctx5);
-            gameEngine.input.selectedKeyVal = null;
-            gameEngine.input.editKeys = false;
-          } else if (gameEngine.input.selectedKeyVal === "RIGHT") {
-            gameEngine.input.rightKey = e.keyCode;
-			gameEngine.input.rightString = String.fromCharCode(e.keyCode);
-            alert("Right movement has been remapped");
-			ctx5.clearRect(0,0,canvas5.width,canvas5.height);
-			gameEngine.remapFill(ctx5);
-            gameEngine.input.selectedKeyVal = null;
-            gameEngine.input.editKeys = false;
-          } else if (gameEngine.input.selectedKeyVal === "UP") {
-            gameEngine.input.upKey = e.keyCode;
-            alert("Upward movement has been remapped");
-            gameEngine.input.selectedKeyVal = null;
-            gameEngine.input.editKeys = false;
-          } else if (gameEngine.input.selectedKeyVal === "DOWN") {
-            gameEngine.input.downKey = e.keyCode;
-            alert("Downward movement has been remapped");
-            gameEngine.input.selectedKeyVal = null;
-            gameEngine.input.editKeys = false;
-          } else if (gameEngine.input.selectedKeyVal === "JUMP") {
-            gameEngine.input.jumpKey = e.keyCode;
-			gameEngine.input.jumpString = String.fromCharCode(e.keyCode);
-            alert("Jump has been remapped");
-			ctx5.clearRect(0,0,canvas5.width,canvas5.height);
-			gameEngine.remapFill(ctx5);
-            gameEngine.input.selectedKeyVal = null;
-            gameEngine.input.editKeys = false;
-          } else if (gameEngine.input.selectedKeyVal === "LOCK") {
-            gameEngine.input.lockKey = e.keyCode;
-			gameEngine.input.lockString = String.fromCharCode(e.keyCode);
-            alert("Lock has been remapped");
-			ctx5.clearRect(0,0,canvas5.width,canvas5.height);
-			gameEngine.remapFill(ctx5);
-            gameEngine.input.selectedKeyVal = null;
-            gameEngine.input.editKeys = false;
-          } else if (gameEngine.input.selectedKeyVal === "BOOST") {
-            gameEngine.input.boostKey = e.keyCode;
-			gameEngine.input.boostString = String.fromCharCode(e.keyCode);
-            alert("Boost has been remapped");
-			ctx5.clearRect(0,0,canvas5.width,canvas5.height);
-			gameEngine.remapFill(ctx5);
-            gameEngine.input.selectedKeyVal = null;
-            gameEngine.input.editKeys = false;
-          } else if (gameEngine.input.selectedKeyVal === "PAUSE") {
-            gameEngine.input.pauseKey = e.keyCode;
-			gameEngine.input.pauseString = String.fromCharCode(e.keyCode);
-            alert("Pause has been remapped");
-			ctx5.clearRect(0,0,canvas5.width,canvas5.height);
-			gameEngine.remapFill(ctx5);
-            gameEngine.input.selectedKeyVal = null;
-            gameEngine.input.editKeys = false;
-          }
-      } else {
         //console.log(e.keyCode);
         //console.log(gameEngine.input);
         if (e.keyCode === gameEngine.input.leftKey && gameEngine.input.leftPressed === false) {
@@ -322,8 +261,7 @@ GameEngine.prototype.startInput = function() {
           } else if (e.keyCode === gameEngine.input.pauseKey && gameEngine.input.pausePressed === false) {
             gameEngine.setPause(true, performance.now());
             //console.log("Pause pressed");
-			    }
-        }
+		  }
         //e.preventDefault();
     }, false);
     
@@ -429,14 +367,12 @@ GameEngine.prototype.setPause = function (upOrDown, time) {
 		var pause = document.getElementById('pause');
 		pause.style.display = '';
 		showPause = true;
-		levelTime.pause();
 	}
 	else {
 		this.eventsSinceLastFrame.push(new UnpauseEvent((time) / 1000));
 		var pause = document.getElementById('pause');
 		pause.style.display = 'none';
 		showPause = false;
-		levelTime.start();
 	}
   }
 }
@@ -482,7 +418,12 @@ GameEngine.prototype.controlReset = function() {
 
 GameEngine.prototype.addEntity = function(entity) {
     console.log('added entity');
-    this.entities.push(entity);
+      if(entity instanceof GUIEntity) {
+     
+        this.entitiesGUI.push(entity);
+    } else if (entity instanceof Entity) {
+        this.entities.push(entity);
+    }
 }
 
 
@@ -523,12 +464,30 @@ GameEngine.prototype.draw = function(drawCallback) {
     this.ctx.save();
 
     if(initScale !== 0) {
-    
-        canvas.width = window.innerWidth;
-        canvas.height = window.innerHeight;
-        // initScale is the window's width / 16 / player width. this should allow everything to scale down
-        // the player will be 1/16 the width of the window at all times and everything will scale with him.
-        ctx.scale(initScale * canvas.width / initWidth, initScale * canvas.width / initWidth);
+            var hasNotChanged = canvas.width === window.innerWidth && canvas.height === window.innerHeight;
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            if(!hasNotChanged) {
+                var item = document.getElementById('mapEditor');
+                console.log(item);
+                if(item) {
+                    
+                    var ctxGUI = item.getContext('2d');
+
+                    ctxGUI.clearRect(0, 0, ctxGUI.canvas.width, ctxGUI.canvas.height);
+                    for(var i = 0; i < this.entitiesGUI.length; i++) {
+                        this.entitiesGUI[i].draw(ctxGUI);
+                    }
+                }
+      
+            }
+            
+
+            // initScale is the window's width / 16 / player width. this should allow everything to scale down
+            // the player will be 1/16 the width of the window at all times and everything will scale with him.
+            ctx.scale(initScale * canvas.width / initWidth, initScale * canvas.width / initWidth);
+            //  ctxGUI.scale(initScale * canvas.width / initWidth, initScale * canvas.width / initWidth);
+      
   
   
         // Adjusts the canvas' move position as well as the post scaling.
@@ -546,36 +505,36 @@ GameEngine.prototype.draw = function(drawCallback) {
         this.entities[i].draw(this.ctx);
     }
        
-    for(var i = 0; i < buttonList.length; i++) {
-        if(!mouseCollidable[i].onEditMode || (mouseCollidable[i].onEditMode && editMode)) {
-        buttonList[i].collider.x = buttonList[i].x = buttonList[i].ix + player.model.pos.x - (initWidth/ctx.canvas.width) * (ctx.canvas.width/ initScale / 2);
-        buttonList[i].collider.y = buttonList[i].y = buttonList[i].iy + player.model.pos.y - (initWidth/ctx.canvas.width) * (ctx.canvas.height/ initScale / 2) ;
-
-
-        this.ctx.beginPath();
-        this.ctx.fillStyle = buttonList[i].isSelected ? "#00FF00" : "#FF0000";
-        this.ctx.fillRect(buttonList[i].x,buttonList[i].y, buttonList[i].w, buttonList[i].h);
-         this.ctx.stroke();
-
-        var size = 16;
-        this.ctx.fillStyle = "black";
-        this.ctx.font = "bold "+size+"px Arial";
-        this.ctx.textAlign="center"; 
-        this.ctx.fillText(buttonList[i].name, buttonList[i].x +  buttonList[i].w/2, buttonList[i].y  + buttonList[i].h/2 + size/2);
-        //this.ctx.fillStyle = "orange";
-        //this.ctx.drawRect( buttonList[i].collider.x, buttonList[i].collider.y , buttonList[i].collider.w , buttonList[i].collider.h );
-// ctx.beginPath();
-//      ctx.rect(xx, yy, 60,60);
+//    for(var i = 0; i < buttonList.length; i++) {
+//        if(!mouseCollidable[i].onEditMode || (mouseCollidable[i].onEditMode && editMode)) {
+//        buttonList[i].collider.x = buttonList[i].x = buttonList[i].ix + player.model.pos.x - (initWidth/ctx.canvas.width) * (ctx.canvas.width/ initScale / 2);
+//        buttonList[i].collider.y = buttonList[i].y = buttonList[i].iy + player.model.pos.y - (initWidth/ctx.canvas.width) * (ctx.canvas.height/ initScale / 2) ;
 //
-//      ctx.lineWidth = 7;
-//      ctx.strokeStyle = 'black';
-//      ctx.stroke();
-     
-        
-        }
-    } 
-    
-    if(this.menu && this.menu instanceof Menu) this.menu.draw(this.ctx);
+//
+//        this.ctx.beginPath();
+//        this.ctx.fillStyle = buttonList[i].isSelected ? "#00FF00" : "#FF0000";
+//        this.ctx.fillRect(buttonList[i].x,buttonList[i].y, buttonList[i].w, buttonList[i].h);
+//         this.ctx.stroke();
+//
+//        var size = 16;
+//        this.ctx.fillStyle = "black";
+//        this.ctx.font = "bold "+size+"px Arial";
+//        this.ctx.textAlign="center"; 
+//        this.ctx.fillText(buttonList[i].name, buttonList[i].x +  buttonList[i].w/2, buttonList[i].y  + buttonList[i].h/2 + size/2);
+//        //this.ctx.fillStyle = "orange";
+//        //this.ctx.drawRect( buttonList[i].collider.x, buttonList[i].collider.y , buttonList[i].collider.w , buttonList[i].collider.h );
+//// ctx.beginPath();
+////      ctx.rect(xx, yy, 60,60);
+////
+////      ctx.lineWidth = 7;
+////      ctx.strokeStyle = 'black';
+////      ctx.stroke();
+//     
+//        
+//        }
+//    } 
+//    
+    if(this.menu && this.menu instanceof Menu) this.menu.draw(ctxGUI);
     //this.ctx.font = "30px Arial";
     //this.ctx.fillText(player.model.pos,200 + player.model.pos.x - (initWidth/ctx.canvas.width) * (ctx.canvas.width/ initScale / 2),100 + player.model.pos.y - (initWidth/ctx.canvas.width) * (ctx.canvas.height/ initScale / 2) );
     drawDebug(this.ctx);
@@ -629,17 +588,21 @@ GameEngine.prototype.update = function() {
 };
 
 GameEngine.prototype.loop = function() {
-    this.update();
-    this.draw();
-    this.click = null;
-    this.wheel = null;
+	if(canvas.style.display === "block"){ // by.min. i did this for make more faster for other cavnas.
+		this.update();
+		this.draw();
+		this.click = null;
+		this.wheel = null;
+	}
 }
 
 //Create pause menu buttons
 var mouseX;
 var mouseY;
-var optionsButton = new Button(500,800,395,495);
-var resumeButton = new Button(500,800,155,255);
+var resumeButton = new Button("Resume",500,800,155,255);
+var restartButton = new Button("Restart",500,800,275,375);
+var optionsButton = new Button("Options",500,800,395,495);
+var quitButton = new Button("Quit",500,800,515,615);
 
 GameEngine.prototype.pauseFill = function(ctx) {
 	ctx.beginPath();
@@ -675,6 +638,14 @@ GameEngine.prototype.pauseFill = function(ctx) {
     ctx.fillText("Quit",135,450);
 }
 
+var returnButton = new Button("Return",475,825,125,215);
+var jumpButton = new Button("Jump",500,650,215,265);
+var boostButton = new Button("Boost",500,650,290,340);
+var lockButton = new Button("Lock",500,650,365,415);
+var pauseButton = new Button("Pause",500,650,440,490);
+var leftButton = new Button("Left",500,650,515,565);
+var rightButton = new Button("Right",500,650,590,640);
+
 GameEngine.prototype.remapFill = function(ctx) {
 	ctx.fillStyle="blue";
 	ctx.font =  "40px Arial";
@@ -682,73 +653,74 @@ GameEngine.prototype.remapFill = function(ctx) {
 
 	ctx.beginPath();
     ctx.fillStyle="blue";
-    ctx.fillRect(25,100,150,50);
+    ctx.fillRect(25,90,150,50);
     ctx.stroke();
 	ctx.fillStyle="white";
 	ctx.font =  "30px Arial";
-    ctx.fillText("Jump",60,135);
+    ctx.fillText("Jump",60,125);
 	ctx.fillStyle="blue";
 	ctx.font =  "30px Arial";
-    ctx.fillText(gameEngine.input.jumpString,200,135);
+    ctx.fillText(gameEngine.input.jumpString,200,125);
 
 	ctx.beginPath();
     ctx.fillStyle="blue";
-    ctx.fillRect(25,175,150,50);
+    ctx.fillRect(25,165,150,50);
     ctx.stroke();
 	ctx.fillStyle="white";
 	ctx.font =  "30px Arial";
-    ctx.fillText("Boost",60,210);
+    ctx.fillText("Boost",60,200);
 	ctx.fillStyle="blue";
 	ctx.font =  "30px Arial";
-    ctx.fillText(gameEngine.input.boostString,200,210);
+    ctx.fillText(gameEngine.input.boostString,200,200);
 
 	ctx.beginPath();
     ctx.fillStyle="blue";
-    ctx.fillRect(25,250,150,50);
+    ctx.fillRect(25,240,150,50);
     ctx.stroke();
 	ctx.fillStyle="white";
 	ctx.font =  "30px Arial";
-    ctx.fillText("Lock",60,285);
+    ctx.fillText("Lock",60,275);
 	ctx.fillStyle="blue";
 	ctx.font =  "30px Arial";
-    ctx.fillText(gameEngine.input.lockString,200,285);
+    ctx.fillText(gameEngine.input.lockString,200,275);
 
 	ctx.beginPath();
     ctx.fillStyle="blue";
-    ctx.fillRect(25,325,150,50);
+    ctx.fillRect(25,315,150,50);
     ctx.stroke();
 	ctx.fillStyle="white";
 	ctx.font =  "30px Arial";
-    ctx.fillText("Pause",60,360);
+    ctx.fillText("Pause",60,350);
 	ctx.fillStyle="blue";
 	ctx.font =  "30px Arial";
-    ctx.fillText(gameEngine.input.pauseString,200,360);
+    ctx.fillText(gameEngine.input.pauseString,200,350);
 
 	ctx.beginPath();
     ctx.fillStyle="blue";
-    ctx.fillRect(25,400,150,50);
+    ctx.fillRect(25,390,150,50);
     ctx.stroke();
 	ctx.fillStyle="white";
 	ctx.font =  "30px Arial";
-    ctx.fillText("Left",60,435);
+    ctx.fillText("Left",60,425);
 	ctx.fillStyle="blue";
 	ctx.font =  "30px Arial";
-    ctx.fillText(gameEngine.input.leftString,200,435);
+    ctx.fillText(gameEngine.input.leftString,200,425);
 
 	ctx.beginPath();
     ctx.fillStyle="blue";
-    ctx.fillRect(25,475,150,50);
+    ctx.fillRect(25,465,150,50);
     ctx.stroke();
 	ctx.fillStyle="white";
 	ctx.font =  "30px Arial";
-    ctx.fillText("Right",60,510);
+    ctx.fillText("Right",60,500);
 	ctx.fillStyle="blue";
 	ctx.font =  "30px Arial";
-    ctx.fillText(gameEngine.input.rightString,200,510);
+    ctx.fillText(gameEngine.input.rightString,200,500);
 }
 
 //Button objects
-function Button (xL,xR,yT,yB) {
+function Button (name,xL,xR,yT,yB) {
+	this.name = name;
 	this.xL = xL;
 	this.xR = xR;
 	this.yT = yT;
@@ -765,7 +737,7 @@ Button.prototype.checkClicked = function() {
 	}
 }
 
-function mouseClicked (e) {
+function pauseClicked (e) {
 	mouseX = e.pageX;
 	mouseY = e.pageY;
 	console.log("X: " + mouseX + ", Y: " + mouseY + ", Result: " + optionsButton.checkClicked());
@@ -774,12 +746,128 @@ function mouseClicked (e) {
 		console.log("Options!");
 		var remap = document.getElementById('remap');
 		remap.style.display = '';
+		ctx5.canvas.addEventListener('click',remapClicked,false);
+		ctx5.canvas.addEventListener('keydown',setKeys,false);
+		ctx5.canvas.setAttribute('tabindex', '1');
+		ctx5.canvas.focus();
 		var pause = document.getElementById('pause');
 		pause.style.display = 'none';
+		ctx4.canvas.removeEventListener('click',pauseClicked,false);
 	} else if (resumeButton.checkClicked()) {
 		console.log("Resume!");
+		//Fix bug
 		gameEngine.setPause(true, performance.now());
+	} else if (restartButton.checkClicked()) {
+		console.log("Restart!");
+	} else if (quitButton.checkClicked()) {
+		console.log("Quit!");
 	}
+}
+
+function remapClicked (e) {
+	mouseX = e.pageX;
+	mouseY = e.pageY;
+	console.log("X: " + mouseX + ", Y: " + mouseY + ", Result: " + optionsButton.checkClicked());
+	if (returnButton.checkClicked()) {
+		console.log("Return!");
+		var pause = document.getElementById('pause');
+		pause.style.display = '';
+		ctx4.canvas.addEventListener('click',pauseClicked,false);
+		var remap = document.getElementById('remap');
+		remap.style.display = 'none';
+		ctx5.canvas.removeEventListener('click',remapClicked,false);
+		ctx5.canvas.removeEventListener('keydown',setKeys,false);
+	} else if (jumpButton.checkClicked()) {
+		console.log("Jump!");
+		gameEngine.input.editKeys = true;
+		gameEngine.input.selectedKeyVal = "JUMP";
+	} else if (boostButton.checkClicked()) {
+		console.log("Boost!");
+		gameEngine.input.editKeys = true;
+		gameEngine.input.selectedKeyVal = "BOOST";
+	} else if (lockButton.checkClicked()) {
+		console.log("Lock!");
+		gameEngine.input.editKeys = true;
+		gameEngine.input.selectedKeyVal = "LOCK";
+	} else if (pauseButton.checkClicked()) {
+		console.log("Pause!");
+		gameEngine.input.editKeys = true;
+		gameEngine.input.selectedKeyVal = "PAUSE";
+	} else if (leftButton.checkClicked()) {
+		console.log("Left!");
+		gameEngine.input.editKeys = true;
+		gameEngine.input.selectedKeyVal = "LEFT";
+	} else if (rightButton.checkClicked()) {
+		console.log("Right!");
+		gameEngine.input.editKeys = true;
+		gameEngine.input.selectedKeyVal = "RIGHT";
+	} 
+}
+
+function setKeys (e) {
+	console.log("Inside!");
+	if (gameEngine.input.editKeys) {
+        console.log("why are we editing?");
+          if (gameEngine.input.selectedKeyVal === "LEFT") {
+            gameEngine.input.leftKey = e.keyCode;
+			gameEngine.input.leftString = String.fromCharCode(e.keyCode);
+            alert("Left movement has been remapped");
+			ctx5.clearRect(0,0,canvas5.width,canvas5.height);
+			gameEngine.remapFill(ctx5);
+            gameEngine.input.selectedKeyVal = null;
+            gameEngine.input.editKeys = false;
+          } else if (gameEngine.input.selectedKeyVal === "RIGHT") {
+            gameEngine.input.rightKey = e.keyCode;
+			gameEngine.input.rightString = String.fromCharCode(e.keyCode);
+            alert("Right movement has been remapped");
+			ctx5.clearRect(0,0,canvas5.width,canvas5.height);
+			gameEngine.remapFill(ctx5);
+            gameEngine.input.selectedKeyVal = null;
+            gameEngine.input.editKeys = false;
+          } else if (gameEngine.input.selectedKeyVal === "UP") {
+            gameEngine.input.upKey = e.keyCode;
+            alert("Upward movement has been remapped");
+            gameEngine.input.selectedKeyVal = null;
+            gameEngine.input.editKeys = false;
+          } else if (gameEngine.input.selectedKeyVal === "DOWN") {
+            gameEngine.input.downKey = e.keyCode;
+            alert("Downward movement has been remapped");
+            gameEngine.input.selectedKeyVal = null;
+            gameEngine.input.editKeys = false;
+          } else if (gameEngine.input.selectedKeyVal === "JUMP") {
+            gameEngine.input.jumpKey = e.keyCode;
+			gameEngine.input.jumpString = String.fromCharCode(e.keyCode);
+            alert("Jump has been remapped");
+			ctx5.clearRect(0,0,canvas5.width,canvas5.height);
+			gameEngine.remapFill(ctx5);
+            gameEngine.input.selectedKeyVal = null;
+            gameEngine.input.editKeys = false;
+          } else if (gameEngine.input.selectedKeyVal === "LOCK") {
+            gameEngine.input.lockKey = e.keyCode;
+			gameEngine.input.lockString = String.fromCharCode(e.keyCode);
+            alert("Lock has been remapped");
+			ctx5.clearRect(0,0,canvas5.width,canvas5.height);
+			gameEngine.remapFill(ctx5);
+            gameEngine.input.selectedKeyVal = null;
+            gameEngine.input.editKeys = false;
+          } else if (gameEngine.input.selectedKeyVal === "BOOST") {
+            gameEngine.input.boostKey = e.keyCode;
+			gameEngine.input.boostString = String.fromCharCode(e.keyCode);
+            alert("Boost has been remapped");
+			ctx5.clearRect(0,0,canvas5.width,canvas5.height);
+			gameEngine.remapFill(ctx5);
+            gameEngine.input.selectedKeyVal = null;
+            gameEngine.input.editKeys = false;
+          } else if (gameEngine.input.selectedKeyVal === "PAUSE") {
+            gameEngine.input.pauseKey = e.keyCode;
+			gameEngine.input.pauseString = String.fromCharCode(e.keyCode);
+            alert("Pause has been remapped");
+			ctx5.clearRect(0,0,canvas5.width,canvas5.height);
+			gameEngine.remapFill(ctx5);
+            gameEngine.input.selectedKeyVal = null;
+            gameEngine.input.editKeys = false;
+          }
+      }
 }
 
 // GameBoard code below
@@ -830,9 +918,32 @@ for(var i = 0; i < imagePaths.length; i++) {
 }
 
 
+//------------------------
 
+/*
+	by. Minkwan Choi.
+	array of gamecavse that needs to control from other js. 
+*/
+var GameCanvas = [];
+// to un-display.
+function noneDisplayGame(){
+	for(var i = 0; i < GameCanvas.length; i++){
+		GameCanvas[i].style.display = "none";
+	}
 
+}
+// to display game canvas and other things for game..
+function blockDisplayGame(){
+	for(var i = 0; i < GameCanvas.length; i++){
+		GameCanvas[i].style.display = "block";
+	}
+}
+
+//--------------------------------
 ASSET_MANAGER.downloadAll(function() {
+    
+    
+    
     
     console.log("starting up da sheild");
     canvas = document.getElementById('gameWorld');
@@ -843,14 +954,19 @@ ASSET_MANAGER.downloadAll(function() {
 	 ctx3 = canvas3.getContext('2d');
 	canvas4 = document.getElementById('pause');
 	 ctx4 = canvas4.getContext('2d');
-	 ctx4.canvas.addEventListener('click',mouseClicked,false);
+	 ctx4.canvas.addEventListener('click',pauseClicked,false);
 	canvas5 = document.getElementById('remap');
 	 ctx5 = canvas5.getContext('2d');
-          var timer = new Timer();
-     player  = new Player(canvas.width/2, canvas.height/2, timer);
-    canvas.tabIndex = 1;
-   
-    initHeight =canvas.height = window.innerHeight;
+	 
+	 
+	 GameCanvas.push(canvas);
+	 GameCanvas.push(canvas2);
+	 GameCanvas.push(canvas3);
+	// GameCanvas.push(canvas4);
+	 //GameCanvas.push(canvas5);
+	 //ctx5.canvas.addEventListener('click',remapClicked,false);
+
+    initHeight = canvas.height = window.innerHeight;
     initWidth = canvas.width = window.innerWidth;
 
     initScale = initWidth / 1920;
@@ -877,7 +993,7 @@ ASSET_MANAGER.downloadAll(function() {
     //    gameEngine.addEntity(new TerrainLine(new vec2(200,200+50), new vec2(200+250,200+150), player));
     
     gameEngine.addEntity(currentLevel);
-    new MapEditor(currentLevel);
+    gameEngine.addEntity(new MapEditor(currentLevel));
 	//new KeyMapping(gameEngine);
    //  gameEngine.addEntity(new BezierCurve(40,100,80,20,150,180,260,100));
     gameEngine.addEntity(gameboard);
@@ -890,33 +1006,7 @@ ASSET_MANAGER.downloadAll(function() {
 
 
   
-    var selectedItem;
-    canvas.addEventListener('mousedown', function(e) {
-        selectedItem = collides( e.offsetX, e.offsetY);
-        if (selectedItem && selectedItem.onClick) {
-            selectedItem.onClick(e);
-        }
-    }, false);
-    canvas.addEventListener("mousemove", function(e){
 
-//        var v =  getMousePos( e);
-//        
-//         xx = e.offsetX/ initScale* (initWidth/ctx.canvas.width)
-//            -ctx.canvas.width/initScale/2* (initWidth/ctx.canvas.width) + player.model.pos.x ;
-//       yy = e.offsetY/ initScale* (initWidth/ctx.canvas.width)- 
-//            ctx.canvas.height/initScale/2* (initWidth/ctx.canvas.width)  + player.model.pos.y;
-//       
-        
-        if (selectedItem && selectedItem.onDrag) {
-            selectedItem.onDrag(e);
-        }
-    }, false);
-    canvas.addEventListener("mouseup", function(e){
-        if (selectedItem && selectedItem.onRelease) {
-            selectedItem.onRelease(e);
-        }
-        selectedItem = null;
-    }, false);
     
 });
 });

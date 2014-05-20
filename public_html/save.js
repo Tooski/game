@@ -2,13 +2,18 @@
 
 function Save(terrainList) {
     this.terrainList = terrainList;
-    this.ih = 400;
-    this.iw = 400;
+    this.ih = this.h = 400; 
+    this.iw = this.w = 400;
+    this.x = 0, this.y = 0;
+    this.offset = new vec2(canvas.width/2 - this.w/2, canvas.height/2 - this.h/2);
+
+    
     var that = this;
-    this.table = new MenuTable("Table", 0, 70, this.iw, 300, 10, true);
+    this.table = new MenuTable("Table", 0, 70, this.iw, 300, 10, true, this.ctx);
     var cancelButton = new MenuButton("Cancel");
-    cancelButton.collider.onClick = function(e) {
+    cancelButton.collider.onRelease = function(e) {
         gameEngine.menu = null;
+        that.clear();
     };
     var isSaving = false;
 
@@ -236,14 +241,17 @@ function Save(terrainList) {
     };
 
     this.buttons = new MenuButtonGroup(0, 0, this.iw, 50, 10);
-    //this.buttons.addButtons([cancelButton,saveButton,newButton]);
+    this.buttons.addButtons([cancelButton,saveButton,newButton]);
     //this.buttons.addButtons([hasUserName, hasEmail]);
     //this.buttons.addButtons([insertScore, highScore, bestTime]);
     //this.buttons.addButtons([topTenHighScore, topTenTime]);
-    this.buttons.addButtons([addLevelToStage, getStageLevels]);
-
+    //this.buttons.addButtons([addLevelToStage, getStageLevels]);
+    
     this.buttons.setParent(this);
-}
+    this.buttons.setOffset(this.offset);
+    
+    this.init(this.offset, this.w, this.h);
+};
 
 Save.prototype = new Menu();
 
@@ -251,16 +259,19 @@ Save.prototype.update = function() {
 
 };
 
-Save.prototype.draw = function(ctx) {
-    this.h = this.ih / initScale * (initWidth / ctx.canvas.width);
-    this.w = this.iw / initScale * (initWidth / ctx.canvas.width);
-    this.x = player.model.pos.x - this.w / 2;
-    this.y = player.model.pos.y - this.h / 2;
-    ctx.beginPath();
-    ctx.fillStyle = "blue";
-    ctx.fillRect(this.x, this.y, this.w, this.h);
-    ctx.stroke();
+Save.prototype.draw = function() {
+    
+    this.ctx.canvas.style.left = canvas.width/2 - this.w/2;
+    this.ctx.canvas.style.top = canvas.height/2 - this.h/2;
+    
+    this.offset.x = canvas.width/2 - this.w/2, this.offset.y = canvas.height/2 - this.h/2;
+    this.buttons.setOffset(this.offset);
+    
+    this.ctx.beginPath();
+    this.ctx.fillStyle = "blue";
+    this.ctx.fillRect(this.x, this.y, this.w, this.h);
+    this.ctx.stroke();
 
-    this.buttons.draw(ctx);
-    this.table.draw(ctx);
+    this.buttons.draw(this.ctx);
+    this.table.draw(this.ctx);
 };

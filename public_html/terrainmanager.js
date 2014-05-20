@@ -294,7 +294,7 @@ TerrainManager.prototype.createTerrainPoints = function(terrain) {
     var that = this;
 //    if(editMode) {
       var wh = 10;
-      terrain.p0edit = new MouseCollideable("point", terrain.p0.x - wh, terrain.p0.y - wh, wh*2, wh*2);
+      terrain.p0edit = new MouseCollideable(false, terrain.p0.x - wh, terrain.p0.y - wh, wh*2, wh*2);
       
       terrain.p0edit.onDrag = function(e) {
         var xOffset = localToWorld(e.offsetX* (initWidth/ctx.canvas.width), "x");
@@ -318,7 +318,7 @@ TerrainManager.prototype.createTerrainPoints = function(terrain) {
       terrain.p0edit.onRelease = function(e) {
           that.snapTo(terrain);
       };
-      terrain.p1edit = new MouseCollideable("point", terrain.p1.x - wh, terrain.p1.y - wh, wh*2, wh*2);
+      terrain.p1edit = new MouseCollideable(false, terrain.p1.x - wh, terrain.p1.y - wh, wh*2, wh*2);
       terrain.p1edit.onDrag = function(e) {
         var xOffset = localToWorld(e.offsetX* (initWidth/ctx.canvas.width), "x");
         var yOffset = localToWorld(e.offsetY* (initWidth/ctx.canvas.width), "y");
@@ -344,7 +344,7 @@ TerrainManager.prototype.createTerrainPoints = function(terrain) {
       };
      
       terrain.normalPosVec = new vec2(terrain.p0.x, terrain.p0.y);
-      terrain.normalPosCol = new MouseCollideable("normal", terrain.p0.x - wh, terrain.p0.y - wh, wh*2, wh*2);
+      terrain.normalPosCol = new MouseCollideable(false, terrain.p0.x - wh, terrain.p0.y - wh, wh*2, wh*2);
       terrain.normalPosCol.onDrag = function(e) {
           if(terrain.normal) {
           var point = findNormalByMouse(e, terrain);
