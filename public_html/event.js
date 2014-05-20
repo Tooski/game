@@ -490,7 +490,7 @@ function TerrainLineCollisionEvent(gameTimeOfCollision, collidedWithList, stateA
       //}
       //this.player.vel = surfaceVec.multf(velocityMag);              // END DISABLED FOR REALISTIC PHYSICS
       console.log("collidedWithList: ", collidedWithList);
-      p.lockTo(surface, surfaceVecNorm);
+      p.lockTo(surface, this.surfaceVec.normalize());
 
       animationSetPlayerRunning(p, this.time);
     } else if (input.lock && this.allowLock && collisionForceVecLen < p.physParams.lockThreshold) {
