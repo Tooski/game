@@ -348,6 +348,7 @@ function PlayerModel(controlParams, physParams, time, radius, pos, vel, accel, s
     this.predictedDirty = true;
     this.airChargeCount = this.controlParams.numAirCharges;
     this.updateVecs(this.inputState);
+    animationSetPlayerFreefall(this, this.time);
   }
 
 
@@ -2209,6 +2210,7 @@ function animationSetPlayerColliding(p, time, surfaceVec) {
   p.animationStartTime = time;
   p.animationAngle = getRadiansToHorizontal(surfaceVec);
 }
+
 
 function animationSetPlayerFreefall(p, time) {
   animationReset(p);
