@@ -417,27 +417,27 @@ function PlayerModel(controlParams, physParams, time, radius, pos, vel, accel, s
 
 
     if (baseForceVec.lengthsq() === 0) {
-      console.log("   we are not being pushed, just chill");
+      //console.log("   we are not being pushed, just chill");
       this.accel = new vec2(0, 0);
       this.predictedDirty = true;
     } else if (inputState.lock) {                                                // If we are locked to the surface we are on.
-      console.log("   we are being locked to the surface we are on.");
+      //console.log("   we are being locked to the surface we are on.");
       var surfaceDir = this.vel;
       this.accel = projectVec2(baseForceVec, surfaceDir);
       this.predictedDirty = true;
       
     } else if (angleToNormal >= HALF_PI || angleToNormal <= -HALF_PI) {          // If the baseForceVec is pushing us towards the surface we're on:
-      console.log("   we are being pushed TOWARDS the surface we are on.");
+      //console.log("   we are being pushed TOWARDS the surface we are on.");
       // WE ASSUME PLAYER'S VELOCITY VECTOR IS ALREADY ALIGNED WITH THE SURFACE.
       // ___+____+____+___ magnitude acceleration along a sloped surface = magnitude of force * sin(angle between force and surface normal)
       var surfaceDir = surface.getSurfaceAt(this.pos, this.radius);
-      console.log("surfaceDir: ", surfaceDir);
+      //console.log("surfaceDir: ", surfaceDir);
       this.accel = projectVec2(baseForceVec, surfaceDir);
       this.predictedDirty = true;
-      console.log("this.accel: ", this.accel);
+      //console.log("this.accel: ", this.accel);
       //var angleToSurface = Math.acos(surfaceVec.normalize().dot(baseForceNormalized));
     } else  {  // we are being pushed away from the surface we are on. Updating states to have left the ground, and then calling updateAirStates.
-      console.log("   we are being pushed AWAY from the surface we are on. Simply calling updateAirStates.");
+      //console.log("   we are being pushed AWAY from the surface we are on. Simply calling updateAirStates.");
       this.doNotCheckStepSurfaces.push(this.surface);
       this.leaveGround();
       this.updateVecsAir(inputState);
@@ -530,7 +530,7 @@ PlayerModel.prototype.jump = function () {
   var velx;
   var vely;
   this.airchargeCount--;
-  console.log("this.surface", this.surface);
+  //console.log("this.surface", this.surface);
   animationSetPlayerJumping(this, this.time, this.surface.getSurfaceAt(this.pos));
   //add end animation event for double jump. TODO
 
@@ -740,15 +740,15 @@ PhysEng.prototype.updatePhys = function (newEvents, stepToRender) {
     //console.log("after pop: ", this.primaryEventHeap.size());
     //console.log("stepResult: ", stepResult);
     //console.log("currentEvent: ", currentEvent);
-    console.log("");
-    console.log("");
-    console.log("");
-    console.log("start of an update.        start of an update.        start of an update.        start of an update.        start of an update.      ");
-    console.log("  starting pos: ", this.player.pos);
-    console.log("  starting vel: ", this.player.vel);
-    console.log("  starting accel: ", this.player.accel);
-    console.log("  attempting to step to Event: ", currentEvent);
-    console.log("  targetTime: ", targetTime);
+    //console.log("");
+    //console.log("");
+    //console.log("");
+    //console.log("start of an update.        start of an update.        start of an update.        start of an update.        start of an update.      ");
+    //console.log("  starting pos: ", this.player.pos);
+    //console.log("  starting vel: ", this.player.vel);
+    //console.log("  starting accel: ", this.player.accel);
+    //console.log("  attempting to step to Event: ", currentEvent);
+    //console.log("  targetTime: ", targetTime);
     //console.log("starting do: while step loop, targetTime = ", targetTime);
     //console.log("all EventHeaps", eventsArray);
     var stepResult = this.attemptNextStep(targetTime); //stepResult .state .success .events
@@ -769,17 +769,17 @@ PhysEng.prototype.updatePhys = function (newEvents, stepToRender) {
     //console.log("stepResult: ", stepResult);
     //console.log("currentEvent: ", currentEvent);
 
-    console.log("  after attempt.");
-    console.log("  most recent event: ", currentEvent);
-    console.log("  stepResult: ", stepResult);
+    //console.log("  after attempt.");
+    //console.log("  most recent event: ", currentEvent);
+    //console.log("  stepResult: ", stepResult);
 
 
 
     var timeDifference = (currentEvent.time - stepResult.state.time);
     if (timeDifference * timeDifference > TIME_EPSILON_SQ) {     //DEBUG CASE TESTING TODO REMOVE??
                                         //IF NOT THROWN, EVENT IS IGNORED.
-      console.log("");
-      console.log("");
+      console.log("=-=-=-=-=-=");
+      console.log(" -=-=-=-=-");
       console.log("  currentEvent: ", currentEvent);
       console.log("  stepResult: ", stepResult);
       console.log("  timeDifference * timeDifference, ", timeDifference * timeDifference);
@@ -844,9 +844,9 @@ PhysEng.prototype.attemptNextStep = function (goalGameTime) {
   var startGameTime = this.player.time;
   var deltaTime = goalGameTime - startGameTime;
 
-  console.log("  start of an attemptNextStep. ");
-  console.log("    attempting to step to goalGameTime: ", goalGameTime);
-  console.log("    playerState: ", this.player);
+  //console.log("  start of an attemptNextStep. ");
+  //console.log("    attempting to step to goalGameTime: ", goalGameTime);
+  //console.log("    playerState: ", this.player);
   var debugState = new State(this.player.time, this.player.radius, this.player.pos, this.player.vel, this.player.accel);
 
   var velStep = new vec2(this.player.vel.x, this.player.vel.y);
@@ -882,9 +882,9 @@ PhysEng.prototype.attemptNextStep = function (goalGameTime) {
     events = this.findEventsAndTimesFromCollisions(collisionList);         // a bunch of TerrainCollisionEvent's hopefully?
     tempState = events[0].state;
     this.resetPredicted();
-    console.log("    ended tweenStepping loop early");
-    console.log("    collisions: ", collisionList);
-    console.log("    tempState: ", tempState);
+    //console.log("    ended tweenStepping loop early");
+    //console.log("    collisions: ", collisionList);
+    //console.log("    tempState: ", tempState);
     DEBUG_DRAW_BLUE.push(new DebugCircle(debugState.pos, debugState.radius, 5));
 
     //TODO HANDLE PREDICTING EVENTS HERE.
@@ -900,9 +900,9 @@ PhysEng.prototype.attemptNextStep = function (goalGameTime) {
     if (collisionList.length > 0) {   // WE COLLIDED WITH STUFF ON FINAL STEP.
       events = this.findEventsAndTimesFromCollisions(collisionList);
       tempState = events[0].state;
-      console.log("    collided on last step.");
-      console.log("    collisions: ", collisionList);
-      console.log("    tempState: ", tempState);
+      //console.log("    collided on last step.");
+      //console.log("    collisions: ", collisionList);
+      //console.log("    tempState: ", tempState);
       DEBUG_DRAW_BLUE.push(new DebugCircle(debugState.pos, debugState.radius, 5));
     }
   }
@@ -910,7 +910,7 @@ PhysEng.prototype.attemptNextStep = function (goalGameTime) {
 
   var results = new StepResult(tempState, events);
   //TODO UPDATE PLAYER HERE???
-  console.log("  End attemptNextStep");
+  //console.log("  End attemptNextStep");
   return results;
 }
 
@@ -987,9 +987,9 @@ PhysEng.prototype.getSurfaceEndEvent = function () {
   //second, find the time that we will reach the end of the surface.
   //returns { pointNumber: 0 or 1, time }
   var endPointData = solveEarliestSurfaceEndpoint(this.player, this.player.surface);
-  console.log("    in getSurfaceEndEvent");
-  console.log("    adjData ", adjData);
-  console.log("    endPointData ", endPointData);
+  //console.log("    in getSurfaceEndEvent");
+  //console.log("    adjData ", adjData);
+  //console.log("    endPointData ", endPointData);
 
 
   var nextSurfaceEvent = null;  //SurfaceAdjacentEvent(predictedTime, dependencyMask, surface, nextSurface, angle, allowLock)
@@ -999,7 +999,7 @@ PhysEng.prototype.getSurfaceEndEvent = function () {
       if (adjData.adjNumber === endPointData.pointNumber) {
         // use the adjacent surface for the event. It was concave, doesnt matter what time it supposedly comes at.
         if (adjData.time > endPointData.time) {
-          console.log("adjData.time, ", adjData.time, "endPointData.time, ", endPointData.time);
+          //console.log("adjData.time, ", adjData.time, "endPointData.time, ", endPointData.time);
           var adjDataState = stepStateToTime(this.player, adjData.time);
           //DEBUG_DRAW_GREEN.push(new DebugCircle(adjDataState.pos, this.player.radius, 5));
 
@@ -1178,11 +1178,11 @@ PhysEng.prototype.findEventsAndTimesFromCollisions = function (collisionList) {
     return e1.time == e2.time ? 0 : e1.time < e2.time ? -1 : 1;
   });
 
-  console.log("    in findEventsAndTimesFromCollisions =1=1=1=1=1=1=1=1=");
+  //console.log("    in findEventsAndTimesFromCollisions =1=1=1=1=1=1=1=1=");
   for (var i = 0; i < collisionList.length; i++) {
     var collision = collisionList[i]; // collisoin: { collision,   collidedLine,  collidedP0,  collidedP1,  surface,  perpendicularIntersect }
-    console.log("      in collisionList loop");
-    console.log("      collision ", i, ": ", collision);
+    //console.log("      in collisionList loop");
+    //console.log("      collision ", i, ": ", collision);
     var testedLine = false;
     var testedP0 = false;
     var testedP1 = false;
@@ -1210,7 +1210,7 @@ PhysEng.prototype.findEventsAndTimesFromCollisions = function (collisionList) {
 
       } else {                // We didnt really collide with the line. Try to add points instead.
 
-        console.log("We got a line collision but not with points, but time analysis says we didnt collide with line. Testing points?");
+        //console.log("We got a line collision but not with points, but time analysis says we didnt collide with line. Testing points?");
         var point0Time = this.player.time + solveTimeToDistFromPoint(this.player.pos, this.player.vel, this.player.accel, collision.surface.p0, this.player.radius);
         var point1Time = this.player.time + solveTimeToDistFromPoint(this.player.pos, this.player.vel, this.player.accel, collision.surface.p1, this.player.radius);
 
@@ -1661,14 +1661,14 @@ function solveEarliestSurfaceEndpoint(state, surface) {
     throw "missing params " + state + surface;
   }
 
-  console.log("      solving earliest surface endpoint, ");
-  console.log("        state ", state);
-  console.log("        surface ", surface);
+  //console.log("      solving earliest surface endpoint, ");
+  //console.log("        state ", state);
+  //console.log("        surface ", surface);
 
   //return  { parallelVel,  perpVel,  parallelAccel,  perpAccel,  distancePerp,  distanceP0,  distanceP1 };
   //getStateAndDistancesAlignedWithLine(state, targetLine)
   var results = getStateAndDistancesAlignedWithLine(state, surface);
-  console.log("        getStateAndDistancesAlignedWithLine results ", results);
+  //console.log("        getStateAndDistancesAlignedWithLine results ", results);
 
   //var distance0 = rotateResults.rotP0.y - rotated.pos.y;
   //var distance1 = rotateResults.rotP1.y - rotated.pos.y;
@@ -1696,7 +1696,7 @@ function solveEarliestSurfaceEndpoint(state, surface) {
     throw "what the balls man, closest positive isnt time0, time1, or null???";
   }
 
-  console.log("        solved earliest surface endpoint. results:  ", data);
+  //console.log("        solved earliest surface endpoint. results:  ", data);
 
   return data;
 }
@@ -1748,14 +1748,14 @@ function getNextSurfaceData(state, surface) {
   if (closestPos === undefined || closestPos === null) {
     //throw "yay null this might be okay but have an exception anyway!";
   } else if (closestPos === time0) {
-    console.log("closestPos: ", closestPos);
-    console.log("concRes0: ", concRes0);
-    console.log("time0: ", time0);
+    //console.log("closestPos: ", closestPos);
+    //console.log("concRes0: ", concRes0);
+    //console.log("time0: ", time0);
     data = { adjNumber: 0, time: state.time + time0, angle: concRes0.angle };
   } else if (closestPos === time1) {
-    console.log("closestPos: ", closestPos);
-    console.log("concRes1: ", concRes1);
-    console.log("time1: ", time1);
+    //console.log("closestPos: ", closestPos);
+    //console.log("concRes1: ", concRes1);
+    //console.log("time1: ", time1);
     data = { adjNumber: 1, time: state.time + time1, angle: concRes1.angle };
   } else {
     throw "what the balls man, closest positive isnt time0, time1, or null???";
@@ -1771,7 +1771,7 @@ function getNextSurfaceData(state, surface) {
  * assumes the starting position is at 0.
  */
 function solveTimeToDist1D(targetDist, currentVelocity, acceleration) {
-  console.log("        solving time to dist 1D, targetDist ", targetDist, ", currentVelocity ", currentVelocity, ", acceleration ", acceleration);
+  //console.log("        solving time to dist 1D, targetDist ", targetDist, ", currentVelocity ", currentVelocity, ", acceleration ", acceleration);
   //throw "lol";
   //console.log("        solved. Time at:  ", time);
 
@@ -1813,7 +1813,7 @@ function solveTimeToDist1D(targetDist, currentVelocity, acceleration) {
     }
   }
 
-  console.log("        solved time to dist 1D. Time at:  ", time);
+  //console.log("        solved time to dist 1D. Time at:  ", time);
   return time;
 }
 
@@ -1833,12 +1833,12 @@ function solveTimeToDistFromPoint(curPos, curVel, accel, targetPos, distanceGoal
      ||v||t + 1/2 * ||a||t^2	- ||p1-p2|| + r = 0										//NEW,	roots are when this = 0. Yields solution????
    */  
 
-  console.log("      solving time to dist from point, ");
-  console.log("        curPos ", curPos);
-  console.log("        curVel ", curVel);
-  console.log("        accel ", accel);
-  console.log("        targetPos ", targetPos);
-  console.log("        distanceGoal ", distanceGoal);
+  //console.log("      solving time to dist from point, ");
+  //console.log("        curPos ", curPos);
+  //console.log("        curVel ", curVel);
+  //console.log("        accel ", accel);
+  //console.log("        targetPos ", targetPos);
+  //console.log("        distanceGoal ", distanceGoal);
 
 
   var c = -(curPos.subtract(targetPos).length()) + distanceGoal;
@@ -1848,7 +1848,7 @@ function solveTimeToDistFromPoint(curPos, curVel, accel, targetPos, distanceGoal
   //console.log("   possible time distances are ", rootsArray[0], ", ", rootsArray[1]);
   var time = (rootsArray === null ? null : closestPositive(rootsArray[0], rootsArray[1]));
     
-  console.log("      solved time to dist from point. Time at:  ", time);
+  //console.log("      solved time to dist from point. Time at:  ", time);
   return time;
 }
 
@@ -1880,10 +1880,10 @@ function solveTimeToDistFromPoint(curPos, curVel, accel, targetPos, distanceGoal
  * Solves the time it will take a ball from curPos to reach the specified distance from the line.
  */
 function solveTimeToDistFromLine(curPos, curVel, accel, targetLine, distanceGoal) {
-  console.log("      solving time to dist from line, ");
-  console.log("        curPos {", curPos.x, curPos.y, "}   curVel {", curVel.x, curVel.y, "}   accel {", accel.x, accel.y, "}");
-  console.log("        targetLine p0 {", targetLine.p0.x, targetLine.p0.y, "}  p1 {", targetLine.p1.x, targetLine.p1.y, (targetLine.normal.y > 0 ? "}  down" : "}  up"));
-  console.log("        distanceGoal ", distanceGoal);
+  //console.log("      solving time to dist from line, ");
+  //console.log("        curPos {", curPos.x, curPos.y, "}   curVel {", curVel.x, curVel.y, "}   accel {", accel.x, accel.y, "}");
+  //console.log("        targetLine p0 {", targetLine.p0.x, targetLine.p0.y, "}  p1 {", targetLine.p1.x, targetLine.p1.y, (targetLine.normal.y > 0 ? "}  down" : "}  up"));
+  //console.log("        distanceGoal ", distanceGoal);
 
   var tempState = new State(0.0, distanceGoal, curPos, curVel, accel);
 
@@ -1891,21 +1891,13 @@ function solveTimeToDistFromLine(curPos, curVel, accel, targetLine, distanceGoal
   //getStateAndDistancesAlignedWithLine(state, targetLine)
   var results = getStateAndDistancesAlignedWithLine(tempState, targetLine);
   //DEBUG_DRAW_LIGHTBLUE.push(new DebugLine(targetLine.p0, targetLine.p1, 5));
-  console.log("        results: ", results);
+  //console.log("        results: ", results);
   var distance = (results.distancePerp > 0 ? results.distancePerp - distanceGoal : results.distancePerp + distanceGoal);
   var time = solveTimeToDist1D(distance, results.perpVel, results.perpAccel);
 
 
-  //console.log("curPos: ", curPos);
-  //console.log("curVel: ", curVel);
-  //console.log("accel: ", accel);
-  //console.log("targetLine: ", targetLine);
-  //console.log("distanceGoal: ", distanceGoal);
 
-  //console.log("rotated: ", rotated);
-  //console.log("distance: ", distance);
-
-  console.log("      solved time to dist from line. Time at:  ", time);
+  //console.log("      solved time to dist from line. Time at:  ", time);
   return time;
 }
 
@@ -2000,7 +1992,7 @@ function solveTimeToDistFromLine(curPos, curVel, accel, targetLine, distanceGoal
 function getStateAndDistancesAlignedWithLine(state, targetLine) {
   var v01 = targetLine.p1.subtract(targetLine.p0);
   var radiansToHorizontal = getRadiansToHorizontal(v01);
-  console.log("               getStateAndDistancesAlignedWithLine of surface = ", radiansToHorizontal);
+  //console.log("               getStateAndDistancesAlignedWithLine of surface = ", radiansToHorizontal);
 
 
   var rMat = getRotationMatRad(radiansToHorizontal);
@@ -2073,7 +2065,7 @@ function getTimeToVelocity(state, velTarget) {
 function closestPositive(value1, value2) {
   var toReturn = null;
 
-  console.log("            Closest positive, ", "value1:  ", value1, "value2:  ", value2);
+  //console.log("            Closest positive, ", "value1:  ", value1, "value2:  ", value2);
   if (value1 === null && value2 >= 0) {      //handle nulls.
     return value2;
   } else if (value2 === null && value1 >= 0) {
