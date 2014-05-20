@@ -83,7 +83,7 @@ function TerrainLine(point0, point1, player, adjacent0, adjacent1, normal) {
         //console.log("hitting point B");
         normalToReturn = vBC.normalize().negate();
       } else {
-        throw "no collision, nigga y u want normal?";
+        //throw "no collision, nigga y u want normal?";
         normalToReturn = this.normal; //??
       }
     }
@@ -173,8 +173,8 @@ function TerrainLine(point0, point1, player, adjacent0, adjacent1, normal) {
     if (vCD.lengthsq() < radiussq - COLLISION_EPSILON_SQ && vAD.lengthsq() < vABlensq - COLLISION_EPSILON_SQ && vAB.subtract(vAD).lengthsq() < vABlensq - COLLISION_EPSILON_SQ) {
       // THEN THE CENTER OF OUR CIRCLE IS WITHIN THE PERPENDICULAR BOUNDS OF THE LINE SEGMENT, AND CIRCLE IS LESS THAN RADIUS AWAY FROM THE LINE.
       console.log("    Within perpendicular line bounds AND collided.  =-=-=-=-=-=-=-=-=-=--=-=-=-=-=-=-=-=-=");
-      DEBUG_DRAW_RED.push(new DebugCircle(point, radius, 5));
-      DEBUG_DRAW_GREEN.push(new DebugLine(this.p0, this.p1, 5));
+      //DEBUG_DRAW_RED.push(new DebugCircle(point, radius, 5));
+      //DEBUG_DRAW_GREEN.push(new DebugLine(this.p0, this.p1, 5));
       dcollision = true;
       dcollidedLine = true;
     } else {
