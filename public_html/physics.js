@@ -12,7 +12,7 @@
 
 
 //IF FALSE, RUN NORMALLY
-var DEBUG_STEP =                                    true;
+var DEBUG_STEP =                                    false;
 
 //IF FALSE ONLY STEPS TO RENDEREVENTS
 var DEBUG_EVENT_AT_A_TIME =                         false && DEBUG_STEP; //only true if debug step is also true. Saves me the time of changing 2 variables to switch between normal state and debug state.
@@ -691,9 +691,10 @@ PhysEng.prototype.stepDebug = function () {
       this.debugEventHeap.push(new RenderEvent(0.0, DEBUG_MAX_TIMESTEP + (this.getTime())));
       //console.log("(this.getTime()) + DEBUG_MAX_TIMESTEP = ", DEBUG_MAX_TIMESTEP + (this.getTime()));
       this.updatePhys(this.debugInputs, !DEBUG_EVENT_AT_A_TIME);
+      this.debugEventHeap = getNewDebugHeap();
       this.debugInputs = [];
     } else {
-      this.primaryEventHeap.push(new RenderEvent(0.0, DEBUG_MAX_TIMESTEP + (this.getTime())));
+      this.debugInputs.push(new RenderEvent(0.0, DEBUG_MAX_TIMESTEP + (this.getTime())));
       this.updatePhys(this.debugInputs, !DEBUG_EVENT_AT_A_TIME);
       this.debugInputs = [];
     }
@@ -706,7 +707,7 @@ PhysEng.prototype.stepDebug = function () {
  * Update function for physEng. If you want it to use browser time you need to add a renderEvent at the browser timestamp to newEvents before passing it into update.
  */
 PhysEng.prototype.updatePhys = function (newEvents, stepToRender) {
-  if (this.primaryEventHeap.size() > 0 && !this.inReplay && !DEBUG_STEP) {
+  if (this.primaryEventHeap.size() > 0 && !this.inReplay) {
     console.log(this.primaryEventHeap.size(), this.primaryEventHeap);
     throw "why the hell are we starting update with events still in primaryEventHeap thing?";
   }
@@ -983,10 +984,13 @@ PhysEng.prototype.getSurfaceEndEvent = function () {
   /* returns { adjNumber: 0 or 1, time, angle } where angle in radians from this surface to next surface surface. the closer to Math.PI the less the angle of change between surfaces.
    * null if none in positive time or both not concave.*/
   var adjData = getNextSurfaceData(this.player, this.player.surface);
-
   //second, find the time that we will reach the end of the surface.
   //returns { pointNumber: 0 or 1, time }
   var endPointData = solveEarliestSurfaceEndpoint(this.player, this.player.surface);
+  console.log("    in getSurfaceEndEvent");
+  console.log("    adjData ", adjData);
+  console.log("    endPointData ", endPointData);
+
 
   var nextSurfaceEvent = null;  //SurfaceAdjacentEvent(predictedTime, dependencyMask, surface, nextSurface, angle, allowLock)
 
@@ -997,7 +1001,7 @@ PhysEng.prototype.getSurfaceEndEvent = function () {
         if (adjData.time > endPointData.time) {
           console.log("adjData.time, ", adjData.time, "endPointData.time, ", endPointData.time);
           var adjDataState = stepStateToTime(this.player, adjData.time);
-          DEBUG_DRAW_GREEN.push(new DebugCircle(adjDataState.pos, this.player.radius, 5));
+          //DEBUG_DRAW_GREEN.push(new DebugCircle(adjDataState.pos, this.player.radius, 5));
 
 
           var endPointState = stepStateToTime(this.player, endPointData.time);
@@ -1008,14 +1012,14 @@ PhysEng.prototype.getSurfaceEndEvent = function () {
         //handle me.
         nextSurfaceEvent = new SurfaceAdjacentEvent(adjData.time, 0, this.player.surface, (adjData.adjNumber === 0 ? this.player.surface.adjacent0 : this.player.surface.adjacent1), adjData.angle, true);
         var adjDataState = stepStateToTime(this.player, adjData.time);
-        DEBUG_DRAW_GREEN.push(new DebugCircle(adjDataState.pos, this.player.radius, 5));
+        //DEBUG_DRAW_GREEN.push(new DebugCircle(adjDataState.pos, this.player.radius, 5));
       } else {
         // endpoint and adjSurface are on opposite ends. Event whichever is soonest.
         if (adjData.time < endPointData.time) {
           // use adjacent.
           nextSurfaceEvent = new SurfaceAdjacentEvent(adjData.time, 0, this.player.surface, (adjData.adjNumber === 0 ? this.player.surface.adjacent0 : this.player.surface.adjacent1), adjData.angle, true);
           var adjDataState = stepStateToTime(this.player, adjData.time);
-          DEBUG_DRAW_GREEN.push(new DebugCircle(adjDataState.pos, this.player.radius, 5));
+          //DEBUG_DRAW_GREEN.push(new DebugCircle(adjDataState.pos, this.player.radius, 5));
         } else {
           // use endpoint.
           var endPointState = stepStateToTime(this.player, endPointData.time);
@@ -1026,7 +1030,7 @@ PhysEng.prototype.getSurfaceEndEvent = function () {
       // no endPointData, use adjacent.
       nextSurfaceEvent = new SurfaceAdjacentEvent(adjData.time, 0, this.player.surface, (adjData.adjNumber === 0 ? this.player.surface.adjacent0 : this.player.surface.adjacent1), adjData.angle, true);
       var adjDataState = stepStateToTime(this.player, adjData.time);
-      DEBUG_DRAW_GREEN.push(new DebugCircle(adjDataState.pos, this.player.radius, 5));
+      //DEBUG_DRAW_GREEN.push(new DebugCircle(adjDataState.pos, this.player.radius, 5));
     }
   } else if (endPointData && (endPointData.time || endPointData.time === 0)) {
     // no adjData, use endPointData.
@@ -1061,7 +1065,7 @@ PhysEng.prototype.addNewEventsToEventHeap = function (newEvents) {
         this.convertEventBrowserTime(newEvents[i]);
         this.player.replayData.push(newEvents[i]);
       }
-    } else if ((newEvents[i].mask & E_RENDER_MASK)) {
+    } else if ((newEvents[i].mask & E_RENDER_MASK) && !newEvents[i].validTime) {
       renderEventCount++;
       if (renderEventCount > 1) {
         throw "recieved 2 render events in 1 update, cannot continue.";
@@ -1664,6 +1668,7 @@ function solveEarliestSurfaceEndpoint(state, surface) {
   //return  { parallelVel,  perpVel,  parallelAccel,  perpAccel,  distancePerp,  distanceP0,  distanceP1 };
   //getStateAndDistancesAlignedWithLine(state, targetLine)
   var results = getStateAndDistancesAlignedWithLine(state, surface);
+  console.log("        getStateAndDistancesAlignedWithLine results ", results);
 
   //var distance0 = rotateResults.rotP0.y - rotated.pos.y;
   //var distance1 = rotateResults.rotP1.y - rotated.pos.y;
@@ -1679,21 +1684,21 @@ function solveEarliestSurfaceEndpoint(state, surface) {
   //console.log("distance: ", distance);
   //console.log("Solved time, time at: ", time);
   var closestPos = closestPositive(time0, time1);
-  var results = null;
+  var data = null;
 
   if (closestPos === undefined || closestPos === null) {
     //throw "yay null this might be okay but have an exception anyway!";
   } else if (closestPos === time0) {
-    results = { pointNumber: 0, time: state.time + time0 };
+    data = { pointNumber: 0, time: state.time + time0 };
   } else if (closestPos === time1) {
-    results = { pointNumber: 1, time: state.time + time1 };
+    data = { pointNumber: 1, time: state.time + time1 };
   } else {
     throw "what the balls man, closest positive isnt time0, time1, or null???";
   }
 
-  console.log("        solved earliest surface endpoint. results:  ", results);
+  console.log("        solved earliest surface endpoint. results:  ", data);
 
-  return results;
+  return data;
 }
 
 
@@ -1748,6 +1753,9 @@ function getNextSurfaceData(state, surface) {
     console.log("time0: ", time0);
     data = { adjNumber: 0, time: state.time + time0, angle: concRes0.angle };
   } else if (closestPos === time1) {
+    console.log("closestPos: ", closestPos);
+    console.log("concRes1: ", concRes1);
+    console.log("time1: ", time1);
     data = { adjNumber: 1, time: state.time + time1, angle: concRes1.angle };
   } else {
     throw "what the balls man, closest positive isnt time0, time1, or null???";
@@ -1777,6 +1785,9 @@ function solveTimeToDist1D(targetDist, currentVelocity, acceleration) {
   if (acceleration === 0) {
 
     time = -targetDist / currentVelocity;
+    if (time <= 0) {
+      time = null;
+    }
 
   } else {
     var x = (currentVelocity * currentVelocity) - (2 * acceleration * targetDist);
@@ -1988,11 +1999,11 @@ function solveTimeToDistFromLine(curPos, curVel, accel, targetLine, distanceGoal
  */
 function getStateAndDistancesAlignedWithLine(state, targetLine) {
   var v01 = targetLine.p1.subtract(targetLine.p0);
-  var radiansToVertical = getRadiansToHorizontal(v01);
-  console.log("               getRadiansToVertical of surface = ", radiansToVertical);
+  var radiansToHorizontal = getRadiansToHorizontal(v01);
+  console.log("               getStateAndDistancesAlignedWithLine of surface = ", radiansToHorizontal);
 
 
-  var rMat = getRotationMatRad(radiansToVertical);
+  var rMat = getRotationMatRad(radiansToHorizontal);
 
   var newP0 = (targetLine.p0.subtract(state.pos).multm(rMat));
   var newP1 = (targetLine.p1.subtract(state.pos).multm(rMat));
@@ -2074,7 +2085,7 @@ function closestPositive(value1, value2) {
   if (value1 < 0) {            // is value1 negative?
     if (value2 < 0) {
       toReturn = null;        // NO VALID ROOT, BOTH ARE BACKWARDS IN TIME
-      console.log("   NO VALID ROOT, BOTH ARE BACKWARDS IN TIME, v1: ", value1, ", v2: ", value2);
+      console.log("         NO VALID ROOT, BOTH ARE BACKWARDS IN TIME, v1: ", value1, ", v2: ", value2);
     } else {
       toReturn = value2;           // value1 < 0 and value2 > 0 return value2
       //console.log("   value1 < 0 and value2 > 0 return value2, v1: ", value1, ", v2: ", value2);
