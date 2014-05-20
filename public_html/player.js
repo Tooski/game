@@ -10,13 +10,14 @@ function Player(x, y, timer) {
     this.walkingSpeed = 0.10;
     this.runningSpeed = 0.04;
     this.boostSpeed = 0.06;
+    this.jumpSpeed = 0.7;
     this.idleAnimation = new Animation(ASSET_MANAGER.getAsset("assets/HamsterSprites.png"), 0, 0, 300, 300, 0.1, 1, true, false);
     this.walkingAnimation = new Animation(ASSET_MANAGER.getAsset("assets/HamsterSprites.png"), 0, 300, 300, 300, this.walkingSpeed, 11, true, false);
     this.runningAnimation = new Animation(ASSET_MANAGER.getAsset("assets/HamsterSprites.png"), 0, 600, 300, 300, this.runningSpeed, 11, true, false);
     this.groundBoostAnimation = new Animation(ASSET_MANAGER.getAsset("assets/HamsterSprites.png"), 0, 900, 300, 300, this.boostSpeed, 4, false, false);
-    this.jumpingAnimation = new Animation(ASSET_MANAGER.getAsset("assets/HamsterSprites.png"), 0, 1800, 300, 300, 0.1, 2, true, false);
+    this.jumpingAnimation = new Animation(ASSET_MANAGER.getAsset("assets/HamsterSprites.png"), 0, 1800, 300, 300, this.jumpSpeed, 2, false, false);
     this.doubleJumpingAnimation = new Animation(ASSET_MANAGER.getAsset("assets/HamsterSprites.png"), 0, 1800, 300, 300, 0.1, 2, true, false);
-    //this.airBoostAnimation = new Animation(ASSET_MANAGER.getAsset("assets/HamsterSprites.png"), 0, 300, 300, 300, 0.05, 11, true, false);
+    this.fallingAnimation = new Animation(ASSET_MANAGER.getAsset("assets/HamsterSprites.png"), 600, 900, 300, 300, 0.05, 1, true, false);
     this.boostTime = 0;
     this.facing = true;
     this.model = null;
@@ -95,16 +96,28 @@ Player.prototype.update = function() {
         
         this.model.animationGroundJumping = true;
         this.model.animationWalking = false;
-        
         //if(collision with ground)
                //this.model.an
         //this.model.animationRunning = false;
-
+        
     }
-    
+    if(this.model.animationGroundJumping){
+        if(this.jumpingAnimation.isDone()){
+            faling = true;
 
+            this.jumpingAnimation.elapsedTime = 0;
+        }
+    }
+    if(faling){
+                    this.model.animationGroundJumping = false;
+                    this.model.animationWalking = false;
+this.model.animationRunning = false;
+        
+        
+    }
+    console.log(faling);
 };
-
+var faling = false;
 
 var SPRITE_WIDTH_AND_HEIGHT_IN_PX = 300;
 Player.prototype.draw = function(ctx) {
@@ -119,6 +132,7 @@ Player.prototype.draw = function(ctx) {
 
     if (this.model.animationFacing === "left") {
         if (this.model.animationStanding) {
+            
             this.idle(ctx, scaleFactor);
         } else if (this.model.animationGroundJumping) {
             this.groundJumping(ctx, scaleFactor);
@@ -129,9 +143,13 @@ Player.prototype.draw = function(ctx) {
             this.walking(ctx, scaleFactor);
         } else if (this.model.animationRunning) {
             this.running(ctx, scaleFactor);
-        } 
+        } else if(faling){
+                            this.freeFall(ctx, scaleFactor); 
+
+        }
 
     }
+    //need to add falling flag
     if (this.model.animationFacing === "right") {
         if (this.model.animationStanding) {
             this.idle(ctx, scaleFactor);
@@ -143,7 +161,10 @@ Player.prototype.draw = function(ctx) {
             this.walking(ctx, scaleFactor);
         } else if (this.model.animationRunning) {
             this.running(ctx, scaleFactor);
-        } 
+        } else if(faling){
+                            this.freeFall(ctx, scaleFactor); 
+
+        }
 
     }
 
@@ -207,5 +228,19 @@ Player.prototype.groundJumping = function(ctx, scaleFactor) {
     this.jumpingAnimation.drawFrame(this.timer.gameDelta, ctx, this.model.pos.x - this.jumpingAnimation.frameWidth / 2 * scaleFactor,
             this.model.pos.y - this.jumpingAnimation.frameHeight / 2 * scaleFactor, scaleFactor, this.facing);
 };
+
+Player.prototype.freeFall = function(ctx, scaleFactor){
+    
+    console.log("da");
+    this.fallingAnimation.drawFrame(this.timer.gameDelta, ctx, this.model.pos.x - this.fallingAnimation.frameWidth / 2 * scaleFactor,
+            this.model.pos.y - this.fallingAnimation.frameHeight / 2 * scaleFactor, scaleFactor, this.facing);
+};
+
+
+/* 
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
 
 
