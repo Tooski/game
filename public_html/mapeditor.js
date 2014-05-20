@@ -195,80 +195,158 @@ MapEditor.prototype.createLineButton = function(ctx) {
 
 
     line.onClick = function(e) {
+        
+        var left = parseInt(that.ctx.canvas.style.left);
+        var top =  parseInt(that.ctx.canvas.style.top);
+        if(e.offsetX >  that.ctx.canvas.width + left || e.offsetX < left ||
+           e.offsetY >  that.ctx.canvas.height + top || e.offsetX < top)
+        if(!this.line) {
+            if(!this.prev || (this.prev && !this.prev.circularID)) {
+                var xposition = localToWorld(e.offsetX, "x");
+                var yposition = localToWorld(e.offsetY, "y");
 
+                this.line = new TerrainLine(
+                        new vec2(xposition, yposition),
+                        new vec2(xposition, yposition));
+                 that.level.pushTerrain(this.line);
 
- 
-         console.log(document.activeElement);
-        if(!this.line && !this.normal) {
-        if(document.activeElement !== ctx.canvas) {
-     
-            var xposition = localToWorld(e.offsetX, "x");
-            var yposition = localToWorld(e.offsetY, "y");
-            
-            this.line = new TerrainLine(
-                    new vec2(xposition, yposition),
-                    new vec2(xposition, yposition));
-             that.level.pushTerrain(this.line);
-               
-            button.isSelected = false;
-        }
-            
-        } else if (this.line && !this.normal) {
-            
-            
-                  
-
-            that.level.snapTo(this.line);
-
-            this.normal = this.line;
-            if(!this.normal.normal) {
-              this.normal.normal = new vec2(0, 0);
-//              if (this.line.length() !== 1.0) {
-//                console.log("normal length: ", this.line.length());
-//                throw "ERRORRRRRRRRRRR";
-//              }
+                button.isSelected = false;
             }
-            
-             console.log(this.line);
-            this.line = null;
-        } else if (!this.line && this.normal) {
-            this.normal = null;
-            button.isSelected = true;
-            this.draw(ctx);
         }
+
+//
+// 
+//        if(!this.line && !this.normal) {
+//        if(document.activeElement !== ctx.canvas) {
+//     
+//            var xposition = localToWorld(e.offsetX, "x");
+//            var yposition = localToWorld(e.offsetY, "y");
+//            
+//            this.line = new TerrainLine(
+//                    new vec2(xposition, yposition),
+//                    new vec2(xposition, yposition));
+//             that.level.pushTerrain(this.line);
+//               
+//            button.isSelected = false;
+//        }
+//            
+//        } else if (this.line && !this.normal) {
+//            that.level.snapTo(this.line);
+//            this.normal = this.line;
+//            if(!this.normal.normal) {
+//              this.normal.normal = new vec2(0, 0);
+//            }
+//            this.line = null;
+//        } else if (!this.line && this.normal) {
+//           if(!this.normal.circularID) {
+//            var xposition = this.normal.p1.x;
+//            var yposition = this.normal.p1.y;
+//            
+//            this.line = new TerrainLine(
+//                    new vec2(xposition, yposition),
+//                    new vec2(xposition, yposition));
+//             that.level.pushTerrain(this.line);
+//         }
+//             this.normal = null;
+//             
+//            this.draw(ctx);
+//        }
     
     };
     line.onDrag = function(e) {
         
-       console.log(e);
+        
+        
+        
         if(this.line) {
            var mousePos = getMousePos(e);
            this.line.p1edit.x = (this.line.p1.x = mousePos.x) - this.line.p1edit.w/2;
            this.line.p1edit.y = (this.line.p1.y = mousePos.y) - this.line.p1edit.h/2;
            
         }
+        
+        if(this.setNormals) {
+            var itr = this.prev;
+            itr.normal = findNormalByMouse(e, itr);
+            
+            while(itr.adjacent1 !== this.prev) {
+                var selected = itr;
+                var selectedVec = selected.p0.subtract(selected.p1).normalize();
+                itr = itr.adjacent1;
+             
+                
+      
+                var nextVec = selected.adjacent1.p1.subtract(selected.adjacent1.p0).normalize();
+
+                var potentialNormal = nextVec.perp();
+                var negPotentialNormal = potentialNormal.negate();
+                var h = Math.acos(selectedVec.dot(nextVec));
+                if (h > HALF_PI) {
+                   itr.normal = (selected.normal.dot(potentialNormal) < selected.normal.dot(negPotentialNormal) ? negPotentialNormal : potentialNormal);
+                } else {
+                   itr.normal = (selected.normal.dot(potentialNormal) < selected.normal.dot(negPotentialNormal) ? potentialNormal : negPotentialNormal );
+                }
+                
+          
+
+
+              
+            }
+        }
+        
+        
         if(this.normal) {
             var oneNormal = findNormalByMouse(e, this.normal);
-            this.normal.normal.x =  oneNormal.x;
-            this.normal.normal.y =  oneNormal.y;
+    
 
         }
     };
     line.onRelease = function(e) {
+        
+        if(this.setNormals) {
+             this.setNormals = this.prev = null;
+        }
+        
+        
         if(this.line && this.line.p1.x !== this.line.p0.x && this.line.p1.y !== this.line.p0.y) {
-             if (this.line && !this.normal) {
-                that.level.snapTo(this.line);
 
-                this.normal = this.line;
-                if(!this.normal.normal) {
-                  this.normal.normal = new vec2(0, 0);
-//                  if (this.line.length() !== 1.0) {
-//                    console.log("normal length: ", this.line.length());
-//                    throw "ERRORRRRRRRRRRR";
-//                  }
-                }
-             } 
-            this.line = null;
+            that.level.snapTo(this.line);
+            this.prev = this.line;
+            
+            
+            
+            if(!this.prev.circularID) {
+                
+            var xposition = localToWorld(e.offsetX, "x");
+            var yposition = localToWorld(e.offsetY, "y");
+            this.line = new TerrainLine(
+                    new vec2(this.prev.p1.x, this.prev.p1.y),
+                    new vec2(xposition, yposition));
+                    
+             that.level.pushTerrain(this.line);
+            } else {
+               
+                
+                this.setNormals = this.line.adjacent1;
+                this.line = null;
+
+            }
+
+            
+            
+//             if (this.line && !this.normal) {
+//                that.level.snapTo(this.line);
+//
+//                this.normal = this.line;
+//                if(!this.normal.normal) {
+//                  this.normal.normal = new vec2(0, 0);
+////                  if (this.line.length() !== 1.0) {
+////                    console.log("normal length: ", this.line.length());
+////                    throw "ERRORRRRRRRRRRR";
+////                  }
+//                }
+//             } 
+//            this.line = null;
 
         }
     };

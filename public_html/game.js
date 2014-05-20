@@ -941,6 +941,9 @@ function blockDisplayGame(){
 //--------------------------------
 ASSET_MANAGER.downloadAll(function() {
     
+    
+    
+    
     console.log("starting up da sheild");
     canvas = document.getElementById('gameWorld');
      ctx = canvas.getContext('2d');
@@ -962,7 +965,7 @@ ASSET_MANAGER.downloadAll(function() {
 	 //GameCanvas.push(canvas5);
 	 //ctx5.canvas.addEventListener('click',remapClicked,false);
 
-    initHeight =canvas.height = window.innerHeight;
+    initHeight = canvas.height = window.innerHeight;
     initWidth = canvas.width = window.innerWidth;
 
     initScale = initWidth / 1920;
