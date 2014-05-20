@@ -463,18 +463,25 @@ GameEngine.prototype.draw = function(drawCallback) {
   ctx.miterLimit = 2;
     this.ctx.save();
 
+        
     if(initScale !== 0) {
-            var hasNotChanged = canvas.width === window.innerWidth && canvas.height === window.innerHeight;
-            canvas.width = window.innerWidth;
+                var hasNotChanged = canvas.width === window.innerWidth && canvas.height === window.innerHeight;
+                canvas.width = window.innerWidth;
             canvas.height = window.innerHeight;
             if(!hasNotChanged) {
+                (ctx4.canvas.style.left = (canvas.width/2 - ctx4.canvas.width/2) );
+                (ctx4.canvas.style.top = (canvas.height/2 - ctx4.canvas.height/2));
+                (ctx2.canvas.style.left = parseInt(ctx.canvas.width) - guiPadding - ctx2.canvas.width);
+                (ctx2.canvas.style.top = guiPadding);
                 var item = document.getElementById('mapEditor');
-                console.log(item);
+
                 if(item) {
                     
                     var ctxGUI = item.getContext('2d');
 
                     ctxGUI.clearRect(0, 0, ctxGUI.canvas.width, ctxGUI.canvas.height);
+         
+                    
                     for(var i = 0; i < this.entitiesGUI.length; i++) {
                         this.entitiesGUI[i].draw(ctxGUI);
                     }
@@ -760,6 +767,14 @@ function pauseClicked (e) {
 	} else if (restartButton.checkClicked()) {
 		console.log("Restart!");
 	} else if (quitButton.checkClicked()) {
+				//console.log("da");
+	    MY_GAME_MANU_CANVAS.style.display = "none";
+		canvas4.style.display = "none";
+            // dispaly the world map canvase 
+        MY_STAGE_CANVAS.style.display = "block";
+            //.... just incase dislay = "non for any other screen for gaming later...."
+		noneDisplayGame();
+	
 		console.log("Quit!");
 	}
 }
@@ -939,6 +954,8 @@ function blockDisplayGame(){
 	}
 }
 
+
+var guiPadding = 20;
 //--------------------------------
 ASSET_MANAGER.downloadAll(function() {
     
@@ -949,12 +966,17 @@ ASSET_MANAGER.downloadAll(function() {
     canvas = document.getElementById('gameWorld');
      ctx = canvas.getContext('2d');
 	canvas2 = document.getElementById('time');
-	 ctx2 = canvas2.getContext('2d');
+	ctx2 = canvas2.getContext('2d');
+
 	canvas3 = document.getElementById('score');
 	 ctx3 = canvas3.getContext('2d');
+        (ctx3.canvas.style.left = guiPadding);
+        (ctx3.canvas.style.top = guiPadding);
 	canvas4 = document.getElementById('pause');
 	 ctx4 = canvas4.getContext('2d');
 	 ctx4.canvas.addEventListener('click',pauseClicked,false);
+        (ctx4.canvas.style.left = (canvas.width/2 - ctx4.canvas.width/2) );
+        (ctx4.canvas.style.top = (canvas.height/2 - ctx4.canvas.height/2));
 	canvas5 = document.getElementById('remap');
 	 ctx5 = canvas5.getContext('2d');
 	 
@@ -962,13 +984,14 @@ ASSET_MANAGER.downloadAll(function() {
 	 GameCanvas.push(canvas);
 	 GameCanvas.push(canvas2);
 	 GameCanvas.push(canvas3);
-	// GameCanvas.push(canvas4);
+	 //GameCanvas.push(canvas4);
 	 //GameCanvas.push(canvas5);
 	 //ctx5.canvas.addEventListener('click',remapClicked,false);
 
     initHeight = canvas.height = window.innerHeight;
     initWidth = canvas.width = window.innerWidth;
-
+        (ctx2.canvas.style.left = parseInt(ctx.canvas.width) - guiPadding - ctx2.canvas.width);
+        (ctx2.canvas.style.top = guiPadding);
     initScale = initWidth / 1920;
     loadingScreen(ctx);
 	scoreTest(ctx3);    
@@ -993,7 +1016,9 @@ ASSET_MANAGER.downloadAll(function() {
     //    gameEngine.addEntity(new TerrainLine(new vec2(200,200+50), new vec2(200+250,200+150), player));
     
     gameEngine.addEntity(currentLevel);
-    gameEngine.addEntity(new MapEditor(currentLevel));
+    //gameEngine.addEntity(new MapEditor(currentLevel));
+	
+	
 	//new KeyMapping(gameEngine);
    //  gameEngine.addEntity(new BezierCurve(40,100,80,20,150,180,260,100));
     gameEngine.addEntity(gameboard);
