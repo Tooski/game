@@ -10,16 +10,18 @@ function Player(x, y, timer) {
     this.walkingSpeed = 0.10;
     this.runningSpeed = 0.04;
     this.boostSpeed = 0.06;
-    this.idleAnimation = new Animation(ASSET_MANAGER.getAsset("assets/HamsterSprites.png"), 0, 0, 300, 300, 0.1, 1, true, true);
+    this.idleAnimation = new Animation(ASSET_MANAGER.getAsset("assets/HamsterSprites.png"), 0, 0, 300, 300, 0.1, 1, true, false);
     this.walkingAnimation = new Animation(ASSET_MANAGER.getAsset("assets/HamsterSprites.png"), 0, 300, 300, 300, this.walkingSpeed, 11, true, false);
     this.runningAnimation = new Animation(ASSET_MANAGER.getAsset("assets/HamsterSprites.png"), 0, 600, 300, 300, this.runningSpeed, 11, true, false);
     this.groundBoostAnimation = new Animation(ASSET_MANAGER.getAsset("assets/HamsterSprites.png"), 0, 900, 300, 300, this.boostSpeed, 4, false, false);
-    this.jumpingAnimation = new Animation(ASSET_MANAGER.getAsset("assets/HamsterSprites.png"), 0, 1800, 300, 300, 0.1, 2, true, true);
-    this.airBoostAnimation = new Animation(ASSET_MANAGER.getAsset("assets/HamsterSprites.png"), 0, 300, 300, 300, 0.05, 11, true, false);
-this.boostTime = 0;
+    this.jumpingAnimation = new Animation(ASSET_MANAGER.getAsset("assets/HamsterSprites.png"), 0, 1800, 300, 300, 0.1, 2, true, false);
+    this.doubleJumpingAnimation = new Animation(ASSET_MANAGER.getAsset("assets/HamsterSprites.png"), 0, 1800, 300, 300, 0.1, 2, true, false);
+    //this.airBoostAnimation = new Animation(ASSET_MANAGER.getAsset("assets/HamsterSprites.png"), 0, 300, 300, 300, 0.05, 11, true, false);
+    this.boostTime = 0;
     this.facing = true;
     this.model = null;
     this.timer = timer;
+    
 }
 ;
 
@@ -27,22 +29,22 @@ this.boostTime = 0;
 
 Player.prototype = new Entity();
 Player.prototype.update = function() {
-    //console.log(" speed " + this.model.animationSpeed);
 
     if (this.model.animationSpeed === 0) {
         this.model.animationStanding = true;
     } else {
         this.model.animationStanding = false;
     }
+    
     if (this.inputs.leftPressed) {
 
         this.model.animationStanding = false;
         this.facing = false;
         if (this.model.animationSpeed <= 3000) {
             this.model.animationWalking = true;
-            this.model.animationRunning = false;
+            //this.model.animationRunning = false;
         } else {
-            this.model.animationRunning = true;
+            //this.model.animationRunning = true;
             this.model.animationWalking = false;
         }
     }
@@ -50,32 +52,32 @@ Player.prototype.update = function() {
     if (this.inputs.rightPressed) {
         this.model.animationStanding = false;
         this.model.animationFacing = "right";
-
         this.facing = true;
         if (this.model.animationSpeed <= 3000) {
             this.model.animationWalking = true;
-            this.model.animationRunning = false;
+            //this.model.animationRunning = false;
         } else {
-            this.model.animationRunning = true;
+            //this.model.animationRunning = true;
             this.model.animationWalking = false;
         }
 
     }
 
     if (this.inputs.boostPressed || this.model.animationBoosting) {
+        console.log("boostPressed " + this.inputs.boostPressed);
         this.boostTime += this.timer.gameDelta;
         this.model.animationBoosting = true;
         this.model.animationWalking = false;
         this.model.animationStanding = false;
-        this.model.animationRunning = false;
-        console.log(this.boostTime);
+        //this.model.animationRunning = false;
+ 
         //boost durration
         if (this.boostTime > 2) {
             this.boostTime = 0;
             this.groundBoostAnimation.elapsedTime = 0;
             this.model.animationBoosting = false;
             this.model.animationWalking = true;
-            this.model.animationRunning = false;
+            //this.model.animationRunning = false;
             this.model.animationStanding = false;
         }
     } else {
@@ -83,21 +85,29 @@ Player.prototype.update = function() {
         this.groundBoostAnimation.elapsedTime = 0;
         this.model.animationBoosting = false;
         this.model.animationWalking = true;
-        this.model.animationRunning = false;
+        //this.model.animationRunning = false;
         this.model.animationStanding = false;
 
 
     }
     
+    if (this.inputs.jumpPressed && this.model.surface) {
+        
+        this.model.animationGroundJumping = true;
+        this.model.animationWalking = false;
+        
+        //if(collision with ground)
+               //this.model.an
+        //this.model.animationRunning = false;
+
+    }
+    
+
 };
 
 
 var SPRITE_WIDTH_AND_HEIGHT_IN_PX = 300;
 Player.prototype.draw = function(ctx) {
-
-
-
-
     var scaleFactor = this.model.radius * 2 / SPRITE_WIDTH_AND_HEIGHT_IN_PX;
     ctx.save();
     if (!this.ctx)
@@ -110,40 +120,42 @@ Player.prototype.draw = function(ctx) {
     if (this.model.animationFacing === "left") {
         if (this.model.animationStanding) {
             this.idle(ctx, scaleFactor);
-        } else
-        if (this.model.animationWalking) {
-            this.walking(ctx, scaleFactor);
-        } else
-        if (this.model.animationRunning) {
-            this.running(ctx, scaleFactor);
-        } else
-        if (this.model.animationBoosting === true) {
-            this.groundBoost(ctx, scaleFactor);
+        } else if (this.model.animationGroundJumping) {
+            this.groundJumping(ctx, scaleFactor);
         }
+        else if (this.model.animationBoosting) {
+            this.groundBoost(ctx, scaleFactor);
+        } else if (this.model.animationWalking) {
+            this.walking(ctx, scaleFactor);
+        } else if (this.model.animationRunning) {
+            this.running(ctx, scaleFactor);
+        } 
 
     }
     if (this.model.animationFacing === "right") {
         if (this.model.animationStanding) {
             this.idle(ctx, scaleFactor);
-        } else
-        if (this.model.animationWalking) {
-            this.walking(ctx, scaleFactor);
-        } else
-        if (this.model.animationRunning) {
-            this.running(ctx, scaleFactor);
-        } else
-
-        if (this.model.animationBoosting) {
+        } else if (this.model.animationGroundJumping) {
+            this.groundJumping(ctx, scaleFactor);
+        } else if (this.model.animationBoosting) {
             this.groundBoost(ctx, scaleFactor);
-        }
+        }else if (this.model.animationWalking) {
+            this.walking(ctx, scaleFactor);
+        } else if (this.model.animationRunning) {
+            this.running(ctx, scaleFactor);
+        } 
 
     }
 
     ctx.restore();
 };
 
-
-//Animation.prototype.drawFrame = function (tick, ctx, x, y, scaleBy, flip, rotateBy)
+/**
+ * player function to draw the frames for walking animation.
+ * @param {type} ctx
+ * @param {type} scaleFactor
+ * @returns {undefined}
+ */
 Player.prototype.walking = function(ctx, scaleFactor) {
 
     this.walkingAnimation.drawFrame(this.timer.gameDelta, ctx, this.model.pos.x - this.walkingAnimation.frameWidth / 2 * scaleFactor,
@@ -151,24 +163,46 @@ Player.prototype.walking = function(ctx, scaleFactor) {
 
 };
 
-
+/**
+ * player function to draw frame for standing animation.
+ * @param {type} ctx
+ * @param {type} scaleFactor
+ * @returns {undefined}
+ */
 Player.prototype.idle = function(ctx, scaleFactor) {
     this.idleAnimation.drawFrame(0
             , ctx, this.model.pos.x - this.idleAnimation.frameWidth / 2 * scaleFactor,
             this.model.pos.y - this.idleAnimation.frameHeight / 2 * scaleFactor, scaleFactor, this.facing);
 };
 
+/**
+ * player function to draw frames for running animation.
+ * @param {type} ctx
+ * @param {type} scaleFactor
+ * @returns {undefined}
+ */
 Player.prototype.running = function(ctx, scaleFactor) {
     this.runningAnimation.drawFrame(this.timer.gameDelta, ctx, this.model.pos.x - this.runningAnimation.frameWidth / 2 * scaleFactor,
             this.model.pos.y - this.runningAnimation.frameHeight / 2 * scaleFactor, scaleFactor, this.facing);
 };
 
+/**
+ * player function to draw frames for ground boost animation.  no looping
+ * @param {type} ctx
+ * @param {type} scaleFactor
+ * @returns {undefined}
+ */
 Player.prototype.groundBoost = function(ctx, scaleFactor) {
     //console.log(" start y" + this.groundBoostAnimation.startY +", start x" + this.groundBoostAnimation.startX);
     this.groundBoostAnimation.drawFrameFreeze(this.timer.gameDelta, ctx, this.model.pos.x - this.groundBoostAnimation.frameWidth / 2 * scaleFactor,
             this.model.pos.y - this.groundBoostAnimation.frameHeight / 2 * scaleFactor, scaleFactor, this.facing);
 };
-
+/**
+ * player function to drwa frames for jumping from a surface animation.
+ * @param {type} ctx
+ * @param {type} scaleFactor
+ * @returns {undefined}
+ */
 Player.prototype.groundJumping = function(ctx, scaleFactor) {
     this.jumpingAnimation.drawFrame(this.timer.gameDelta, ctx, this.model.pos.x - this.jumpingAnimation.frameWidth / 2 * scaleFactor,
             this.model.pos.y - this.jumpingAnimation.frameHeight / 2 * scaleFactor, scaleFactor, this.facing);
