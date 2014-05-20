@@ -105,9 +105,11 @@ GameManu.prototype.drowGameManu = function () {
 }
 
 GameManu.prototype.loop = function () {
+	if(MY_GAME_MANU_CANVAS.style.display === "block"){
     this.my_ctx.clearRect(0, 0, this.my_ctx.canvas.width, this.my_ctx.canvas.height);
     this.drowGameManu();
     this.my_where_click = null;
+	}
 }
 
 //--------------------------------------------------
@@ -223,16 +225,19 @@ GMImageButton.prototype.playButton = function () {
             // dispaly the world map canvase 
             MY_STAGE_CANVAS.style.display = "block";
             //.... just incase dislay = "non for any other screen for gaming later...."
-			
-			canvas.style.display = "none";
+			noneDisplayGame();
+			//canvas.style.display = "none";
 			
 			my_stage_board.setWorldMapID(1);
             break;
         case 2:
+			
 			MY_GAME_MANU_CANVAS.style.display = "none";
+			noneDisplayGame(); 	
             // dispaly the world map canvase 
             MY_STAGE_CANVAS.style.display = "block";
             my_stage_board.setWorldMapID(2);
+			
             // to custom game manu. open up canvas for custom game...
             break;
         case 3:
@@ -321,4 +326,6 @@ GM_BOARD_ASSET_MANAGER.downloadAll(function () {
     my_game_manu_board.pushButton(th_stage4);
 
     my_game_manu_board.start();
+	
+	
 });

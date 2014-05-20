@@ -563,10 +563,12 @@ GameEngine.prototype.update = function() {
 };
 
 GameEngine.prototype.loop = function() {
-    this.update();
-    this.draw();
-    this.click = null;
-    this.wheel = null;
+	if(canvas.style.display === "block"){ // by.min. i did this for make more faster for other cavnas.
+		this.update();
+		this.draw();
+		this.click = null;
+		this.wheel = null;
+	}
 }
 
 //Create pause menu buttons
@@ -891,8 +893,28 @@ for(var i = 0; i < imagePaths.length; i++) {
 }
 
 
+//------------------------
 
+/*
+	by. Minkwan Choi.
+	array of gamecavse that needs to control from other js. 
+*/
+var GameCanvas = [];
+// to un-display.
+function noneDisplayGame(){
+	for(var i = 0; i < GameCanvas.length; i++){
+		GameCanvas[i].style.display = "none";
+	}
 
+}
+// to display game canvas and other things for game..
+function blockDisplayGame(){
+	for(var i = 0; i < GameCanvas.length; i++){
+		GameCanvas[i].style.display = "block";
+	}
+}
+
+//--------------------------------
 ASSET_MANAGER.downloadAll(function() {
     
     console.log("starting up da sheild");
@@ -907,6 +929,13 @@ ASSET_MANAGER.downloadAll(function() {
 	 ctx4.canvas.addEventListener('click',pauseClicked,false);
 	canvas5 = document.getElementById('remap');
 	 ctx5 = canvas5.getContext('2d');
+	 
+	 
+	 GameCanvas.push(canvas);
+	 GameCanvas.push(canvas2);
+	 GameCanvas.push(canvas3);
+	// GameCanvas.push(canvas4);
+	 //GameCanvas.push(canvas5);
 	 //ctx5.canvas.addEventListener('click',remapClicked,false);
           var timer = new Timer();
      player  = new Player(canvas.width/2, canvas.height/2, timer);
