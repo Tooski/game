@@ -13,13 +13,13 @@
 
 
 //IF FALSE, RUN NORMALLY
-var DEBUG_STEP =                                    false;
+var DEBUG_STEP =                                    true;
 
 //IF FALSE ONLY STEPS TO RENDEREVENTS
 var DEBUG_EVENT_AT_A_TIME =                         true && DEBUG_STEP; //only true if debug step is also true. Saves me the time of changing 2 variables to switch between normal state and debug state.
 
 //DEBUG FRAME TIME
-var DEBUG_MAX_TIMESTEP = 0.01;
+var DEBUG_MAX_TIMESTEP = 0.1;
 
 
 // this should work in just about any browser, and allows us to use performance.now() successfully no matter the browser.
@@ -50,7 +50,7 @@ var TIME_EPSILON_SQ = 0.000000000001;
 // HEIGHT = 1080 UNITS
 var DFLT_gravity = 400;        // FORCE EXERTED BY GRAVITY IS 400 ADDITIONAL UNITS OF VELOCITY DOWNWARD PER SECOND. 
 var DFLT_lockThreshold = 1000;
-var DFLT_autoLockThreshold = 200;
+var DFLT_autoLockThreshold = 500;
 
 //angle between surfaces at which the player continues onto the next surface whether locked or not.
 var DFLT_surfaceSnapAngle = -(30               / 180) * Math.PI + Math.PI;
@@ -94,17 +94,13 @@ var REPLAY_SYNC_INTERVAL = 1.0;
 
 
 // this thing is just useful for storing potential states in an object.
-function State(time, radius, pos, vel, accel
-  //, accelPrime, accelDPrime									// DO WE INCLUDE SUB ACCEL DERIVS?
-		) {
+function State(time, radius, pos, vel, accel) {
 
   this.time = time;
   this.radius = radius;
   this.pos = pos;
   this.vel = vel;
   this.accel = accel;
-  //this.accelPrime = accelPrime;
-  //this.accelDPrime = accelDPrime;
 }
 
 
@@ -261,12 +257,8 @@ function TimeManager(time, referenceBrowserTime, referenceGameTime, timeRate) {
 
 
 
-function PlayerModel(controlParams, physParams, time, radius, pos, vel, accel, surfaceOrNull       //NEW
-  //, accelPrime, accelDPrime
-		) {
-  State.apply(this, [time, radius, pos, vel, accel 
-			//, accelPrime, accelDPrime
-  ]);
+function PlayerModel(controlParams, physParams, time, radius, pos, vel, accel, surfaceOrNull) {
+  State.apply(this, [time, radius, pos, vel, accel]);
 
   this.pos = new vec2(0, 0);
   this.vel = new vec2(0, 0);
@@ -344,8 +336,6 @@ function PlayerModel(controlParams, physParams, time, radius, pos, vel, accel, s
     this.pos = state.pos;
     this.vel = state.vel;
     this.accel = state.accel;
-    //this.accelPrime = state.accelPrime;
-    //this.accelDPrime = state.accelDPrime;
   }
 	
 
@@ -655,13 +645,15 @@ function PhysEng(gameEngine, playerModel) {
   this.tweenEventHeap = getNewTweenHeap();
 
 
+  this.debugEventHeap = getNewDebugHeap();
+
+
   ////The state events, such as time a dash will end. Modified at certain times.
   //this.stateEventHeap = new MinHeap(null, function (e1, e2) {
   //  return e1.time == e2.time ? 0 : e1.time < e2.time ? -1 : 1;
   //});
 	
 	
-    this.printStartState();    
 }
 
 
@@ -696,7 +688,7 @@ PhysEng.prototype.stepDebug = function () {
     this.tm = currentLevel;
     if (DEBUG_EVENT_AT_A_TIME) {
       // adds a new renderEvent to the predicted event heap. will be overwritten if a different event happens.
-      this.predictedEventHeap.push(new RenderEvent(0.0, DEBUG_MAX_TIMESTEP + (this.getTime())));
+      this.debugEventHeap.push(new RenderEvent(0.0, DEBUG_MAX_TIMESTEP + (this.getTime())));
       //console.log("(this.getTime()) + DEBUG_MAX_TIMESTEP = ", DEBUG_MAX_TIMESTEP + (this.getTime()));
       this.updatePhys(this.debugInputs, !DEBUG_EVENT_AT_A_TIME);
       this.debugInputs = [];
@@ -760,7 +752,7 @@ PhysEng.prototype.updatePhys = function (newEvents, stepToRender) {
     //console.log("stepResult: ", stepResult);
     //console.log("currentEvent: ", currentEvent);
 
-
+    console.log(currentEvent, stepResult);
     var timeDifference = (currentEvent.time - stepResult.state.time);
     if (timeDifference * timeDifference > TIME_EPSILON_SQ) {     //DEBUG CASE TESTING TODO REMOVE??
                                         //IF NOT THROWN, EVENT IS IGNORED.
@@ -998,6 +990,7 @@ PhysEng.prototype.getSurfaceEndEvent = function () {
           DEBUG_DRAW_GREEN.push(new DebugCircle(adjDataState.pos, this.player.radius, 5));
           var endPointState = this.stepStateByTime(this.player, endPointData.time);
           DEBUG_DRAW_RED.push(new DebugCircle(adjDataState.pos, this.player.radius, 5));
+          
           throw "Debug, but this technically shouldnt happen where endpoint was hit before the adjacent line was.";
         }
         //handle me.
@@ -1103,6 +1096,7 @@ PhysEng.prototype.unpause = function (browserTime) {
  */
 PhysEng.prototype.start = function () {
   this.unpause(performance.now() / 1000);
+  //this.printStartState();
 }
 
 
@@ -1406,6 +1400,7 @@ PhysEng.prototype.getEventHeapArray = function () {
   events.push(this.primaryEventHeap);
   events.push(this.predictedEventHeap);
   events.push(this.tweenEventHeap);
+  events.push(this.debugEventHeap);
   //events.push(this.stateEventHeap);
   //events.push(this.tweenEventHeap);    // FUTURE HEAPS.
 
@@ -1601,6 +1596,110 @@ function solveClosestSurfaceEndpoint(state, surface) {
 
   return results;
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+var aP0 = new vec2(-100, 200);
+var aP1 = new vec2(100, 100);
+var aNorm = aP1.subtract(aP0).perp().normalize();
+if (aNorm.y >= 0) {
+  aNorm = aNorm.negate();
+}
+
+var bP0 = new vec2(100, 100);
+var bP1 = new vec2(300, -100);
+var bNorm = bP1.subtract(bP0).perp().normalize();
+if (bNorm.y >= 0) {
+  bNorm = bNorm.negate();
+}
+var lineA = new TerrainLine(aP0, aP1, "wahtever", null, null, aNorm);
+var lineB = new TerrainLine(bP0, bP1, "wahtever", lineA, null, bNorm);
+lineA.adjacent1 = lineB;
+//var testPlayer = new PlayerModel(
+//function PlayerModel(controlParams, physParams, time, radius, pos, vel, accel, surfaceOrNull) {
+//(0.0, 50, pos, vel, accel) {
+
+var currentLevel = new TerrainManager();
+currentLevel.terrainList.push(lineA);
+currentLevel.terrainList.push(lineB);
+var physParams = new PhysParams(DFLT_gravity, DFLT_lockThreshold, DFLT_autoLockThreshold, DFLT_surfaceSnapAngle);
+var controlParams = new ControlParams(DFLT_gLRaccel, DFLT_aLRaccel, DFLT_aUaccel, DFLT_aDaccel, DFLT_gUaccel, DFLT_gDaccel, DFLT_gBoostLRvel, DFLT_aBoostLRvel, DFLT_aBoostDownVel, DFLT_jumpVelNormPulse, DFLT_doubleJumpVelYPulse, DFLT_doubleJumpVelYMin, DFLT_numAirCharges, 0.0, 100000000, 2, DFLT_jumpSurfaceSpeedLossRatio, DFLT_reverseAirJumpSpeed);
+var playerModel = new PlayerModel(controlParams, physParams, 0.0, DFLT_radius, new vec2(0, 0), new vec2(0, 0), new vec2(0, 0), null);       //NEW
+var physEng = new PhysEng("fuck you", playerModel);
+var i = 0;
+physEng.start();
+physEng.stepDebug();
+i++;
+console.log("update ", i);
+console.log("playerModel, ", playerModel);
+physEng.stepDebug();
+i++;
+console.log("update ", i);
+console.log("playerModel, ", playerModel);
+physEng.stepDebug();
+i++;
+console.log("update ", i);
+console.log("playerModel, ", playerModel);
+physEng.stepDebug();
+i++;
+console.log("update ", i);
+console.log("playerModel, ", playerModel);
+physEng.stepDebug();
+i++;
+console.log("update ", i);
+console.log("playerModel, ", playerModel);
+physEng.stepDebug();
+i++;
+console.log("update ", i);
+console.log("playerModel, ", playerModel);
+physEng.stepDebug();
+i++;
+console.log("update ", i);
+console.log("playerModel, ", playerModel);
+physEng.stepDebug();
+i++;
+console.log("update ", i);
+console.log("playerModel, ", playerModel);
+physEng.stepDebug();
+i++;
+console.log("update ", i);
+console.log("playerModel, ", playerModel);
+physEng.stepDebug();
+i++;
+console.log("update ", i);
+console.log("playerModel, ", playerModel);
+//physEng.update(0.010, [new InputEventRight(0.005, true)]);
+//console.log("update 0.010 with InputEventRight");
+//physEng.update(0.050, [new InputEventRight(0.005, false), new InputEventLeft(0.010, true)]);
+//physEng.update(0.200, [new InputEventUp(0.084, true)]);
+//physEng.update(0.010, [new InputEventLeft(0.0005, false)]);
+//physEng.update(0.035, [new InputEventUp(0.03, false)]);
+  
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -2111,6 +2210,18 @@ function getNewPredictedHeap() {
  * gets a new tween heap. Helper method to prevent dupe code and clear up constructor.
  */
 function getNewTweenHeap() {
+  return new MinHeap(null, function (e1, e2) {
+    return e1.time == e2.time ? 0 : e1.time < e2.time ? -1 : 1;
+  });
+}
+
+
+
+
+/**
+ * gets a new debug heap. Helper method to prevent dupe code and clear up constructor.
+ */
+function getNewDebugHeap() {
   return new MinHeap(null, function (e1, e2) {
     return e1.time == e2.time ? 0 : e1.time < e2.time ? -1 : 1;
   });

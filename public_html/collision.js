@@ -43,8 +43,10 @@ drawDebug = function (ctx) {
   ctx.beginPath();
   ctx.strokeStyle = "#FF0000";
   for (var i = 0; i < DEBUG_DRAW_RED.length; i++) {
+    console.log("    DEBUG_DRAW_RED[", i, "] ", DEBUG_DRAW_RED[i]);
     if (DEBUG_DRAW_RED[i] instanceof DebugLine) {
       //throw "wut";
+
       ctx.lineWidth = DEBUG_DRAW_RED[i].lineWidth;
       //ctx.lineCap = "round";
 
@@ -69,6 +71,7 @@ drawDebug = function (ctx) {
   ctx.beginPath();
   ctx.strokeStyle = "#00FF00";
   for (var i = 0; i < DEBUG_DRAW_GREEN.length; i++) {
+    console.log("    DEBUG_DRAW_GREEN[", i, "] ", DEBUG_DRAW_GREEN[i]);
     if (DEBUG_DRAW_GREEN[i] instanceof DebugLine) {
       ctx.lineWidth = DEBUG_DRAW_GREEN[i].lineWidth;
       //ctx.lineCap = "round";
@@ -95,6 +98,7 @@ drawDebug = function (ctx) {
   ctx.beginPath();
   ctx.strokeStyle = "#0000FF";
   for (var i = 0; i < DEBUG_DRAW_BLUE.length; i++) {
+    //console.log("    DEBUG_DRAW_BLUE[", i, "] ", DEBUG_DRAW_BLUE[i]);
     if (DEBUG_DRAW_BLUE[i] instanceof DebugLine) {
       ctx.lineWidth = DEBUG_DRAW_BLUE[i].lineWidth;
       //ctx.lineCap = "round";
