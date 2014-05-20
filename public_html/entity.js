@@ -60,3 +60,21 @@ var generateID = (function () {
     };
 }());
 
+
+function GUIEntity(game, x, y, width, height) {
+    this.game = game;
+    this.x = x;
+    this.y = y;
+    this.width = width;
+    this.height = height;
+    this.removeFromWorld = false;
+    this.id = generateID(this);
+
+};
+
+GUIEntity.prototype.update = function() {};
+
+GUIEntity.prototype.draw = function(ctx) {};
+
+
+

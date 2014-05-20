@@ -13,6 +13,7 @@ canvas { display:block; } /* To remove the scrollbars */
     <script type="text/javascript" src="./canvasinput.min.js"></script>
     <script type="text/javascript" src="./minheap.js"></script>
     <script type="text/javascript" src="./jquery-1.11.0.min.js"></script>
+    <script type="text/javascript" src="./canvasfactory.js"></script>
     <script type="text/javascript" src="./settings.js"></script>
     <script type="text/javascript" src="./entity.js"></script>
     <script type="text/javascript" src="./timer.js"></script>

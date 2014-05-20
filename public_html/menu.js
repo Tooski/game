@@ -1,13 +1,40 @@
 var fontSize = 16;
 var selectedRowColor = "red";
 var regularRowColor = "white";
-
+var menuCtx;
 function Menu() {
     
-}
 
+
+};
+
+Menu.prototype.init = function(offset, w, h) {
+    this.offset = offset;
+    this.h = h;
+    this.w = w;
+    if(!menuCtx) {
+        var c = new CanvasFactory({id:"menuCanvas", width:this.w, height: this.h, x: this.offset.x || 0, y: this.offset.y || 0});
+        menuCtx =  c.getContext('2d');
+        c.tabIndex = 1;
+        
+    }
+    this.ctx = menuCtx;
+};
 Menu.prototype.update = function() {};
 Menu.prototype.draw = function(ctx) {};
+Menu.prototype.clear = function() {
+    this.ctx.clearRect(0, 0, this.ctx.canvas.width, this.ctx.canvas.height);
+    this.ctx.canvas.style.zIndex = -1;
+    //console.log("test");
+    //ocument.activeElement = canvas;
+    canvas.focus();
+   
+};
+
+Menu.prototype.focus = function() {
+    this.ctx.canvas.style.zIndex = 1;
+    this.ctx.canvas.focus();
+};
 
 function MenuButtonGroup(x,y,w,h, padding) {
     this.ix = this.x = x;
@@ -38,26 +65,35 @@ MenuButtonGroup.prototype.removeButton = function(index) {
     }
 };
 
+MenuButtonGroup.prototype.setOffset = function(offset) {
+    if(offset instanceof vec2) {
+    for(var i = 0; i <  this.buttons.length; i++)
+        this.buttons[i].setOffset(offset);
+    }
+};
+
 
 MenuButtonGroup.prototype.draw = function(ctx) {
     if(this.parent) {
     for(var i = 0; i < this.buttons.length; i++) {
-        this.x = this.ix/initScale* (initWidth/ctx.canvas.width);
-        this.y = this.iy/initScale* (initWidth/ctx.canvas.width);
-        this.h = this.ih/initScale* (initWidth/ctx.canvas.width);
-        this.w = this.iw/initScale* (initWidth/ctx.canvas.width);
-        this.padding = this.ipadding/initScale* (initWidth/ctx.canvas.width);
-        var w = this.buttons[i].collider.w = ((this.w ) / this.buttons.length  - (this.padding/(this.buttons.length) * (this.buttons.length+1))) ;
+        this.x = this.ix;
+        this.y = this.iy;
+        this.h = this.ih;
+        this.w = this.iw;
+        this.padding = this.ipadding;
+        var w = ((this.w ) / this.buttons.length  - (this.padding/(this.buttons.length) * (this.buttons.length+1))) ;
         var h = this.buttons[i].collider.h = this.h;
-        var x = this.buttons[i].collider.x = (this.x + w * i  + this.padding * (i + 1))+ this.parent.x;
-        var y = this.buttons[i].collider.y = (this.y  +this.padding)+ this.parent.y;
-
-
+        var x = (this.x + w * i  + this.padding * (i + 1))+ this.parent.x;
+        var y = (this.y + this.padding)+ this.parent.y;
+        this.buttons[i].collider.w = w / initScale;
+        this.buttons[i].collider.h = h / initScale;
+        this.buttons[i].collider.x = x;
+        this.buttons[i].collider.y = y;
         ctx.beginPath();
         ctx.fillStyle="white";
         ctx.fillRect(x,y, w, h);
         ctx.stroke();
-        var size = 16/initScale* (initWidth/ctx.canvas.width);
+        var size = 16;
         ctx.fillStyle = "black";
         ctx.font = "bold "+size+"px Arial";
         ctx.textAlign="center"; 
@@ -78,13 +114,18 @@ function MenuButton (name) {
     this.collider = new MouseCollideable("menubutton");
 }
 
+MenuButton.prototype.setOffset = function(offset) {
+    this.collider.x = this.collider.ix + offset.x;
+    this.collider.y = this.collider.iy + offset.y;
+};
+
 
 function MenuTableRow (array, parent) {
     this.isEditable = false;
     for(var i = 0; i < array.length; i++) {
         if(!array[i]) {
             array[i] = new CanvasInput({
-                canvas: ctx.canvas,
+                canvas: parent.ctx.canvas,
                 fontSize: 18,
                 fontFamily: 'Arial',
                 fontColor: '#212121',
@@ -109,8 +150,8 @@ function MenuTableRow (array, parent) {
 
 }
 
-function MenuTable (name, x,y,w,h,padding,showName) {
-
+function MenuTable (name, x,y,w,h,padding,showName, ctx) {
+    this.ctx = ctx;
     this.name = name;
     this.ix = this.x = x;
     this.iy = this.y = y;
@@ -163,13 +204,13 @@ MenuTable.prototype.draw = function(ctx) {
     if(this.parent) {
         
         
-        var size = fontSize/initScale* (initWidth/ctx.canvas.width)
-    this.padding = this.ipadding/initScale* (initWidth/ctx.canvas.width);
+        var size = fontSize;
+    this.padding = this.ipadding;
 
-    this.w = this.iw /initScale* (initWidth/ctx.canvas.width) - this.padding*2;
-    this.h = this.ih /initScale* (initWidth/ctx.canvas.width);
-    this.x = this.ix /initScale* (initWidth/ctx.canvas.width) + this.parent.x + this.padding - (this.columns.length-1);
-    this.y = this.iy /initScale* (initWidth/ctx.canvas.width) + this.parent.y;
+    this.w = this.iw  - this.padding*2;
+    this.h = this.ih ;
+    this.x = this.ix+ this.parent.x + this.padding - (this.columns.length-1);
+    this.y = this.iy+ this.parent.y;
     
  
 
@@ -179,7 +220,7 @@ MenuTable.prototype.draw = function(ctx) {
             ctx.fillStyle="white";
             ctx.fillRect(this.x + (this.w/this.columns.length) * i + i,this.y, this.w/this.columns.length, this.h/this.maxRows );
             ctx.stroke();
-            var size = 16/initScale* (initWidth/ctx.canvas.width);
+            var size = 16;
             ctx.fillStyle = "black";
             ctx.font = "bold "+size+"px Arial";
             ctx.textAlign="center"; 
@@ -189,11 +230,15 @@ MenuTable.prototype.draw = function(ctx) {
     }
     
     for(var i = 0; i < this.rows.length; i++) {
-        var x = this.rows[i].collider.x = this.x;
-        var y = this.rows[i].collider.y = this.y + (this.h/this.maxRows * (i + (this.showName ? 1 : 0))) + (i+1);
-        var w = this.rows[i].collider.w = this.w;
-        var h = this.rows[i].collider.h = this.h/this.maxRows;
+        var x = this.x;
+        var y = this.y + (this.h/this.maxRows * (i + (this.showName ? 1 : 0))) + (i+1);
+        var w = this.w ;
+        var h = this.h/this.maxRows;
 
+        this.rows[i].collider.w = w / initScale;
+        this.rows[i].collider.h = h / initScale;
+        this.rows[i].collider.x = x;
+        this.rows[i].collider.y = y;
         for(var j = 0; j < this.rows[i].items.length; j++) {
             if(this.rows[i].items[j] instanceof CanvasInput) {
                 this.rows[i].items[j].x(x + (this.w/this.columns.length) * j + j);

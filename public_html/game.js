@@ -133,6 +133,7 @@ function InputObject() {// NAME THESE IN VARIABLES THAT TELL WHIH KEY THEY ARE. 
 
 function GameEngine(player) {
     this.entities = [];
+     this.entitiesGUI = [];
     this.menu;
     this.ctx = null;
     this.click = null;
@@ -417,7 +418,11 @@ GameEngine.prototype.controlReset = function() {
 
 GameEngine.prototype.addEntity = function(entity) {
     console.log('added entity');
-    this.entities.push(entity);
+      if(entity instanceof GUIEntity) {
+        this.entitiesGUI.push(entity);
+    } else if (entity instanceof Entity) {
+        this.entities.push(entity);
+    }
 }
 
 
@@ -458,13 +463,29 @@ GameEngine.prototype.draw = function(drawCallback) {
     this.ctx.save();
 
     if(initScale !== 0) {
-    
+        var hasNotChanged = canvas.width === window.innerWidth && canvas.height === window.innerHeight;
+
         canvas.width = window.innerWidth;
         canvas.height = window.innerHeight;
         // initScale is the window's width / 16 / player width. this should allow everything to scale down
         // the player will be 1/16 the width of the window at all times and everything will scale with him.
         ctx.scale(initScale * canvas.width / initWidth, initScale * canvas.width / initWidth);
-  
+            if(!hasNotChanged) {
+                var item = document.getElementById('mapEditor');
+                console.log(item);
+                if(item) {
+                    
+                    var ctxGUI = item.getContext('2d');
+       
+                    ctxGUI.clearRect(0, 0, ctxGUI.canvas.width, ctxGUI.canvas.height);
+                    for(var i = 0; i < this.entitiesGUI.length; i++) {
+                        this.entitiesGUI[i].draw(ctxGUI);
+                    }
+                }
+      
+            }
+            
+
   
         // Adjusts the canvas' move position as well as the post scaling.
         this.ctx.translate(
@@ -481,35 +502,35 @@ GameEngine.prototype.draw = function(drawCallback) {
         this.entities[i].draw(this.ctx);
     }
        
-    for(var i = 0; i < buttonList.length; i++) {
-        if(!mouseCollidable[i].onEditMode || (mouseCollidable[i].onEditMode && editMode)) {
-        buttonList[i].collider.x = buttonList[i].x = buttonList[i].ix + player.model.pos.x - (initWidth/ctx.canvas.width) * (ctx.canvas.width/ initScale / 2);
-        buttonList[i].collider.y = buttonList[i].y = buttonList[i].iy + player.model.pos.y - (initWidth/ctx.canvas.width) * (ctx.canvas.height/ initScale / 2) ;
-
-
-        this.ctx.beginPath();
-        this.ctx.fillStyle = buttonList[i].isSelected ? "#00FF00" : "#FF0000";
-        this.ctx.fillRect(buttonList[i].x,buttonList[i].y, buttonList[i].w, buttonList[i].h);
-         this.ctx.stroke();
-
-        var size = 16;
-        this.ctx.fillStyle = "black";
-        this.ctx.font = "bold "+size+"px Arial";
-        this.ctx.textAlign="center"; 
-        this.ctx.fillText(buttonList[i].name, buttonList[i].x +  buttonList[i].w/2, buttonList[i].y  + buttonList[i].h/2 + size/2);
-        //this.ctx.fillStyle = "orange";
-        //this.ctx.drawRect( buttonList[i].collider.x, buttonList[i].collider.y , buttonList[i].collider.w , buttonList[i].collider.h );
-// ctx.beginPath();
-//      ctx.rect(xx, yy, 60,60);
+//    for(var i = 0; i < buttonList.length; i++) {
+//        if(!mouseCollidable[i].onEditMode || (mouseCollidable[i].onEditMode && editMode)) {
+//        buttonList[i].collider.x = buttonList[i].x = buttonList[i].ix + player.model.pos.x - (initWidth/ctx.canvas.width) * (ctx.canvas.width/ initScale / 2);
+//        buttonList[i].collider.y = buttonList[i].y = buttonList[i].iy + player.model.pos.y - (initWidth/ctx.canvas.width) * (ctx.canvas.height/ initScale / 2) ;
 //
-//      ctx.lineWidth = 7;
-//      ctx.strokeStyle = 'black';
-//      ctx.stroke();
-     
-        
-        }
-    } 
-    
+//
+//        this.ctx.beginPath();
+//        this.ctx.fillStyle = buttonList[i].isSelected ? "#00FF00" : "#FF0000";
+//        this.ctx.fillRect(buttonList[i].x,buttonList[i].y, buttonList[i].w, buttonList[i].h);
+//         this.ctx.stroke();
+//
+//        var size = 16;
+//        this.ctx.fillStyle = "black";
+//        this.ctx.font = "bold "+size+"px Arial";
+//        this.ctx.textAlign="center"; 
+//        this.ctx.fillText(buttonList[i].name, buttonList[i].x +  buttonList[i].w/2, buttonList[i].y  + buttonList[i].h/2 + size/2);
+//        //this.ctx.fillStyle = "orange";
+//        //this.ctx.drawRect( buttonList[i].collider.x, buttonList[i].collider.y , buttonList[i].collider.w , buttonList[i].collider.h );
+//// ctx.beginPath();
+////      ctx.rect(xx, yy, 60,60);
+////
+////      ctx.lineWidth = 7;
+////      ctx.strokeStyle = 'black';
+////      ctx.stroke();
+//     
+//        
+//        }
+//    } 
+//    
     if(this.menu && this.menu instanceof Menu) this.menu.draw(this.ctx);
     //this.ctx.font = "30px Arial";
     //this.ctx.fillText(player.model.pos,200 + player.model.pos.x - (initWidth/ctx.canvas.width) * (ctx.canvas.width/ initScale / 2),100 + player.model.pos.y - (initWidth/ctx.canvas.width) * (ctx.canvas.height/ initScale / 2) );
