@@ -1,46 +1,3 @@
-CRITICAL:
-	add new key event to send a stepDebug() message to physics.
-
-	create a test thing to test things.
-
-	Stop checking the terrainline locked to, and its adjacent lines.
-
-	why doesnt collision checking work? for fucks sake 
-		man the fuck up and deal with it tonight.
-
-
-		
-	Add logic to getTimeToSurfaceEnd to check if its going to collide with
-			an adjacent line before the actual endPoint.
-			
-	Add adjacentCollisions to deal with ^ or collisions with non-adjacents
-			while locked, so that we dont bounce back through the line we
-			were on.
-		
-
-
-
-/predicted events "cancel" these on clear, only add if there are 
-	things that dont get cancelled/ 
-		--> add EndEvent heap that causes an event handling the end of something (essentially the expiration of a timer that started at a previous event).
-
-	
-DEBUG:
-	Add thingsToPrintDebug[] at the top of physics, any time we wanna print visual debug shit add whatever lines to print up there
-		add code to print thingsToPrintDebug[] objects in red. Or something. Idfk.
-		add debugLine object. Copy of terrainLines and shit but draws in red or whatever.
-
-COLLISION TESTING ???:					Collision.js
-	Refactor CollisionData object to include the time of the collision(s).
-	Refactor getCollisionData to do all collision testing and call the calculus methods and return the time of most relevant collision(s) in a CollisionData object.
-	Do not check getCollisionData collisions against currently "on" surfaces, or its predecessor or successor terrain (Stored in playerModel state).
-
-COLLISION TIME RETRIEVAL:
-	Implement getTimeOfCollision(collideableToGetTimeOfCollisionWith) for points and lines. (SEPERATE METHOD FOR EACH IS PROBABLY MOST EFFICIENT WAY).
-		Implement new methods getTimeToLine
-	
-		
-
 FURTHER DOWN THE LINE:
 	add InputBuffer heap. Inputs that end up ignored upon happening may be buffered. This buffer is checked on relevent events (jump buffered on a new collision? etc).
 
@@ -52,16 +9,7 @@ FURTHER DOWN THE LINE:
 		BOUNCE:
 			Handle case where two surfaces are legit hit at the same time. Average their normals? Alternately handle them in deterministic sequence
 			
-			
-			
-			
-TestPhysicsEngine!
-	copy current gameEngine
-	bypasses physEng.update() and updates physEng itself. 
-	Calls physEng.attemptStep() 
-	steps in arbitrary intervals once per press of stepKey.. 
-	if an event happens before last interval, attempStep returns that state and we just draw and wait for stepKey again.
-	inputs are allowed between time
+
 			
 			
 LINKAGE!
@@ -69,58 +17,3 @@ LINKAGE!
 	Moving circle to static circle collisions, adapt to circle to point collisions???				http://www.heroicvirtuecreations.com/2DCollisions.html
 	Awesome but really in depth paper about predictive game engine design:							http://floppsie.comp.glam.ac.uk/Papers/paper21/ieee.pdf
 	
-
-	
-	
-	
-	
-	
-	
-	;;BELOW SHOULD ALREADY HAVE BEEN IMPLEMENTED, KEEPING FOR ARCHIVE REFERENCE PURPOSE
-			BALL WITH BALL COLLISION CODE???? USES LINE BETWEEN BOTH BALLS CENTERS r1 + r2. We only care about r1 and dist from circle to point.
-			DID NOT ORIGINALLY INCLUDE ACCELERATION, THIS ONE IS UNMODIFIED
-
-			We want to know when ||p1-p2|| is less than r, where r is the radius of the ball (AKA THE DESIRED DISTANCE FROM BALL CENTER TO THE COLLISION POINT).
-
-			From ball2's perspective, ball1 is moving with velocity v1+v2. At time t, ball2 is at position p2+(v1+v2)*t.
-
-			The balls collide when:
-
-			(p1-(p2+vt)) = r
-			-(p2+vt) = r - p1
-			-p2-vt = r - p1
-			-vt = r - p1+p2
-			vt = (p1-p2) - r
-			Now since ||a|| = ||b||+||c|| when a = b+c, we know that
-
-			||v||t = ||p1-p2|| - r
-			t = (||p1-p2|| - r)/||v||
-
-			edit to put the vectormath into pseudocode:
-
-			p = p1-p2
-			v = v1-v2
-			t = (sqrt(p.x*p.x + p.y*p.y) - r) / sqrt(v.x*v.x + v.y*v.y)
-
-
-			THIS ONE MODIFIED TO INCLUDE ACCELERATION????
-			We want to know when ||p1-p2|| is less than ||r1||+||r2||, where r1 is the vector with a length of the radius of the first ball in the direction towards the second ball, and r2 is vice-versa.
-
-			From ball2's perspective, ball1 is moving with velocity v1+v2. At time t, ball2 is at position p2+(v1+v2)*t.
-
-			The balls collide when:
-
-			(p1-(p2+vt + (1/2 * a*t^2))) = r
-			-(p2+vt + (1/2 * a*t^2)) = r - p1
-			-p2-vt - (1/2 * a*t^2) = r - p1
-			-vt - (1/2 * a*t^2) = r - p1 + p2
-			vt + (1/2 * a*t^2) = (p1 - p2) - r
-			Now since ||d|| = ||b||+||c|| when d = b+c, we know that
-
-			||v||t + 1/2 * ||a||t^2 = ||p1-p2|| - r
-			||v||t + 1/2 * ||a||t^2	- ||p1-p2|| + r = 0										//NEW,	roots are when this = 0. Yields solution????
-			//t = (||p1-p2|| - r)/||v||														//OLD
-
-			//p = p1-p2
-			//v = v1-v2
-			//t = (sqrt(p.x*p.x + p.y*p.y) - r) / sqrt(v.x*v.x + v.y*v.y)

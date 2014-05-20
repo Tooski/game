@@ -767,6 +767,14 @@ function pauseClicked (e) {
 	} else if (restartButton.checkClicked()) {
 		console.log("Restart!");
 	} else if (quitButton.checkClicked()) {
+				//console.log("da");
+	    MY_GAME_MANU_CANVAS.style.display = "none";
+		canvas4.style.display = "none";
+            // dispaly the world map canvase 
+        MY_STAGE_CANVAS.style.display = "block";
+            //.... just incase dislay = "non for any other screen for gaming later...."
+		noneDisplayGame();
+	
 		console.log("Quit!");
 	}
 }
@@ -976,7 +984,7 @@ ASSET_MANAGER.downloadAll(function() {
 	 GameCanvas.push(canvas);
 	 GameCanvas.push(canvas2);
 	 GameCanvas.push(canvas3);
-	// GameCanvas.push(canvas4);
+	 //GameCanvas.push(canvas4);
 	 //GameCanvas.push(canvas5);
 	 //ctx5.canvas.addEventListener('click',remapClicked,false);
 
@@ -1008,7 +1016,9 @@ ASSET_MANAGER.downloadAll(function() {
     //    gameEngine.addEntity(new TerrainLine(new vec2(200,200+50), new vec2(200+250,200+150), player));
     
     gameEngine.addEntity(currentLevel);
-    gameEngine.addEntity(new MapEditor(currentLevel));
+    //gameEngine.addEntity(new MapEditor(currentLevel));
+	
+	
 	//new KeyMapping(gameEngine);
    //  gameEngine.addEntity(new BezierCurve(40,100,80,20,150,180,260,100));
     gameEngine.addEntity(gameboard);
