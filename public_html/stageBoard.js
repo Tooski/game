@@ -1,8 +1,12 @@
 ﻿/*
 	Minkwan Choi
-	last updated : 5/13/2014
+	last updated : 5/20/2014
 	stage board(world map).....
 	has buttons for substages.
+	
+	current version open up every games. 
+	did not closed any game yet. 
+	just becase we did not fully set up the games at database.
 */
 
 
@@ -50,7 +54,7 @@ StageBoard.prototype.setBackground = function (the_path) {
 }
 StageBoard.prototype.setWorldMapID = function (the_id) {
     this.my_world_map_id = the_id;
-    console.log(this.my_world_map_id);
+    //console.log(this.my_world_map_id);
 }
 StageBoard.prototype.setWorldMapName = function (the_name) {
     this.my_world_map_name = the_name;
@@ -76,13 +80,13 @@ StageBoard.prototype.setActions = function () {
         var i, k;
         for (i = 0; i < that.my_image_button_arr.length; i++) {
             if (that.my_image_button_arr[i].isOnButton(the_point, that.my_world_map_id)) {
-                console.log(i);
+                //console.log(i);
                 if (k = that.my_image_button_arr[i].canPlay()) {
                     break;
                 }
             }
         }
-		console.log(k);
+	//	console.log(k);
         if (k) {
             //that.my_image_button_arr[i].addOnePoint();
             that.my_image_button_arr[i].startGame();
@@ -184,6 +188,11 @@ SBImageButton.prototype.init = function (the_world_map_id, the_sub_stage, the_x,
     this.my_scales.height = the_ctx.canvas.height / 7;
 }
 
+SBImageButton.prototype.setWidthWithRatio = function (the_ratio) {
+
+		this.my_scales.width = this.my_scales.width * the_ratio;
+
+}
 SBImageButton.prototype.pushNextButton = function (the_next_button) {
     this.my_next_buttons_arr.push(the_next_button);
     the_next_button.my_prev_buttons_arr.push(this);
@@ -259,7 +268,44 @@ SBImageButton.prototype.canPlay = function () {
 
 // decide which picture will show for this button.
 SBImageButton.prototype.setPath = function (the_where_mouse) {
-    if (this.canPlay()) {
+	if(this.my_world_map_id === -1){
+		if (the_where_mouse && this.isOnButton(the_where_mouse)) { // on mouse.. 
+
+            switch (this.my_sub_stage) {
+
+				case 0:
+					this.my_icon_path = IM_ON_BACK_PATH;
+                    break;
+				case 1:
+					this.my_icon_path = WORLD_MAP_ON_1;
+					break;
+				case 2:
+					this.my_icon_path = WORLD_MAP_ON_2;
+					break;
+                default:
+                    break;
+            }
+
+
+        } else {
+
+            switch (this.my_sub_stage) {
+
+				case 0:
+					this.my_icon_path = IM_BACK_PATH;
+                    break;
+				case 1:
+					this.my_icon_path = WORLD_MAP_1;
+					break;
+				case 2:
+					this.my_icon_path = WORLD_MAP_2;
+					break;
+                default:
+                    break;
+            }
+
+        }
+	} else if (this.canPlay()) {
         if (the_where_mouse && this.isOnButton(the_where_mouse)) { // on mouse.. 
 
             switch (this.my_sub_stage) {
@@ -285,9 +331,7 @@ SBImageButton.prototype.setPath = function (the_where_mouse) {
                 case 7:
                     this.my_icon_path = ON_M_STAGE_7_PATH;
                     break;
-				case -1:
-					this.my_icon_path = IM_ON_BACK_PATH;
-                    break;
+
                 default:
                     break;
             }
@@ -317,9 +361,7 @@ SBImageButton.prototype.setPath = function (the_where_mouse) {
                 case 7:
                     this.my_icon_path = OPEN_STAGE_7_PATH;
                     break;
-				case -1:
-					this.my_icon_path = IM_BACK_PATH;
-                    break;
+
                 default:
                     break;
             }
@@ -330,41 +372,48 @@ SBImageButton.prototype.setPath = function (the_where_mouse) {
     }
 }
 
-// starting game..... set upt here...
+// starting game..... 
 SBImageButton.prototype.startGame = function () {
     //console.log('startGame.' + stage_id + this.my_sub_stage);
     // displaying gmae... 
 	if(this.my_world_map_id === -1){
 		switch (this.my_sub_stage) {
-			case -1:
+			case 0:
 				MY_STAGE_CANVAS.style.display = "none";
 				MY_GAME_MANU_CANVAS.style.display = "block";
 				break;
-
+			case 1:
+				my_stage_board.setWorldMapID(1);
+				break;
+			case 2:
+				my_stage_board.setWorldMapID(2);
+				break;
 			default: // if do not have game... will return to main cavas.
 				break;
 		}
 	
+	// for world map 1
 	
-	}else if(this.my_world_map_id ===1){ // play game...
+	}else if(this.my_world_map_id ===1){ 
 		MY_STAGE_CANVAS.style.display = "none";
 		MY_GAME_MANU_CANVAS.style.display = "none";
 		
 		switch (this.my_sub_stage) {
-			case 1:
-				currentLevel.loadFromFile(15);
+			case 1: // game for stage 1.
+			// if you want to change game just change number for - > currentLevel.loadFromFile( this ); 
+				currentLevel.loadFromFile(15); 
 				blockDisplayGame();
 				break;
-			case 2: // need anthoer id...
+			case 2: // game for stage 2.
 				currentLevel.loadFromFile(14);
 				blockDisplayGame();
 				break;
-			case 3:
+			case 3:// game for stage 3.
 				currentLevel.loadFromFile(19);
 				blockDisplayGame();
 				break;
 				
-			case 4:
+			case 4:// game for stage 4.
 				currentLevel.loadFromFile(17);
 				blockDisplayGame();
 				break;
@@ -374,11 +423,29 @@ SBImageButton.prototype.startGame = function () {
 		}
 
 		
-		// need to set the time to 0. 
-	} else { // for  going back to home....
-	    MY_STAGE_CANVAS.style.display = "none";
-		MY_GAME_MANU_CANVAS.style.display = "block";
-		blockDisplayGame();
+	// for world map 2
+	} else if (this.my_world_map_id === 2){ 
+	    		MY_STAGE_CANVAS.style.display = "none";
+		MY_GAME_MANU_CANVAS.style.display = "none";
+		
+		switch (this.my_sub_stage) {
+			case 1:// game for stage 1.
+				currentLevel.loadFromFile(15);
+				blockDisplayGame();
+				break;
+			case 2: // game for stage 2.
+				currentLevel.loadFromFile(14);
+				blockDisplayGame();
+				break;
+			case 3:// game for stage 3.
+				currentLevel.loadFromFile(19);
+				blockDisplayGame();
+				break;
+				
+			default: // if do not have game... will return to main cavas.
+				MY_GAME_MANU_CANVAS.style.display = "block";
+				break;
+		}
 		
 	}
     
@@ -394,10 +461,18 @@ var STAGE_ASSET_MANAGER = new AssetManager();
 var ST_BOARD_BACK_PATH = "./img/bg_stage_board.png";
 
 
+var WORLD_MAP_1= "./img/world_map_button_1.png";
+var WORLD_MAP_2= "./img/world_map_button_2.png";
+
+var WORLD_MAP_ON_1= "./img/world_map_on_button_1.png";
+var WORLD_MAP_ON_2= "./img/world_map_on_button_2.png";
+
 var IM_BACK_PATH = "./img/back_button.png";
 var IM_ON_BACK_PATH = "./img/on_back_button.png";
-
 var LOCK_IM_PATH = "./img/lock.png";
+
+
+
 var OPEN_STAGE_1_PATH = "./img/stage_mark_1.png";
 var OPEN_STAGE_2_PATH = "./img/stage_mark_2.png";
 var OPEN_STAGE_3_PATH = "./img/stage_mark_3.png";
@@ -419,6 +494,12 @@ STAGE_ASSET_MANAGER.queueDownload(ST_BOARD_BACK_PATH);
 STAGE_ASSET_MANAGER.queueDownload(LOCK_IM_PATH);
 STAGE_ASSET_MANAGER.queueDownload(IM_BACK_PATH);
 
+STAGE_ASSET_MANAGER.queueDownload(WORLD_MAP_1);
+STAGE_ASSET_MANAGER.queueDownload(WORLD_MAP_2);
+STAGE_ASSET_MANAGER.queueDownload(WORLD_MAP_ON_1);
+STAGE_ASSET_MANAGER.queueDownload(WORLD_MAP_ON_2);
+
+
 STAGE_ASSET_MANAGER.queueDownload(IM_ON_BACK_PATH);
 
 STAGE_ASSET_MANAGER.queueDownload(OPEN_STAGE_1_PATH);
@@ -438,7 +519,7 @@ STAGE_ASSET_MANAGER.queueDownload(ON_M_STAGE_6_PATH);
 STAGE_ASSET_MANAGER.queueDownload(ON_M_STAGE_7_PATH);
 
 var MY_STAGE_CANVAS;
-var my_stage_board
+var my_stage_board;
 STAGE_ASSET_MANAGER.downloadAll(function () {
     console.log("starting up da sheild");
     //var stage_canvas = document.getElementById('stage_board');
@@ -455,9 +536,21 @@ STAGE_ASSET_MANAGER.downloadAll(function () {
 	
 	var back_button = new SBImageButton();
 	// world -1, and sub -1 = back buttom.
-	back_button.init(-1, -1, 0, 0, stage_ctx);
+	back_button.init(-1, 0, 0, 0, stage_ctx);
+	back_button.setWidthWithRatio(1.5);
 	my_stage_board.pushButton(back_button);
 	
+		var world_map_1_button = new SBImageButton();
+	// world -1, and sub -1 = back buttom.
+	world_map_1_button.init(-1, 1, back_button.my_scales.width, 0, stage_ctx);
+	world_map_1_button.setWidthWithRatio(2.75);
+	my_stage_board.pushButton(world_map_1_button);
+	
+		var world_map_2_button = new SBImageButton();
+	// world -1, and sub -1 = back buttom.
+	world_map_2_button.init(-1, 2, back_button.my_scales.width + world_map_1_button.my_scales.width , 0, stage_ctx);
+	world_map_2_button.setWidthWithRatio(2.75);
+	my_stage_board.pushButton(world_map_2_button);
 	
     // latter... 
     // get datas for wold map.. and just looping it. 
@@ -465,7 +558,7 @@ STAGE_ASSET_MANAGER.downloadAll(function () {
 
     var world1_sub1 = new SBImageButton();
   
-    world1_sub1.init(1, 1, 30, 60, stage_ctx);
+    world1_sub1.init(1, 1, 30, 100, stage_ctx);
 
     var world1_sub2 = new SBImageButton();
     world1_sub2.init(1, 2, 200, 200, stage_ctx);
@@ -489,7 +582,7 @@ STAGE_ASSET_MANAGER.downloadAll(function () {
     my_stage_board.pushButton(world1_sub4);
 
     var world2_sub1 = new SBImageButton();
-    world2_sub1.init(2, 1, 150, 10, stage_ctx);
+    world2_sub1.init(2, 1, 150, 100, stage_ctx);
     var world2_sub2 = new SBImageButton();
     world2_sub2.init(2, 2, 20, 150, stage_ctx);
     var world2_sub3 = new SBImageButton();

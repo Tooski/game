@@ -1,6 +1,6 @@
 ﻿/*
 	Minkwan Choi
-	last updated : 5/13/2014
+	last updated : 5/20/2014
 	game Main Manu.....
 	has buttons for start game, custom game, about, log out.
 */
@@ -230,13 +230,9 @@ GMImageButton.prototype.playButton = function () {
 			
 			my_stage_board.setWorldMapID(1);
             break;
-        case 2:
+        case 2: // open up costom game.
 			
-			MY_GAME_MANU_CANVAS.style.display = "none";
-			noneDisplayGame(); 	
-            // dispaly the world map canvase 
-            MY_STAGE_CANVAS.style.display = "block";
-            my_stage_board.setWorldMapID(2);
+
 			
             // to custom game manu. open up canvas for custom game...
             break;
