@@ -473,6 +473,12 @@ GameEngine.prototype.draw = function(drawCallback) {
                 (ctx4.canvas.style.top = (canvas.height/2 - ctx4.canvas.height/2));
                 (ctx2.canvas.style.left = parseInt(ctx.canvas.width) - guiPadding - ctx2.canvas.width);
                 (ctx2.canvas.style.top = guiPadding);
+
+                resumeButton.updatePosition();
+                restartButton.updatePosition();
+                optionsButton.updatePosition();
+                quitButton.updatePosition();
+            
                 var item = document.getElementById('mapEditor');
 
                 if(item) {
@@ -606,10 +612,10 @@ GameEngine.prototype.loop = function() {
 //Create pause menu buttons
 var mouseX;
 var mouseY;
-var resumeButton = new Button("Resume",500,800,155,255);
-var restartButton = new Button("Restart",500,800,275,375);
-var optionsButton = new Button("Options",500,800,395,495);
-var quitButton = new Button("Quit",500,800,515,615);
+var resumeButton ;
+var restartButton;
+var optionsButton ;
+var quitButton ;
 
 GameEngine.prototype.pauseFill = function(ctx) {
 	ctx.beginPath();
@@ -726,23 +732,42 @@ GameEngine.prototype.remapFill = function(ctx) {
 }
 
 //Button objects
-function Button (name,xL,xR,yT,yB) {
+function Button (name,xL,xR,yT,yB, item, mX, mY, j) {
 	this.name = name;
-	this.xL = xL;
-	this.xR = xR;
-	this.yT = yT;
-	this.yB = yB;
+	this.x = this.ix  = parseInt(xL);
+	this.w = this.iw = parseInt(xR) ;
+	this.y = this.iy = parseInt(yT);
+	this.h = this.ih = parseInt(yB);
+        this.mX = mX;
+        this.mY = mY;
+        this.item = item;
+        this.scale = function(e, i) {
+            return (e -parseInt(i) ) *  (canvas.width/ initWidth) * initScale;
++ 25 * (j);
+        };
+        if(item)
+        this.updatePosition();
+    //    return {x:this.ix, y: this.iy, width: this.iw, height: this.ih};
+}
+
+Button.prototype.updatePosition = function() {
+    
+        this.x = this.scale(this.ix, this.item.x) + this.mX();
+        this.y =   this.scale(this.iy, this.item.y) + this.mY();
+
 }
 
 Button.prototype.checkClicked = function() {
-	if (this.xL <= mouseX && mouseX <= this.xR && this.yB >= mouseY && mouseY >= this.yT) {
+        console.log(mouseX, mouseY);
+	if (mouseX < this.x + this.w && mouseX > this.x && mouseY < this.y + this.h && mouseY > this.y) {
 		return true;
 	}
 	else {
-		console.log("xL: " + this.xL + ", xR: " + this.xR + ", yT: " + this.yT + ", yB: " + this.yB);
+		console.log("xL: " + this.x + ", xR: " + (this.x + this.w )+ ", yT: " + this.y + ", yB: " + (this.y + this.h ));
 		return false;
 	}
-}
+};
+
 
 function pauseClicked (e) {
 	mouseX = e.pageX;
@@ -926,6 +951,8 @@ var imagePaths = ["assets/backgroundTile.png", "assets/midground-Tile-150x150.pn
 var ASSET_MANAGER = new AssetManager();
 var gameEngine;
 var player;
+  var main;
+    var stage;
 
 var currentLevel = new TerrainManager();
 for(var i = 0; i < imagePaths.length; i++) {
@@ -960,6 +987,9 @@ var guiPadding = 20;
 ASSET_MANAGER.downloadAll(function() {
     
     
+
+  
+    
     
     
     console.log("starting up da sheild");
@@ -975,11 +1005,11 @@ ASSET_MANAGER.downloadAll(function() {
 	canvas4 = document.getElementById('pause');
 	 ctx4 = canvas4.getContext('2d');
 	 ctx4.canvas.addEventListener('click',pauseClicked,false);
-        (ctx4.canvas.style.left = (canvas.width/2 - ctx4.canvas.width/2) );
-        (ctx4.canvas.style.top = (canvas.height/2 - ctx4.canvas.height/2));
+   
 	canvas5 = document.getElementById('remap');
 	 ctx5 = canvas5.getContext('2d');
-	 
+	 main = document.getElementById('game_manu_board').getContext('2d');
+          stage = document.getElementById('stage_board').getContext('2d');
 	 
 	 GameCanvas.push(canvas);
 	 GameCanvas.push(canvas2);
@@ -990,9 +1020,35 @@ ASSET_MANAGER.downloadAll(function() {
 
     initHeight = canvas.height = window.innerHeight;
     initWidth = canvas.width = window.innerWidth;
+  
+        
+
+
+        
+    initScale = initWidth / 1920;
+        var pX = function() { 
+            return (canvas.width/2 - ctx4.canvas.width/2);   
+        };
+        var pY = function() {
+            return (canvas.height/2 - ctx4.canvas.height/2);
+        };
+        var item = {x:ctx4.canvas.style.left, y: ctx4.canvas.style.top };
+         console.log(item);
+        resumeButton = new Button("Resume",500,300,155,100, item, pX, pY, 1);
+        restartButton = new Button("Restart",500,300, 275,100, item, pX, pY, 2);
+        optionsButton = new Button("Options",500,300,395,100, item, pX, pY, 3);
+        quitButton = new Button("Quit",500,300, 515,100, item, pX, pY, 4);
+ 
+ 
         (ctx2.canvas.style.left = parseInt(ctx.canvas.width) - guiPadding - ctx2.canvas.width);
         (ctx2.canvas.style.top = guiPadding);
-    initScale = initWidth / 1920;
+        (ctx4.canvas.style.left = (canvas.width/2 - ctx4.canvas.width/2) );
+        (ctx4.canvas.style.top = (canvas.height/2 - ctx4.canvas.height/2));
+        (stage.canvas.style.left = (canvas.width/2 - stage.canvas.width/2) );
+        (stage.canvas.style.top = (canvas.height/2 - stage.canvas.height/2));
+        (main.canvas.style.left = (canvas.width/2 - main.canvas.width/2) );
+        (main.canvas.style.top = (canvas.height/2 - main.canvas.height/2));
+    
     loadingScreen(ctx);
 	scoreTest(ctx3);    
     
@@ -1061,6 +1117,13 @@ var enemy = [
     [10,10], [30,30], [50,50]
 ];
 
+window.onresize = function() {
+    console.log("test");
+                    (stage.canvas.style.left = (window.innerWidth/2 - stage.canvas.width/2) );
+                (stage.canvas.style.top = (window.innerHeight/2 - stage.canvas.height/2));
+                (main.canvas.style.left = (window.innerWidth/2 - main.canvas.width/2) );
+                (main.canvas.style.top = (window.innerHeight/2 - main.canvas.height/2));
+}
 
 function localToWorld(value, dimension) {
 
