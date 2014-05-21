@@ -5,7 +5,7 @@ function TerrainManager() {
     this.closedTerrain = [];
     this.terrainListByID = {};
     this.playerStartPos = new vec2(0, 0);
-   this.loadFromFile(24);
+   
 }
 
 
@@ -269,14 +269,14 @@ function checkBounds (p1, p2) {
 };
 
 
-TerrainManager.prototype.loadFromFile = function(id) {
+TerrainManager.prototype.loadFromFile = function(id, init, callback) {
     var that = this;
     
     this.terrainList = [];
     this.terrainListByID = {};
 
-     
-     game.settings.get({"command":"getleveljson", "data":{"levelid": (id||1)}}, function(data) {
+     if(init) init();
+     game.settings.get({"command":"getleveljson", "data":{"levelid": (1)}}, function(data) {
         var obj = $.parseJSON($.parseJSON( data ));
         for(var i = 0; i < obj.length; i++) {
             var ter = new TerrainLine(new vec2(obj[i].p0.x, obj[i].p0.y), new vec2(obj[i].p1.x, obj[i].p1.y));
@@ -291,7 +291,10 @@ TerrainManager.prototype.loadFromFile = function(id) {
             that.pushTerrain (that.terrainListByID[obj[i].id], that.terrainListByID);
 
         }
+            gameEngine.initializePhysEng();
     });
+
+  
 //    gameEngine.initializePhysEng();
 //    gameEngine.physEng.start();
 //    gameEngine.physEng.pause();
