@@ -26,6 +26,7 @@ Menu.prototype.draw = function(ctx) {};
 Menu.prototype.clear = function() {
     this.ctx.clearRect(0, 0, this.ctx.canvas.width, this.ctx.canvas.height);
     this.ctx.canvas.style.zIndex = -1;
+    this.ctx.canvas.style.display = "none";
     //console.log("test");
     //ocument.activeElement = canvas;
     canvas.focus();
@@ -34,6 +35,7 @@ Menu.prototype.clear = function() {
 
 Menu.prototype.focus = function() {
     this.ctx.canvas.style.zIndex = 1;
+    this.ctx.canvas.style.display = "";
     this.ctx.canvas.focus();
 };
 

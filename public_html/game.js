@@ -154,7 +154,7 @@ function GameEngine(player) {
     this.initializePhysEng();
 
     this.lastFrameTime = performance.now();
-}
+};
 
 
 
@@ -164,10 +164,8 @@ GameEngine.prototype.initializePhysEng = function () {
   this.playerModel = new PlayerModel(this.controlParams, this.physParams, 0.0, DFLT_radius, new vec2(0, 0), new vec2(0, -0), new vec2(0, -0), null);
   this.physEng = new PhysEng(this, this.playerModel);
   this.player.model = this.playerModel;              // backwards add a playerModel to player.
-
-
   this.eventsSinceLastFrame = [];
-}
+};
 
 
 

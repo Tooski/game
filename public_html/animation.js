@@ -241,20 +241,4 @@ Animation.prototype.isDone = function () {
 };
 
 
-Animation.prototype.Rotation = function(ctx,x, y, angleInRadians){
-    var locX = x;
-    var locY = y;
-    ctx.translate(locX, locY);
-    ctx.rotate(angleInRadians);
-    ctx.drawImage(this.spriteSheet,
-                  index * this.frameWidth + offset, vindex*this.frameHeight + this.startY,  // source from sheet
-                  this.frameWidth, this.frameHeight,
-                  locX, locY,
-                  this.frameWidth * scaleBy,
-                  this.frameHeight * scaleBy);
-    ctx.rotate(-angleInRadians);
-    ctx.translate(-locX, -locY);
-    
-};
-
 /*ending of the animation class*/
