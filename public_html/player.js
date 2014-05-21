@@ -20,7 +20,6 @@ function Player(x, y, timer) {
     this.fallingAnimation = new Animation(ASSET_MANAGER.getAsset("assets/HamsterSprites.png"), 600, 900, 300, 300, 0.05, 1, true, false);
     this.boostTime = 0;
     this.facing = true;
-    this.falling = false;
     this.model = null;
     this.timer = timer;
 
@@ -92,9 +91,10 @@ Player.prototype.update = function() {
 
 
     }
-
-    if (this.inputs.jumpPressed && this.model.surface) {
-
+        
+        
+    if (this.inputs.jumpPressed) {
+        console.log(this.inputs.jumpPressed);
         this.model.animationGroundJumping = true;
         this.model.animationWalking = false;
         //if(collision with ground)
@@ -104,24 +104,24 @@ Player.prototype.update = function() {
     }
     if (this.model.animationGroundJumping) {
         if (this.jumpingAnimation.isDone()) {
-            this.falling = true;
-
+            falling = true;
             this.jumpingAnimation.elapsedTime = 0;
         }
     }
-    if (this.falling) {
+    if (falling) {
         this.model.animationGroundJumping = false;
         this.model.animationWalking = false;
-        //this.model.animationRunning = false;
-
+        this.model.animationRunning = false;
     }
-    if(this.falling && this.model.surface){
-        this.falling = false;
-        this.model.animationWalking =true;
+    if(this.model.surface){
         this.model.animationGroundJumping = false;
+        this.model.animationWalking = true;
+        falling = false;
+        //this.model.animationRunning = false;
     }
+    
 };
-
+var falling = false;
 
 var SPRITE_WIDTH_AND_HEIGHT_IN_PX = 300;
 Player.prototype.draw = function(ctx) {
@@ -147,7 +147,7 @@ Player.prototype.draw = function(ctx) {
             this.walking(ctx, scaleFactor);
         } else if (this.model.animationRunning) {
             this.running(ctx, scaleFactor);
-        } else if (this.falling) {
+        } else if (falling) {
             this.freeFall(ctx, scaleFactor);
 
         }
@@ -165,7 +165,7 @@ Player.prototype.draw = function(ctx) {
             this.walking(ctx, scaleFactor);
         } else if (this.model.animationRunning) {
             this.running(ctx, scaleFactor);
-        } else if (this.falling) {
+        } else if (falling) {
             this.freeFall(ctx, scaleFactor);
 
         }
@@ -182,8 +182,10 @@ Player.prototype.draw = function(ctx) {
  * @returns {undefined}
  */
 Player.prototype.walking = function(ctx, scaleFactor) {
+
     this.walkingAnimation.drawFrame(this.timer.gameDelta, ctx, this.model.pos.x - this.walkingAnimation.frameWidth / 2 * scaleFactor,
             this.model.pos.y - this.walkingAnimation.frameHeight / 2 * scaleFactor, scaleFactor, this.facing);
+
 };
 
 /**
@@ -216,6 +218,7 @@ Player.prototype.running = function(ctx, scaleFactor) {
  * @returns {undefined}
  */
 Player.prototype.groundBoost = function(ctx, scaleFactor) {
+    //console.log(" start y" + this.groundBoostAnimation.startY +", start x" + this.groundBoostAnimation.startX);
     this.groundBoostAnimation.drawFrameFreeze(this.timer.gameDelta, ctx, this.model.pos.x - this.groundBoostAnimation.frameWidth / 2 * scaleFactor,
             this.model.pos.y - this.groundBoostAnimation.frameHeight / 2 * scaleFactor, scaleFactor, this.facing);
 };
@@ -231,6 +234,8 @@ Player.prototype.groundJumping = function(ctx, scaleFactor) {
 };
 
 Player.prototype.freeFall = function(ctx, scaleFactor) {
+
+    console.log("da");
     this.fallingAnimation.drawFrame(this.timer.gameDelta, ctx, this.model.pos.x - this.fallingAnimation.frameWidth / 2 * scaleFactor,
             this.model.pos.y - this.fallingAnimation.frameHeight / 2 * scaleFactor, scaleFactor, this.facing);
 };
