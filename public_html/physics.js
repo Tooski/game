@@ -49,9 +49,9 @@ var COLLISION_EPSILON_SQ = 0.0000; // fuck the police
 //DEFAULT PHYSICS VALS, TWEAK HERE
 // WIDTH  = 1920 UNITS
 // HEIGHT = 1080 UNITS
-var DFLT_gravity = 00;        // FORCE EXERTED BY GRAVITY IS 400 ADDITIONAL UNITS OF VELOCITY DOWNWARD PER SECOND. 
+var DFLT_gravity = 800;        // FORCE EXERTED BY GRAVITY IS 400 ADDITIONAL UNITS OF VELOCITY DOWNWARD PER SECOND. 
 var DFLT_lockThreshold = 1000;
-var DFLT_autoLockThreshold = 500;
+var DFLT_autoLockThreshold = 700;
 
 //angle between surfaces at which the player continues onto the next surface whether locked or not.
 var DFLT_surfaceSnapAngle = -(45               / 180) * Math.PI + Math.PI;
@@ -61,8 +61,8 @@ var DFLT_JUMP_HOLD_TIME = 0.15; // To jump full height, jump must be held for th
 // CONST ACCEL INPUTS
 var DFLT_gLRaccel = 800;
 var DFLT_aLRaccel = 600;
-var DFLT_aUaccel = 600;
-var DFLT_aDaccel = 600;
+var DFLT_aUaccel = 300;
+var DFLT_aDaccel = 300;
 var DFLT_gUaccel = 300;
 var DFLT_gDaccel = 300;
 var DFLT_gBoostLRvel = 1500;
@@ -891,7 +891,7 @@ PhysEng.prototype.attemptNextStep = function (goalGameTime) {
     //console.log("    ended tweenStepping loop early");
     //console.log("    collisions: ", collisionList);
     //console.log("    tempState: ", tempState);
-    DEBUG_DRAW_BLUE.push(new DebugCircle(debugState.pos, debugState.radius, 5));
+    //DEBUG_DRAW_BLUE.push(new DebugCircle(debugState.pos, debugState.radius, 5));
 
     //TODO HANDLE PREDICTING EVENTS HERE.
   } else {                // TRY FINAL STEP
@@ -909,7 +909,7 @@ PhysEng.prototype.attemptNextStep = function (goalGameTime) {
       //console.log("    collided on last step.");
       //console.log("    collisions: ", collisionList);
       //console.log("    tempState: ", tempState);
-      DEBUG_DRAW_BLUE.push(new DebugCircle(debugState.pos, debugState.radius, 5));
+      //DEBUG_DRAW_BLUE.push(new DebugCircle(debugState.pos, debugState.radius, 5));
     }
   }
 
@@ -1016,7 +1016,7 @@ PhysEng.prototype.getSurfaceEndEvent = function () {
           var endPointState = stepStateToTime(this.player, endPointData.time);
           DEBUG_DRAW_GRAY.push(new DebugCircle(endPointState.pos, this.player.radius, 5));
           
-          throw "Debug, but this technically shouldnt happen where endpoint was hit before the adjacent line was.";
+          //throw "Debug, but this technically shouldnt happen where endpoint was hit before the adjacent line was.";
         }
         //handle me.
         nextSurfaceEvent = new SurfaceAdjacentEvent(adjData.time, 0, this.player.surface, (adjData.adjNumber === 0 ? this.player.surface.adjacent0 : this.player.surface.adjacent1), adjData.angle, true);
@@ -1210,7 +1210,7 @@ PhysEng.prototype.findEventsAndTimesFromCollisions = function (collisionList) {
       var tempState = stepStateToTime(this.player, lineTime);
       
       if (DEBUG_DRAW) {
-        DEBUG_DRAW_ORANGE.push(new DebugCircle(tempState.pos, tempState.radius, 5));
+        //DEBUG_DRAW_LIGHTBLUE.push(new DebugCircle(tempState.pos, tempState.radius, 5));
       }
 
 
@@ -1231,7 +1231,7 @@ PhysEng.prototype.findEventsAndTimesFromCollisions = function (collisionList) {
           var collisionHeapObj = new CollisionHeapObj(tempState0, new TerrainPoint(collision.surface.p0, collision.surface, collision.surface.adjacent0));
           collisionHeap.push(collisionHeapObj);
           if (DEBUG_DRAW) {
-            DEBUG_DRAW_ORANGE.push(new DebugCircle(tempState0.pos, tempState0.radius, 5));
+            //DEBUG_DRAW_LIGHTBLUE.push(new DebugCircle(tempState0.pos, tempState0.radius, 5));
           }
         }
         testedP0 = true;
@@ -1243,7 +1243,7 @@ PhysEng.prototype.findEventsAndTimesFromCollisions = function (collisionList) {
           var collisionHeapObj = new CollisionHeapObj(tempState1, new TerrainPoint(collision.surface.p1, collision.surface, collision.surface.adjacent1));
           collisionHeap.push(collisionHeapObj);
           if (DEBUG_DRAW) {
-            DEBUG_DRAW_ORANGE.push(new DebugCircle(tempState1.pos, tempState1.radius, 5));
+            //DEBUG_DRAW_LIGHTBLUE.push(new DebugCircle(tempState1.pos, tempState1.radius, 5));
           }
         }
         testedP1 = true;
@@ -1271,7 +1271,7 @@ PhysEng.prototype.findEventsAndTimesFromCollisions = function (collisionList) {
         var collisionHeapObj = new CollisionHeapObj(tempState0, new TerrainPoint(collision.surface.p0, collision.surface, collision.surface.adjacent0));
         collisionHeap.push(collisionHeapObj);
         if (DEBUG_DRAW) {
-          DEBUG_DRAW_YELLOW.push(new DebugCircle(tempState0.pos, tempState0.radius, 5));
+          //DEBUG_DRAW_YELLOW.push(new DebugCircle(tempState0.pos, tempState0.radius, 5));
         }
       } else {
 
@@ -1295,7 +1295,7 @@ PhysEng.prototype.findEventsAndTimesFromCollisions = function (collisionList) {
         var collisionHeapObj = new CollisionHeapObj(tempState1, new TerrainPoint(collision.surface.p1, collision.surface, collision.surface.adjacent1));
         collisionHeap.push(collisionHeapObj);
         if (DEBUG_DRAW) {
-          DEBUG_DRAW_YELLOW.push(new DebugCircle(tempState1.pos, tempState1.radius, 5));
+          //DEBUG_DRAW_YELLOW.push(new DebugCircle(tempState1.pos, tempState1.radius, 5));
         }
       }
     }
@@ -1398,7 +1398,7 @@ PhysEng.prototype.turnCollisionsIntoEvents = function (collisions) {
 
       if (DEBUG_DRAW) {
         var collisionPoint = terrainLineCollisions[0].state.pos.subtract(combinedNormal.multf(terrainLineCollisions[0].state.radius));
-        DEBUG_DRAW_BLUE.push(new DebugLine(collisionPoint, collisionPoint.add(combinedNormal.multf(100))));
+        //DEBUG_DRAW_BLUE.push(new DebugLine(collisionPoint, collisionPoint.add(combinedNormal.multf(100))));
       }
       var te = new TerrainLineCollisionEvent(terrainLineCollisions[0].time, collisionSurfaces, terrainLineCollisions[0].state, surfaceVec, combinedNormal, allowLock);
       eventList.push(te);
@@ -1407,7 +1407,7 @@ PhysEng.prototype.turnCollisionsIntoEvents = function (collisions) {
 
       if (DEBUG_DRAW) {
         var collisionPoint = terrainLineCollisions[0].state.pos.subtract(tlc.collisionObj.normal.multf(terrainLineCollisions[0].state.radius));
-        DEBUG_DRAW_BLUE.push(new DebugLine(collisionPoint, collisionPoint.add(tlc.collisionObj.normal.multf(100))));
+        //DEBUG_DRAW_BLUE.push(new DebugLine(collisionPoint, collisionPoint.add(tlc.collisionObj.normal.multf(100))));
       }
       var te = new TerrainLineCollisionEvent(tlc.time, [tlc.collisionObj], tlc.state, tlc.collisionObj.getSurfaceAt(tlc.state), tlc.collisionObj.normal, allowLock);
       eventList.push(te);
@@ -1421,7 +1421,7 @@ PhysEng.prototype.turnCollisionsIntoEvents = function (collisions) {
 
     if (DEBUG_DRAW) {
       var collisionPoint = terrainPointCollisions[0].state.pos.subtract(collisionNormal.multf(terrainPointCollisions[0].state.radius));
-      DEBUG_DRAW_BLUE.push(new DebugLine(collisionPoint, collisionPoint.add(collisionNormal.multf(100))));
+      //DEBUG_DRAW_BLUE.push(new DebugLine(collisionPoint, collisionPoint.add(collisionNormal.multf(100))));
     }
 
     var te = new TerrainPointCollisionEvent(tpc.time, tpc.collisionObj, tpc.state, surfaceVec, collisionNormal, allowLock);
