@@ -235,7 +235,6 @@ Player.prototype.groundJumping = function(ctx, scaleFactor) {
 
 Player.prototype.freeFall = function(ctx, scaleFactor) {
 
-    console.log("da");
     this.fallingAnimation.drawFrame(this.timer.gameDelta, ctx, this.model.pos.x - this.fallingAnimation.frameWidth / 2 * scaleFactor,
             this.model.pos.y - this.fallingAnimation.frameHeight / 2 * scaleFactor, scaleFactor, this.facing);
 };
