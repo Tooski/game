@@ -1079,7 +1079,7 @@ ASSET_MANAGER.downloadAll(function() {
     //    gameEngine.addEntity(new TerrainLine(new vec2(200,200+50), new vec2(200+250,200+150), player));
     
     gameEngine.addEntity(currentLevel);
-    //gameEngine.addEntity(new MapEditor(currentLevel));
+    gameEngine.addEntity(new MapEditor(currentLevel));
 	
 	
 	//new KeyMapping(gameEngine);

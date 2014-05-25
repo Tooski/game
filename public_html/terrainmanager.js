@@ -276,7 +276,7 @@ TerrainManager.prototype.loadFromFile = function(id, init, callback) {
     this.terrainListByID = {};
 
      if(init) init();
-     game.settings.get({"command":"getleveljson", "data":{"levelid": (1)}}, function(data) {
+     game.settings.get({"command":"getleveljson", "data":{"levelid": (id || 1)}}, function(data) {
         var obj = $.parseJSON($.parseJSON( data ));
         for(var i = 0; i < obj.length; i++) {
             var ter = new TerrainLine(new vec2(obj[i].p0.x, obj[i].p0.y), new vec2(obj[i].p1.x, obj[i].p1.y));
