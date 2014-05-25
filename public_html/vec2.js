@@ -2,13 +2,18 @@
  * vec2 ported shamelessly from vec.h in the Angel openGL examples.
  * Ported by Travis Drake.
  */
-var HORIZ_NORM = new vec2(1, 0);
-var VERT_NORM = new vec2(0, 1);
+var HORIZ_NORM = new vec2(1, 0, true);
+var VERT_NORM = new vec2(0, 1, true);
+
+var ROT_EPSILON = 0.000000001;
 
 
-function vec2(x,y) {
+function vec2(x,y, normalized) {
     this.x = x;
     this.y = y;
+    if (normalized) {
+      this.normalized = true;
+    }
 }
 
 
@@ -52,13 +57,25 @@ vec2.prototype.lengthsq = function () {  // returns the square of the vector.
   return this.x * this.x + this.y * this.y;
 }
 
-vec2.prototype.normalize = function() { // normalizes a vector so that its length is equal to 1.0. Useful for math.
-  return this.divf(Math.sqrt(this.x * this.x + this.y * this.y));
+vec2.prototype.normalize = function () { // normalizes a vector so that its length is equal to 1.0. Useful for math.
+  if (this.normalized) {
+    return this;
+  }
+  var toReturn = this.divf(Math.sqrt(this.x * this.x + this.y * this.y));
+  toReturn.normalized = true;
+  return toReturn;
 }
 
 vec2.prototype.perp = function() { // returns the perpendicular vector to this vector.
-  return new vec2(this.y, -this.x);
+  return new vec2(this.y, -this.x, this.normalized);
 }
+
+
+vec2.prototype.angle = function () { // returns the perpendicular vector to this vector.
+  return Math.acos(this.normalize().dot(HORIZ_NORM));
+}
+
+
 
 //projects vec2 a onto vec2 b.
 function projectVec2(a, b) {
@@ -92,6 +109,60 @@ vec2.prototype.getFacing = function (otherVec) {
 //console.log("vec2(2.0, 1.0).multf(3.0), %2.2f, %2.2f", (new vec2(2.0, 1.0).multf(3.0)).x, (new vec2(2.0, 1.0).multf(3.0)).y);
 
 
+function vecFromPointDistAngle(point, distance, angle) {  
+  //Use the Cosine Function for x:	 	cos( 22.6 °) = x / 13
+  //Rearranging and solving:	 	x = 13 × cos( 22.6 °) = 13 × 0.923 = 12.002...
+ 	 	 
+  //Use the Sine Function for y:	 	sin( 22.6 °) = y / 13
+  //Rearranging and solving:	 	y = 13 × sin( 22.6 °) = 13 × 0.391 = 4.996...
+  var x = Math.cos(angle) * distance + point.x;
+  var y = Math.sin(angle) * distance + point.y;
+  return new vec2(x, y);
+}
+
+
+function vecFromAngleLength(angle, length) {
+  var x = Math.cos(angle) * length;
+  var y = Math.sin(angle) * length;
+  return new vec2(x, y);
+}
+
+
+
+
+
+function getSignedAngleFromAToB(a, b) {
+  var aNorm = a.normalize();
+  var bNorm = b.normalize();
+  var angle = Math.acos(aNorm.dot(bNorm));
+  var rMat = getRotationMatRad(angle);
+  var aNRot = aNorm.multm(rMat);
+
+  if (aNRot.x < bNorm.x - ROT_EPSILON || aNRot.x > bNorm.x + ROT_EPSILON || aNRot.y < bNorm.y - ROT_EPSILON || aNRot.y > bNorm.y + ROT_EPSILON) {
+    angle = -angle;
+
+    rMat = getRotationMatRad(angle);
+    aNRot = aNorm.multm(rMat);
+
+
+    if (aNRot.x < bNorm.x - ROT_EPSILON || aNRot.x > bNorm.x + ROT_EPSILON || aNRot.y < bNorm.y - ROT_EPSILON || aNRot.y > bNorm.y + ROT_EPSILON) {
+      throw "neither way worked";
+    } 
+  } 
+
+  return angle;
+}
+
+
+
+
+
+//function vec(angle, length) {
+//  var x = Math.cos(angle) * length;
+//  var y = Math.sin(angle) * length;
+//  return new vec2(x, y);
+//}
+
 
 
 function getRadiansToHorizontal(vec) {
@@ -124,3 +195,11 @@ function getRotationMatRad(radians) {
   return [[c, -s], [s, c]];
 }
 
+
+
+////TESTS getSignedAngleFromAToB(a, b) 
+//var tA = HORIZ_NORM;
+//var tB = new vec2(1, 0.3);
+//console.log("a to b ", getSignedAngleFromAToB(tA, tB));
+//console.log("b to a ", getSignedAngleFromAToB(tB, tA));
+//throw "dont continue";

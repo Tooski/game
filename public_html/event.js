@@ -80,6 +80,99 @@ Event.prototype.handler = function (physEng) {   // NEEDS TO BE OVERRIDDEN IN CH
 
 
 
+
+
+
+
+
+
+
+
+// Event class for the Goal Event. TODO IMPLEMENT, NEEDS TO STORE WHICH GOAL AND ANY OTHER RELEVENT VICTORY INFORMATION.
+function GoalEvent(eventTime, goalObject) { // eventTime is gameTime at which the event occurs.
+  Event.apply(this, [eventTime])
+  this.mask += E_GOAL_MASK;
+
+  this.goalObject = goalObject;
+
+  this.handler = function (physEng) {
+    var p = physEng.player;
+    p.completionState = new CompletionState(p, this.time, new State(p.time, p.radius, p.pos, p.vel, p.accel), this.goalObject.goalNumber, p.replay);
+  }
+}
+GoalEvent.prototype = new Event();
+//GoalEvent.prototype.constructor = GoalEvent;
+
+
+
+
+
+// Event class for the render event. One of these should be the last event in the eventList array passed to update. NOT STORED IN REPLAYS.
+function RenderEvent(browserTime, eventTime) {   //
+  Event.apply(this, [eventTime])
+  this.mask += E_RENDER_MASK;
+  this.mask += E_BROWSER_TIME_MASK;
+
+  this.validTime = eventTime >= 0 ? true : false;
+  this.browserTime = browserTime;
+
+  this.handler = function (physEng) {
+    var p = physEng.player;
+    return true;
+  }
+}
+RenderEvent.prototype = new Event();
+//RenderEvent.prototype.constructor = RenderEvent;
+
+
+
+
+
+// Event class for the ReplaySync event. STORED IN REPLAYS, used to ensure float rounding differences from same calcs at different times doesnt desync replays.
+function ReplaySyncEvent(eventTime, state) {  // eventTime is gameTime at which the render occurs.  TODO IMPLEMENT SO THAT THIS WILL OVERRIDE ANYTHING AT THE SAME TIME IN THE LIST.
+  Event.apply(this, [eventTime])
+  this.mask += E_SYNC_MASK;
+
+  if (eventTime !== state.time) {
+    throw "ReplaySyncEvent time and its states time dont match";
+  }
+  this.state = new State(eventTime, state.radius, state.pos, state.vel, state.accel);
+
+  this.handler = function (p) {
+    p.updateToState(this.state);
+    //TODO UPDATE PHYSENG TO THE RIGHT HEAP VALUES.
+  }
+}
+ReplaySyncEvent.prototype = new Event();
+//ReplaySyncEvent.prototype.constructor = ReplaySyncEvent;
+
+
+
+
+
+
+
+/* Predicted Events class. Not stored in replays. These are calculated by physics engine automatically.
+ * @param predictedTime     the gametime at which the event will occur.
+ * @param dependencyMask    used to bitwise and shit for predictions that are only affected by specific things. MAY NOT USE?
+ */
+function PredictedEvent(predictedTime, dependencyMask) {
+  Event.apply(this, [predictedTime])
+  this.mask += E_PREDICTED_MASK;
+
+  this.dependencyMask = dependencyMask;
+}
+PredictedEvent.prototype = new Event();
+PredictedEvent.prototype.constructor = PredictedEvent;
+PredictedEvent.prototype.handler = function (physEng) {          //THIS IS THE PARENT CLASS FOR INPUT CHANGE CODE.
+  throw "this abstract function should never call.";
+}
+
+
+
+
+
+
 // InputEvent class for input events. These are the events that would be stored in a replay file and consist of any human input to the physics engine (Character control).
 function InputEvent(browserTime, pressed, eventTime) {   //
   Event.apply(this, [eventTime])
@@ -524,6 +617,7 @@ TerrainLineCollisionEvent.prototype = new CollisionEvent();
 
 /**
  * Event class for the TerrainPointCollisionEvent Event when the player runs into a TerrainLine. 
+ * TODO fucking fix this shit.
  */
 function TerrainPointCollisionEvent(gameTimeOfCollision, terrainPointCollidedWith, stateAtCollision, surfaceVec, normalVec, allowLock) {
   CollisionEvent.apply(this, [gameTimeOfCollision, stateAtCollision]);
@@ -614,129 +708,19 @@ TerrainPointCollisionEvent.prototype = new CollisionEvent();
 
 
 
-
-
-// Event class for the Goal Event. TODO IMPLEMENT, NEEDS TO STORE WHICH GOAL AND ANY OTHER RELEVENT VICTORY INFORMATION.
-function GoalEvent(eventTime, goalObject) { // eventTime is gameTime at which the event occurs.
-  Event.apply(this, [eventTime])
-  this.mask += E_GOAL_MASK;
-
-  this.goalObject = goalObject;
-
-  this.handler = function (physEng) {
-    var p = physEng.player;
-    p.completionState = new CompletionState(p, this.time, new State(p.time, p.radius, p.pos, p.vel, p.accel), this.goalObject.goalNumber, p.replay);
-  }
-}
-GoalEvent.prototype = new Event();
-//GoalEvent.prototype.constructor = GoalEvent;
-
-
-
-
-
-// Event class for the render event. One of these should be the last event in the eventList array passed to update. NOT STORED IN REPLAYS.
-function RenderEvent(browserTime, eventTime) {   //
-  Event.apply(this, [eventTime])
-  this.mask += E_RENDER_MASK;
-  this.mask += E_BROWSER_TIME_MASK;
-
-  this.validTime = eventTime >= 0 ? true : false;
-  this.browserTime = browserTime;
-
-  this.handler = function (physEng) {
-    var p = physEng.player;
-    return true;
-  }
-}
-RenderEvent.prototype = new Event();
-//RenderEvent.prototype.constructor = RenderEvent;
-
-
-
-
-
-// Event class for the ReplaySync event. STORED IN REPLAYS, used to ensure float rounding differences from same calcs at different times doesnt desync replays.
-function ReplaySyncEvent(eventTime, state) {  // eventTime is gameTime at which the render occurs.  TODO IMPLEMENT SO THAT THIS WILL OVERRIDE ANYTHING AT THE SAME TIME IN THE LIST.
-  Event.apply(this, [eventTime])
-  this.mask += E_SYNC_MASK;
-
-  if (eventTime !== state.time) {
-    throw "ReplaySyncEvent time and its states time dont match";
-  }
-  this.state = new State(eventTime, state.radius, state.pos, state.vel, state.accel);
-
-  this.handler = function (p) {
-    p.updateToState(this.state);
-    //TODO UPDATE PHYSENG TO THE RIGHT HEAP VALUES.
-  }
-}
-ReplaySyncEvent.prototype = new Event();
-//ReplaySyncEvent.prototype.constructor = ReplaySyncEvent;
-
-
-
-
-
-
-
-/* Predicted Events class. Not stored in replays. These are calculated by physics engine automatically.
- * @param predictedTime     the gametime at which the event will occur.
- * @param dependencyMask    used to bitwise and shit for predictions that are only affected by specific things. MAY NOT USE?
- */
-function PredictedEvent(predictedTime, dependencyMask) {  
-  Event.apply(this, [predictedTime])
-  this.mask += E_PREDICTED_MASK;
-
-  this.dependencyMask = dependencyMask;    
-}
-PredictedEvent.prototype = new Event();
-PredictedEvent.prototype.constructor = PredictedEvent;
-PredictedEvent.prototype.handler = function (physEng) {          //THIS IS THE PARENT CLASS FOR INPUT CHANGE CODE.
-  throw "this abstract function should never call.";
-}
-
-
-
-
-/* Event class for the predicted time the player will roll to the end of a line and reach its corner. 
- * @param predictedTime     the gametime at which the event will occur.
- * @param dependencyMask    used to bitwise and shit for predictions that are only affected by specific things. MAY NOT USE?
- */
-function SurfaceEndEvent(predictedTime, dependencyMask) { // predictedTime should be gameTime since last frame, the time the physics engine should complete up to before rendering.
-  PredictedEvent.apply(this, [predictedTime, dependencyMask])
-
-  this.handler = function (physEng) {
-    var p = physEng.player;
-
-    //PLAYER FIELDS TO USE
-    //player.roundingPoint = false;
-    //player.pointBeingRounded = null;
-    //player.angleAroundPoint = 0.0;   //RADIANS OR DEGREES I HAVE NO IDEA
-    //player.rotationDirection = false; // TRUE IF CLOCKWISE, FALSE IF COUNTER-CLOCKWISE.
-    physEng.updatePredicted();
-    return;
-  }
-}
-SurfaceEndEvent.prototype = new PredictedEvent();
-//SurfaceEndEvent.prototype.constructor = SurfaceEndEvent;
-
-
-
-
-
-/* Event class for the predicted time the player will hit adjacent terrain, which is concave.
+/* Event class for the predicted time the player will hit adjacent terrain, when adjacent terrain is concave.
  * @param predictedTime     the gametime at which the event will occur.
  * @param dependencyMask    used to bitwise and shit for predictions that are only affected by specific things. MAY NOT USE?
  */
 function SurfaceAdjacentEvent(predictedTime, dependencyMask, surface, nextSurface, angle, allowLock) { // predictedTime should be gameTime since last frame, the time the physics engine should complete up to before rendering.
-  PredictedEvent.apply(this, [predictedTime, dependencyMask])
+  PredictedEvent.apply(this, [predictedTime, dependencyMask]);
 
   this.surface = surface;
   this.nextSurface = nextSurface;
   this.angle = angle;
   this.allowLock = allowLock;
   this.upsideDown = (nextSurface.normal.y > 0 ? true : false);
+
 
   this.handler = function (physEng) {
     var p = physEng.player;
@@ -795,21 +779,100 @@ SurfaceAdjacentEvent.prototype = new PredictedEvent();
 
 
 
-/* Event class for the EndCornerArcEvent predicted when a locked ball completes a corner and continues locked on the next surface.
+
+
+/* Event class for the predicted time the player will roll to the end of a line and reach its corner. 
  * @param predictedTime     the gametime at which the event will occur.
  * @param dependencyMask    used to bitwise and shit for predictions that are only affected by specific things. MAY NOT USE?
  */
-function EndCornerArcEvent(nextSurface, predictedTime, dependencyMask) { // predictedTime should be gameTime since last frame, the time the physics engine should complete up to before rendering.
+function SurfaceEndEvent(predictedTime, dependencyMask, surface, nextSurface, endpoint, angle, allowLock) { // predictedTime should be gameTime since last frame, the time the physics engine should complete up to before rendering.
+  PredictedEvent.apply(this, [predictedTime, dependencyMask]);
+
+  this.surface = surface;
+  this.nextSurface = nextSurface;
+  this.angle = angle;
+  this.point = endpoint;
+  this.allowLock = allowLock;
+  this.upsideDown = (nextSurface.normal.y > 0 ? true : false);
+
+
+  this.handler = function (physEng) {
+    var p = physEng.player;
+    var inputs = p.inputState;
+    //PLAYER FIELDS TO USE
+    //p.point = pointCircling;   // point being rounded
+    //p.a = angle;               // angle around point.
+    //p.aVel = angularVel;       // signed angular velocity.
+    //p.aAccel = angularAccel;   // signed angular accel.
+
+    var angleAbs = (this.angle < 0 ? -this.angle : this.angle);
+
+    if ((inputs.lock && angleAbs < TODO_MAX_POINT_LOCK_ANGLE) || (angleAbs < TODO_MAX_AUTO_POINT_ROUND_ANGLE)) {  // Dont just release, we should lock wrap.
+      this.wrap(physEng);
+    } else {
+      p.leaveGround();
+    }
+
+
+
+
+    physEng.updatePredicted();
+    return;
+  }
+
+
+
+  this.wrap = function (physEng) {
+    var p = physEng.player;
+    var inputs = p.inputState;
+
+    //function AngularState(time, radius, pointCircling, angle, angularVel, angularAccel) {
+    var ang = getSignedAngleFromAToB(HORIZ_NORM, this.point.add(this.surface.normal.multf(p.radius)));
+    var angVel = (this.angle < 0 ? -p.vel.length() : p.vel.length());
+    var angAccel = (this.angle < 0 ? -p.accel.length() : p.accel.length());
+
+    var angState = new AngularState(p.time, p.radius, this.point, ang, angVel, angAccel);
+
+    p.updateToState(angState);
+    p.nextSurface = this.nextSurface;
+  }
+  return;
+}
+SurfaceEndEvent.prototype = new PredictedEvent();
+//SurfaceEndEvent.prototype.constructor = SurfaceEndEvent;
+
+
+
+
+
+
+/* Event class for the EndArcEvent predicted when a locked ball completes a corner and continues locked on the next surface.
+ * @param predictedTime     the gametime at which the event will occur.
+ * @param dependencyMask    used to bitwise and shit for predictions that are only affected by specific things. MAY NOT USE?
+ */
+function EndArcEvent(predictedTime, dependencyMask, nextSurface) { // predictedTime should be gameTime since last frame, the time the physics engine should complete up to before rendering.
   PredictedEvent.apply(this, [predictedTime, dependencyMask])
   this.nextSurface = nextSurface;
   this.handler = function (physEng) {
     var p = physEng.player;
+
+    if (nextSurface) {
+      p.arcTo(this.nextSurface);
+    } else {
+      p.arcTo(null);
+    }
+
     physEng.updatePredicted();
     return;                               //TODO
   }
 }
-EndCornerArcEvent.prototype = new PredictedEvent();
-//EndCornerArcEvent.prototype.constructor = EndCornerArcEvent;
+EndArcEvent.prototype = new PredictedEvent();
+//EndArcEvent.prototype.constructor = EndArcEvent;
+
+
+
+
+
 
 
 
