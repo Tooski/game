@@ -12,7 +12,7 @@
 
 
 //IF FALSE, RUN NORMALLY
-var DEBUG_STEP =                                    true;
+var DEBUG_STEP =                                    false;
 
 //IF FALSE ONLY STEPS TO RENDEREVENTS
 var DEBUG_EVENT_AT_A_TIME =                         false && DEBUG_STEP; //only true if debug step is also true. Saves me the time of changing 2 variables to switch between normal state and debug state.
@@ -51,7 +51,7 @@ var ANGLE_EPSILON = 0.000001;
 //DEFAULT PHYSICS VALS, TWEAK HERE
 // WIDTH  = 1920 UNITS
 // HEIGHT = 1080 UNITS
-var DFLT_gravity = 800;        // FORCE EXERTED BY GRAVITY IS 400 ADDITIONAL UNITS OF VELOCITY DOWNWARD PER SECOND. 
+var DFLT_gravity = 00;        // FORCE EXERTED BY GRAVITY IS 400 ADDITIONAL UNITS OF VELOCITY DOWNWARD PER SECOND. 
 
 var DFLT_lockThreshold = 1000;
 var DFLT_autoLockThreshold = 700;
@@ -345,30 +345,12 @@ function PlayerModel(controlParams, physParams, time, radius, pos, vel, accel, s
    * updates the playerModel to the provided state.
    */
   this.updateToState = function (state) {
+    if (!state) {
+      console.log("state: ", state);
+      throw "fuck you, bad state";
+    }
 
-
-    if (state instanceof State) {
-      if (!(
-        (state.time || state.time === 0) &&
-        (state.radius || state.radius === 0) &&
-        (state.pos) &&
-       (state.vel) &&
-        (state.accel))) {
-        console.log("Missing fields in State.");
-        console.log("time: ", state.time);
-        console.log("radius: ", state.radius);
-        console.log("pos: ", state.pos);
-        console.log("vel: ", state.vel);
-        console.log("accel: ", state.accel);
-        throw "Missing fields in State. ^";
-      }
-
-      this.time = state.time;
-      this.radius = state.radius;
-      this.pos = state.pos;
-      this.vel = state.vel;
-      this.accel = state.accel;
-    } else if (state instanceof AngularState) {
+    if (state instanceof AngularState) {
       console.log("instanceof AngularState");
       if (!(
         (state.time || state.time === 0) &&
@@ -392,7 +374,33 @@ function PlayerModel(controlParams, physParams, time, radius, pos, vel, accel, s
       this.a = state.a;
       this.aVel = state.aVel;
       this.aAccel = state.aAccel;
+
+      state = convertAngularToNormalState(this);
     }
+
+    if (state instanceof State) {
+      if (!(
+        (state.time || state.time === 0) &&
+        (state.radius || state.radius === 0) &&
+        (state.pos) &&
+       (state.vel) &&
+        (state.accel))) {
+        console.log("Missing fields in State.");
+        console.log("time: ", state.time);
+        console.log("radius: ", state.radius);
+        console.log("pos: ", state.pos);
+        console.log("vel: ", state.vel);
+        console.log("accel: ", state.accel);
+        throw "Missing fields in State. ^";
+      }
+
+      this.time = state.time;
+      this.radius = state.radius;
+      this.pos = state.pos;
+      this.vel = state.vel;
+      this.accel = state.accel;
+    }
+
   }
 	
 
@@ -1164,9 +1172,10 @@ PhysEng.prototype.trySync = function () {
 PhysEng.prototype.updatePredicted = function () {           //TODO FINISH
   this.resetPredicted();
   this.player.predictedDirty = false;
-  if (this.player.point) {
+  if (this.player.point != null) {
     // we know player is currently rounding point.
-   
+    console.log("!i!i!i!i!i!i    this.player.point evaluates true, this.player: ", this.player);
+    console.log("!i!i!i!i!i!i    this.player.point === null ", this.player.point === null);
     var endArcEvent = this.getArcEndEvent();    //EndArcEvent(predictedTime, dependencyMask, nextSurface). nextSurface null for early arc ends.
     console.log("pushing new endArcEvent: ", endArcEvent);
 
@@ -1258,12 +1267,13 @@ PhysEng.prototype.getArcEndEvent = function () {
 
   var results = getSurfacesAtSoonestAngleTime(this.player, this.player.nextSurface, this.player.surface);
   var endArcEvent = null;
+  var arcDependencyMask = 0;
 
+  console.log("        results: ", results);
   if (results) {
-    console.log("        results: ", results);
     var endState = results.state;
 
-    endArcEvent = new EndArcEvent(endState.time, dependencyMask, results.nextSurface);    //EndArcEvent(predictedTime, dependencyMask, nextSurface). nextSurface null for early arc ends.
+    endArcEvent = new EndArcEvent(endState.time, arcDependencyMask, results.nextSurface);    //EndArcEvent(predictedTime, dependencyMask, nextSurface). nextSurface null for early arc ends.
   }
 
   return endArcEvent;
@@ -1282,12 +1292,16 @@ PhysEng.prototype.getSurfaceEndEvent = function () {
   /* returns { adjNumber: 0 or 1, time, angle } where angle in radians from this surface to next surface surface. the closer to Math.PI the less the angle of change between surfaces.
    * null if none in positive time or both not concave.*/
   var adjData = getNextSurfaceData(this.player, this.player.surface);
+  var adjDependencyMask = 0;
+
   //second, find the time that we will reach the end of the surface.
   //returns { pointNumber: 0 or 1, time }
   var endPointData = solveEarliestSurfaceEndpoint(this.player, this.player.surface);
-  //console.log("    in getSurfaceEndEvent");
-  //console.log("    adjData ", adjData);
-  //console.log("    endPointData ", endPointData);
+  var endPointDependencyMask = 0;
+  var surface = this.player.surface;
+  var endPointAngle = (endPointData.pointNumber !== 0 ? getSignedAngleFromAToB(surface.normal, surface.adjacent1.normal) : getSignedAngleFromAToB(surface.adjacent0.normal, surface.normal));
+  console.log("-=-=-=-=-=-=  endPointData ", endPointData);
+  console.log("-=-=-=-=-=-=  endPointAngle ", endPointAngle);
 
 
   var nextSurfaceEvent = null;  //SurfaceAdjacentEvent(predictedTime, dependencyMask, surface, nextSurface, angle, allowLock)
@@ -1305,29 +1319,31 @@ PhysEng.prototype.getSurfaceEndEvent = function () {
           var endPointState = stepStateToTime(this.player, endPointData.time);
           DEBUG_DRAW_GRAY.push(new DebugCircle(endPointState.pos, this.player.radius, 5));
           
-          //throw "Debug, but this technically shouldnt happen where endpoint was hit before the adjacent line was.";
+          throw "Debug, but this technically shouldnt happen where endpoint was hit before the adjacent line was.";
         }
         //handle me.
-        nextSurfaceEvent = new SurfaceAdjacentEvent(adjData.time, 0, this.player.surface, (adjData.adjNumber === 0 ? this.player.surface.adjacent0 : this.player.surface.adjacent1), adjData.angle, true);
+        nextSurfaceEvent = new SurfaceAdjacentEvent(adjData.time, adjDependencyMask, this.player.surface, (adjData.adjNumber === 0 ? this.player.surface.adjacent0 : this.player.surface.adjacent1), adjData.angle, true);
         var adjDataState = stepStateToTime(this.player, adjData.time);
         //DEBUG_DRAW_GREEN.push(new DebugCircle(adjDataState.pos, this.player.radius, 5));
       } else {
         // endpoint and adjSurface are on opposite ends. Event whichever is soonest.
         if (adjData.time < endPointData.time) {
           // use adjacent.
-          nextSurfaceEvent = new SurfaceAdjacentEvent(adjData.time, 0, this.player.surface, (adjData.adjNumber === 0 ? this.player.surface.adjacent0 : this.player.surface.adjacent1), adjData.angle, true);
+          nextSurfaceEvent = new SurfaceAdjacentEvent(adjData.time, adjDependencyMask, this.player.surface, (adjData.adjNumber === 0 ? this.player.surface.adjacent0 : this.player.surface.adjacent1), adjData.angle, true);
           var adjDataState = stepStateToTime(this.player, adjData.time);
           //DEBUG_DRAW_GREEN.push(new DebugCircle(adjDataState.pos, this.player.radius, 5));
         } else {
           // use endpoint.
           console.log("gray thing");
           var endPointState = stepStateToTime(this.player, endPointData.time);
+                                              //(adjData.time, adjDependencyMask, this.player.surface, (adjData.adjNumber === 0 ? this.player.surface.adjacent0 : this.player.surface.adjacent1), adjData.angle, true);
+          nextSurfaceEvent = new SurfaceEndEvent(endPointData.time, endPointDependencyMask, this.player.surface, (endPointData.pointNumber === 0 ? this.player.surface.adjacent0 : this.player.surface.adjacent1), (endPointData.pointNumber === 0 ? this.player.surface.p0 : this.player.surface.p1), endPointAngle, true)
           DEBUG_DRAW_GRAY.push(new DebugCircle(endPointState.pos, this.player.radius, 5));
         }
       }
     } else {
       // no endPointData, use adjacent.
-      nextSurfaceEvent = new SurfaceAdjacentEvent(adjData.time, 0, this.player.surface, (adjData.adjNumber === 0 ? this.player.surface.adjacent0 : this.player.surface.adjacent1), adjData.angle, true);
+      nextSurfaceEvent = new SurfaceAdjacentEvent(adjData.time, adjDependencyMask, this.player.surface, (adjData.adjNumber === 0 ? this.player.surface.adjacent0 : this.player.surface.adjacent1), adjData.angle, true);
       var adjDataState = stepStateToTime(this.player, adjData.time);
       //DEBUG_DRAW_GREEN.push(new DebugCircle(adjDataState.pos, this.player.radius, 5));
     }
@@ -1335,7 +1351,10 @@ PhysEng.prototype.getSurfaceEndEvent = function () {
     // no adjData, use endPointData.
     console.log("gray thing");
     var endPointState = stepStateToTime(this.player, endPointData.time);
+    nextSurfaceEvent = new SurfaceEndEvent(endPointData.time, endPointDependencyMask, this.player.surface, (endPointData.pointNumber === 0 ? this.player.surface.adjacent0 : this.player.surface.adjacent1), (endPointData.pointNumber === 0 ? this.player.surface.p0 : this.player.surface.p1), endPointAngle, true)
     DEBUG_DRAW_GRAY.push(new DebugCircle(endPointState.pos, this.player.radius, 5));
+  } else {
+    throw "hi, no valid surface event???";
   }
   if (nextSurfaceEvent) {
     //throw "lol";

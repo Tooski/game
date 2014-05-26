@@ -100,12 +100,12 @@ function stepAngularStateByAngle(aState, angle) {
 
   var endVel = aState.aVel + aState.aAccel * deltaTime;
 
-  if (!time > 0) {
-    console.log("bad time: ", time);
+  if (!(deltaTime >= 0)) {
+    console.log("bad time: ", deltaTime);
     throw "bad time returned in stepAngularStateByAngle";
   }
 
-  return new AngularState(aState.time + time, aState.radius, aState.point, endAngle, endVel, aState.aAccel);
+  return new AngularState(aState.time + deltaTime, aState.radius, aState.point, endAngle, endVel, aState.aAccel);
 }
 
 
@@ -121,41 +121,56 @@ function getSurfacesAtSoonestAngleTime(aState, surface1, surface2) {
   var state1 = null;
   var state2 = null;
 
+  console.log("      -_-_-_-_-    aState: ", aState);
+  console.log("      -_-_-_-_-    surface1: ", surface1);
+  console.log("      -_-_-_-_-    surface2: ", surface2);
+  var toReturn = null;
+
   if (surface1) {
     if (surface2) {
-      angle1 = surface1.normal;
-      angle2 = surface2.normal;
+      console.log("      =-=-=-=-=-= both surfaces. ");
+      angle1 = surface1.normal.angle();
+      angle2 = surface2.normal.angle();
       state1 = stepAngularStateByAngle(aState, angle1);
       state2 = stepAngularStateByAngle(aState, angle2);
+      console.log("      =-=-=-=-=-= angle1 ", angle1);
+      console.log("      =-=-=-=-=-= angle2 ", angle2);
+      console.log("      =-=-=-=-=-= state1 ", state1);
+      console.log("      =-=-=-=-=-= state2 ", state2);
 
       var earliest = closestPositive(state1.time, state2.time);
+      console.log("      =-=-=-=-=-= earliest ", earliest);
 
       if (earliest > 0) {
         if (earliest === state1.time) {
-          return { surface: surface2, nextSurface: surface1, state: state1 };
+          console.log("      =-=-=-=-=-= -= state1 ", state1);
+          toReturn = { surface: surface2, nextSurface: surface1, state: state1 };
         } else {
-          return { surface: surface1, nextSurface: surface2, state: state2 };
+          console.log("      =-=-=-=-=-= -= state2 ", state2);
+          toReturn = { surface: surface1, nextSurface: surface2, state: state2 };
         }
       }
-    } else {
-      angle1 = surface1.normal;
+    } else {    // no surface 2.
+      angle1 = surface1.normal.angle();
       state1 = stepAngularStateByAngle(aState, angle1);
       if (state1.time > 0) {
-        return { surface: surface2, nextSurface: surface1, state: state1 };
+        console.log("      =-=-=-=-=-= -= state1 ", state1);
+        toReturn = { surface: surface2, nextSurface: surface1, state: state1 };
       }
     }
   } else {
     if (surface2) {
-      angle2 = surface2.normal;
+      angle2 = surface2.normal.angle();
       state2 = stepAngularStateByAngle(aState, angle2);
       if (state2.time > 0) {
-        return { surface: surface1, nextSurface: surface2, state: state2 };
+        console.log("      =-=-=-=-=-= -= state2 ", state2);
+        toReturn = { surface: surface1, nextSurface: surface2, state: state2 };
       }
     } else {
-      return null;
     }
   }
-  return null;
+  console.log("      -_-_-_-_-    returning: ", toReturn);
+  return toReturn;
 }
 
 

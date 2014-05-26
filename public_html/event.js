@@ -797,6 +797,12 @@ function SurfaceEndEvent(predictedTime, dependencyMask, surface, nextSurface, en
   this.point = endpoint;
   this.allowLock = allowLock;
   this.upsideDown = (nextSurface.normal.y > 0 ? true : false);
+  
+
+  console.log("|-|-|-|-|-|  endpoint ", endpoint.x, ", " + endpoint.y);
+  console.log("|-|-|-|-|-|  angle ", this.angle);
+  console.log("|-|-|-|-|-|  surface.normal ", "" + surface.normal.x, ", " + surface.normal.y);
+  console.log("|-|-|-|-|-|  nextSurface.normal ", "" + nextSurface.normal.x, ", " + nextSurface.normal.y);
 
 
   this.handler = function (physEng) {
@@ -818,7 +824,7 @@ function SurfaceEndEvent(predictedTime, dependencyMask, surface, nextSurface, en
 
 
 
-
+    //throw "stop";
     physEng.updatePredicted();
     return;
   }
@@ -830,11 +836,19 @@ function SurfaceEndEvent(predictedTime, dependencyMask, surface, nextSurface, en
     var inputs = p.inputState;
 
     //function AngularState(time, radius, pointCircling, angle, angularVel, angularAccel) {
-    var ang = getSignedAngleFromAToB(HORIZ_NORM, this.point.add(this.surface.normal.multf(p.radius)));
+    var ang = getSignedAngleFromAToB(HORIZ_NORM, this.surface.normal.multf(p.radius));
+
     var angVel = (this.angle < 0 ? -p.vel.length() : p.vel.length());
     var angAccel = (this.angle < 0 ? -p.accel.length() : p.accel.length());
 
+
     var angState = new AngularState(p.time, p.radius, this.point, ang, angVel, angAccel);
+
+    console.log("|-|-|-|-|-|  this.point ", "" + this.point.x, ", " + this.point.y);
+    console.log("|-|-|-|-|-|  ang ", ang);
+    console.log("|-|-|-|-|-|  angVel ", angVel);
+    console.log("|-|-|-|-|-|  angAccel ", angAccel);
+    console.log("|-|-|-|-|-|  angState ", angState);
 
     p.updateToState(angState);
     p.nextSurface = this.nextSurface;
@@ -860,8 +874,10 @@ function EndArcEvent(predictedTime, dependencyMask, nextSurface) { // predictedT
     var p = physEng.player;
 
     if (nextSurface) {
+      console.log("  ++++++++  p.arcTo(this.nextSurface)         ++++");
       p.arcTo(this.nextSurface);
     } else {
+      console.log("  ++++++++  p.arcTo(null)     ++++++++");
       p.arcTo(null);
     }
 
