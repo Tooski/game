@@ -356,8 +356,70 @@ MapEditor.prototype.createLineButton = function(ctx) {
     };
 };
 
+MapEditor.prototype.createGoalLineButton = function() {
+	var line = new MapEditorButton("Goal", 0, (buttonSize + 5) * 2, buttonSize, buttonSize);
+    var that = this;
+
+	 line.onClick = function(e) {
+        
+        var left = parseInt(that.ctx.canvas.style.left);
+        var top =  parseInt(that.ctx.canvas.style.top);
+        if(e.offsetX >  that.ctx.canvas.width + left || e.offsetX < left ||
+           e.offsetY >  that.ctx.canvas.height + top || e.offsetX < top) {
+            if(!this.line) {
+                if(!this.prev || (this.prev && !this.prev.circularID)) {
+                    var xposition = localToWorld(e.offsetX, "x");
+                    var yposition = localToWorld(e.offsetY, "y");
+
+                    this.locked =  this.line = new GoalLine(
+                            new vec2(xposition, yposition),
+                            new vec2(xposition, yposition));
+                     that.level.pushTerrain(this.line);
+
+                    button.isSelected = false;
+                }
+            }
+        }
+    };
+	line.onDrag = function(e) {
+		if(this.line) {
+        	var mousePos = getMousePos(e);
+        	this.line.p1edit.x = (this.line.p1.x = mousePos.x) - this.line.p1edit.w/2;
+        	this.line.p1edit.y = (this.line.p1.y = mousePos.y) - this.line.p1edit.h/2;
+           	console.log(this.line.p1edit);
+        }
+    };
+	line.onRelease = function(e) {
+        if(this.line && this.line.p1.x !== this.line.p0.x && this.line.p1.y !== this.line.p0.y) {
+
+            that.level.snapTo(this.line);
+             this.locked = this.prev = this.line;
+            
+            
+            
+            if(!this.prev.circularID) {
+                
+            var xposition = localToWorld(e.offsetX, "x");
+            var yposition = localToWorld(e.offsetY, "y");
+
+            if(!checkBounds (this.line.p0, new vec2(xposition, yposition))) {
+            	this.line = new GoalLine(
+                new vec2(this.prev.p1.x, this.prev.p1.y),
+                new vec2(xposition, yposition));
+                    
+                that.level.pushTerrain(this.line);
+            }
+            } else {
+                this.setNormals = this.line.adjacent1;
+                this.line = null;
+            }
+        }
+    };
+
+};
+
 MapEditor.prototype.createEraseButton = function() {
-    var erase = new MapEditorButton("Erase", 0, (buttonSize + 5) * 2, buttonSize, buttonSize);
+    var erase = new MapEditorButton("Erase", 0, (buttonSize + 5) * 3, buttonSize, buttonSize);
     var that = this;
 
     erase.onClick = function(e) {
@@ -401,7 +463,7 @@ MapEditor.prototype.createEraseButton = function() {
 
 
 MapEditor.prototype.createLoadButton = function(ctx) {
-    var erase = new MapEditorButton("Load", 0, (buttonSize + 5) * 3, buttonSize, buttonSize);
+    var erase = new MapEditorButton("Load", 0, (buttonSize + 5) * 4, buttonSize, buttonSize);
     var that = this;
      erase.onRelease = function(e) {
        //that.level.loadFromFile();
@@ -423,7 +485,7 @@ MapEditor.prototype.createLoadButton = function(ctx) {
 MapEditor.prototype.createSaveButton = function(ctx) {
     
     
-    var save = new MapEditorButton("Save", 0, (buttonSize + 5) * 4, buttonSize, buttonSize);
+    var save = new MapEditorButton("Save", 0, (buttonSize + 5) * 5, buttonSize, buttonSize);
     var that = this;
     save.onRelease = function(e) {
         console.log(e);
