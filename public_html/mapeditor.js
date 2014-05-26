@@ -87,6 +87,7 @@ function MapEditor(level, editMode) {
     this.editMode = editMode || true ;
     this.createEditModeButton();
     this.createLineButton(this.ctx);
+	this.createGoalLineButton(this.ctx);
     this.createEraseButton();
     this.createLoadButton(this.ctx);
     this.createSaveButton(this.ctx);
@@ -356,7 +357,7 @@ MapEditor.prototype.createLineButton = function(ctx) {
     };
 };
 
-MapEditor.prototype.createGoalLineButton = function() {
+MapEditor.prototype.createGoalLineButton = function(ctx) {
 	var line = new MapEditorButton("Goal", 0, (buttonSize + 5) * 2, buttonSize, buttonSize);
     var that = this;
 
@@ -399,16 +400,16 @@ MapEditor.prototype.createGoalLineButton = function() {
             
             if(!this.prev.circularID) {
                 
-            var xposition = localToWorld(e.offsetX, "x");
-            var yposition = localToWorld(e.offsetY, "y");
+            	var xposition = localToWorld(e.offsetX, "x");
+            	var yposition = localToWorld(e.offsetY, "y");
 
-            if(!checkBounds (this.line.p0, new vec2(xposition, yposition))) {
-            	this.line = new GoalLine(
-                new vec2(this.prev.p1.x, this.prev.p1.y),
-                new vec2(xposition, yposition));
+            	if(!checkBounds (this.line.p0, new vec2(xposition, yposition))) {
+            		this.line = new GoalLine(
+                	new vec2(this.prev.p1.x, this.prev.p1.y),
+                	new vec2(xposition, yposition));
                     
-                that.level.pushTerrain(this.line);
-            }
+                	that.level.pushTerrain(this.line);
+            	}
             } else {
                 this.setNormals = this.line.adjacent1;
                 this.line = null;
@@ -504,7 +505,7 @@ MapEditor.prototype.createEditModeButton = function() {
     var editmode = new MapEditorButton("Edit Mode", 0, 0, buttonSize, buttonSize);
     editmode.collider.onEditMode = false;
     editmode.onRelease = function(e) {
-        editMode = !editMode;
+        this.editMode = !this.editMode;
         this.isSelected = button = null;
 
     };

@@ -404,7 +404,7 @@ TerrainLine.prototype.draw = function (ctx) {
   }
 };
 
-// GoalLine object is the representation of the goal that player reaches at the end of a level. 
+// GoalLine object is the representation of a basic line that the player can roll on in a level. 
 // Extends TerrainSurface and implements its required methods and those of its parent, Collideable.
 // @param normal is a normalized vector representing the normal of this line. 
 // @param adjacents is an array of terrainObjects where adjacents[0] is connected by p0, and adjacent
@@ -680,7 +680,7 @@ GoalLine.prototype.draw = function (ctx) {
 
   ctx.lineJoin = "round";
   ctx.miterLimit = 3;
-  ctx.strokeStyle = “#FF0000";
+  ctx.strokeStyle = "#FF0000";
   ctx.moveTo(this.p0.x, this.p0.y);
   ctx.lineTo(this.p1.x, this.p1.y);
 
@@ -776,5 +776,3 @@ function findNormalByMouse(e, line) {
   }
   return oneNormal;
 }
-
- 
