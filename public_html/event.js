@@ -598,8 +598,8 @@ function TerrainLineCollisionEvent(gameTimeOfCollision, collidedWithList, stateA
       animationSetPlayerRunning(p, this.time);
     } else {
       // BOUNCE. TODO implement addition of normalVector * jumpVel to allow jump being held to bounce him higher?   perhaps just buffer jump events.      
-      p.vel = getReflectionVector(p.vel, collisionVec).multf(DFLT_bounceSpeedLossRatio); //TODO REFACTOR TO USE NEW COLLISION OBJECT
-      //this.player.vel = getReflectionVector(ballState.vel, collisionVec.normalize()).multf(DFLT_bounceSpeedLossRatio); //TODO REFACTOR TO USE NEW COLLISION OBJECT          // COLLISIONVEC AVERAGE VERSION
+      p.vel = getReflectionVector(p.vel, collisionVec).multf(p.physParams.bounceSpeedLossRatio); //TODO REFACTOR TO USE NEW COLLISION OBJECT
+      //this.player.vel = getReflectionVector(ballState.vel, collisionVec.normalize()).multf(p.physParams.bounceSpeedLossRatio); //TODO REFACTOR TO USE NEW COLLISION OBJECT          // COLLISIONVEC AVERAGE VERSION
       p.pos = this.state.pos;
       p.leaveGround();
     }
@@ -657,46 +657,49 @@ function TerrainPointCollisionEvent(gameTimeOfCollision, terrainPointCollidedWit
     var collisionForceVecLen = collisionForceVec.length();
 
 
-    //if (this.allowLock && collisionForceVecLen < p.physParams.autoLockThreshold) {
-    //  console.log("TerrainPointCollisionEvent auto locked!?!?");
-    //  var collisionVecNorm = collisionVec.normalize();
-    //  var surfaceVecNorm = collisionVecNorm.perp();      //TODO OHGOD REFACTOR TO THIS METHOD TAKING A COLLISION OBJECT THAT STORES NORMALS AND THE SINGLE SURFACE TO LOCK TO
-    //  if (this.collidedWithList.length > 1) {
-    //    throw "allowLock is true but theres multiple things in collidedWithList.";
-    //  }
+    if (this.allowLock && collisionForceVecLen < p.physParams.autoLockThreshold) {
+      console.log("TerrainPointCollisionEvent auto locked!?!?");
 
-    //  var surface = this.collidedWithList[0];
+      this.lockTo(physEng);
 
-    //  //var velocityMag = ballState.vel.length();                     // DISABLED FOR REALISTIC PHYSICS
-    //  //var surfaceInvertAngle = surfaceVec.negate().dot(normalBallVel);
+      animationSetPlayerRunning(p, this.time);
+    } else if (input.lock && this.allowLock && collisionForceVecLen < p.physParams.lockThreshold) {
+      // IF PLAYER IS HOLDING LOCK, ATTEMPT TO LOCK IF WITHIN BOUNDARIES! TODO IS THE NEGATIVE LOCK_MIN_ANGLE CHECK NEEDED!!!?
+      console.log("TerrainCollisionEvent locked!?!?");
 
-    //  //if (surfaceAngle > surfaceInvertAngle) {
-    //  //  surfaceVec = surfaceVec.negate();
-    //  //}
-    //  //this.player.vel = surfaceVec.multf(velocityMag);              // END DISABLED FOR REALISTIC PHYSICS
-    //  console.log("collidedWithList: ", collidedWithList);
-    //  p.lockTo(surface, surfaceVecNorm);
+      this.lockTo(physEng);
 
-    //  animationSetPlayerRunning(p, this.time);
-    //} else if (input.lock && this.allowLock && collisionForceVecLen < p.physParams.lockThreshold) {
-    //  // IF PLAYER IS HOLDING LOCK, ATTEMPT TO LOCK IF WITHIN BOUNDARIES! TODO IS THE NEGATIVE LOCK_MIN_ANGLE CHECK NEEDED!!!?
-    //  console.log("TerrainCollisionEvent locked!?!?");
-    //  if (this.collidedWithList.length > 1) {
-    //    throw "allowLock is true but theres multiple things in collidedWithList.";
-    //  }
-    //  var surface = this.collidedWithList[0];
-    //  console.log("collidedWithList: ", this.collidedWithList);
-    //  p.lockTo(surface, surfaceVecNorm);
-    //  animationSetPlayerRunning(p, this.time);
-    //} else {
+      animationSetPlayerRunning(p, this.time);
+    } else {
       // BOUNCE. TODO implement addition of normalVector * jumpVel to allow jump being held to bounce him higher?   perhaps just buffer jump events.      
-      p.vel = getReflectionVector(p.vel, collisionVec).multf(DFLT_bounceSpeedLossRatio); //TODO REFACTOR TO USE NEW COLLISION OBJECT
-      //this.player.vel = getReflectionVector(ballState.vel, collisionVec.normalize()).multf(DFLT_bounceSpeedLossRatio); //TODO REFACTOR TO USE NEW COLLISION OBJECT          // COLLISIONVEC AVERAGE VERSION
+      p.vel = getReflectionVector(p.vel, collisionVec).multf(p.physParams.bounceSpeedLossRatio); //TODO REFACTOR TO USE NEW COLLISION OBJECT
+      //this.player.vel = getReflectionVector(ballState.vel, collisionVec.normalize()).multf(p.physParams.bounceSpeedLossRatio); //TODO REFACTOR TO USE NEW COLLISION OBJECT          // COLLISIONVEC AVERAGE VERSION
       p.pos = this.state.pos;
       p.leaveGround();
-    //}
+    }
     console.log("fin TerrainPointCollisionEvent");
     physEng.updatePredicted();
+  }
+
+
+  this.lockTo = function (physEng) {
+    var p = physEng.player;
+    var inputs = p.inputState;
+
+    p.vel = projectVec2(p.vel, this.surfaceVec.normalize()); 
+
+    //function AngularState(time, radius, pointCircling, angle, angularVel, angularAccel) {
+    var ang = getSignedAngleFromAToB(HORIZ_NORM, this.normalVec.multf(p.radius).add(this.tp));
+    var angVel = (this.angle < 0 ? -p.vel.length() : p.vel.length());
+    var angAccel = (this.angle < 0 ? -p.accel.length() : p.accel.length());
+
+    var angState = new AngularState(p.time, p.radius, this.tp, ang, angVel, angAccel);
+
+    p.updateToState(angState);
+    p.surface = this.tp.line1;
+    p.nextSurface = this.tp.line0;
+
+    return;
   }
 }
 TerrainPointCollisionEvent.prototype = new CollisionEvent();
@@ -765,7 +768,7 @@ function SurfaceAdjacentEvent(predictedTime, dependencyMask, surface, nextSurfac
     } else {
       console.log("            SurfaceAdjacentEvent Bouncing!?!?");
       // BOUNCE. 
-      p.vel = getReflectionVector(p.vel, collisionVecNorm).multf(DFLT_bounceSpeedLossRatio); //TODO REFACTOR TO USE NEW COLLISION OBJECT
+      p.vel = getReflectionVector(p.vel, collisionVecNorm).multf(p.physParams.bounceSpeedLossRatio); //TODO REFACTOR TO USE NEW COLLISION OBJECT
     
       p.leaveGround();
     }
@@ -807,7 +810,7 @@ function SurfaceEndEvent(predictedTime, dependencyMask, surface, nextSurface, en
 
     var angleAbs = (this.angle < 0 ? -this.angle : this.angle);
 
-    if ((inputs.lock && angleAbs < TODO_MAX_POINT_LOCK_ANGLE) || (angleAbs < TODO_MAX_AUTO_POINT_ROUND_ANGLE)) {  // Dont just release, we should lock wrap.
+    if ((inputs.lock && angleAbs < p.physParams.pointLockRoundMinAngle) || (angleAbs < p.physParams.pointLockRoundMinAngle)) {  // Dont just release, we should lock wrap.
       this.wrap(physEng);
     } else {
       p.leaveGround();

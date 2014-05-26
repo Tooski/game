@@ -16,6 +16,16 @@
 // Universal method to step a state forward to a time, no logic involved.
 // COMPLETELY AND UTTERLY DONE. I THINK.
 function stepStateToTime(state, targetGameTime) {
+  if (state.point) {
+    return convertAngularToNormalState(stepAngularStateToTime(state, targetGameTime));
+  } else {
+    return stepNormalStateToTime(state, targetGameTime);
+  }
+}
+
+
+
+function stepNormalStateToTime(state, targetGameTime) {
   var startTime = state.time;
   //console.log("in stepStateToTime. targetGameTime: ", targetGameTime);
   //console.log("startTime: ", state.time);
@@ -84,7 +94,7 @@ function stepAngularStateByAngle(aState, angle) {
 
   var circDist = angle * aState.radius;
 
-  var time = solveTimeToDist1D(circDist, aState.aVel, aState.aAccel);
+  var deltaTime = solveTimeToDist1D(circDist, aState.aVel, aState.aAccel);
 
   var endAngle = aState.a + angle;
 
@@ -96,6 +106,56 @@ function stepAngularStateByAngle(aState, angle) {
   }
 
   return new AngularState(aState.time + time, aState.radius, aState.point, endAngle, endVel, aState.aAccel);
+}
+
+
+
+/**
+ * Helper function to get the surfaces corresponding to the closest endArc time.
+ * returns { surface, nextSurface, state };
+ */
+function getSurfacesAtSoonestAngleTime(aState, surface1, surface2) {
+  var startAngle = aState.a;
+  var angle1 = null;
+  var angle2 = null;
+  var state1 = null;
+  var state2 = null;
+
+  if (surface1) {
+    if (surface2) {
+      angle1 = surface1.normal;
+      angle2 = surface2.normal;
+      state1 = stepAngularStateByAngle(aState, angle1);
+      state2 = stepAngularStateByAngle(aState, angle2);
+
+      var earliest = closestPositive(state1.time, state2.time);
+
+      if (earliest > 0) {
+        if (earliest === state1.time) {
+          return { surface: surface2, nextSurface: surface1, state: state1 };
+        } else {
+          return { surface: surface1, nextSurface: surface2, state: state2 };
+        }
+      }
+    } else {
+      angle1 = surface1.normal;
+      state1 = stepAngularStateByAngle(aState, angle1);
+      if (state1.time > 0) {
+        return { surface: surface2, nextSurface: surface1, state: state1 };
+      }
+    }
+  } else {
+    if (surface2) {
+      angle2 = surface2.normal;
+      state2 = stepAngularStateByAngle(aState, angle2);
+      if (state2.time > 0) {
+        return { surface: surface1, nextSurface: surface2, state: state2 };
+      }
+    } else {
+      return null;
+    }
+  }
+  return null;
 }
 
 
@@ -280,6 +340,9 @@ function getNextSurfaceData(state, surface) {
   // concave result { concave: t / f, angle } where angle in radians from this surface to next surface surface. the closer to Math.PI the less the angle of change between surfaces.
   var concRes0 = surface.getAdj0Angle();
   var concRes1 = surface.getAdj1Angle();
+
+  console.log("concRes0: ", concRes0);
+  console.log("concRes1: ", concRes1);
 
   if (concRes0 && concRes0.concave) {
 

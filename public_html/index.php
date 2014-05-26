@@ -25,6 +25,7 @@ canvas { display:block; } /* To remove the scrollbars */
     <script type="text/javascript" src="./collision.js"></script>
     <script type="text/javascript" src="./terrain.js"></script>
     <script type="text/javascript" src="./terrainmanager.js"></script>
+    <script type="text/javascript" src="./physMath.js"></script>
     <script type="text/javascript" src="./physics.js"></script>
     <script type="text/javascript" src="./gamepad.js"></script>
     <script type="text/javascript" src="./unit.js"></script>

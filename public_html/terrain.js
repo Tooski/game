@@ -199,11 +199,11 @@ function TerrainLine(point0, point1, player, adjacent0, adjacent1, normal) {
     if (this.adjacent0) {
       var thisVec = this.p1.subtract(this.p0).normalize();
       var adjVec = this.adjacent0.p0.subtract(this.adjacent0.p1).normalize();
-      var angleNorm = this.normal.dot(adjVec);
+      var angleNorm = getSignedAngleFromAToB(this.normal, this.adjacent0.normal);
       var angle = Math.acos(thisVec.dot(adjVec));
       //connection to adj0 is concave when the angle between this.normal and next surface is < HALF_PI, or 90 degrees. 
 
-      var result = { concave: (angleNorm <= HALF_PI), angle: angle };
+      var result = { concave: (angleNorm <= HALF_PI && angleNorm >= HALF_PI_NEG), angle: angle };
       return result;
 
     } else {
@@ -222,12 +222,12 @@ function TerrainLine(point0, point1, player, adjacent0, adjacent1, normal) {
     if (this.adjacent1) {
       var thisVec = this.p0.subtract(this.p1).normalize();
       var adjVec = this.adjacent1.p1.subtract(this.adjacent1.p0).normalize();
-      var angleNorm = this.normal.dot(adjVec);
+      var angleNorm = getSignedAngleFromAToB(this.normal, this.adjacent1.normal);
       var angle = Math.acos(thisVec.dot(adjVec));
 
       //connection to adj0 is concave when the angle between this.normal and next surface is < HALF_PI, or 90 degrees. 
 
-      var result = { concave: (angleNorm <= HALF_PI), angle: angle };
+      var result = { concave: (angleNorm <= HALF_PI && angleNorm >= HALF_PI_NEG), angle: angle };
       return result;
 
     } else {

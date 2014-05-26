@@ -12,7 +12,7 @@
 
 
 //IF FALSE, RUN NORMALLY
-var DEBUG_STEP =                                    false;
+var DEBUG_STEP =                                    true;
 
 //IF FALSE ONLY STEPS TO RENDEREVENTS
 var DEBUG_EVENT_AT_A_TIME =                         false && DEBUG_STEP; //only true if debug step is also true. Saves me the time of changing 2 variables to switch between normal state and debug state.
@@ -40,6 +40,7 @@ performance.now = (function () {
 
 //CONSTANTS
 var HALF_PI = Math.PI / 2.0;   // AKA 90 DEGREES IN RADIANS
+var HALF_PI_NEG = -Math.PI / 2.0;   // AKA 90 DEGREES IN RADIANS
 
 var TIME_EPSILON = 0.00000001;
 var TIME_EPSILON_SQ = TIME_EPSILON * TIME_EPSILON;
@@ -148,19 +149,23 @@ function StepResult (state, eventArray) {
  * This exists because it will be used later on to implement other terrain types, whose static
  * effect values will be passed in here.
  */
-function PhysParams(gravity, lockThreshold, autoLockThreshold, surfaceSnapAngle) {
-  if (!((gravity || gravity === 0) && (lockThreshold || lockThreshold === 0) && (autoLockThreshold || autoLockThreshold === 0))) {
+function PhysParams(gravity, lockThreshold, autoLockThreshold, surfaceSnapAngle, pointLockRoundMinAngle, bounceSpeedLossRatio) {
+  if (!((gravity || gravity === 0) && (lockThreshold || lockThreshold === 0) && (autoLockThreshold || autoLockThreshold === 0) && (pointLockRoundMinAngle || pointLockRoundMinAngle === 0) && (bounceSpeedLossRatio || bounceSpeedLossRatio === 0))) {
     console.log("");
     console.log("");
     console.log("gravity: ", gravity);
     console.log("lockThreshold: ", lockThreshold);
     console.log("autoLockThreshold: ", autoLockThreshold);
+    console.log("pointLockRoundMinAngle: ", pointLockRoundMinAngle);
+    console.log("bounceSpeedLossRatio: ", bounceSpeedLossRatio);
     throw "missing PhysParams";
   }
   this.gravity = gravity;                           // Force of gravity. Hopefully you knew that.
   this.lockThreshold = lockThreshold;               // Force of a collision after which locking is disallowed.
   this.autoLockThreshold = autoLockThreshold;       // Force of a collision after which autoLocking is disallowed.
   this.surfaceSnapAngle = surfaceSnapAngle;
+  this.pointLockRoundMinAngle = pointLockRoundMinAngle;
+  this.bounceSpeedLossRatio = bounceSpeedLossRatio;
 }
 
 
@@ -323,10 +328,10 @@ function PlayerModel(controlParams, physParams, time, radius, pos, vel, accel, s
 
 
   
-  this.point = pointCircling;   // point being rounded
-  this.a = angle;               // angle around point.
-  this.aVel = angularVel;       // signed angular velocity.
-  this.aAccel = angularAccel;   // signed angular accel.
+  this.point = null;   // point being rounded
+  this.a = null;               // angle around point.
+  this.aVel = null;       // signed angular velocity.
+  this.aAccel = null;   // signed angular accel.
   this.nextSurface = null;
 	
   //console.log("controlParams.numAirCharges, ", controlParams.numAirCharges);
@@ -342,7 +347,7 @@ function PlayerModel(controlParams, physParams, time, radius, pos, vel, accel, s
   this.updateToState = function (state) {
 
 
-    if (this.state instanceof State) {
+    if (state instanceof State) {
       if (!(
         (state.time || state.time === 0) &&
         (state.radius || state.radius === 0) &&
@@ -363,7 +368,7 @@ function PlayerModel(controlParams, physParams, time, radius, pos, vel, accel, s
       this.pos = state.pos;
       this.vel = state.vel;
       this.accel = state.accel;
-    } else if (this.state instanceof AngularState) {
+    } else if (state instanceof AngularState) {
       console.log("instanceof AngularState");
       if (!(
         (state.time || state.time === 0) &&
@@ -380,7 +385,6 @@ function PlayerModel(controlParams, physParams, time, radius, pos, vel, accel, s
         throw "Missing fields in AngularState. ^";
       }
 
-      throw "working";
       this.time = state.time;
       this.radius = state.radius;
 
@@ -854,7 +858,8 @@ PhysEng.prototype.updatePhys = function (newEvents, stepToRender) {
     for (var i = 0; stepResult.events && i < stepResult.events.length; i++) {
       //add new events events to eventHeap
       if (i > 1) {                                        //DEBUG CASE TESTING TODO REMOVE
-        console.log("added more than one new event??? event #", i);
+        console.log("added more than one new event??? event #", i, "event list: ", stepResult.events);
+        throw "uh oh????";
       }
       this.tweenEventHeap.push(stepResult.events[i]);
     }
@@ -886,7 +891,12 @@ PhysEng.prototype.updatePhys = function (newEvents, stepToRender) {
 
 
       this.tweenEventHeap = getNewTweenHeap();
-      var tempState = stepStateToTime(this.player, targetTime);
+      var tempState = null;
+      if (this.player.point) {
+        tempState = stepAngularStateToTime(this.player, targetTime);
+      } else {
+        tempState = stepStateToTime(this.player, targetTime);
+      }
       //update player state to resulting state.
       currentEvent = this.popMostRecentEvent();
       this.player.updateToState(tempState);
@@ -940,11 +950,113 @@ PhysEng.prototype.attemptNextStep = function (goalGameTime) {
   //console.log("");
   //console.log("");
   //console.log("new attemptNextStep, goalGameTime: ", goalGameTime);
+
+  if (this.player.point) {
+    return this.attemptAngularStep(goalGameTime);
+  } else {
+    return this.attemptNormalStep(goalGameTime);
+  }
+}
+
+
+
+
+
+/**
+ * attempts the next angular step.
+ */
+PhysEng.prototype.attemptAngularStep = function (goalGameTime) {
+
   var stepCount = 1;
   var startGameTime = this.player.time;
   var deltaTime = goalGameTime - startGameTime;
 
-  //console.log("  start of an attemptNextStep. ");
+  //console.log("  start of an attemptAngularStep. ");
+  //console.log("    attempting to step to goalGameTime: ", goalGameTime);
+  //console.log("    playerState: ", this.player);
+
+  var velStep = this.player.aVel;
+  velStep = velStep * deltaTime;
+
+  while (velStep * velStep > this.MAX_MOVE_DIST_SQ)   // Figure out how many steps to divide this step into.
+  {
+    velStep = velStep / 2;
+    stepCount *= 2;
+  }
+
+
+
+  var stepFraction = 0.0;
+  var collisionList = [];
+  var tweenTime = null;
+  var tempState = null;
+
+  //console.log("   CollisionList.length: ", collisionList.length, " stepCount: ", stepCount);
+  for (var i = 1; i < stepCount && collisionList.length === 0; i++) {     // DO check steps.
+    var doNotCheck = this.getNewDoNotCheck();
+    stepFraction = i / stepCount;
+    tweenTime = startGameTime + stepFraction * deltaTime;
+
+    tempState = convertAngularToNormalState(stepAngularStateToTime(this.player, tweenTime));
+    collisionList = getCollisionsInList(tempState, this.tm.terrainList, doNotCheck);    //TODO MINIMIZE THIS LIST SIZE, THIS IS IDIOTIC
+
+    //console.log("      tweenStepping, i: ", i, " tweenTime: ", tweenTime);
+  }
+
+  var events = [];
+  if (collisionList.length > 0) {   // WE COLLIDED WITH STUFF AND EXITED THE LOOP EARLY, handle.
+    events = this.findEventsAndTimesFromCollisions(collisionList);         // a bunch of TerrainCollisionEvent's hopefully?
+    tempState = events[0].state;
+    this.resetPredicted();
+    //console.log("    ended tweenStepping loop early");
+    //console.log("    collisions: ", collisionList);
+    //console.log("    tempState: ", tempState);
+    //DEBUG_DRAW_BLUE.push(new DebugCircle(debugState.pos, debugState.radius, 5));
+
+    //TODO HANDLE PREDICTING EVENTS HERE.
+  } else {                // TRY FINAL STEP
+    var doNotCheck = this.getNewDoNotCheck();
+    //console.log("doNotCheck, ", doNotCheck);
+    tweenTime = goalGameTime;
+    //console.log("  finalStepping, i: ", stepCount, " tweenTime: ", tweenTime);
+    tempState = convertAngularToNormalState(stepAngularStateToTime(this.player, tweenTime));
+    
+    
+    collisionList = getCollisionsInList(tempState, this.tm.terrainList, doNotCheck);    //TODO MINIMIZE THIS LIST SIZE, THIS IS IDIOTIC
+    //console.log(this.tm.terrainList);
+    //console.log(this.tm);
+    if (collisionList.length > 0) {   // WE COLLIDED WITH STUFF ON FINAL STEP.
+      events = this.findEventsAndTimesFromCollisions(collisionList);
+      tempState = events[0].state;
+      this.resetPredicted();
+      //console.log("    collided on last step.");
+      //console.log("    collisions: ", collisionList);
+      //console.log("    tempState: ", tempState);
+      //DEBUG_DRAW_BLUE.push(new DebugCircle(debugState.pos, debugState.radius, 5));
+    }
+  }
+
+
+  var results = new StepResult(tempState, events);
+  //TODO UPDATE PLAYER HERE???
+  //console.log("  End attemptAngularStep");
+  return results;
+}
+
+
+
+
+
+/**
+ * attempts the next normal step.
+ */
+PhysEng.prototype.attemptNormalStep = function (goalGameTime) {
+
+  var stepCount = 1;
+  var startGameTime = this.player.time;
+  var deltaTime = goalGameTime - startGameTime;
+
+  //console.log("  start of an attemptNormalStep. ");
   //console.log("    attempting to step to goalGameTime: ", goalGameTime);
   //console.log("    playerState: ", this.player);
   var debugState = new State(this.player.time, this.player.radius, this.player.pos, this.player.vel, this.player.accel);
@@ -1000,6 +1112,7 @@ PhysEng.prototype.attemptNextStep = function (goalGameTime) {
     if (collisionList.length > 0) {   // WE COLLIDED WITH STUFF ON FINAL STEP.
       events = this.findEventsAndTimesFromCollisions(collisionList);
       tempState = events[0].state;
+      this.resetPredicted();
       //console.log("    collided on last step.");
       //console.log("    collisions: ", collisionList);
       //console.log("    tempState: ", tempState);
@@ -1010,7 +1123,7 @@ PhysEng.prototype.attemptNextStep = function (goalGameTime) {
 
   var results = new StepResult(tempState, events);
   //TODO UPDATE PLAYER HERE???
-  //console.log("  End attemptNextStep");
+  //console.log("  End attemptNormalStep");
   return results;
 }
 
@@ -1053,37 +1166,8 @@ PhysEng.prototype.updatePredicted = function () {           //TODO FINISH
   this.player.predictedDirty = false;
   if (this.player.point) {
     // we know player is currently rounding point.
-    var startAngle = this.player.a;
-    var endAngle = this.player.nextSurface.normal.angle();
    
-    //var endCartesianState = convertAngularToNormalState(endState);
-
-
-    if (this.willContinueLocking()) {// { will player still be on surface at end angle?
-      //YES  ok do the thing to the next surface normal as endAngle.
-    } else {
-      //NO   ok at what angle does the surface accel cease to lock? normal at that point as endAngle.}
-      //endAngle = getLockExitAngle();
-    }
-
-    var angleDelta = (endAngle - startAngle);
-    //var angleDelta = (endAngle - startAngle) % (2 * Math.PI);       // might be useful for avoiding weird cases????
-
-    if (angleDelta > Math.PI) {
-      throw "dunno why I would need this case, hopefully dont run into it";
-    }
-
-    var endState = stepAngularStateByAngle(this.player, angleDelta);
-
-    console.log("      angleDelta ", angleDelta, ", endState: ", endState);
-
-    if (!endState) {
-      console.log("endState: ", endState);
-      throw "bad endState ^";
-    }
-   
-    var dependencyMask = 0;
-    var endArcEvent = new EndArcEvent(endState.time, dependencyMask, this.player.nextSurface);    //EndArcEvent(predictedTime, dependencyMask, nextSurface). nextSurface null for early arc ends.
+    var endArcEvent = this.getArcEndEvent();    //EndArcEvent(predictedTime, dependencyMask, nextSurface). nextSurface null for early arc ends.
     console.log("pushing new endArcEvent: ", endArcEvent);
 
     this.predictedEventHeap.push(endArcEvent);
@@ -1163,11 +1247,38 @@ PhysEng.prototype.resetPredicted = function () {
 
 
 
+
+PhysEng.prototype.getArcEndEvent = function () {
+  //var startAngle = this.player.a;
+  //var endAngle1 = this.player.nextSurface.normal.angle();
+  //var endAngle2 = this.player.surface.normal.angle();
+
+        //returns { surface, nextSurface, state };
+        //getSurfacesAtSoonestAngleTime(aState, surface1, surface2) {
+
+  var results = getSurfacesAtSoonestAngleTime(this.player, this.player.nextSurface, this.player.surface);
+  var endArcEvent = null;
+
+  if (results) {
+    console.log("        results: ", results);
+    var endState = results.state;
+
+    endArcEvent = new EndArcEvent(endState.time, dependencyMask, results.nextSurface);    //EndArcEvent(predictedTime, dependencyMask, nextSurface). nextSurface null for early arc ends.
+  }
+
+  return endArcEvent;
+}
+
+
+
 /**
  * Gets the SurfaceEndEvent for a particular surface, if it exists.
  */
 PhysEng.prototype.getSurfaceEndEvent = function () {
 
+  if (this.player.point) {
+    throw "shouldnt be in getSurfaceEndEvent when locked to a point.";
+  }
   /* returns { adjNumber: 0 or 1, time, angle } where angle in radians from this surface to next surface surface. the closer to Math.PI the less the angle of change between surfaces.
    * null if none in positive time or both not concave.*/
   var adjData = getNextSurfaceData(this.player, this.player.surface);
@@ -1391,7 +1502,7 @@ PhysEng.prototype.findEventsAndTimesFromCollisions = function (collisionList) {
         //DEBUG_DRAW_LIGHTBLUE.push(new DebugCircle(tempState.pos, tempState.radius, 5));
       }
 
-
+      console.log("tempState: ", tempState);
       if (collision.surface.isPointWithinPerpBounds(tempState.pos) && lineTime && lineTime > 0 && lineTime < 200) {   // Ensures that the real collision was with the line and not the points.
         var collisionHeapObj = new CollisionHeapObj(tempState, collision.surface);
         collisionHeap.push(collisionHeapObj);
