@@ -24,9 +24,9 @@ function Collectible (id, x, y, pointValue) {
 // goalNum = terrainmanager.nextGoalNumber();
 // id = "goal " + this.goalNum;       		
 function Goal (id, goalNum){			// ensure you terrainmanager.nextGoalNumber++; after passing in nextGoalNumber.
-	this.goalNum = goalNum;							// sets this goals number to a new goal number. 
-													// used to determine what goal the player completed at the end of the level,
-												    // and used to determine the leaderboard to submit to.
+	this.goalNum = goalNum;					// sets this goals number to a new goal number. 
+													        // used to determine what goal the player completed at the end of the level,
+												          // and used to determine the leaderboard to submit to.
 	
 	this.id = id;    
 }	
@@ -37,7 +37,7 @@ function Goal (id, goalNum){			// ensure you terrainmanager.nextGoalNumber++; af
 		//NOW FOR LINE STUFF
 
 // point class to make storing points less string intensive.
-//  /EVERY POINT IN ANY LINE CLASS MUST BE REPLACED WITH THESE. Use terrainManager.toLinePoint(point) to get a point converted to a LinePoint with an ID.
+// __EVERY POINT IN ANY LINE CLASS MUST BE REPLACED WITH THESE__  Use terrainManager.toLinePoint(point) to get a point converted to a LinePoint with an ID.
 // id = terrainmanager.nextPointNumber();      
 function LinePoint (id, x, y) {
 	vec2.apply(this, [x, y]); 		 // initializes this as a vec2 with parameters x and y.  this.x is now x, this.y is now y
@@ -193,12 +193,13 @@ function TerrainManager () {
 	// function that clears all the stuff in this terrainmanager. 
 	this.reset = function () {				
 		this.isReset = true;
-		this.nextGoalNo = 0; 
-		this.nextPointNo = 0; 
+		this.nextGoalNo = 1; 
+		this.nextPointNo = 1; 
 		this.pointMap = {};	
-		this.startPoint = new vec2(0, 0); 
+		this.startPoint = new vec2(1, 1); 
 		this.goals  = {};
 		this.checkpoints = {};
+		this.collectibles = {};
 		this.terrainLines = {};	
 		this.checkpointLines = {};
 		this.goalLines = {}; 
