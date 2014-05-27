@@ -4,7 +4,7 @@
 	
 //object that represents a checkpoint. this is entirely different from a CheckpointLine.
 // id = "checkpoint " + x + " " + y;
-Checkpoint (id, x, y) {		
+function Checkpoint (id, x, y) {		
 	vec2.apply(this, [x, y]); 		 // initializes this as a vec2 with parameters x and y.  this.x is now x, this.y is now y
 	this.id = id;  
 }	
@@ -12,7 +12,7 @@ Checkpoint (id, x, y) {
 	
 //object that represents a collectible.
 // id = "Collectible " + x + " " + y;
-Collectible (id, x, y, pointValue) {		
+function Collectible (id, x, y, pointValue) {		
 	vec2.apply(this, [x, y]); 		 // initializes this as a vec2 with parameters x and y.  this.x is now x, this.y is now y
 	this.pointValue = pointValue;	 // the value of this collectible? may not need
 	this.id = id;  
@@ -23,7 +23,7 @@ Collectible (id, x, y, pointValue) {
 // object that represents a specific goal. this is different from a GoalLine
 // goalNum = terrainmanager.nextGoalNumber();
 // id = "goal " + this.goalNum;       		
-Goal (id, goalNum){			// ensure you terrainmanager.nextGoalNumber++; after passing in nextGoalNumber.
+function Goal (id, goalNum){			// ensure you terrainmanager.nextGoalNumber++; after passing in nextGoalNumber.
 	this.goalNum = goalNum;							// sets this goals number to a new goal number. 
 													// used to determine what goal the player completed at the end of the level,
 												    // and used to determine the leaderboard to submit to.
@@ -39,13 +39,13 @@ Goal (id, goalNum){			// ensure you terrainmanager.nextGoalNumber++; after passi
 // point class to make storing points less string intensive.
 //  /EVERY POINT IN ANY LINE CLASS MUST BE REPLACED WITH THESE. Use terrainManager.toLinePoint(point) to get a point converted to a LinePoint with an ID.
 // id = terrainmanager.nextPointNumber();      
-LinePoint (id, x, y) {
+function LinePoint (id, x, y) {
 	vec2.apply(this, [x, y]); 		 // initializes this as a vec2 with parameters x and y.  this.x is now x, this.y is now y
 	this.id = id;
 	
 	
 	
-	this.collidesWith(point, radius) {
+	this.collidesWith = function (point, radius) {
 		var toReturn = false;
 		if (point.subtract(this).length() < radius) {
 			return true;
@@ -116,7 +116,7 @@ function formatLineToJSON (line, objectToAppendTo) {
 //TerrainManager itself
  
  
-TerrainManager  {
+function TerrainManager  {
 	//The two fields below are initially 0 because this is a blank level, currently. They /MUST/ be loaded from JSON any time a level is loaded.
 	this.nextGoalNo = 0; // the next goal ID number. This must be saved along with the rest of the level.
 	this.nextPointNo = 0; // the next point ID number. This must be saved along with the rest of the level.
@@ -176,7 +176,7 @@ TerrainManager  {
 	
 	
 	// function that clears all the stuff in this terrainmanager. 
-	reset = function () {				
+	this.reset = function () {				
 		this.isReset = true;
 		this.nextGoalNo = 0; 
 		this.nextPointNo = 0; 
@@ -191,7 +191,7 @@ TerrainManager  {
 	}
 	
 	
-	getJSON = function () {					// gets the JSON version of this manager.
+	this.getJSON = function () {					// gets the JSON version of this manager.
 		var JSONdata;
 		
 		
