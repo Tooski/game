@@ -676,7 +676,27 @@ PlayerModel.prototype.jump = function () {
     throw "no surface or point (or surface AND point) and jump was called.";
   }
 
-  if (this.onSurface) {   //jump from surface
+  if (this.onPoint) {   // jump from point
+    var input = this.inputState;
+
+    var curState = convertAngularToNormalState(this);
+
+    this.updateToState(curState);
+
+    var angleVecNorm = this.pos.subtract(this.point).normalize();
+    console.log(this);
+
+    animationSetPlayerJumping(this, this.time, angleVecNorm.perp());
+
+    var jumpVec = angleVecNorm.multf(this.controlParams.jumpVelNormPulse);
+    this.vel = this.vel.add(jumpVec);
+
+    //console.log("this.surface", this.surface);
+    //add end animation event for double jump. TODO
+
+    this.predictedDirty = true;
+    this.leaveGround();
+  } else if (this.onSurface) {   //jump from surface
     var input = this.inputState;
     //console.log("this.surface", this.surface);
     animationSetPlayerJumping(this, this.time, this.surface.getSurfaceAt(this.pos));
@@ -685,25 +705,6 @@ PlayerModel.prototype.jump = function () {
     var jumpVec = this.surface.getNormalAt(this.pos, this.radius);
     jumpVec = jumpVec.multf(this.controlParams.jumpVelNormPulse);
     this.vel = this.vel.add(jumpVec);
-    this.predictedDirty = true;
-    this.leaveGround();
-  } else if (this.onPoint) {   // jump from point
-    var input = this.inputState;
-
-    var curState = convertAngularToNormalState(this);
-
-    this.updateToState(curState);
-
-    var angleVecNorm = this.pos.subtract(this.point).normalize();
-
-    animationSetPlayerJumping(this, this.time, this.angleVecNorm.perp());
-
-    var jumpVec = angleVecNorm.multf(this.controlParams.jumpVelNormPulse);
-    this.vel = this.vel.add(jumpVec);
-
-    //console.log("this.surface", this.surface);
-    //add end animation event for double jump. TODO
-
     this.predictedDirty = true;
     this.leaveGround();
   }
