@@ -306,13 +306,22 @@ function TerrainManager () {
 		JSONdata.killLines = this.killLines;
 
 		var jsonString = JSON.stringify(JSONdata);
-		var jsonTabbed = JSON.stringify(JSONdata, null, 4)
+		var jsonTabbed = JSON.stringify(JSONdata, null, 3)
 		console.log(jsonTabbed);
 		return jsonString;
 	}
 	
-	this.loadJSON = function (data) {  // parses a new terrainManager state from the provided 
-		this.reset();
+	this.loadFromJSON = function (data) {  // parses a new terrainManager state from the provided 
+	  this.reset();
+	  console.log("loading JSON data into terrainManager. JSON: ")
+	  var jsonTabbed = JSON.stringify(data, null, 3)
+
+	  this.levelName = data.levelName;
+
+
+
+
+
 		this.isReset = false;
 	}
 	
