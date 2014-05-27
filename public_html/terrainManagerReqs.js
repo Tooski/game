@@ -116,31 +116,31 @@ function formatLineToJSON (line, objectToAppendTo) {
 //TerrainManager itself
  
  
-function TerrainManager  {
+function TerrainManager () {
 	//The two fields below are initially 0 because this is a blank level, currently. They /MUST/ be loaded from JSON any time a level is loaded.
-	this.nextGoalNo = 0; // the next goal ID number. This must be saved along with the rest of the level.
-	this.nextPointNo = 0; // the next point ID number. This must be saved along with the rest of the level.
+	this.nextGoalNo = 1; // the next goal ID number. This must be saved along with the rest of the level.
+	this.nextPointNo = 1; // the next point ID number. This must be saved along with the rest of the level.
 	
 	this.pointMap = {};			// this is a map of all LinePoints by their ID, used to reduce point replication everywhere.
-								// check if a point is in it by using 
-										// if(pointMap[pointString(point)]) { 
-										// }
-								// insert into it by using
-										// pointMap.
-	this.startPoint = new vec2(0, 0);      		// the level starting location.
+                          // should only iterate through it or use this.toLinePoint(point) to modify it.
+
+	this.startPoint = new vec2(1, 1);      		// the level starting location.
 	
-	this.goals  = {};			// map of goals by ID that are currently contained in this level.	 /NOT THE GOAL LINES/
-								// goalID's is a number assigned to goalLines that link to the same goal, and also used for determining
-								// what leaderboard to put the players score on.
+  this.goals  = {};     	     // map of goals by ID that are currently contained in this level.	 /NOT THE GOAL LINES/
+								               // goalID's is a number assigned to goalLines that link to the same goal, and also used for determining
+								               // what leaderboard to put the players score on.
 	
-	this.checkpoints = {};		// map of checkpoints by ID.	 /NOT THE CHECKPOINT LINES/
+	this.checkpoints = {};		   // map of checkpoints by ID.	 /NOT THE CHECKPOINT LINES/
+
+	this.collectibles = {};      // map of all collectibles by ID. 
 	
 	
-	this.terrainLines = {};		// map of TerrainLines by ID that are currently contained in this level.
+	this.terrainLines = {};		   // map of TerrainLines by ID that are currently contained in this level.
 	
-	this.checkpointLines = {};	// ^ but CheckpointLines
+	this.checkpointLines = {};	 // ^ but CheckpointLines
 	
 	this.goalLines = {};         // ^ but GoalLines
+
 	
 	this.isReset = true;
 	
