@@ -478,11 +478,14 @@ function PlayerModel(controlParams, physParams, time, radius, pos, vel, accel, s
   // Figures out which vector update call to use and then updates vectors.
   this.updateVecs = function (inputState) {
     //console.log(" in AccelState update function. inputState ", inputState);
-    if (!this.onSurface) {
-      //console.log("    Calling updateAir, player.surfaceOn === null.");
+    if (this.onPoint) {
+      //console.log("    Doing nothing, player.onPoint is true");
+
+    } else if (!this.onSurface) {
+      //console.log("    Calling updateAir, not onPoint or onSurface.");
       this.updateVecsAir(inputState);
     } else {
-      //console.log("    Calling updateGround, player.surfaceOn !== null.");
+      //console.log("    Calling updateGround, player..");
       this.updateVecsGround(inputState);
     }
   }
@@ -493,7 +496,7 @@ function PlayerModel(controlParams, physParams, time, radius, pos, vel, accel, s
     //console.log("  in AccelState.updateGround(), setting accelVec. ");
 
     var baseForceVec = this.getBaseForceVecGround(inputState);
-    if (!this.onSurface) {
+    if (!this.onSurface && !this.on) {
       console.log("surface ", this.surface);
       throw "why are we updating vecs for ground when we're not on a surface?";
     }
@@ -760,9 +763,11 @@ PlayerModel.prototype.arcTo = function (surface) {
   this.accel = accel;             // TODO better way to keep from changing accel to the angular accel???? Do we even care?
   if (surface) {
     // didnt end arc early
+    console.log(" +++++++++ arcTo: didnt end arc early. surface ", surface);
     this.surfaceLock(surface);
   } else {
     // ended arc early, in the air.
+    console.log(" +++++++++ arcTo: ended arc early, in the air.");
     this.leaveGround();
   }
   this.leaveArc();
@@ -794,6 +799,7 @@ PlayerModel.prototype.startArc = function (point, arcAngle, pointToPosVec) {
 
   this.updateToState(angState);
   this.onSurface = false;
+  this.onPoint = true;
 }
 
 
@@ -1312,8 +1318,8 @@ PhysEng.prototype.attemptNormalStep = function (goalGameTime) {
 
 
   var results = new StepResult(tempState, events);
-  console.log("  End attemptNormalStep, results", results);
-  console.log("  End attemptNormalStep, isPaused", this.isPaused);
+  //console.log("  End attemptNormalStep, results", results);
+  //console.log("  End attemptNormalStep, isPaused", this.isPaused);
   return results;
 }
 
@@ -1378,6 +1384,7 @@ PhysEng.prototype.updatePredicted = function () {           //TODO FINISH
 
 
 PhysEng.prototype.willContinueLocking = function () {
+  console.log("checking willContinueLocking");
   var baseForceVec = this.player.getBaseForceVecGround(this.player.inputState);
 
 
@@ -1478,7 +1485,7 @@ PhysEng.prototype.getSurfaceEndEvent = function () {
   var endPointData = solveEarliestSurfaceEndpoint(this.player, this.player.surface);
   var endPointDependencyMask = 0;
   var surface = this.player.surface;
-  var endPointAngle = (endPointData.pointNumber !== 0 ? getSignedAngleFromAToB(surface.normal, surface.adjacent1.normal) : getSignedAngleFromAToB(surface.adjacent0.normal, surface.normal));
+  var endPointAngle = (endPointData.pointNumber !== 0 ? getSignedAngleFromAToB(surface.normal, surface.adjacent1.normal) : getSignedAngleFromAToB(surface.normal, surface.adjacent0.normal));
   console.log("-=-=-=-=-=-=  endPointData ", endPointData);
   console.log("-=-=-=-=-=-=  endPointAngle ", endPointAngle);
 

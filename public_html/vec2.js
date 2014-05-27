@@ -76,6 +76,20 @@ vec2.prototype.angle = function () { // returns the perpendicular vector to this
 }
 
 
+vec2.prototype.sangle = function () { // returns the perpendicular vector to this vector.
+  return getSignedAngleFromAToB(HORIZ_NORM, this);
+}
+
+
+vec2.prototype.toJSON = function () {
+  var formattedObj = { x: this.x, y: this.y };
+  if (this.id) {
+    throw "??? should we ever have an id in vec2 toJSON() ? most likely vec2.apply() is fucking with shit";
+    formattedObj.id = this.id;
+  }
+  return JSON.stringify(formattedObj);;
+}
+
 
 //projects vec2 a onto vec2 b.
 function projectVec2(a, b) {
