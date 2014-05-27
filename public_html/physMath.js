@@ -94,14 +94,20 @@ function stepAngularStateByAngle(aState, angle) {
   //  this.aVel = angularVel;
   //  this.aAccel = angularAccel;
   //}
-
+  console.log(" * * * * * * * stepAngularStateByAngle, angle " + angle);
+  console.log(" * * * * * * * aState " + aState);
   var circDist = angle * aState.radius;
 
+  console.log(" * * * * * * * circDist " + circDist);
+
   var deltaTime = solveTimeToDist1D(circDist, aState.aVel, aState.aAccel);
+  console.log(" * * * * * * * deltaTime " + deltaTime);
 
   var endAngle = aState.a + angle;
+  console.log(" * * * * * * * endAngle " + endAngle);
 
   var endVel = aState.aVel + aState.aAccel * deltaTime;
+  console.log(" * * * * * * * endVel " + endVel);
 
   if (!(deltaTime >= 0)) {
     console.log("bad time: ", deltaTime);

@@ -10,6 +10,7 @@ var DEBUG_STEP = true;
 var DEBUG_EVENT_AT_A_TIME = true && DEBUG_STEP; //only true if debug step is also true. Saves me the time of changing 2 variables to switch between normal state and debug state.
 var DEBUG_MAX_TIMESTEP = 0.033333333333333333;
 
+var TIME_TO_STEP_TO = 3.0;
 
 //var aP0 = new vec2(-100, 100);
 //var aP1 = new vec2(100, 100);
@@ -86,7 +87,6 @@ var i = 0;
 physEng.start();
 
 
-var TIME_TO_STEP_TO = 2.0;
 while (physEng.getTime() < TIME_TO_STEP_TO) {
 //while (i < 100) {
   physEng.stepDebug();

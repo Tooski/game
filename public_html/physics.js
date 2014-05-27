@@ -935,7 +935,11 @@ PhysEng.prototype.update = function (time, newEvents) {
   if (!DEBUG_STEP) {                                      //UPDATE RUNNING NORMALL
     this.tm = currentLevel;
     //console.log("time???, ", time);
-    newEvents.push(new RenderEvent(time));
+    //if (!this.isPaused) {
+      newEvents.push(new RenderEvent(time));
+    //}
+    
+
     this.updatePhys(newEvents, !DEBUG_EVENT_AT_A_TIME);
 
 
@@ -1021,70 +1025,78 @@ PhysEng.prototype.updatePhys = function (newEvents, stepToRender) {
     //console.log("  targetTime: ", targetTime);
     //console.log("starting do: while step loop, targetTime = ", targetTime);
     //console.log("all EventHeaps", eventsArray);
-    var stepResult = this.attemptNextStep(targetTime); //stepResult .state .success .events
+
+    
+    if (!this.isPaused) {
+      var stepResult = this.attemptNextStep(targetTime); //stepResult .state .success .events
 
 
-    //if stepResult has new events
-    for (var i = 0; stepResult.events && i < stepResult.events.length; i++) {
-      //add new events events to eventHeap
-      if (i > 1) {                                        //DEBUG CASE TESTING TODO REMOVE
-        console.log("added more than one new event??? event #", i, "event list: ", stepResult.events);
-        throw "uh oh????";
+      //if stepResult has new events
+      for (var i = 0; stepResult.events && i < stepResult.events.length; i++) {
+        //add new events events to eventHeap
+        if (i > 1) {                                        //DEBUG CASE TESTING TODO REMOVE
+          console.log("added more than one new event??? event #", i, "event list: ", stepResult.events);
+          throw "uh oh????";
+        }
+        this.tweenEventHeap.push(stepResult.events[i]);
       }
-      this.tweenEventHeap.push(stepResult.events[i]);
-    }
 
-    currentEvent = this.peekMostRecentEvent();
-    //console.log("before pop: ", this.primaryEventHeap.size());
-    //console.log("after pop: ", this.primaryEventHeap.size());
-    //console.log("stepResult: ", stepResult);
-    //console.log("currentEvent: ", currentEvent);
+      currentEvent = this.peekMostRecentEvent();
 
-    //console.log("  after attempt.");
-    //console.log("  most recent event: ", currentEvent);
-    //console.log("  stepResult: ", stepResult);
+      //console.log("before pop: ", this.primaryEventHeap.size());
+      //console.log("after pop: ", this.primaryEventHeap.size());
+      //console.log("stepResult: ", stepResult);
+      //console.log("currentEvent: ", currentEvent);
 
+      //console.log("  after attempt.");
+      //console.log("  most recent event: ", currentEvent);
+      //console.log("  stepResult: ", stepResult);
 
 
-    var timeDifference = (currentEvent.time - stepResult.state.time);
-    if (timeDifference * timeDifference > TIME_EPSILON_SQ) {     //DEBUG CASE TESTING TODO REMOVE??
-                                        //IF NOT THROWN, EVENT IS IGNORED.
-      console.log("=-=-=-=-=-=    WARNING, TIMES DONT MATCH BETWEEN CURRENTEVENT AND STEPRESULT! THIS IS BAD!");
-      console.log(" -=-=-=-=-");
-      console.log(" -=-=-=-=- currentEvent: ", currentEvent);
-      console.log(" -=-=-=-=- stepResult: ", stepResult);
-      console.log(" -=-=-=-=- timeDifference * timeDifference, ", timeDifference * timeDifference);
-      console.log(" -=-=-=-=- TIME_EPSILON_SQ, ", TIME_EPSILON_SQ);
-      console.log(" -=-=-=-=- times dont match between the event and the stepResult.state");
 
-      throw "times dont match between the event and the stepResult.state";
+      var timeDifference = (currentEvent.time - stepResult.state.time);
+      if (timeDifference * timeDifference > TIME_EPSILON_SQ) {     //DEBUG CASE TESTING TODO REMOVE??
+        //IF NOT THROWN, EVENT IS IGNORED.
+        console.log("=-=-=-=-=-=    WARNING, TIMES DONT MATCH BETWEEN CURRENTEVENT AND STEPRESULT! THIS IS BAD!");
+        console.log(" -=-=-=-=-");
+        console.log(" -=-=-=-=- currentEvent: ", currentEvent);
+        console.log(" -=-=-=-=- stepResult: ", stepResult);
+        console.log(" -=-=-=-=- timeDifference * timeDifference, ", timeDifference * timeDifference);
+        console.log(" -=-=-=-=- TIME_EPSILON_SQ, ", TIME_EPSILON_SQ);
+        console.log(" -=-=-=-=- times dont match between the event and the stepResult.state");
+        if (!this.isPaused) {
+          throw "times dont match between the event and the stepResult.state";
+        }
 
 
-      this.tweenEventHeap = getNewTweenHeap();
-      var tempState = null;
-      if (this.player.onPoint) {
-        tempState = stepAngularStateToTime(this.player, targetTime);
+        this.tweenEventHeap = getNewTweenHeap();
+        var tempState = null;
+        if (this.player.onPoint) {
+          tempState = stepAngularStateToTime(this.player, targetTime);
+        } else {
+          tempState = stepNormalStateToTime(this.player, targetTime);
+        }
+        //update player state to resulting state.
+        currentEvent = this.popMostRecentEvent();
+        //this.player.updateToState(tempState);
+        //this.timeMgr.time = tempState.time;
+
       } else {
-        tempState = stepNormalStateToTime(this.player, targetTime);
+        this.popMostRecentEvent()
+        //update player state to resulting state.
+        this.player.updateToState(stepResult.state);
+        this.timeMgr.time = stepResult.state.time;
       }
-      //update player state to resulting state.
-      currentEvent = this.popMostRecentEvent();
-      this.player.updateToState(tempState);
-      this.timeMgr.time = tempState.time;
-      
     } else {
-      this.popMostRecentEvent()
-      //update player state to resulting state.
-      this.player.updateToState(stepResult.state);
-      this.timeMgr.time = stepResult.state.time;
+      currentEvent = this.popMostRecentEvent();
     }
-
 
 
     if (!(currentEvent.mask & E_RENDER_MASK)) {
       console.log("    handling non-render event. Event: ", currentEvent);
 
     }
+
     //console.log(currentEvent);
     currentEvent.handler(this);
     if (this.player.predictedDirty) {
@@ -1093,11 +1105,13 @@ PhysEng.prototype.updatePhys = function (newEvents, stepToRender) {
 
     //console.log("ending iteration of do: while step loop, currentEvent = ", currentEvent);
     this.trySync();
-  } while (stepToRender && (!(currentEvent.mask & E_RENDER_MASK)));
+
+ 
+  } while ((stepToRender && (!(currentEvent.mask & E_RENDER_MASK))) || (this.isPaused && this.peekMostRecentEvent()));
   //console.log(currentEvent);
   //console.log("(!(currentEvent.mask & E_RENDER_MASK))", (!(currentEvent.mask & E_RENDER_MASK)));
-  if (currentEvent.time != this.timeMgr.time) {
-    console.log("  Current events time: ", currentEvent.time);
+  if (currentEvent.time != this.timeMgr.time && !this.isPaused) {
+    console.log("  times dont match. Current events time: ", currentEvent.time);
     console.log("  this.timeMgr.time: ", this.timeMgr.time);
     throw "see above";
   }
@@ -1161,6 +1175,8 @@ PhysEng.prototype.attemptAngularStep = function (goalGameTime) {
   var tweenTime = null;
   var tempState = null;
 
+  var normalState = null;
+
   //console.log("   CollisionList.length: ", collisionList.length, " stepCount: ", stepCount);
   for (var i = 1; i < stepCount && collisionList.length === 0; i++) {     // DO check steps.
     var doNotCheck = this.getNewDoNotCheck();
@@ -1168,7 +1184,11 @@ PhysEng.prototype.attemptAngularStep = function (goalGameTime) {
     tweenTime = startGameTime + stepFraction * deltaTime;
 
     tempState = stepAngularStateToTime(this.player, tweenTime);
-    collisionList = getCollisionsInList(tempState, this.tm.terrainList, doNotCheck);    //TODO MINIMIZE THIS LIST SIZE, THIS IS IDIOTIC
+
+    normalState = convertAngularToNormalState(tempState);
+
+
+    collisionList = getCollisionsInList(normalState, this.tm.terrainList, doNotCheck);    //TODO MINIMIZE THIS LIST SIZE, THIS IS IDIOTIC
 
     //console.log("      tweenStepping, i: ", i, " tweenTime: ", tweenTime);
   }
@@ -1190,9 +1210,10 @@ PhysEng.prototype.attemptAngularStep = function (goalGameTime) {
     tweenTime = goalGameTime;
     //console.log("  finalStepping, i: ", stepCount, " tweenTime: ", tweenTime);
     tempState = stepAngularStateToTime(this.player, tweenTime);
+
+    normalState = convertAngularToNormalState(tempState);
     
-    
-    collisionList = getCollisionsInList(tempState, this.tm.terrainList, doNotCheck);    //TODO MINIMIZE THIS LIST SIZE, THIS IS IDIOTIC
+    collisionList = getCollisionsInList(normalState, this.tm.terrainList, doNotCheck);    //TODO MINIMIZE THIS LIST SIZE, THIS IS IDIOTIC
     //console.log(this.tm.terrainList);
     //console.log(this.tm);
     if (collisionList.length > 0) {   // WE COLLIDED WITH STUFF ON FINAL STEP.
@@ -1292,6 +1313,7 @@ PhysEng.prototype.attemptNormalStep = function (goalGameTime) {
 
   var results = new StepResult(tempState, events);
   console.log("  End attemptNormalStep, results", results);
+  console.log("  End attemptNormalStep, isPaused", this.isPaused);
   return results;
 }
 
@@ -1472,8 +1494,13 @@ PhysEng.prototype.getSurfaceEndEvent = function () {
           var adjDataState = stepStateToTime(this.player, adjData.time);
           //DEBUG_DRAW_GREEN.push(new DebugCircle(adjDataState.pos, this.player.radius, 5));
 
-          console.log("gray thing");
+          console.log("- =-= - =-= - =-=  gray thing");
+          this.player.print("- =-= - =-= - =-=  ");
           var endPointState = stepStateToTime(this.player, endPointData.time);
+          console.log("- =-= - =-= - =-=  endPointState", endPointState);
+          if (this.player.onPoint) {
+            throw "bullshit"
+          }
           DEBUG_DRAW_GRAY.push(new DebugCircle(endPointState.pos, this.player.radius, 5));
           
           throw "Debug, but this technically shouldnt happen where endpoint was hit before the adjacent line was.";
@@ -1491,9 +1518,13 @@ PhysEng.prototype.getSurfaceEndEvent = function () {
           //DEBUG_DRAW_GREEN.push(new DebugCircle(adjDataState.pos, this.player.radius, 5));
         } else {
           // use endpoint.
-          console.log("gray thing");
+          console.log("- =-= - =-= - =-=  gray thing");
+          this.player.print("- =-= - =-= - =-=  ");
           var endPointState = stepStateToTime(this.player, endPointData.time);
-                                              //(adjData.time, adjDependencyMask, this.player.surface, (adjData.adjNumber === 0 ? this.player.surface.adjacent0 : this.player.surface.adjacent1), adjData.angle, true);
+          console.log("- =-= - =-= - =-=  endPointState", endPointState);
+          if (this.player.onPoint) {
+            throw "bullshit"
+          }                         //(adjData.time, adjDependencyMask, this.player.surface, (adjData.adjNumber === 0 ? this.player.surface.adjacent0 : this.player.surface.adjacent1), adjData.angle, true);
           nextSurfaceEvent = new SurfaceEndEvent(endPointData.time, endPointDependencyMask, this.player.surface, (endPointData.pointNumber === 0 ? this.player.surface.adjacent0 : this.player.surface.adjacent1), (endPointData.pointNumber === 0 ? this.player.surface.p0 : this.player.surface.p1), endPointAngle, true)
           DEBUG_DRAW_GRAY.push(new DebugCircle(endPointState.pos, this.player.radius, 5));
         }
@@ -1506,8 +1537,10 @@ PhysEng.prototype.getSurfaceEndEvent = function () {
     }
   } else if (endPointData && (endPointData.time || endPointData.time === 0)) {
     // no adjData, use endPointData.
-    console.log("gray thing");
+    console.log("- =-= - =-= - =-=  gray thing");
+    this.player.print("- =-= - =-= - =-=  ");
     var endPointState = stepStateToTime(this.player, endPointData.time);
+    console.log("- =-= - =-= - =-=  endPointState", endPointState);
     nextSurfaceEvent = new SurfaceEndEvent(endPointData.time, endPointDependencyMask, this.player.surface, (endPointData.pointNumber === 0 ? this.player.surface.adjacent0 : this.player.surface.adjacent1), (endPointData.pointNumber === 0 ? this.player.surface.p0 : this.player.surface.p1), endPointAngle, true)
     DEBUG_DRAW_GRAY.push(new DebugCircle(endPointState.pos, this.player.radius, 5));
   } else {
@@ -1563,6 +1596,7 @@ PhysEng.prototype.pause = function () {
   if (this.isPaused) {  // DEBUG TODO REMOVE
     throw "trying to pause when PhysEng is already paused";
   }
+  //this.primaryEventHeap = getNewPrimaryHeap();
   this.timeMgr.referenceGameTime = this.timeMgr.time;
   this.isPaused = true;
   console.log("Pausing in PhysEng. TimeManager after: ", this.timeMgr);
@@ -1923,7 +1957,7 @@ PhysEng.prototype.getMinIndexInEventList = function (eventHeapList) {
   var min = 10000000000000000;
   var minIndex = -1;
   for (var i = 0; i < eventHeapList.length; i++) {
-    if (eventHeapList[i].peek() && min > eventHeapList[i].peek().time) {
+    if (eventHeapList[i].peek() && min >= eventHeapList[i].peek().time) {
       min = eventHeapList[i].peek().time;
       minIndex = i;
     }
@@ -1941,7 +1975,7 @@ PhysEng.prototype.getMinIndexInEventList = function (eventHeapList) {
 PhysEng.prototype.getMinTimeInEventList = function (eventHeapList) {
   var min = 10000000000000000;
   for (var i = 0; i < eventHeapList.length; i++) {
-    if (eventHeapList[i].peek() && min > eventHeapList[i].peek().time) {
+    if (eventHeapList[i].peek() && min >= eventHeapList[i].peek().time) {
       min = eventHeapList[i].peek().time;
     }
   }
@@ -1960,7 +1994,11 @@ PhysEng.prototype.getMinTimeInEventList = function (eventHeapList) {
 PhysEng.prototype.popMostRecentEvent = function () {
   var events = this.getEventHeapArray();
   var minIndex = this.getMinIndexInEventList(events);
-  return events[minIndex].pop();
+  if (minIndex || minIndex === 0) {
+    return events[minIndex].pop();
+  } else {
+    return null;
+  }
 }
 
 
@@ -1972,7 +2010,11 @@ PhysEng.prototype.popMostRecentEvent = function () {
 PhysEng.prototype.peekMostRecentEvent = function () {
   var events = this.getEventHeapArray();
   var minIndex = this.getMinIndexInEventList(events);
-  return events[minIndex].peek();
+  if (minIndex || minIndex === 0) {
+    return events[minIndex].peek();
+  } else {
+    return null;
+  }
 }
 
 
@@ -2028,6 +2070,9 @@ PhysEng.prototype.drawDebug = function (ctx) {
       //throw "balls";
       var event = this.predictedEventHeap.heap[i];
       var tempState = stepStateToTime(this.player, event.time);
+      if (tempState instanceof AngularState) {
+        tempState = convertAngularToNormalState(tempState);
+      }
 
       ctx.moveTo(tempState.pos.x + tempState.radius, tempState.pos.y);
       ctx.arc(tempState.pos.x, tempState.pos.y, tempState.radius, 0, 2 * Math.PI, false);

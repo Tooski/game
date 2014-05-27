@@ -292,7 +292,7 @@ MapEditor.prototype.createLineButton = function(ctx) {
            this.line.p1edit.x = (this.line.p1.x = mousePos.x) - this.line.p1edit.w/2;
            this.line.p1edit.y = (this.line.p1.y = mousePos.y) - this.line.p1edit.h/2;
            
-           console.log(this.line.p1edit);
+           //console.log(this.line.p1edit);
            
         }
         
@@ -394,7 +394,7 @@ MapEditor.prototype.createCheckpointLineButton = function(ctx) {
         	var mousePos = getMousePos(e);
         	this.line.p1edit.x = (this.line.p1.x = mousePos.x) - this.line.p1edit.w/2;
         	this.line.p1edit.y = (this.line.p1.y = mousePos.y) - this.line.p1edit.h/2;
-           	console.log(this.line.p1edit);
+           	//console.log(this.line.p1edit);
         }
     };
 	line.onRelease = function(e) {
