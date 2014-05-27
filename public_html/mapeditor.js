@@ -92,6 +92,7 @@ function MapEditor(level, editMode) {
     this.createLoadButton(this.ctx);
     this.createSaveButton(this.ctx);
 	this.createCheckpointLineButton(this.ctx);
+	this.createCollectibleButton(this.ctx);
 	this.createStartPointButton(this.ctx);
     var that = this;
     c.addEventListener('mousedown', function(e) {
@@ -365,7 +366,7 @@ MapEditor.prototype.createStartPointButton = function(ctx) {
 }
 
 MapEditor.prototype.createCheckpointLineButton = function(ctx) {
-	var line = new MapEditorButton("Checkp", 0, (buttonSize + 5) * 3, buttonSize, buttonSize);
+	var line = new MapEditorButton("Check", 0, (buttonSize + 5) * 3, buttonSize, buttonSize);
     var that = this;
 
 	 line.onClick = function(e) {
@@ -452,8 +453,13 @@ MapEditor.prototype.createGoalLineButton = function(ctx) {
 
 };
 
+MapEditor.prototype.createCollectibleButton = function(ctx) {
+	var line = new MapEditorButton("Collect", 0, (buttonSize + 5) * 5, buttonSize, buttonSize);
+    var that = this;
+}
+
 MapEditor.prototype.createEraseButton = function() {
-    var erase = new MapEditorButton("Erase", 0, (buttonSize + 5) * 5, buttonSize, buttonSize);
+    var erase = new MapEditorButton("Erase", 0, (buttonSize + 5) * 6, buttonSize, buttonSize);
     var that = this;
 
     erase.onClick = function(e) {
@@ -497,7 +503,7 @@ MapEditor.prototype.createEraseButton = function() {
 
 
 MapEditor.prototype.createLoadButton = function(ctx) {
-    var erase = new MapEditorButton("Load", 0, (buttonSize + 5) * 6, buttonSize, buttonSize);
+    var erase = new MapEditorButton("Load", 0, (buttonSize + 5) * 7, buttonSize, buttonSize);
     var that = this;
      erase.onRelease = function(e) {
        //that.level.loadFromFile();
@@ -519,7 +525,7 @@ MapEditor.prototype.createLoadButton = function(ctx) {
 MapEditor.prototype.createSaveButton = function(ctx) {
     
     
-    var save = new MapEditorButton("Save", 0, (buttonSize + 5) * 7, buttonSize, buttonSize);
+    var save = new MapEditorButton("Save", 0, (buttonSize + 5) * 8, buttonSize, buttonSize);
     var that = this;
     save.onRelease = function(e) {
         console.log(e);
