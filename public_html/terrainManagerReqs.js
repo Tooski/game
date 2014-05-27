@@ -60,35 +60,50 @@ LinePoint.prototype = new vec2();
 
 
 //GoalLine basically the same as terrainLine but with the below changes.
-GoalLine { 
-	this.id       // hopefully already set uniquely by the copied terrainLine code? if not, generate an ID.
-	this.goalID   // the ID of the goal object this goal line links to. This ID /MUST/ map to a goal that exists in terrainManager.goals
+function GoalLine () { 
+	//this.id               // hopefully already set uniquely by the copied terrainLine code? if not, generate an ID.
+	//this.goalID           // the ID of the goal object this goal line links to. This ID /MUST/ map to a goal that exists in terrainManager.goals
 	
-	this.collidesWith() //clone from terrainLine code, already done I'm assuming
-	this.collidesData() //clone from terrainLine code, already done I'm assuming
+	//this.collidesWith()   //clone from terrainLine code, already done I'm assuming
+	//this.collidesData()   //clone from terrainLine code, already done I'm assuming
 }
 	
 
 
 
 //CheckpointLine basically the same as terrainLine but with the below changes.
-CheckpointLine { 
-	this.id       // hopefully already set uniquely by the copied terrainLine code? if not, generate an ID.
-	this.checkpointID   // the ID of the Checkpoint object this CheckpointLine links to. This ID /MUST/ map to a Checkpoint that exists in terrainManager.checkpoints
+function CheckpointLine (){ 
+	//this.id               // hopefully already set uniquely by the copied terrainLine code? if not, generate an ID.
+	//this.checkpointID     // the ID of the Checkpoint object this CheckpointLine links to. This ID /MUST/ map to a Checkpoint that exists in terrainManager.checkpoints
 	
-	this.collidesWith() //clone from terrainLine code, already done I'm assuming
-	this.collidesData() //clone from terrainLine code, already done I'm assuming
+	//this.collidesWith()   //clone from terrainLine code, already done I'm assuming
+	//this.collidesData()   //clone from terrainLine code, already done I'm assuming
 	
-	this.jsonFormat = function () {
-		var formattedObj = {id: this.id, checkpointID: this.checkPointID};
-		formattedObj = formatLineToJSON(this, formattedObj);
-	}
 }	
 
 
 
 //TerrainLine modifications
-TerrainLine {
+function TerrainLine(point0, point1, player, adjacent0, adjacent1, normal) {
+  // this.p0            // MUST BE LinePoints. Enforced with throw below
+  // this.p1            // MUST BE LinePoints. Enforced with throw below
+  if (!point0.id || !point1.id) {
+    console.log("-+-");
+    console.log("-+-");
+    console.log("-+- bad new TerrainLine call. It should look like below");
+    console.log("-+- new TerrainLine(tm.toLinePoint(p0), tm.toLinePoint(p1), player, adjacent0, adjacent1, normal)");
+    console.log("-+- where tm is the terrainManager, or use \"this\" in place of \"tm\" if constructing from within terrainmanager: ");
+    throw "-+- point0 and point1 are not LinePoints. Ensure you use terrainManager.toLinePoint(), see above";
+  }
+
+
+
+  this.jsonObj = function () {
+    var formattedObj = { id: this.id, checkpointID: this.checkPointID };
+    formattedObj = formatLineToJSON(this, formattedObj);
+
+    formattedObj.normal = line.normal;
+  }
 }
 
 
