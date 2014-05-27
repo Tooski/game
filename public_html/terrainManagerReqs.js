@@ -4,7 +4,15 @@
 	
 //object that represents a checkpoint. this is entirely different from a CheckpointLine.
 // id = "checkpoint " + x + " " + y;
-function Checkpoint (id, x, y) {		
+function Checkpoint(id, x, y) {
+  if (!id) {
+    console.log("_+_+_+_bad id, id: " + id);
+    //throw "_+_+_+_bad id for Checkpoint, see above";
+  }
+  if (!(x || x === 0) || !(y || y === 0)) {
+    console.log("_+_+_+_bad x or y.  x " + x + ", y " + y);
+    //throw "_+_+_+_bad x or y in Checkpoint, see above";
+  }
 	vec2.apply(this, [x, y]); 		 // initializes this as a vec2 with parameters x and y.  this.x is now x, this.y is now y
 	this.id = id;  
 }	
@@ -13,6 +21,19 @@ function Checkpoint (id, x, y) {
 //object that represents a collectible.
 // id = "Collectible " + x + " " + y;
 function Collectible (id, x, y, pointValue) {		
+  if (!id) {
+    console.log("_+_+_+_bad id, id: " + id);
+    //throw "_+_+_+_bad id for Collectible, see above";
+  }
+  if (!(x || x === 0) || !(y || y === 0)) {
+    console.log("_+_+_+_bad x or y.  x " + x + ", y " + y);
+    //throw "_+_+_+_bad x or y in Collectible, see above";
+  }
+  if (!pointValue && !pointValue === 0) {
+
+    console.log("_+_+_+_bad pointValue, " + pointValue);
+    //throw "_+_+_+_bad point value in Collectible, see above";
+  }
 	vec2.apply(this, [x, y]); 		 // initializes this as a vec2 with parameters x and y.  this.x is now x, this.y is now y
 	this.pointValue = pointValue;	 // the value of this collectible? may not need
 	this.id = id;  
@@ -39,15 +60,24 @@ function Goal (id, goalNum){			// ensure you terrainmanager.nextGoalNumber++; af
 // point class to make storing points less string intensive.
 // __EVERY POINT IN ANY LINE CLASS MUST BE REPLACED WITH THESE__  Use terrainManager.toLinePoint(point) to get a point converted to a LinePoint with an ID.
 // id = terrainmanager.nextPointNumber();      
-function LinePoint (id, x, y) {
+function LinePoint(id, x, y) {
+  if (!id || id < 0) {
+    console.log("_+_+_+_bad id, id: " + id);
+    throw "_+_+_+_bad id for LinePoint, see above";
+  }
+  if (!(x || x === 0) && !(y || y === 0)) {
+    console.log("_+_+_+_bad x or y.  x " + x + ", y " + y);
+    throw "_+_+_+_bad x or y in LinePoint, see above";
+  }
 	vec2.apply(this, [x, y]); 		 // initializes this as a vec2 with parameters x and y.  this.x is now x, this.y is now y
 	this.id = id;
 	
 	
 	
 	this.collidesWith = function (point, radius) {
-		var toReturn = false;
-		if (point.subtract(this).length() < radius) {
+	  var toReturn = false;
+	  var radSQ = radius * radius;
+		if (point.subtract(this).lengthsq() < radSQ) {
 			return true;
 		} 
 		return toReturn;
@@ -60,7 +90,9 @@ LinePoint.prototype = new vec2();
 
 
 //GoalLine basically the same as terrainLine but with the below changes.
-function GoalLine () { 
+function GoalLine() {
+  // this.p0            // MUST BE LinePoints. Enforced with throw in TerrainSurface constructor.
+  // this.p1            // MUST BE LinePoints. Enforced with throw in TerrainSurface constructor.
 	//this.id               // hopefully already set uniquely by the copied terrainLine code? if not, generate an ID.
 	//this.goalID           // the ID of the goal object this goal line links to. This ID /MUST/ map to a goal that exists in terrainManager.goals
 	
@@ -72,7 +104,9 @@ function GoalLine () {
 
 
 //CheckpointLine basically the same as terrainLine but with the below changes.
-function CheckpointLine (){ 
+function CheckpointLine() {
+  // this.p0            // MUST BE LinePoints. Enforced with throw in TerrainSurface constructor.
+  // this.p1            // MUST BE LinePoints. Enforced with throw in TerrainSurface constructor.
 	//this.id               // hopefully already set uniquely by the copied terrainLine code? if not, generate an ID.
 	//this.checkpointID     // the ID of the Checkpoint object this CheckpointLine links to. This ID /MUST/ map to a Checkpoint that exists in terrainManager.checkpoints
 	
@@ -85,17 +119,8 @@ function CheckpointLine (){
 
 //TerrainLine modifications
 function TerrainLine(point0, point1, player, adjacent0, adjacent1, normal) {
-  // this.p0            // MUST BE LinePoints. Enforced with throw below
-  // this.p1            // MUST BE LinePoints. Enforced with throw below
-  if (!point0.id || !point1.id) {
-    console.log("-+-");
-    console.log("-+-");
-    console.log("-+- bad new TerrainLine call. It should look like below");
-    console.log("-+- new TerrainLine(tm.toLinePoint(p0), tm.toLinePoint(p1), player, adjacent0, adjacent1, normal)");
-    console.log("-+- where tm is the terrainManager, or use \"this\" in place of \"tm\" if constructing from within terrainmanager: ");
-    throw "-+- point0 and point1 are not LinePoints. Ensure you use terrainManager.toLinePoint(), see above";
-  }
-
+  // this.p0            // MUST BE LinePoints. Enforced with throw in TerrainSurface constructor.
+  // this.p1            // MUST BE LinePoints. Enforced with throw in TerrainSurface constructor.
 
 
   this.jsonObj = function () {
