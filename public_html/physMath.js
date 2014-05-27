@@ -9,18 +9,18 @@
  * All rights reserved.
  */
 
-
+var TWO_PI = Math.PI * 2;
 
 /**
  * Steps either an angular 
  */
 function stepStateToTime(state, targetGameTime) {
-  console.log(" ! ! ! ! ! ! ! ! ! ! ! ! ! ! stepping state to time: ", state);
+  //console.log(" ! ! ! ! ! ! ! ! ! ! ! ! ! ! stepping state to time: ", state);
   if (state.point) {
-    console.log(" ! ! ! ! ! ! ! ! ! ! ! ! ! ! angular state step");
+    //console.log(" ! ! ! ! ! ! ! ! ! ! ! ! ! ! angular state step");
     return stepAngularStateToTime(state, targetGameTime);
   } else {
-    console.log(" ! ! ! ! ! ! ! ! ! ! ! ! ! ! normal state step");
+    //console.log(" ! ! ! ! ! ! ! ! ! ! ! ! ! ! normal state step");
     return stepNormalStateToTime(state, targetGameTime);
   }
 }
@@ -80,9 +80,9 @@ function stepAngularStateToTime(aState, targetGameTime) {
 
 
 
-// Steps the angular state by the angle.
+// Steps the angular state by the signed angle.
 // DONE???
-function stepAngularStateByAngle(aState, angle) {
+function stepAngularStateByAngle(aState, signedAngle) {
 
   //// this thing is just useful for storing potential angular movement states of an object.
   //function AngularState(time, radius, pointCircling, angle, angularVel, angularAccel) {
@@ -94,27 +94,105 @@ function stepAngularStateByAngle(aState, angle) {
   //  this.aVel = angularVel;
   //  this.aAccel = angularAccel;
   //}
-  console.log(" * * * * * * * stepAngularStateByAngle, angle " + angle);
-  console.log(" * * * * * * * aState " + aState);
-  var circDist = angle * aState.radius;
 
+
+
+  //var sign = 1;
+  //if (signedAngle < 0) {
+  //  sign = -1;
+  //}
+
+
+  //console.log(" * * * * * * * stepAngularStateByAngle, signedAngle " + signedAngle);
+  //aState.print(" * * * * * * * ");
+  //var circDist = signedAngle * aState.radius;
+  //console.log(" * * * * * * * circDist " + circDist);
+
+  //var distToCheck = circDist * sign;
+  //var velToCheck = aState.aVel * sign;
+  //var accelToCheck = aState.aAccel * sign;
+
+  //var deltaTime1 = solveTimeToDist1D(circDist, aState.aVel, aState.aAccel);
+  //var deltaTime2 = solveTimeToDist1D(circDist, aState.aVel, aState.aAccel);
+
+
+
+  console.log(" * * * * * * * stepAngularStateByAngle, signedAngle " + signedAngle);
+  aState.print(" * * * * * * * ");
+
+  var circDist = signedAngle * aState.radius;
   console.log(" * * * * * * * circDist " + circDist);
-
   var deltaTime = solveTimeToDist1D(circDist, aState.aVel, aState.aAccel);
+
+  if (!deltaTime && !deltaTime === 0) {
+    console.log("first deltaTime was null " + deltaTime);
+    if (circDist)
+    deltaTime = solveTimeToDist1D(circDist, aState.aVel, aState.aAccel);
+  }
+
   console.log(" * * * * * * * deltaTime " + deltaTime);
 
-  var endAngle = aState.a + angle;
+  var endAngle = aState.a + signedAngle;
   console.log(" * * * * * * * endAngle " + endAngle);
 
   var endVel = aState.aVel + aState.aAccel * deltaTime;
   console.log(" * * * * * * * endVel " + endVel);
 
-  if (!(deltaTime >= 0)) {
+  if (!(deltaTime > 0)) {
     console.log("bad time: ", deltaTime);
     throw "bad time returned in stepAngularStateByAngle";
   }
 
   return new AngularState(aState.time + deltaTime, aState.radius, aState.point, endAngle, endVel, aState.aAccel);
+}
+
+
+
+/**
+ * steps to an absolute angle.
+ */
+function stepAngularStateToAngle(aState, targetSignedAngle) {
+  if (targetSignedAngle > Math.PI || targetSignedAngle < -Math.PI)  {
+    console.log("targetSignedAngle " + targetSignedAngle);
+    throw "not a signed angle";
+  }
+  var startAngle = aState.a;
+  var angleDelta = targetSignedAngle - startAngle;
+  var sign = (angleDelta > 0 ? 1 : -1);
+
+  angleDelta = angleDelta * sign;
+  if (angleDelta > Math.PI) {
+    angleDelta = angleDelta - TWO_PI;
+  } else if (angleDelta < 0) {
+    throw "bad";
+  }
+  angleDelta = angleDelta * sign;
+
+  var toReturn;
+  if (angleDelta < ANGLE_EPSILON && angleDelta > -ANGLE_EPSILON) {  // its the same angle.
+    toReturn = null;
+  } else {
+    toReturn = stepAngularStateByAngle(aState, angleDelta);
+  }
+
+  return toReturn;
+}
+
+
+
+
+/**
+ * converts a signed angle to an absolute unsigned angle.
+ */
+function convertSignedAngleToUnsigned(signedAng) {
+  if (signedAngle < 0) {
+    while (signedAngle < 0) {
+      signedAngle = TWO_PI + signedAng;
+    }
+    return signedAngle;
+  } else {
+    return signedAng % TWO_PI;
+  }
 }
 
 
@@ -138,45 +216,61 @@ function getSurfacesAtSoonestAngleTime(aState, surface1, surface2) {
   if (surface1) {
     if (surface2) {
       console.log("      =-=-=-=-=-= both surfaces. ");
-      angle1 = surface1.normal.angle();
-      angle2 = surface2.normal.angle();
-      state1 = stepAngularStateByAngle(aState, angle1);
-      state2 = stepAngularStateByAngle(aState, angle2);
+      angle1 = surface1.normal.sangle();
+      angle2 = surface2.normal.sangle();
+      //angle1 = getSignedAngleFromAToB(surface1.normal, surface2.normal)
+      state1 = stepAngularStateToAngle(aState, angle1);
+      state2 = stepAngularStateToAngle(aState, angle2);
       console.log("      =-=-=-=-=-= angle1 ", angle1);
       console.log("      =-=-=-=-=-= angle2 ", angle2);
       console.log("      =-=-=-=-=-= state1 ", state1);
       console.log("      =-=-=-=-=-= state2 ", state2);
+      if (state1) {
+        if (state2) {
+          console.log("      =-=-=-=-=-= both states. ");
 
-      var earliest = closestPositive(state1.time, state2.time);
-      console.log("      =-=-=-=-=-= earliest ", earliest);
+          var earliest = closestPositive(state1.time, state2.time);
+          console.log("      =-=-=-=-=-= earliest ", earliest);
 
-      if (earliest > 0) {
-        if (earliest === state1.time) {
-          console.log("      =-=-=-=-=-= -= state1 ", state1);
+          if (earliest > 0) {
+            if (earliest === state1.time) {
+              console.log("      =-=-=-=-=-= -= state1 ", state1);
+              toReturn = { surface: surface2, nextSurface: surface1, state: state1 };
+            } else {
+              console.log("      =-=-=-=-=-= -= state2 ", state2);
+              toReturn = { surface: surface1, nextSurface: surface2, state: state2 };
+            }
+          }
+        } else {    // no state2.
           toReturn = { surface: surface2, nextSurface: surface1, state: state1 };
-        } else {
-          console.log("      =-=-=-=-=-= -= state2 ", state2);
+        }
+      } else {        // no state1
+        if (state2) { // return state2
           toReturn = { surface: surface1, nextSurface: surface2, state: state2 };
+        } else {
+          throw "what, neither state was good???";
         }
       }
-    } else {    // no surface 2.
-      angle1 = surface1.normal.angle();
-      state1 = stepAngularStateByAngle(aState, angle1);
-      if (state1.time > 0) {
-        console.log("      =-=-=-=-=-= -= state1 ", state1);
-        toReturn = { surface: surface2, nextSurface: surface1, state: state1 };
-      }
+
     }
-  } else {
-    if (surface2) {
-      angle2 = surface2.normal.angle();
-      state2 = stepAngularStateByAngle(aState, angle2);
-      if (state2.time > 0) {
-        console.log("      =-=-=-=-=-= -= state2 ", state2);
-        toReturn = { surface: surface1, nextSurface: surface2, state: state2 };
-      }
-    } else {
-    }
+  //  else {    // no surface 2.
+  //    angle1 = surface1.normal.sangle();
+  //    state1 = stepAngularStateToAngle(aState, angle1);
+  //    if (state1.time > 0) {
+  //      console.log("      =-=-=-=-=-= -= state1 ", state1);
+  //      toReturn = { surface: surface2, nextSurface: surface1, state: state1 };
+  //    }
+  //  }
+  //} else {
+  //  if (surface2) {
+  //    angle2 = surface2.normal.sangle();
+  //    state2 = stepAngularStateToAngle(aState, angle2);
+  //    if (state2.time > 0) {
+  //      console.log("      =-=-=-=-=-= -= state2 ", state2);
+  //      toReturn = { surface: surface1, nextSurface: surface2, state: state2 };
+  //    }
+  //  } else {
+  //  }
   }
   console.log("      -_-_-_-_-    returning: ", toReturn);
   return toReturn;

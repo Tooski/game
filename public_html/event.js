@@ -785,19 +785,19 @@ SurfaceAdjacentEvent.prototype = new PredictedEvent();
  * @param predictedTime     the gametime at which the event will occur.
  * @param dependencyMask    used to bitwise and shit for predictions that are only affected by specific things. MAY NOT USE?
  */
-function SurfaceEndEvent(predictedTime, dependencyMask, surface, nextSurface, endpoint, angle, allowLock) { // predictedTime should be gameTime since last frame, the time the physics engine should complete up to before rendering.
+function SurfaceEndEvent(predictedTime, dependencyMask, surface, nextSurface, endpoint, arcAngle, allowLock) { // predictedTime should be gameTime since last frame, the time the physics engine should complete up to before rendering.
   PredictedEvent.apply(this, [predictedTime, dependencyMask]);
 
   this.surface = surface;
   this.nextSurface = nextSurface;
-  this.angle = angle;
+  this.arcAngle = arcAngle;
   this.point = endpoint;
   this.allowLock = allowLock;
   this.upsideDown = (nextSurface.normal.y > 0 ? true : false);
   
 
-  console.log("|-|-|-|-|-|  endpoint ", endpoint.x, ", " + endpoint.y);
-  console.log("|-|-|-|-|-|  angle ", this.angle);
+  console.log("|-|-|-|-|-|  endpoint " + endpoint.x + ", " + endpoint.y);
+  console.log("|-|-|-|-|-|  arcAngle ", this.arcAngle);
   console.log("|-|-|-|-|-|  surface.normal ", "" + surface.normal.x, ", " + surface.normal.y);
   console.log("|-|-|-|-|-|  nextSurface.normal ", "" + nextSurface.normal.x, ", " + nextSurface.normal.y);
 
@@ -811,7 +811,7 @@ function SurfaceEndEvent(predictedTime, dependencyMask, surface, nextSurface, en
     //p.aVel = angularVel;       // signed angular velocity.
     //p.aAccel = angularAccel;   // signed angular accel.
 
-    var angleAbs = (this.angle < 0 ? -this.angle : this.angle);
+    var angleAbs = (this.arcAngle < 0 ? -this.arcAngle : this.arcAngle);
 
     if ((inputs.lock && angleAbs < p.physParams.pointLockRoundMinAngle) || (angleAbs < p.physParams.pointLockRoundMinAngle)) {  // Dont just release, we should lock wrap.
       this.wrap(physEng);
@@ -833,7 +833,7 @@ function SurfaceEndEvent(predictedTime, dependencyMask, surface, nextSurface, en
     var inputs = p.inputState;
 
 
-    p.startArc(this.point, this.angle, this.surface.normal);
+    p.startArc(this.point, this.arcAngle, this.surface.normal);
     p.nextSurface = this.nextSurface;
     return;
   }
@@ -856,7 +856,7 @@ function EndArcEvent(predictedTime, dependencyMask, nextSurface) { // predictedT
   this.handler = function (physEng) {
     var p = physEng.player;
 
-    if (nextSurface) {
+    if (this.nextSurface) {
       console.log("  ++++++++  p.arcTo(this.nextSurface)         ++++");
       p.arcTo(this.nextSurface);
     } else {

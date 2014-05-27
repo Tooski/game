@@ -76,6 +76,11 @@ vec2.prototype.angle = function () { // returns the perpendicular vector to this
 }
 
 
+vec2.prototype.sangle = function () { // returns the perpendicular vector to this vector.
+  return getSignedAngleFromAToB(HORIZ_NORM, this);
+}
+
+
 
 //projects vec2 a onto vec2 b.
 function projectVec2(a, b) {

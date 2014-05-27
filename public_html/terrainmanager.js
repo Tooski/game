@@ -1,11 +1,18 @@
 var graceSize = 20;
 
 function TerrainManager() {
-    this.terrainList = [];
-    this.closedTerrain = [];
-    this.terrainListByID = {};
-    this.playerStartPos = new vec2(0, 0);
+  this.playerStartPos = new vec2(0, 0);
+  this.terrainList = [];
+  this.goalList = [];
+  this.collectibleList = [];
+  this.checkpointList = [];
+    this.levelByID = {};
    
+
+
+
+
+    this.closedTerrain = [];
 }
 
 
@@ -17,7 +24,7 @@ TerrainManager.prototype.pushTerrain = function(terrain, list) {
     this.createTerrainPoints(terrain);
     this.snapTo(terrain);
     this.terrainList.push(terrain);
-    if(!this.terrainListByID[terrain.id])   this.terrainListByID[terrain.id] = terrain;
+    if (!this.levelByID[terrain.id]) this.levelByID[terrain.id] = terrain;
 };
 
 
@@ -273,26 +280,10 @@ TerrainManager.prototype.loadFromFile = function(id, init, callback) {
     var that = this;
     
     this.terrainList = [];
-    this.terrainListByID = {};
+    this.levelByID = {};
 
      if(init) init();
-     game.settings.get({"command":"getleveljson", "data":{"levelid": (id || 1)}}, function(data) {
-        var obj = $.parseJSON($.parseJSON( data ));
-        for(var i = 0; i < obj.length; i++) {
-            var ter = new TerrainLine(new vec2(obj[i].p0.x, obj[i].p0.y), new vec2(obj[i].p1.x, obj[i].p1.y));
-            ter.id = obj[i].id;
-            ter.normal = new vec2(obj[i].normal.x, obj[i].normal.y);
-            that.terrainListByID[obj[i].id] = ter;
-        }
-        // Adds neighbors to the object.
-        for(var i = 0; i < obj.length; i++) {
-            if(obj[i].adjacent0 && that.terrainListByID[obj[i].adjacent0])that.terrainListByID[obj[i].id].adjacent0 = that.terrainListByID[obj[i].adjacent0];
-            if(obj[i].adjacent1 && that.terrainListByID[obj[i].adjacent1])that.terrainListByID[obj[i].id].adjacent1 = that.terrainListByID[obj[i].adjacent1];
-            that.pushTerrain (that.terrainListByID[obj[i].id], that.terrainListByID);
-
-        }
-            gameEngine.initializePhysEng();
-    });
+     game.settings.get({ "command": "getleveljson", "data": { "levelid": (id || 1) } }, this.parseFromJSON(data));
 
   
 //    gameEngine.initializePhysEng();
@@ -300,6 +291,40 @@ TerrainManager.prototype.loadFromFile = function(id, init, callback) {
 //    gameEngine.physEng.pause();
     
 };
+
+
+
+
+TerrainManager.prototype.parseFromJSON = function(data) {
+  var obj = $.parseJSON($.parseJSON( data ));
+  for(var i = 0; i < obj.length; i++) {
+    var ter = new TerrainLine(new vec2(obj[i].p0.x, obj[i].p0.y), new vec2(obj[i].p1.x, obj[i].p1.y));
+    ter.id = obj[i].id;
+    ter.normal = new vec2(obj[i].normal.x, obj[i].normal.y);
+    that.levelByID[obj[i].id] = ter;
+  }
+  // Adds neighbors to the object.
+  for(var i = 0; i < obj.length; i++) {
+    if (obj[i].adjacent0 && that.levelByID[obj[i].adjacent0]) that.levelByID[obj[i].id].adjacent0 = that.levelByID[obj[i].adjacent0];
+    if (obj[i].adjacent1 && that.levelByID[obj[i].adjacent1]) that.levelByID[obj[i].id].adjacent1 = that.levelByID[obj[i].adjacent1];
+    that.pushTerrain(that.levelByID[obj[i].id], that.levelByID);
+
+  }
+  gameEngine.initializePhysEng();
+}
+
+
+
+
+TerrainManager.prototype.getJSON = function () {
+
+}
+
+
+
+
+
+
 
 TerrainManager.prototype.createTerrainPoints = function(terrain) {
     var that = this;
@@ -371,7 +396,7 @@ TerrainManager.prototype.createTerrainPoints = function(terrain) {
 };
 
 TerrainManager.prototype.getTerrainByID = function(id){
-    return this.terrainListByID[id];
+    return this.levelByID[id];
 };
 
 function checkCircular(nextLine, array, original, visited) {
