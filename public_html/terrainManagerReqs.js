@@ -49,7 +49,13 @@ function Goal (id, goalNum){			// ensure you terrainmanager.nextGoalNumber++; af
 													        // used to determine what goal the player completed at the end of the level,
 												          // and used to determine the leaderboard to submit to.
 	
-	this.id = id;    
+	this.id = id;
+
+	this.jsonObj = function () {
+	  var formattedObj = { id: this.id };
+	  formattedObj = formatLineToJSON(this, formattedObj);
+	  return formattedObj;
+	}
 }	
 
 
@@ -82,6 +88,13 @@ function LinePoint(id, x, y) {
 		} 
 		return toReturn;
 	}
+
+
+
+	this.jsonObj = function () {
+	  var formattedObj = { id: this.id, x: this.x, y: this.y };
+	  return formattedObj;
+	}
 }
 LinePoint.prototype = new vec2();
 
@@ -97,9 +110,15 @@ function GoalLine() {
 	//this.goalID           // the ID of the goal object this goal line links to. This ID /MUST/ map to a goal that exists in terrainManager.goals
 	
 	//this.collidesWith()   //clone from terrainLine code, already done I'm assuming
-	//this.collidesData()   //clone from terrainLine code, already done I'm assuming
+  //this.collidesData()   //clone from terrainLine code, already done I'm assuming
+
+  this.jsonObj = function () {
+    var formattedObj = { id: this.id, goalID: this.goalID };
+    formattedObj = formatLineToJSON(this, formattedObj);
+    return formattedObj;
+  }
 }
-	
+
 
 
 
@@ -107,13 +126,39 @@ function GoalLine() {
 function CheckpointLine() {
   // this.p0            // MUST BE LinePoints. Enforced with throw in TerrainSurface constructor.
   // this.p1            // MUST BE LinePoints. Enforced with throw in TerrainSurface constructor.
-	//this.id               // hopefully already set uniquely by the copied terrainLine code? if not, generate an ID.
-	//this.checkpointID     // the ID of the Checkpoint object this CheckpointLine links to. This ID /MUST/ map to a Checkpoint that exists in terrainManager.checkpoints
-	
-	//this.collidesWith()   //clone from terrainLine code, already done I'm assuming
-	//this.collidesData()   //clone from terrainLine code, already done I'm assuming
-	
-}	
+  //this.id               // hopefully already set uniquely by the copied terrainLine code? if not, generate an ID.
+  //this.checkpointID     // the ID of the Checkpoint object this CheckpointLine links to. This ID /MUST/ map to a Checkpoint that exists in terrainManager.checkpoints
+
+  //this.collidesWith()   //clone from terrainLine code, already done I'm assuming
+  //this.collidesData()   //clone from terrainLine code, already done I'm assuming
+
+
+  this.jsonObj = function () {
+    var formattedObj = { id: this.id, checkpointID: this.checkpointID };
+    formattedObj = formatLineToJSON(this, formattedObj);
+    return formattedObj;
+  }
+}
+
+
+
+
+//CheckpointLine basically the same as terrainLine but with the below changes.
+function KillLine() {
+  // this.p0            // MUST BE LinePoints. Enforced with throw in TerrainSurface constructor.
+  // this.p1            // MUST BE LinePoints. Enforced with throw in TerrainSurface constructor.
+  //this.id               // hopefully already set uniquely by the copied terrainLine code? if not, generate an ID.
+
+  //this.collidesWith()   //clone from terrainLine code, already done I'm assuming
+  //this.collidesData()   //clone from terrainLine code, already done I'm assuming
+
+
+  this.jsonObj = function () {
+    var formattedObj = { id: this.id };
+    formattedObj = formatLineToJSON(this, formattedObj);
+    return formattedObj;
+  }
+}
 
 
 
@@ -124,10 +169,11 @@ function TerrainLine(point0, point1, player, adjacent0, adjacent1, normal) {
 
 
   this.jsonObj = function () {
-    var formattedObj = { id: this.id, checkpointID: this.checkPointID };
+    var formattedObj = { id: this.id };
     formattedObj = formatLineToJSON(this, formattedObj);
 
-    formattedObj.normal = line.normal;
+    formattedObj.normal = this.normal;
+    return formattedObj;
   }
 }
 
@@ -158,7 +204,8 @@ function formatLineToJSON (line, objectToAppendTo) {
  
 function TerrainManager () {
 	//The two fields below are initially 0 because this is a blank level, currently. They /MUST/ be loaded from JSON any time a level is loaded.
-	this.nextGoalNo = 1; // the next goal ID number. This must be saved along with the rest of the level.
+  this.levelName = null;
+  this.nextGoalNo = 1; // the next goal ID number. This must be saved along with the rest of the level.
 	this.nextPointNo = 1; // the next point ID number. This must be saved along with the rest of the level.
 	
 	this.pointMap = {};			// this is a map of all LinePoints by their ID, used to reduce point replication everywhere.
@@ -180,6 +227,8 @@ function TerrainManager () {
 	this.checkpointLines = {};	 // ^ but CheckpointLines
 	
 	this.goalLines = {};         // ^ but GoalLines
+
+	this.killLines = {};         // ^ but KillLines
 
 	
 	this.isReset = true;
@@ -216,8 +265,8 @@ function TerrainManager () {
 	
 	
 	// function that clears all the stuff in this terrainmanager. 
-	this.reset = function () {				
-		this.isReset = true;
+	this.reset = function () {	
+	  this.levelName = null;
 		this.nextGoalNo = 1; 
 		this.nextPointNo = 1; 
 		this.pointMap = {};	
@@ -227,12 +276,13 @@ function TerrainManager () {
 		this.collectibles = {};
 		this.terrainLines = {};	
 		this.checkpointLines = {};
-		this.goalLines = {}; 
+		this.goalLines = {};
+		this.killLines = {};  
 		this.isReset = true;
 	}
 	
 	
-	this.getJSON = function () {					// gets the JSON version of this manager.
+	this.getLevelJSON = function () {					// gets the JSON version of this manager.
 		var JSONdata;
 		
 		

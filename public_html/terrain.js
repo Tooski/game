@@ -420,6 +420,11 @@ GoalLine.prototype.draw = function (ctx) {
   }
 };
 
+
+
+
+
+
 // CheckpointLine object is the representation of a basic line that the player can roll on in a level. 
 // Extends TerrainSurface and implements its required methods and those of its parent, Collideable.
 // @param normal is a normalized vector representing the normal of this line. 
@@ -472,6 +477,145 @@ CheckpointLine.prototype.draw = function (ctx) {
   ctx.lineJoin = "round";
   ctx.miterLimit = 3;
   ctx.strokeStyle = "#FFFF00";
+  ctx.moveTo(this.p0.x, this.p0.y);
+  ctx.lineTo(this.p1.x, this.p1.y);
+
+
+  //// CODE BELOW ONLY SHOWS IF EDIT MODE IS ENABLED FOR MAP EDITOR!
+  if (editMode) {
+    //ctx.beginPath();
+    ctx.moveTo(this.p0.x, this.p0.y);
+    ctx.arc(this.p0.x, this.p0.y, 4, 0, 2 * Math.PI, false);
+    //ctx.fillStyle = 'green';
+    //ctx.fill();
+    ctx.moveTo(this.p1.x, this.p1.y);
+    ctx.arc(this.p1.x, this.p1.y, 4, 0, 2 * Math.PI, false);
+    //ctx.fillStyle = 'red';
+    ctx.fill();
+
+    if (this.normal) {
+
+      var midPoint = this.p0.add(this.p1).divf(2.0);
+      //ctx.beginPath();
+      //ctx.strokeStyle = "#001133";
+      //ctx.lineWidth = 4;
+      var pNormalPosEnd = midPoint.add(this.normal.multf(20));
+
+      this.normalPosCol.x = pNormalPosEnd.x - this.normalPosCol.w / 2;
+      this.normalPosCol.y = pNormalPosEnd.y - this.normalPosCol.h / 2;
+
+
+
+      this.p0edit.x = this.p0.x;
+      this.p0edit.y = this.p0.y;
+
+      this.p1edit.x = this.p1.x;
+      this.p1edit.y = this.p1.y;
+
+
+
+      ctx.moveTo(midPoint.x, midPoint.y);
+      ctx.lineTo(pNormalPosEnd.x, pNormalPosEnd.y);
+      ctx.stroke();
+      ctx.moveTo(this.p0edit.x, this.p0edit.y);
+
+      ctx.arc(this.p0edit.x, this.p0edit.y, 4, 0, 2 * Math.PI, false);
+      ctx.fill();
+
+      //ctx.beginPath();
+
+
+      this.p0edit.x = this.p0.x;
+      this.p0edit.y = this.p0.y;
+
+      this.p1edit.x = this.p1.x;
+      this.p1edit.y = this.p1.y;
+
+
+
+      ctx.moveTo(midPoint.x, midPoint.y);
+      ctx.lineTo(pNormalPosEnd.x, pNormalPosEnd.y);
+      ctx.stroke();
+      ctx.moveTo(this.p0edit.x, this.p0edit.y);
+
+      ctx.arc(this.p0edit.x, this.p0edit.y, 4, 0, 2 * Math.PI, false);
+      ctx.fill();
+
+      //ctx.beginPath();
+
+      //ctx.arc(this.normalPosVec.x  , this.normalPosVec.y , this.normalPosCol.w/2, 0, 2 * Math.PI, false);
+      //ctx.fillStyle = 'orange';
+      //ctx.fill();
+      //ctx.stroke();
+
+    } else {
+
+      ctx.stroke();
+    }
+    if (DEBUG_TERRAIN) {
+      this.collidesWith(this.player.model.pos, DFLT_radius, ctx);
+    }
+  } else {
+    ctx.stroke();
+  }
+};
+
+
+
+
+
+// KillLine object is the representation of a line that will kill the player.
+// Extends TerrainSurface and implements its required methods and those of its parent, Collideable.
+// @param normal is a normalized vector representing the normal of this line. 
+// @param adjacents is an array of terrainObjects where adjacents[0] is connected by p0, and adjacent
+function KillLine(point0, point1, player, adjacent0, adjacent1) {
+
+  TerrainSurface.apply(this, [point0, point1, adjacent0, adjacent1, player]); // Sets this up as a child of TerrainSurface and initializes TerrainSurface's fields.
+
+
+
+
+
+  /**
+   * checks for a collision.
+   */
+  this.collidesWith = function (point, radius, ctx) { // OVERRIDES THE COLLIDEABLE METHOD!!
+    return lineCollidesWith(this, point, radius, ctx);
+  };
+
+
+
+  /**
+   * Checks for a collision and 
+   * returns data { collision, collidedLine, collidedP0, collidedP1, perpendicularIntersect };
+   */
+  this.collidesData = function (point, radius, ctx) { // OVERRIDES THE COLLIDEABLE METHOD!!  If collidesWith is modified, this needs to match.
+    return lineCollidesData(this, point, radius, ctx);
+  };
+
+
+
+
+
+  /**
+   * Tests a point to see if it lies within the rays passing through each point at either end of the line segment that are perpendicular to the line segment.
+   */
+  this.isPointWithinPerpBounds = function (point) {
+    return isPointWithinLineSegmentPerp(this, point);
+  }
+}
+KillLine.prototype = new TerrainSurface();      //Establishes this as a child of TerrainSurface.
+KillLine.prototype.constructor = KillLines;   //Establishes this as having its own constructor.
+KillLine.prototype.lineWidth = 5;
+
+KillLine.prototype.draw = function (ctx) {
+  ctx.beginPath();
+  ctx.lineWidth = this.lineWidth;
+  ctx.lineCap = "round";
+
+  ctx.lineJoin = "round";
+  ctx.miterLimit = 3;
+  ctx.strokeStyle = "#FF0000";
   ctx.moveTo(this.p0.x, this.p0.y);
   ctx.lineTo(this.p1.x, this.p1.y);
 
