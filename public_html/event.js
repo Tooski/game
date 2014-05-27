@@ -572,7 +572,7 @@ function TerrainLineCollisionEvent(gameTimeOfCollision, collidedWithList, stateA
       if (this.collidedWithList.length > 1) {
         throw "allowLock is true but theres multiple things in collidedWithList.";
       }
-
+      console.log(this.collidedWithList);
       var surface = this.collidedWithList[0];
 
       //var velocityMag = ballState.vel.length();                     // DISABLED FOR REALISTIC PHYSICS
@@ -689,13 +689,10 @@ function TerrainPointCollisionEvent(gameTimeOfCollision, terrainPointCollidedWit
     p.vel = projectVec2(p.vel, this.surfaceVec.normalize()); 
 
     //function AngularState(time, radius, pointCircling, angle, angularVel, angularAccel) {
-    var ang = getSignedAngleFromAToB(HORIZ_NORM, this.normalVec.multf(p.radius).add(this.tp));
-    var angVel = (this.angle < 0 ? -p.vel.length() : p.vel.length());
-    var angAccel = (this.angle < 0 ? -p.accel.length() : p.accel.length());
 
-    var angState = new AngularState(p.time, p.radius, this.tp, ang, angVel, angAccel);
 
-    p.updateToState(angState);
+
+    p.startArc(new vec2(this.tp.x, this.tp.y), this.angle, this.normalVec);
     p.surface = this.tp.line1;
     p.nextSurface = this.tp.line0;
 
@@ -835,25 +832,11 @@ function SurfaceEndEvent(predictedTime, dependencyMask, surface, nextSurface, en
     var p = physEng.player;
     var inputs = p.inputState;
 
-    //function AngularState(time, radius, pointCircling, angle, angularVel, angularAccel) {
-    var ang = getSignedAngleFromAToB(HORIZ_NORM, this.surface.normal.multf(p.radius));
 
-    var angVel = (this.angle < 0 ? -p.vel.length() : p.vel.length());
-    var angAccel = (this.angle < 0 ? -p.accel.length() : p.accel.length());
-
-
-    var angState = new AngularState(p.time, p.radius, this.point, ang, angVel, angAccel);
-
-    console.log("|-|-|-|-|-|  this.point ", "" + this.point.x, ", " + this.point.y);
-    console.log("|-|-|-|-|-|  ang ", ang);
-    console.log("|-|-|-|-|-|  angVel ", angVel);
-    console.log("|-|-|-|-|-|  angAccel ", angAccel);
-    console.log("|-|-|-|-|-|  angState ", angState);
-
-    p.updateToState(angState);
+    p.startArc(this.point, this.angle, this.surface.normal);
     p.nextSurface = this.nextSurface;
+    return;
   }
-  return;
 }
 SurfaceEndEvent.prototype = new PredictedEvent();
 //SurfaceEndEvent.prototype.constructor = SurfaceEndEvent;

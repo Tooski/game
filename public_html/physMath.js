@@ -11,20 +11,23 @@
 
 
 
-
-
-// Universal method to step a state forward to a time, no logic involved.
-// COMPLETELY AND UTTERLY DONE. I THINK.
+/**
+ * Steps either an angular 
+ */
 function stepStateToTime(state, targetGameTime) {
+  console.log(" ! ! ! ! ! ! ! ! ! ! ! ! ! ! stepping state to time: ", state);
   if (state.point) {
-    return convertAngularToNormalState(stepAngularStateToTime(state, targetGameTime));
+    console.log(" ! ! ! ! ! ! ! ! ! ! ! ! ! ! angular state step");
+    return stepAngularStateToTime(state, targetGameTime);
   } else {
+    console.log(" ! ! ! ! ! ! ! ! ! ! ! ! ! ! normal state step");
     return stepNormalStateToTime(state, targetGameTime);
   }
 }
 
 
 
+// Universal method to step a state forward to a time, no logic involved.
 function stepNormalStateToTime(state, targetGameTime) {
   var startTime = state.time;
   //console.log("in stepStateToTime. targetGameTime: ", targetGameTime);

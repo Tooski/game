@@ -106,6 +106,14 @@ vec2.prototype.getFacing = function (otherVec) {
   }
 }
 
+
+/**
+ * toString.
+ */
+vec2.prototype.toString = function () {
+  return "" + this.x + ", " + this.y;
+}
+
 //console.log("vec2(2.0, 1.0).multf(3.0), %2.2f, %2.2f", (new vec2(2.0, 1.0).multf(3.0)).x, (new vec2(2.0, 1.0).multf(3.0)).y);
 
 

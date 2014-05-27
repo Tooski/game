@@ -23,6 +23,12 @@ function TerrainSurface(point0, point1, adjacent0, adjacent1, pl) {
   this.player = pl;
   this.getNormalAt = function (ballLocation) { };     // ballLocation is simple where the ball currently is, for which we are trying to obtain the normal applicable to the ball. 
   this.getSurfaceAt = function (ballLocation) { };    // Gets a normalized surface vector.
+
+  this.toString = function () {
+    var pl = 5;
+    var str = "p0 " + rl(this.p0.x, pl) + "  " + rl(this.p0.y, pl) + "      p1 " + rl(this.p1.x, pl) + "  " + rl(this.p1.y, pl);
+    return str;
+  }
 }
 
 function normalDrag(terrain) {
