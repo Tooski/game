@@ -6,15 +6,21 @@
 // id = "checkpoint " + x + " " + y;
 function Checkpoint(id, x, y) {
   if (!id) {
-    console.log("_+_+_+_bad id, id: " + id);
+    console.log("_+_+_+_bad Checkpoint id, id: " + id);
     //throw "_+_+_+_bad id for Checkpoint, see above";
   }
   if (!(x || x === 0) || !(y || y === 0)) {
-    console.log("_+_+_+_bad x or y.  x " + x + ", y " + y);
+    console.log("_+_+_+_bad Checkpoint x or y.  x " + x + ", y " + y);
     //throw "_+_+_+_bad x or y in Checkpoint, see above";
   }
 	vec2.apply(this, [x, y]); 		 // initializes this as a vec2 with parameters x and y.  this.x is now x, this.y is now y
-	this.id = id;  
+	this.id = id;
+
+
+	this.toJSON = function () {
+	  var formattedObj = { id: this.id, x: this.x, y: this.y };
+	  return JSON.stringify(formattedObj);
+	}
 }	
 
 	
@@ -22,21 +28,27 @@ function Checkpoint(id, x, y) {
 // id = "Collectible " + x + " " + y;
 function Collectible (id, x, y, pointValue) {		
   if (!id) {
-    console.log("_+_+_+_bad id, id: " + id);
+    console.log("_+_+_+_bad Collectible id, id: " + id);
     //throw "_+_+_+_bad id for Collectible, see above";
   }
   if (!(x || x === 0) || !(y || y === 0)) {
-    console.log("_+_+_+_bad x or y.  x " + x + ", y " + y);
+    console.log("_+_+_+_bad Collectible x or y.  x " + x + ", y " + y);
     //throw "_+_+_+_bad x or y in Collectible, see above";
   }
   if (!pointValue && !pointValue === 0) {
 
-    console.log("_+_+_+_bad pointValue, " + pointValue);
+    console.log("_+_+_+_bad Collectible pointValue, " + pointValue);
     //throw "_+_+_+_bad point value in Collectible, see above";
   }
 	vec2.apply(this, [x, y]); 		 // initializes this as a vec2 with parameters x and y.  this.x is now x, this.y is now y
 	this.pointValue = pointValue;	 // the value of this collectible? may not need
-	this.id = id;  
+	this.id = id;
+
+
+	this.toJSON = function () {
+	  var formattedObj = { id: this.id, points: this.pointValue, x: this.x, y: this.y };
+	  return JSON.stringify(formattedObj);
+	}
 }	
 
 
@@ -51,10 +63,10 @@ function Goal (id, goalNum){			// ensure you terrainmanager.nextGoalNumber++; af
 	
 	this.id = id;
 
-	this.jsonObj = function () {
-	  var formattedObj = { id: this.id };
-	  formattedObj = formatLineToJSON(this, formattedObj);
-	  return formattedObj;
+
+	this.toJSON = function () {
+	  var formattedObj = { id: this.id, goalNum: this.goalNum };
+	  return JSON.stringify(formattedObj);
 	}
 }	
 
@@ -68,11 +80,11 @@ function Goal (id, goalNum){			// ensure you terrainmanager.nextGoalNumber++; af
 // id = terrainmanager.nextPointNumber();      
 function LinePoint(id, x, y) {
   if (!id || id < 0) {
-    console.log("_+_+_+_bad id, id: " + id);
+    console.log("_+_+_+_bad LinePoint id, id: " + id);
     throw "_+_+_+_bad id for LinePoint, see above";
   }
   if (!(x || x === 0) && !(y || y === 0)) {
-    console.log("_+_+_+_bad x or y.  x " + x + ", y " + y);
+    console.log("_+_+_+_bad LinePoint x or y.  x " + x + ", y " + y);
     throw "_+_+_+_bad x or y in LinePoint, see above";
   }
 	vec2.apply(this, [x, y]); 		 // initializes this as a vec2 with parameters x and y.  this.x is now x, this.y is now y
@@ -91,9 +103,9 @@ function LinePoint(id, x, y) {
 
 
 
-	this.jsonObj = function () {
+	this.toJSON = function () {
 	  var formattedObj = { id: this.id, x: this.x, y: this.y };
-	  return formattedObj;
+	  return JSON.stringify(formattedObj);
 	}
 }
 LinePoint.prototype = new vec2();
@@ -112,10 +124,10 @@ function GoalLine() {
 	//this.collidesWith()   //clone from terrainLine code, already done I'm assuming
   //this.collidesData()   //clone from terrainLine code, already done I'm assuming
 
-  this.jsonObj = function () {
+  this.toJSON = function () {
     var formattedObj = { id: this.id, goalID: this.goalID };
     formattedObj = formatLineToJSON(this, formattedObj);
-    return formattedObj;
+    return JSON.stringify(formattedObj);
   }
 }
 
@@ -133,10 +145,10 @@ function CheckpointLine() {
   //this.collidesData()   //clone from terrainLine code, already done I'm assuming
 
 
-  this.jsonObj = function () {
+  this.toJSON = function () {
     var formattedObj = { id: this.id, checkpointID: this.checkpointID };
     formattedObj = formatLineToJSON(this, formattedObj);
-    return formattedObj;
+    return JSON.stringify(formattedObj);
   }
 }
 
@@ -153,10 +165,10 @@ function KillLine() {
   //this.collidesData()   //clone from terrainLine code, already done I'm assuming
 
 
-  this.jsonObj = function () {
+  this.toJSON = function () {
     var formattedObj = { id: this.id };
     formattedObj = formatLineToJSON(this, formattedObj);
-    return formattedObj;
+    return JSON.stringify(formattedObj);
   }
 }
 
@@ -168,12 +180,12 @@ function TerrainLine(point0, point1, player, adjacent0, adjacent1, normal) {
   // this.p1            // MUST BE LinePoints. Enforced with throw in TerrainSurface constructor.
 
 
-  this.jsonObj = function () {
+  this.toJSON = function () {
     var formattedObj = { id: this.id };
     formattedObj = formatLineToJSON(this, formattedObj);
 
     formattedObj.normal = this.normal;
-    return formattedObj;
+    return JSON.stringify(formattedObj);;
   }
 }
 
@@ -282,7 +294,7 @@ function TerrainManager () {
 	}
 	
 	
-	this.getLevelJSON = function () {					// gets the JSON version of this manager.
+	this.toJSON = function () {					// gets the JSON version of this manager.
 		var JSONdata;
 		
 		
