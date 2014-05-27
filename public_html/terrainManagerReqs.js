@@ -295,11 +295,20 @@ function TerrainManager () {
 	
 	
 	this.toJSON = function () {					// gets the JSON version of this manager.
-		var JSONdata;
-		
-		
-		
-		return JSONdata;
+		var JSONdata = { levelName: this.levelName, nextGoalNo: this.nextGoalNo, nextPointNo: this.nextPointNo, startPoint: this.startPoint };
+		JSONdata.pointMap = this.pointMap;
+		JSONdata.goals = this.goals;
+		JSONdata.checkpoints = this.checkpoints;
+		JSONdata.collectibles = this.collectibles;
+		JSONdata.terrainLines = this.terrainLines;
+		JSONdata.checkpointLines = this.checkpointLines;
+		JSONdata.goalLines = this.goalLines;
+		JSONdata.killLines = this.killLines;
+
+		var jsonString = JSON.stringify(JSONdata);
+		var jsonTabbed = JSON.stringify(JSONdata, null, 4)
+		console.log(jsonTabbed);
+		return jsonString;
 	}
 	
 	this.loadJSON = function (data) {  // parses a new terrainManager state from the provided 
