@@ -348,6 +348,10 @@ TerrainManager.prototype.pushTerrain = function(terrain, list) {
 };
 
 //Adding of other elements
+TerrainManager.prototype.setStartPoint = function(vecStart) {
+	this.startPoint = vecStart;
+}
+
 TerrainManager.prototype.addCollectible = function(collectible) {
 	if (!this.collectibles[collectible.id]) this.collectibles[collectible.id] = collectible;
 }
@@ -384,6 +388,7 @@ TerrainManager.prototype.draw = function(ctx) {
         //    this.closedTerrain[i].draw(ctx);
         //}
         //console.log(this.closedTerrain.length);
+		this.drawStart();
     } else {
         this.lineDraw = {};
      for(var i = 0; i < this.terrainList.length; i++) {
@@ -409,6 +414,14 @@ TerrainManager.prototype.draw = function(ctx) {
   }
 }
 };
+
+//Draws a circle denoting the set starting position if in edit mode 
+TerrainManager.prototype.drawStart = function(ctx) {
+	ctx.beginPath():
+	ctx.arc(startPoint.x,startPoint.y,10,0,2*Math.PI,false);
+	ctx.fillStyle = "green";
+	ctx.fill();
+}
 
 TerrainManager.prototype.loadFromFile = function(id, init, callback) {
     var that = this;

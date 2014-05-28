@@ -363,6 +363,24 @@ MapEditor.prototype.createLineButton = function(ctx) {
 MapEditor.prototype.createStartPointButton = function(ctx) {
 	var line = new MapEditorButton("Start", 0, (buttonSize + 5) * 2, buttonSize, buttonSize);
     var that = this;
+	
+	collect.onClick = function(e) {
+		var left = parseInt(that.ctx.canvas.style.left);
+        var top =  parseInt(that.ctx.canvas.style.top);
+        if(e.offsetX >  that.ctx.canvas.width + left || e.offsetX < left ||
+           e.offsetY >  that.ctx.canvas.height + top || e.offsetX < top) {
+            if(!this.collectible) {
+                if(!this.prev || (this.prev && !this.prev.circularID)) {
+                    var xposition = localToWorld(e.offsetX, "x");
+                    var yposition = localToWorld(e.offsetY, "y");
+
+                    that.level.setStartPoint = new vec2(xposition, yposition);
+
+                    button.isSelected = false;
+                }
+            }
+        }
+	};
 }
 
 MapEditor.prototype.createCheckpointLineButton = function(ctx) {
