@@ -1,4 +1,4 @@
-
+	
 var buttonSize = 75;
 
 
@@ -454,8 +454,27 @@ MapEditor.prototype.createGoalLineButton = function(ctx) {
 };
 
 MapEditor.prototype.createCollectibleButton = function(ctx) {
-	var line = new MapEditorButton("Collect", 0, (buttonSize + 5) * 5, buttonSize, buttonSize);
+	var collect = new MapEditorButton("Collect", 0, (buttonSize + 5) * 5, buttonSize, buttonSize);
     var that = this;
+	
+	collect.onClick = function(e) {
+		var left = parseInt(that.ctx.canvas.style.left);
+        var top =  parseInt(that.ctx.canvas.style.top);
+        if(e.offsetX >  that.ctx.canvas.width + left || e.offsetX < left ||
+           e.offsetY >  that.ctx.canvas.height + top || e.offsetX < top) {
+            if(!this.collectible) {
+                if(!this.prev || (this.prev && !this.prev.circularID)) {
+                    var xposition = localToWorld(e.offsetX, "x");
+                    var yposition = localToWorld(e.offsetY, "y");
+
+                    this.locked = this.collectible = new collectible(new vec2(xposition, yposition));
+                     that.level.addCollectible(this.line);
+
+                    button.isSelected = false;
+                }
+            }
+        }
+	};
 }
 
 MapEditor.prototype.createEraseButton = function() {

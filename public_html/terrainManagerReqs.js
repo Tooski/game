@@ -49,8 +49,18 @@ function Collectible (id, x, y, pointValue) {
 	  var formattedObj = { id: this.id, points: this.pointValue, x: this.x, y: this.y };
 	  return JSON.stringify(formattedObj);
 	}
-}	
+}
+Collectible.prototype = new vec2();
 
+Collectible.prototype.draw = function(ctx) {
+	ctx.beginPath():
+	ctx.arc(x,y,20,0,2*Math.PI,false);
+	ctx.fillStyle = "orange";
+	ctx.fill();
+	ctx.lineWidth = 3;
+	ctx.strokeStyle = "000000";
+	ctx.stroke();
+}
 
 	
 // object that represents a specific goal. this is different from a GoalLine
