@@ -68,6 +68,13 @@ function TerrainLine(point0, point1, player, adjacent0, adjacent1, normal) {
   TerrainSurface.apply(this, [point0, point1, adjacent0, adjacent1, player]); // Sets this up as a child of TerrainSurface and initializes TerrainSurface's fields.
   this.normal = normal;//.normalize();
 
+    this.jsonObj = function () {
+    var formattedObj = { id: this.id };
+    formattedObj = formatLineToJSON(this, formattedObj);
+
+    formattedObj.normal = this.normal;
+    return formattedObj;
+  }
 
   this.getNormalAt = function (ballLocation, radius) {
     if (!ballLocation) {
@@ -296,6 +303,14 @@ function GoalLine(point0, point1, player, adjacent0, adjacent1) {
 
   TerrainSurface.apply(this, [point0, point1, adjacent0, adjacent1, player]); // Sets this up as a child of TerrainSurface and initializes TerrainSurface's fields.
 
+  this.id;
+  this.goalID;
+
+  this.jsonObj = function () {
+    var formattedObj = { id: this.id, goalID: this.goalID };
+    formattedObj = formatLineToJSON(this, formattedObj);
+    return formattedObj;
+  }
 
   /**
    * checks for a collision.
@@ -432,10 +447,14 @@ GoalLine.prototype.draw = function (ctx) {
 function CheckpointLine(point0, point1, player, adjacent0, adjacent1) {
 
   TerrainSurface.apply(this, [point0, point1, adjacent0, adjacent1, player]); // Sets this up as a child of TerrainSurface and initializes TerrainSurface's fields.
+  this.id;
+  this.checkpointID;
 
-
-
-
+  this.jsonObj = function () {
+    var formattedObj = { id: this.id, checkpointID: this.checkpointID };
+    formattedObj = formatLineToJSON(this, formattedObj);
+    return formattedObj;
+  }
 
   /**
    * checks for a collision.
@@ -571,10 +590,13 @@ CheckpointLine.prototype.draw = function (ctx) {
 function KillLine(point0, point1, player, adjacent0, adjacent1) {
 
   TerrainSurface.apply(this, [point0, point1, adjacent0, adjacent1, player]); // Sets this up as a child of TerrainSurface and initializes TerrainSurface's fields.
+  this.id;
 
-
-
-
+  this.jsonObj = function () {
+    var formattedObj = { id: this.id };
+    formattedObj = formatLineToJSON(this, formattedObj);
+    return formattedObj;
+  }
 
   /**
    * checks for a collision.
@@ -583,8 +605,6 @@ function KillLine(point0, point1, player, adjacent0, adjacent1) {
     return lineCollidesWith(this, point, radius, ctx);
   };
 
-
-
   /**
    * Checks for a collision and 
    * returns data { collision, collidedLine, collidedP0, collidedP1, perpendicularIntersect };
@@ -592,10 +612,6 @@ function KillLine(point0, point1, player, adjacent0, adjacent1) {
   this.collidesData = function (point, radius, ctx) { // OVERRIDES THE COLLIDEABLE METHOD!!  If collidesWith is modified, this needs to match.
     return lineCollidesData(this, point, radius, ctx);
   };
-
-
-
-
 
   /**
    * Tests a point to see if it lies within the rays passing through each point at either end of the line segment that are perpendicular to the line segment.
