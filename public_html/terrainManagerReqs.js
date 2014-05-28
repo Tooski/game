@@ -337,14 +337,213 @@ TerrainManager.prototype.pushTerrain = function(terrain, list) {
     if (!this.levelByID[terrain.id]) this.levelByID[terrain.id] = terrain;
 };
 
-TerrainManager.prototype.addCollectible = function() {
-
+//Adding of other elements
+TerrainManager.prototype.addCollectible = function(collectible) {
+	if (!this.collectibles[collectible.id]) this.collectibles[collectible.id] = collectible;
 }
 
-TerrainManager.prototype.addCheckpoint = function() {
-
+TerrainManager.prototype.addCheckpoint = function(checkpoint) {
+	if (!this.checkpoints[checkpoint.id]) this.checkpoints[checkpoint.id] = terrain;
 }
 
-TerrainManager.prototype.pushGoalLine = function() {
-
+TerrainManager.prototype.addGoal = function(goal) {
+	if (!this.goals[goal.id]) this.goals[goal.id] = goal;
 }
+
+TerrainManager.prototype.pushGoalLine = function(goalLine) {
+	if (!this.goalLines[goalLine.id]) this.goalLines[goalLine.id] = goalLine;
+}
+
+TerrainManager.prototype.pushKillLine = function(killLine) {
+	if (!this.killLines[killLine.id]) this.killLines[killLine.id] = killLine;
+}
+
+TerrainManager.prototype.pushCheckpointLine = function(checkpointLine) {
+	if (!this.checkpointLines[checkpointLine.id]) this.checkpointLines[checkpointLine.id] = terrain;
+}
+
+TerrainManager.prototype.draw = function(ctx) {
+
+    if(editMode) {
+        this.terrainList.forEach (function(ter) {
+            //if(!ter.circularID){
+                ter.draw(ctx);
+            //}
+        });
+        //for(var i = 0; i < this.closedTerrain.length; i++) {
+        //    this.closedTerrain[i].draw(ctx);
+        //}
+        //console.log(this.closedTerrain.length);
+    } else {
+        this.lineDraw = {};
+     for(var i = 0; i < this.terrainList.length; i++) {
+        if(!this.terrainList[i].adjacent0 && !this.terrainList[i].adjacent1) {
+            this.terrainList[i].draw(ctx);
+        } else {
+        ctx.lineWidth = this.terrainList[i].lineWidth;
+        if(this.terrainList[i].adjacent0) {
+
+             createCurves(ctx, this.terrainList[i].p0, this.terrainList[i].p1, 
+             this.terrainList[i].adjacent0.p0, this.terrainList[i].adjacent0.p1, 
+             this.terrainList[i].adjacent1, true);
+        }
+         
+        if(this.terrainList[i].adjacent1) {
+
+            createCurves(ctx, this.terrainList[i].p0, this.terrainList[i].p1, 
+            this.terrainList[i].adjacent1.p0, this.terrainList[i].adjacent1.p1,
+            this.terrainList[i].adjacent0, false);
+        }
+    }
+	//Draw other elements
+  }
+}
+};
+
+TerrainManager.prototype.loadFromFile = function(id, init, callback) {
+    var that = this;
+    
+    this.terrainList = [];
+    this.levelByID = {};
+
+     if(init) init();
+     game.settings.get({ "command": "getleveljson", "data": { "levelid": (id || 1) } }, this.parseFromJSON(data));
+
+  
+//    gameEngine.initializePhysEng();
+//    gameEngine.physEng.start();
+//    gameEngine.physEng.pause();
+    
+};
+
+TerrainManager.prototype.parseFromJSON = function(data) {
+  var obj = $.parseJSON($.parseJSON( data ));
+  for(var i = 0; i < obj.length; i++) {
+    var ter = new TerrainLine(new vec2(obj[i].p0.x, obj[i].p0.y), new vec2(obj[i].p1.x, obj[i].p1.y));
+    ter.id = obj[i].id;
+    ter.normal = new vec2(obj[i].normal.x, obj[i].normal.y);
+    that.levelByID[obj[i].id] = ter;
+  }
+  // Adds neighbors to the object.
+  for(var i = 0; i < obj.length; i++) {
+    if (obj[i].adjacent0 && that.levelByID[obj[i].adjacent0]) that.levelByID[obj[i].id].adjacent0 = that.levelByID[obj[i].adjacent0];
+    if (obj[i].adjacent1 && that.levelByID[obj[i].adjacent1]) that.levelByID[obj[i].id].adjacent1 = that.levelByID[obj[i].adjacent1];
+    that.pushTerrain(that.levelByID[obj[i].id], that.levelByID);
+
+  }
+  gameEngine.initializePhysEng();
+}
+
+TerrainManager.prototype.createTerrainPoints = function(terrain) {
+    var that = this;
+//    if(editMode) {
+      var wh = 10;
+      terrain.p0edit = new MouseCollideable(false, terrain.p0.x - wh, terrain.p0.y - wh, wh*2, wh*2);
+      
+      terrain.p0edit.onDrag = function(e) {
+        var xOffset = localToWorld(e.offsetX* (initWidth/ctx.canvas.width), "x");
+        var yOffset = localToWorld(e.offsetY* (initWidth/ctx.canvas.width), "y");
+
+        terrain.x = (terrain.p0.x = xOffset) - wh;
+        terrain.y = (terrain.p0.y = yOffset) - wh;
+        normalDrag(terrain);
+        if(terrain.adjacent0) {
+            if(terrain.adjacent0.adjacent1 === terrain) {
+                terrain.adjacent0.p1edit.x = (terrain.adjacent0.p1.x = xOffset) - wh;
+                terrain.adjacent0.p1edit.y = (terrain.adjacent0.p1.y = yOffset) - wh;
+                normalDrag(terrain.adjacent0);
+            } else if (terrain.adjacent0.adjacent0 === terrain) {
+                terrain.adjacent0.p0edit.x = (terrain.adjacent0.p0.x = xOffset) - wh;
+                terrain.adjacent0.p0edit.y = (terrain.adjacent0.p0.y = yOffset) - wh;
+                normalDrag(terrain.adjacent0);
+            }
+        }
+      };
+      terrain.p0edit.onRelease = function(e) {
+          that.snapTo(terrain);
+      };
+      terrain.p1edit = new MouseCollideable(false, terrain.p1.x - wh, terrain.p1.y - wh, wh*2, wh*2);
+      terrain.p1edit.onDrag = function(e) {
+        var xOffset = localToWorld(e.offsetX* (initWidth/ctx.canvas.width), "x");
+        var yOffset = localToWorld(e.offsetY* (initWidth/ctx.canvas.width), "y");
+          
+        terrain.x = (terrain.p1.x = xOffset) - wh;
+        terrain.y = (terrain.p1.y = yOffset) - wh;
+        normalDrag(terrain);
+        if(terrain.adjacent1) {
+            if(terrain.adjacent1.adjacent1 === terrain) {
+                terrain.adjacent1.p1edit.x = (terrain.adjacent1.p1.x = xOffset) - wh;
+                terrain.adjacent1.p1edit.y = (terrain.adjacent1.p1.y = yOffset) - wh;
+                normalDrag(terrain.adjacent1);
+            } else if (terrain.adjacent1.adjacent0 === terrain) {
+                terrain.adjacent1.p0edit.x = (terrain.adjacent1.p0.x = xOffset) - wh;
+                terrain.adjacent1.p0edit.y = (terrain.adjacent1.p0.y = yOffset) - wh;
+                normalDrag(terrain.adjacent1);
+            }
+        }
+   
+      };
+      terrain.p1edit.onRelease = function(e) {
+          that.snapTo(terrain);
+      };
+     
+      terrain.normalPosVec = new vec2(terrain.p0.x, terrain.p0.y);
+      terrain.normalPosCol = new MouseCollideable(false, terrain.p0.x - wh, terrain.p0.y - wh, wh*2, wh*2);
+      terrain.normalPosCol.onDrag = function(e) {
+          if(terrain.normal) {
+          var point = findNormalByMouse(e, terrain);
+          
+
+          terrain.normal.x = point.x;
+          terrain.normal.y = point.y;
+          
+        }
+      };
+      
+//    }
+};
+
+TerrainManager.prototype.snapTo = function(terrain) {
+       for(var i = 0; i < this.terrainList.length; i++) {
+           if (terrain !== this.terrainList[i]){
+        if(!this.terrainList[i].adjacent0 && checkBounds (terrain.p0, this.terrainList[i].p0)){
+            terrain.p0.x = this.terrainList[i].p0.x = (terrain.p0.x + this.terrainList[i].p0.x)/2;
+            terrain.p0.y = this.terrainList[i].p0.y = (terrain.p0.y + this.terrainList[i].p0.y)/2;
+            this.terrainList[i].adjacent0 = terrain;
+            terrain.adjacent0 = this.terrainList[i];
+            break;
+        } else if (!this.terrainList[i].adjacent1 && checkBounds (terrain.p0, this.terrainList[i].p1)) {
+            terrain.p0.x = this.terrainList[i].p1.x = (terrain.p0.x + this.terrainList[i].p1.x)/2;
+            terrain.p0.y = this.terrainList[i].p1.y = (terrain.p0.y + this.terrainList[i].p1.y)/2;
+            this.terrainList[i].adjacent1 = terrain;
+            terrain.adjacent0 = this.terrainList[i];
+            break;
+        } else if(!this.terrainList[i].adjacent0 && checkBounds (terrain.p1, this.terrainList[i].p0)){
+            terrain.p1.x = this.terrainList[i].p0.x = (terrain.p1.x + this.terrainList[i].p0.x)/2;
+            terrain.p1.y = this.terrainList[i].p0.y = (terrain.p1.y + this.terrainList[i].p0.y)/2;
+            this.terrainList[i].adjacent0 = terrain;
+            terrain.adjacent1 = this.terrainList[i];
+            break;
+        } else if (!this.terrainList[i].adjacent1 && checkBounds (terrain.p1, this.terrainList[i].p1)) {
+            terrain.p1.x = this.terrainList[i].p1.x = (terrain.p1.x + this.terrainList[i].p1.x)/2;
+            terrain.p1.y = this.terrainList[i].p1.y = (terrain.p1.y + this.terrainList[i].p1.y)/2;
+            this.terrainList[i].adjacent1 = terrain;
+            terrain.adjacent1 = this.terrainList[i];
+            break;
+        }
+    }
+    }
+    
+    var circular = {};
+        if(terrain.adjacent0) {
+        circular[terrain.adjacent0.id] = terrain.adjacent0;
+        var d = checkCircular(terrain.adjacent0, circular, terrain, {});
+
+
+        if(!terrain.circularID && d) {
+
+            var c = new TerrainCircular(circular, this.closedTerrain);
+
+        }
+    }
+};
