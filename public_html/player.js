@@ -3,19 +3,8 @@
 /**
  * The player class is the player that is being created, allows manipulation of 
  * the controller which currently has jumping and moving.
- * Written by: Michael Herrera
+ * Written by: Josef Nosov
  */
-
-//animationStartTime
-//animationTime
-//currentAnimation
-//checktime in current animation for collisions
-//animationSpeed needs to be updated
-//if jumping can doublejump 
-//if double jump true can't jump
-//animation angle
-
-
 function Player(x, y, timer) {
     Entity.call(this, null, 0, 0, 0, 0);
     this.walkingSpeed = 0.10;
@@ -195,7 +184,7 @@ Player.prototype.draw = function(ctx) {
 Player.prototype.walking = function(ctx, scaleFactor) {
 
     this.walkingAnimation.drawFrame(this.timer.gameDelta, ctx, this.model.pos.x - this.walkingAnimation.frameWidth / 2 * scaleFactor,
-            this.model.pos.y - this.walkingAnimation.frameHeight / 2 * scaleFactor, scaleFactor, this.facing,this.model.animationAngle());
+            this.model.pos.y - this.walkingAnimation.frameHeight / 2 * scaleFactor, scaleFactor, this.facing);
 
 };
 
