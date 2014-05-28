@@ -46,6 +46,7 @@ var TIME_EPSILON = 0.00000001;
 var TIME_EPSILON_SQ = TIME_EPSILON * TIME_EPSILON;
 var COLLISION_EPSILON_SQ = 0.0000; // fuck the police
 var ANGLE_EPSILON = 0.000001;
+var ARC_RADIUS_PADDING = 0.001;
 
 
 //DEFAULT PHYSICS VALS, TWEAK HERE
@@ -424,7 +425,7 @@ function PlayerModel(controlParams, physParams, time, radius, pos, vel, accel, s
       }
 
       this.time = state.time;
-      this.radius = state.radius;
+      //this.radius = state.radius;
 
       this.point = state.point;
       this.onPoint = true;
@@ -453,7 +454,7 @@ function PlayerModel(controlParams, physParams, time, radius, pos, vel, accel, s
       }
 
       this.time = state.time;
-      this.radius = state.radius;
+      //this.radius = state.radius;
       this.pos = state.pos;
       this.vel = state.vel;
       this.accel = state.accel;
@@ -758,6 +759,8 @@ PlayerModel.prototype.surfaceLock = function (surface) {
  * Function that deals with arking the player to a surface.
  */
 PlayerModel.prototype.arcTo = function (surface) {
+  console.log("this.a ", this.a);
+  console.log("surface.normal.sangle() ", surface.normal.sangle())
   var cartesianState = convertAngularToNormalState(this);
   var accel = this.accel;
   this.updateToState(cartesianState);
@@ -782,6 +785,8 @@ PlayerModel.prototype.arcTo = function (surface) {
  */
 PlayerModel.prototype.startArc = function (point, arcAngle, pointToPosVec) {
   var ptpNorm = pointToPosVec.normalize();
+
+
 
   var ang = getSignedAngleFromAToB(HORIZ_NORM, ptpNorm.multf(this.radius));
 
@@ -843,8 +848,8 @@ PlayerModel.prototype.print = function (prefix) {
   console.log(prefix + "STATE");
   console.log(prefix + "time      " + rl(this.time, pl) + "    --   radius " + this.radius);
 
-  if (this.onSurface) {
-    console.log(prefix + "onSurface " + rl(this.onSurface, pl) + "            surface  " + this.surface.toString());
+  if (this.surface) {
+    console.log(prefix + "onSurface " + rl(this.onSurface, pl) + "            surface  " + this.surface.string(pl));
   } else {
     console.log(prefix + "onSurface " + rl(this.onSurface, pl) + "            surface  " + this.surface);
   }
@@ -1068,11 +1073,16 @@ PhysEng.prototype.updatePhys = function (newEvents, stepToRender) {
         console.log(" -=-=-=-=-");
         console.log(" -=-=-=-=- currentEvent: ", currentEvent);
         console.log(" -=-=-=-=- stepResult: ", stepResult);
-        console.log(" -=-=-=-=- timeDifference * timeDifference, ", timeDifference * timeDifference);
+        console.log(" -=-=-=-=- timeDifference squared, ", timeDifference * timeDifference);
         console.log(" -=-=-=-=- TIME_EPSILON_SQ, ", TIME_EPSILON_SQ);
         console.log(" -=-=-=-=- times dont match between the event and the stepResult.state");
-        if (!this.isPaused) {
-          throw "times dont match between the event and the stepResult.state";
+        var eventState = stepStateToTime(this.player, currentEvent.time);
+        var collidedSurface =  stepResult.events[0].collidedWithList[0];
+        console.log(" -=-=-=-=- state at closest event ", eventState);
+        if (!this.isPaused && collidedSurface.collidesWith(eventState.pos, eventState.radius)) {
+          console.log(" -=-=-=-=- despite nearest collision time happening later,");
+          console.log(" -=-=-=-=- the state at the closest event collides with terrain ", collidedSurface);
+          //throw "times dont match between the event and the stepResult.state";
         }
 
 
@@ -1085,8 +1095,8 @@ PhysEng.prototype.updatePhys = function (newEvents, stepToRender) {
         }
         //update player state to resulting state.
         currentEvent = this.popMostRecentEvent();
-        //this.player.updateToState(tempState);
-        //this.timeMgr.time = tempState.time;
+        this.player.updateToState(tempState);
+        this.timeMgr.time = tempState.time;
 
       } else {
         this.popMostRecentEvent()
@@ -1202,9 +1212,10 @@ PhysEng.prototype.attemptAngularStep = function (goalGameTime) {
 
   var events = [];
   if (collisionList.length > 0) {   // WE COLLIDED WITH STUFF AND EXITED THE LOOP EARLY, handle.
+    throw "collided in angular step";
     events = this.findEventsAndTimesFromCollisions(collisionList);         // a bunch of TerrainCollisionEvent's hopefully?
     tempState = events[0].state;
-    this.resetPredicted();
+    //this.resetPredicted();
     //console.log("    ended tweenStepping loop early");
     //console.log("    collisions: ", collisionList);
     //console.log("    tempState: ", tempState);
@@ -1224,9 +1235,10 @@ PhysEng.prototype.attemptAngularStep = function (goalGameTime) {
     //console.log(this.tm.terrainList);
     //console.log(this.tm);
     if (collisionList.length > 0) {   // WE COLLIDED WITH STUFF ON FINAL STEP.
+      throw "collided in angular step";
       events = this.findEventsAndTimesFromCollisions(collisionList);
       tempState = events[0].state;
-      this.resetPredicted();
+      //this.resetPredicted();
       //console.log("    collided on last step.");
       //console.log("    collisions: ", collisionList);
       //console.log("    tempState: ", tempState);
@@ -1290,7 +1302,7 @@ PhysEng.prototype.attemptNormalStep = function (goalGameTime) {
   if (collisionList.length > 0) {   // WE COLLIDED WITH STUFF AND EXITED THE LOOP EARLY, handle.
     events = this.findEventsAndTimesFromCollisions(collisionList);         // a bunch of TerrainCollisionEvent's hopefully?
     tempState = events[0].state;
-    this.resetPredicted();
+    //this.resetPredicted();
     //console.log("    ended tweenStepping loop early");
     //console.log("    collisions: ", collisionList);
     //console.log("    tempState: ", tempState);
@@ -1309,7 +1321,7 @@ PhysEng.prototype.attemptNormalStep = function (goalGameTime) {
     if (collisionList.length > 0) {   // WE COLLIDED WITH STUFF ON FINAL STEP.
       events = this.findEventsAndTimesFromCollisions(collisionList);
       tempState = events[0].state;
-      this.resetPredicted();
+      //this.resetPredicted();
       //console.log("    collided on last step.");
       //console.log("    collisions: ", collisionList);
       //console.log("    tempState: ", tempState);
@@ -1707,6 +1719,7 @@ PhysEng.prototype.findEventsAndTimesFromCollisions = function (collisionList) {
 
     //LINE COLLISION
     if (collision.collidedLine) {
+      console.log("~~~~~~~~~~ collided line :o");
       testedLine = true;
       //function solveTimeToDistFromLine(curPos, curVel, accel, targetLine, distanceGoal) {
       var futureTime = solveTimeToDistFromLine(this.player.pos, this.player.vel, this.player.accel, collision.surface, this.player.radius);
@@ -1720,18 +1733,20 @@ PhysEng.prototype.findEventsAndTimesFromCollisions = function (collisionList) {
         //DEBUG_DRAW_LIGHTBLUE.push(new DebugCircle(tempState.pos, tempState.radius, 5));
       }
 
-      console.log("tempState: ", tempState);
-      if (collision.surface.isPointWithinPerpBounds(tempState.pos) && lineTime && lineTime > 0 && lineTime < 200) {   // Ensures that the real collision was with the line and not the points.
+      console.log("~~~~~~~~~~~~ lineTime " + lineTime + ", tempState: ", tempState);
+      if (collision.surface.isPointWithinPerpBounds(tempState.pos) && lineTime && lineTime > 0 && lineTime < 200000000) {   // Ensures that the real collision was with the line and not the points.
+
+        console.log("~~~~~~~~~~~~~~ and tempstate within line perp bounds: ", tempState);
         var collisionHeapObj = new CollisionHeapObj(tempState, collision.surface);
         collisionHeap.push(collisionHeapObj);
 
       } else {                // We didnt really collide with the line. Try to add points instead.
-
+        console.log("~~~~~~~~~~  We didnt really collide with the line. Try to add points instead.");
         //console.log("We got a line collision but not with points, but time analysis says we didnt collide with line. Testing points?");
         var point0Time = this.player.time + solveTimeToDistFromPoint(this.player.pos, this.player.vel, this.player.accel, collision.surface.p0, this.player.radius);
         var point1Time = this.player.time + solveTimeToDistFromPoint(this.player.pos, this.player.vel, this.player.accel, collision.surface.p1, this.player.radius);
 
-        if (point0Time && point0Time > 0 && point0Time < 200) {
+        if (point0Time && point0Time > 0 && point0Time < 20000000) {
           console.log("      collision ", i, " collided with p0 at time: ", point0Time);
           var tempState0 = stepStateToTime(this.player, point0Time);
           console.log("      at position ", tempState0);
@@ -1743,7 +1758,7 @@ PhysEng.prototype.findEventsAndTimesFromCollisions = function (collisionList) {
         }
         testedP0 = true;
 
-        if (point1Time && point1Time > 0 && point1Time < 200) {
+        if (point1Time && point1Time > 0 && point1Time < 2000000000) {
           console.log("      collision ", i, " collided with p1 at time: ", point1Time);
           var tempState1 = stepStateToTime(this.player, point1Time);
           console.log("      at position ", tempState1);
@@ -1756,25 +1771,23 @@ PhysEng.prototype.findEventsAndTimesFromCollisions = function (collisionList) {
         testedP1 = true;
 
       }
-    }
-
-
-    //POINT COLLISION
-    if (collision.collidedP0 && (!testedP0)) {
+    } else if (collision.collidedP0 && (!testedP0)) {
+      console.log("~~~~~~~~~~ collision.collidedP0 && (!testedP0)");
       var point0Time = this.player.time + solveTimeToDistFromPoint(this.player.pos, this.player.vel, this.player.accel, collision.surface.p0, this.player.radius);
 
-      if (point0Time && point0Time > 0 && point0Time < 200) {
+      if (point0Time && point0Time > 0 && point0Time < 2000000000000) {
         console.log("      collision ", i, " collided with p0 at time: ", point0Time);
         var tempState0 = stepStateToTime(this.player, point0Time);
         console.log("      at position ", tempState0);
-        //if (collision.surface.isPointWithinPerpBounds(tempState0.pos)) { // DEBUG TODO PLEASE DONT EVER LET THIS BE CALLED                   
 
+        if (collision.surface.isPointWithinPerpBounds(tempState0.pos)) { // DEBUG TODO PLEASE DONT EVER LET THIS BE CALLED                   
 
                //TODO I COMMENTED THIS OUT ITS PROBABLY AN IMPORTANT CASE TO HANDLE BUT I DONT REMEMBER WHAT IT MEANS D:
 
+          console.log("fuck you fuck everything I dont want to write a special case handler here please for the love of God dont ever let this exception get thrown");
+          //throw "fuck you fuck everything I dont want to write a special case handler here please for the love of God dont ever let this exception get thrown";
+        }
 
-        //  throw "fuck you fuck everything I dont want to write a special case handler here please for the love of God dont ever let this exception get thrown";
-        //}
         var collisionHeapObj = new CollisionHeapObj(tempState0, new TerrainPoint(collision.surface.p0, collision.surface, collision.surface.adjacent0));
         collisionHeap.push(collisionHeapObj);
         if (DEBUG_DRAW) {
@@ -1787,18 +1800,18 @@ PhysEng.prototype.findEventsAndTimesFromCollisions = function (collisionList) {
     if (collision.collidedP1 && (!testedP1)) {
       var point1Time = this.player.time + solveTimeToDistFromPoint(this.player.pos, this.player.vel, this.player.accel, collision.surface.p1, this.player.radius);
 
-      if (point1Time && point1Time > 0 && point1Time < 200) {
+      if (point1Time && point1Time > 0 && point1Time < 2000000000000) {
         console.log("      collision ", i, " collided with p1 at time: ", point1Time);
         var tempState1 = stepStateToTime(this.player, point1Time);
         console.log("      at position ", tempState1);
-        //if (collision.surface.isPointWithinPerpBounds(tempState1.pos)) { // DEBUG TODO PLEASE DONT EVER LET THIS BE CALLED              
 
+        if (collision.surface.isPointWithinPerpBounds(tempState1.pos)) { // DEBUG TODO PLEASE DONT EVER LET THIS BE CALLED              
 
                 //TODO I COMMENTED THIS OUT ITS PROBABLY AN IMPORTANT CASE TO HANDLE BUT I DONT REMEMBER WHAT IT MEANS D:
+          console.log("fuck you fuck everything I dont want to write a special case handler here please for the love of God dont ever let this exception get thrown");
+          //throw "fuck you fuck everything I dont want to write a special case handler here please for the love of God dont ever let this exception get thrown";
+        }
 
-
-        //  throw "fuck you fuck everything I dont want to write a special case handler here please for the love of God dont ever let this exception get thrown";
-        //}
         var collisionHeapObj = new CollisionHeapObj(tempState1, new TerrainPoint(collision.surface.p1, collision.surface, collision.surface.adjacent1));
         collisionHeap.push(collisionHeapObj);
         if (DEBUG_DRAW) {

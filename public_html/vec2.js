@@ -4,6 +4,7 @@
  */
 var HORIZ_NORM = new vec2(1, 0, true);
 var VERT_NORM = new vec2(0, 1, true);
+var ORIGIN = new vec2(0, 0, false);
 
 var ROT_EPSILON = 0.000000001;
 

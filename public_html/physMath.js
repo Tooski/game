@@ -120,30 +120,31 @@ function stepAngularStateByAngle(aState, signedAngle) {
   console.log(" * * * * * * * stepAngularStateByAngle, signedAngle " + signedAngle);
   aState.print(" * * * * * * * ");
 
-  var circDist = signedAngle * aState.radius;
-  console.log(" * * * * * * * circDist " + circDist);
-  var deltaTime = solveTimeToDist1D(circDist, aState.aVel, aState.aAccel);
+  var circDist1 = signedAngle * aState.radius;
+  console.log(" * * * * * * * circDist1 " + circDist1);
+  var deltaTime1 = solveTimeToDist1D(circDist1, aState.aVel, aState.aAccel);
 
-  if (!deltaTime && !deltaTime === 0) {
-    console.log("first deltaTime was null " + deltaTime);
-    if (circDist)
-    deltaTime = solveTimeToDist1D(circDist, aState.aVel, aState.aAccel);
+  if (deltaTime1 === null) {
+    console.log("deltaTime1 was null " + deltaTime1);
+    //if (circDist < )
+    deltaTime1 = solveTimeToDist1D(circDist1, aState.aVel, aState.aAccel);
   }
 
-  console.log(" * * * * * * * deltaTime " + deltaTime);
+  console.log(" * * * * * * * deltaTime " + deltaTime1);
 
   var endAngle = aState.a + signedAngle;
   console.log(" * * * * * * * endAngle " + endAngle);
 
-  var endVel = aState.aVel + aState.aAccel * deltaTime;
+  var endVel = aState.aVel + aState.aAccel * deltaTime1;
   console.log(" * * * * * * * endVel " + endVel);
 
-  if (!(deltaTime > 0)) {
-    console.log("bad time: ", deltaTime);
-    throw "bad time returned in stepAngularStateByAngle";
+  if (!(deltaTime1 > 0)) {
+    console.log("bad time: ", deltaTime1);
+    //throw "bad time returned in stepAngularStateByAngle";
+    return null;
   }
 
-  return new AngularState(aState.time + deltaTime, aState.radius, aState.point, endAngle, endVel, aState.aAccel);
+  return new AngularState(aState.time + deltaTime1, aState.radius, aState.point, endAngle, endVel, aState.aAccel);
 }
 
 
@@ -156,20 +157,27 @@ function stepAngularStateToAngle(aState, targetSignedAngle) {
     console.log("targetSignedAngle " + targetSignedAngle);
     throw "not a signed angle";
   }
+
   var startAngle = aState.a;
   var angleDelta = targetSignedAngle - startAngle;
   var sign = (angleDelta > 0 ? 1 : -1);
+  console.log("target signed angle " + targetSignedAngle);
+  console.log("startAngle " + startAngle);
+  console.log("first angleDelta " + angleDelta);
 
   angleDelta = angleDelta * sign;
   if (angleDelta > Math.PI) {
     angleDelta = angleDelta - TWO_PI;
+    console.log("flipping direction angleDelta " + angleDelta);
   } else if (angleDelta < 0) {
     throw "bad";
   }
   angleDelta = angleDelta * sign;
+  console.log("final angleDelta " + angleDelta);
 
   var toReturn;
   if (angleDelta < ANGLE_EPSILON && angleDelta > -ANGLE_EPSILON) {  // its the same angle.
+    console.log("intentionally returning null???");
     toReturn = null;
   } else {
     toReturn = stepAngularStateByAngle(aState, angleDelta);
@@ -281,9 +289,9 @@ function getSurfacesAtSoonestAngleTime(aState, surface1, surface2) {
 
 
 function convertAngularToNormalState(aState) {
-  var posVec = vecFromAngleLength(aState.a, aState.radius);
+  //var posVec = vecFromAngleLength(aState.a, aState.radius);
 
-  var pos = vecFromPointDistAngle(aState.point, aState.radius, aState.a);
+  var pos = vecFromPointDistAngle(aState.point, aState.radius + ARC_RADIUS_PADDING, aState.a);
 
   var vel;
   if (aState.aVel > 0) {
@@ -503,9 +511,6 @@ function solveTimeToDist1D(targetDist, currentVelocity, acceleration) {
   //console.log("        solved. Time at:  ", time);
 
   targetDist = -targetDist;
-  //var a = acceleration / 2;
-  //var b = currentVelocity;
-  //var c = distanceToSurfaceEnd;
 
   var time = null;
 
@@ -569,7 +574,7 @@ function solveTimeToDistFromPoint(curPos, curVel, accel, targetPos, distanceGoal
 
 
   var c = -(curPos.subtract(targetPos).length()) + distanceGoal;
-  var rootsArray = solveQuadratic(accel.length(), curVel.length(), c); //TODO DEBUG PRINT STATEMENTS AND VERIFY THIS IS CORRECT, PROBABLY WRONG. DOES THIS ACTUALLY WORK? WAS IT REALLY THIS EASYYYY????????
+  var rootsArray = solveQuadratic(accel.length() / 2, curVel.length(), c); //TODO DEBUG PRINT STATEMENTS AND VERIFY THIS IS CORRECT, PROBABLY WRONG. DOES THIS ACTUALLY WORK? WAS IT REALLY THIS EASYYYY????????
 
   //console.log("solveTimeToDistFromPoint.   accel.length() ", accel.length(), ", curVel.length() ", curVel.length(), ", curPos ", curPos, ", targetPos ", targetPos, ", distanceGoal ", distanceGoal);
   //console.log("   possible time distances are ", rootsArray[0], ", ", rootsArray[1]);
