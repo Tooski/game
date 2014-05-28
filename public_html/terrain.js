@@ -68,12 +68,12 @@ function TerrainLine(point0, point1, player, adjacent0, adjacent1, normal) {
   TerrainSurface.apply(this, [point0, point1, adjacent0, adjacent1, player]); // Sets this up as a child of TerrainSurface and initializes TerrainSurface's fields.
   this.normal = normal;//.normalize();
 
-    this.jsonObj = function () {
+  this.toJSON = function () {
     var formattedObj = { id: this.id };
     formattedObj = formatLineToJSON(this, formattedObj);
 
     formattedObj.normal = this.normal;
-    return formattedObj;
+    return JSON.stringify(formattedObj);;
   }
 
   this.getNormalAt = function (ballLocation, radius) {
@@ -306,10 +306,10 @@ function GoalLine(point0, point1, player, adjacent0, adjacent1) {
   this.id;
   this.goalID;
 
-  this.jsonObj = function () {
+  this.toJSON = function () {
     var formattedObj = { id: this.id, goalID: this.goalID };
     formattedObj = formatLineToJSON(this, formattedObj);
-    return formattedObj;
+    return JSON.stringify(formattedObj);
   }
 
   /**
@@ -450,12 +450,11 @@ function CheckpointLine(point0, point1, player, adjacent0, adjacent1) {
   this.id;
   this.checkpointID;
 
-  this.jsonObj = function () {
+  this.toJSON = function () {
     var formattedObj = { id: this.id, checkpointID: this.checkpointID };
     formattedObj = formatLineToJSON(this, formattedObj);
-    return formattedObj;
+    return JSON.stringify(formattedObj);
   }
-
   /**
    * checks for a collision.
    */
@@ -592,10 +591,10 @@ function KillLine(point0, point1, player, adjacent0, adjacent1) {
   TerrainSurface.apply(this, [point0, point1, adjacent0, adjacent1, player]); // Sets this up as a child of TerrainSurface and initializes TerrainSurface's fields.
   this.id;
 
-  this.jsonObj = function () {
+  this.toJSON = function () {
     var formattedObj = { id: this.id };
     formattedObj = formatLineToJSON(this, formattedObj);
-    return formattedObj;
+    return JSON.stringify(formattedObj);
   }
 
   /**

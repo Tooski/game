@@ -326,3 +326,25 @@ function TerrainManager () {
 	}
 	
 }
+
+TerrainManager.prototype = new Entity();
+TerrainManager.constructor = TerrainManager;
+
+TerrainManager.prototype.pushTerrain = function(terrain, list) {
+    this.createTerrainPoints(terrain);
+    this.snapTo(terrain);
+    this.terrainList.push(terrain);
+    if (!this.levelByID[terrain.id]) this.levelByID[terrain.id] = terrain;
+};
+
+TerrainManager.prototype.addCollectible = function() {
+
+}
+
+TerrainManager.prototype.addCheckpoint = function() {
+
+}
+
+TerrainManager.prototype.pushGoalLine = function() {
+
+}
