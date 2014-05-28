@@ -720,13 +720,16 @@ function findNormalByMouse(e, line) {
 
 
 
+
+
+
 /**
  * Removing mass duplicate code from across the different line types.
  */
 function lineCollidesWith (line, point, radius, ctx) {
   var pA = line.p0;              // TerrainLine point 1
   var pB = line.p1;              // TerrainLine point 2
-  var pC = point;                // center of the ball
+  var pC = ORIGIN.add(point);                // center of the ball
 
   var vAB = pB.subtract(pA);     // vector from A to B
   var vAC = pC.subtract(pA);     // vector from A to the ball
@@ -739,11 +742,13 @@ function lineCollidesWith (line, point, radius, ctx) {
   var collision = false;
   var radiussq = radius * radius;
   var vABlensq = vAB.lengthsq();
-  if (vCD.lengthsq() < radiussq - COLLISION_EPSILON_SQ && vAD.lengthsq() < vABlensq - COLLISION_EPSILON_SQ && vAB.subtract(vAD).lengthsq() < vABlensq - COLLISION_EPSILON_SQ) {
+  if (vCD.lengthsq() < radiussq && vAD.lengthsq() < vABlensq && vAB.subtract(vAD).lengthsq() < vABlensq) {
+    //if (vCD.lengthsq() < radiussq - COLLISION_EPSILON_SQ && vAD.lengthsq() < vABlensq - COLLISION_EPSILON_SQ && vAB.subtract(vAD).lengthsq() < vABlensq - COLLISION_EPSILON_SQ) {
     // THEN THE CENTER OF OUR CIRCLE IS WITHIN THE PERPENDICULAR BOUNDS OF THE LINE SEGMENT, AND CIRCLE IS LESS THAN RADIUS AWAY FROM THE LINE.
     //console.log("Within perpendicular line bounds.");
     collision = true;
-  } else if (vAC.lengthsq() < radiussq - COLLISION_EPSILON_SQ || vBC.lengthsq() < radiussq - COLLISION_EPSILON_SQ) {
+  } else if (vAC.lengthsq() < radiussq || vBC.lengthsq() < radiussq) {
+    //} else if (vAC.lengthsq() < radiussq - COLLISION_EPSILON_SQ || vBC.lengthsq() < radiussq - COLLISION_EPSILON_SQ) {
     // WE ARE OFF THE SIDES OF THE PERPENDICULAR BOUNDING BOX, BUT WE STILL COLLIDED WITH THE LINES ENDPOINT.
     //console.log("Outside line bounds, hit endpoint");
     collision = true;
@@ -765,7 +770,7 @@ function lineCollidesWith (line, point, radius, ctx) {
 function lineCollidesData(line, point, radius, ctx) {
   var pA = line.p0;              // TerrainLine point 1
   var pB = line.p1;              // TerrainLine point 2
-  var pC = point;                // center of the ball
+  var pC = ORIGIN.add(point);    // center of the ball
 
   var vAB = pB.subtract(pA);     // vector from A to B
   var vAC = pC.subtract(pA);     // vector from A to the ball
@@ -786,17 +791,20 @@ function lineCollidesData(line, point, radius, ctx) {
   var vABlensq = vAB.lengthsq();
 
 
-  if (vAC.lengthsq() < radiussq - COLLISION_EPSILON_SQ) {      // hit P0
+  if (vAC.lengthsq() < radiussq) {      // hit P0
+    //if (vAC.lengthsq() < radiussq - COLLISION_EPSILON_SQ) {      // hit P0
     dcollision = true;
     dcollidedP0 = true;
     console.log("hit P0.");
   }
-  if (vBC.lengthsq() < radiussq - COLLISION_EPSILON_SQ) {       // hit P1
+  if (vBC.lengthsq() < radiussq) {       // hit P1
+    //if (vBC.lengthsq() < radiussq - COLLISION_EPSILON_SQ) {       // hit P1
     dcollision = true;
     dcollidedP1 = true;
     console.log("hit P1.");
   }
-  if (vCD.lengthsq() < radiussq - COLLISION_EPSILON_SQ && vAD.lengthsq() < vABlensq - COLLISION_EPSILON_SQ && vAB.subtract(vAD).lengthsq() < vABlensq - COLLISION_EPSILON_SQ) {
+  if (vCD.lengthsq() < radiussq && vAD.lengthsq() < vABlensq && vAB.subtract(vAD).lengthsq() < vABlensq) {
+    //if (vCD.lengthsq() < radiussq - COLLISION_EPSILON_SQ && vAD.lengthsq() < vABlensq - COLLISION_EPSILON_SQ && vAB.subtract(vAD).lengthsq() < vABlensq - COLLISION_EPSILON_SQ) {
     // THEN THE CENTER OF OUR CIRCLE IS WITHIN THE PERPENDICULAR BOUNDS OF THE LINE SEGMENT, AND CIRCLE IS LESS THAN RADIUS AWAY FROM THE LINE.
     console.log("    Within perpendicular line bounds AND collided.  =-=-=-=-=-=-=-=-=-=--=-=-=-=-=-=-=-=-=");
     //DEBUG_DRAW_RED.push(new DebugCircle(point, radius, 5));
