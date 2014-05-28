@@ -1150,7 +1150,7 @@ PhysEng.prototype.updatePhys = function (newEvents, stepToRender) {
   //console.log(stepResult.state.pos);
 
   
-  animationUpdateAnimation(p, this.getTime());
+  animationUpdateAnimation(this.player, this.getTime());
 
   return this.player.completionState;
 }
