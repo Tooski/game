@@ -357,7 +357,7 @@ function PlayerModel(controlParams, physParams, time, radius, pos, vel, accel, s
 	
   this.animationTimeInCurrentAnimation = 0.0;   // what amount of time in seconds have we been in this animation state?
   this.animationStartTime = 0.0;
-  this.animationAngleOfAnimation = 0.0;         // DO WE WANT THIS IN DEGREES OR RADIANS?
+  this.animationAngle = 0.0;         // DO WE WANT THIS IN DEGREES OR RADIANS?
   this.animationSpeed = 0.0;                    // The player speed. Used for walking / running animations.
   
   //END ANIMATION FIELDS
@@ -2362,7 +2362,7 @@ CHILD.prototype.method = function () {
 
 //this.animationTimeInCurrentAnimation = 0.0;   // what amount of time in seconds have we been in this animation state?
 //this.animationStartTime = 0.0;
-//this.animationAngleOfAnimation = 0.0;         // DO WE WANT THIS IN DEGREES OR RADIANS?
+//this.animationAngle = 0.0;         // DO WE WANT THIS IN DEGREES OR RADIANS?
 //this.animationSpeed = 0.0;                    // The player speed. Used for walking / running animations.
 
 
