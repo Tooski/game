@@ -66,7 +66,7 @@ function stepAngularStateToTime(aState, targetGameTime) {
 
   var deltaTime = targetGameTime - startTime;
 
-  var angleDelta = (aState.aVel * deltaTime + aState.aAccel * deltaTime * deltaTime) / aState.radius;
+  var angleDelta = (aState.aVel * deltaTime + aState.aAccel * deltaTime * deltaTime / 2) / aState.radius;
 
   var endAngle = aState.a + angleDelta;
 
@@ -291,7 +291,7 @@ function getSurfacesAtSoonestAngleTime(aState, surface1, surface2) {
 function convertAngularToNormalState(aState) {
   //var posVec = vecFromAngleLength(aState.a, aState.radius);
 
-  var pos = vecFromPointDistAngle(aState.point, aState.radius + ARC_RADIUS_PADDING, aState.a);
+  var pos = vecFromPointDistAngle(aState.point, aState.radius, aState.a);
 
   var vel;
   if (aState.aVel > 0) {
@@ -527,8 +527,8 @@ function solveTimeToDist1D(targetDist, currentVelocity, acceleration) {
     var z;
     if (x < 0) {
       // ROOTS ARE IMAGINARY!
-      console.log("          roots are imaginary, not gonna exit surface.");
-      console.log("          x ", x, ", acceleration ", acceleration, ", currentVelocity ", currentVelocity, ", distanceToSurfaceEnd ", targetDist);
+      console.log("          timeToDist1D: roots are imaginary, not gonna exit surface.");
+      console.log("          x ", x, ", acceleration ", acceleration, ", currentVelocity ", currentVelocity, ", distance ", -targetDist);
     } else {
       //calculate roots
       //console.log("x: ", x);

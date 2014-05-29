@@ -23,7 +23,7 @@ private static $singleton;
  */
 private function __construct() {
     
-        $this->db = mysqli_connect("eklipz.us.to", "root", "13243546", "hamstergame");
+        $this->db = mysqli_connect("192.168.0.30", "root", "13243546", "hamstergame");
         if ($this->db->connect_error){
             throw new Exception("Connect Error (".$this->db->connect_errno.") ".$this->db->connect_error);
         } // Error handling, should be changed later.

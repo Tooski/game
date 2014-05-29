@@ -756,6 +756,13 @@ PlayerModel.prototype.surfaceLock = function (surface) {
     console.log("surface", surface);
     throw "no surface passed into surfaceLock";
   }
+
+  var ejectDist = this.radius - getDistFromLine(this.pos, surface);
+
+  var ejectVec = surface.normal.multf(ejectDist);
+  var ejectedPos = this.pos.add(ejectVec);
+  this.pos = ejectedPos;
+
   this.airChargeCount = this.controlParams.numAirCharges;
   this.surface = surface;
   this.onSurface = true;
@@ -764,37 +771,6 @@ PlayerModel.prototype.surfaceLock = function (surface) {
   this.updateVecs(this.inputState);
 }
 
-
-
-/**
- * Function that deals with arking the player to a surface.
- */
-PlayerModel.prototype.arcTo = function (surface) {
-  console.log(" ");
-  console.log(" ");
-
-  var isAccelerating = ((this.onSurface && this.vel.length() > 0) || (this.onPoint && this.aVel !== 0));
-  console.log("-=-=-=-=-=-=  ACCELERATING???", isAccelerating);
-  console.log(" / / / /        player ang", this.a, "   ! _ ! _ ! _ ! _ ! _ ! _ ! _ ! _ ! _ ! _ ! _ ! _ ");
-  console.log(" / / / /  surface norm ang", surface.normal.sangle(), "   ! _ ! _ ! _ ! _ ! _ ! _ ! _ ! _ ! _ ! _ ! _ ");
-  console.log(" / / / /        difference", this.a - surface.normal.sangle(), "   ! _ ! _ ! _ ! _ ! _ ! _ ! _ ! _ ! _ ! _ ! _ ");
-  console.log(" ");
-  //var cartesianState = convertAngularToNormalState(this);
-  //var accel = this.accel;
-  //this.updateToState(cartesianState);
-  //this.accel = accel;             // TODO better way to keep from changing accel to the angular accel???? Do we even care?
-  if (surface) {
-    // didnt end arc early
-    console.log(" +++++++++ arcTo: didnt end arc early. surface ", surface);
-    this.surfaceLock(surface);
-  } else {
-    // ended arc early, in the air.
-    console.log(" +++++++++ arcTo: ended arc early, in the air.");
-    this.leaveGround();
-  }
-  this.leaveArc();
-  this.updateVecs(this.inputState);   // TODO remove?
-}
 
 
 
@@ -806,7 +782,7 @@ PlayerModel.prototype.startArc = function (point, arcAngle, pointToPosVec) {
 
 
 
-  var ang = getSignedAngleFromAToB(HORIZ_NORM, ptpNorm.multf(this.radius));
+  var ang = getSignedAngleFromAToB(HORIZ_NORM, ptpNorm);
 
   var angVel = (arcAngle < 0 ? -this.vel.length() : this.vel.length());
   var angAccel = (arcAngle < 0 ? -this.accel.length() : this.accel.length());
@@ -825,6 +801,42 @@ PlayerModel.prototype.startArc = function (point, arcAngle, pointToPosVec) {
   this.onSurface = false;
   this.onPoint = true;
 }
+
+
+
+/**
+ * Function that deals with arking the player to a surface.
+ */
+PlayerModel.prototype.arcTo = function (surface) {
+  console.log(" ");
+  console.log(" ");
+
+  var isAccelerating = ((this.onSurface && this.vel.length() > 0) || (this.onPoint && this.aVel !== 0));
+  console.log("-=-=-=-=-=-=  ACCELERATING???", isAccelerating);
+  console.log(" / / / /        player ang", this.a, "   ! _ ! _ ! _ ! _ ! _ ! _ ! _ ! _ ! _ ! _ ! _ ! _ ");
+  console.log(" / / / /  surface norm ang", surface.normal.sangle(), "   ! _ ! _ ! _ ! _ ! _ ! _ ! _ ! _ ! _ ! _ ! _ ");
+  console.log(" / / / /        difference", this.a - surface.normal.sangle(), "   ! _ ! _ ! _ ! _ ! _ ! _ ! _ ! _ ! _ ! _ ! _ ");
+  //console.log(" / / / /        difference", this.a - surface.normal.sangle(), "   ! _ ! _ ! _ ! _ ! _ ! _ ! _ ! _ ! _ ! _ ! _ ");
+  console.log(" ");
+  //var cartesianState = convertAngularToNormalState(this);
+  //var accel = this.accel;
+  //this.updateToState(cartesianState);
+  //this.accel = accel;             // TODO better way to keep from changing accel to the angular accel???? Do we even care?
+  if (surface) {
+    // didnt end arc early
+    console.log(" +++++++++ arcTo: didnt end arc early. surface ", surface);
+    var surfaceVecNorm = surface.p1.subtract(surface.p0).normalize();
+    this.lockTo(surface, surfaceVecNorm);
+    this.leaveArc();
+  } else {
+    // ended arc early, in the air.
+    console.log(" +++++++++ arcTo: ended arc early, in the air.");
+    this.leaveArc();
+    this.leaveGround();
+  }
+  this.updateVecs(this.inputState);   // TODO remove?
+}
+
 
 
 
@@ -1576,7 +1588,7 @@ PhysEng.prototype.getSurfaceEndEvent = function () {
             throw "bullshit"
           }
           DEBUG_DRAW_GRAY.push(new DebugCircle(endPointState.pos, this.player.radius, 5));
-          throw "Debug, but this technically shouldnt happen where endpoint was hit before the adjacent line was.";
+          //throw "Debug, but this technically shouldnt happen where endpoint was hit before the adjacent line was.";
         }
         //handle me.
         nextSurfaceEvent = new SurfaceAdjacentEvent(adjData.time, adjDependencyMask, this.player.surface, (adjData.adjNumber === 0 ? this.player.surface.adjacent0 : this.player.surface.adjacent1), adjData.angle, true);
