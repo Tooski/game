@@ -208,15 +208,6 @@ MapEditor.prototype.createLineButton = function(ctx) {
     var line = new MapEditorButton("Lines", 0, (buttonSize + 5) , buttonSize, buttonSize);
     var that = this;
     
-//        line.collider.onClick = function(e) {
-//        if(button !== that) {
-//            line.isSelected = button ? !(button.isSelected = false) : true;
-//            button = that;
-//        } else {
-//            line.isSelected = false;
-//            button = null;
-//        }
-//    };
 
 
 
@@ -242,46 +233,7 @@ MapEditor.prototype.createLineButton = function(ctx) {
                     button.isSelected = false;
                 }
             }
-           }
-
-//
-// 
-//        if(!this.line && !this.normal) {
-//        if(document.activeElement !== ctx.canvas) {
-//     
-//            var xposition = localToWorld(e.offsetX, "x");
-//            var yposition = localToWorld(e.offsetY, "y");
-//            
-//            this.line = new TerrainLine(
-//                    new vec2(xposition, yposition),
-//                    new vec2(xposition, yposition));
-//             that.level.pushTerrain(this.line);
-//               
-//            button.isSelected = false;
-//        }
-//            
-//        } else if (this.line && !this.normal) {
-//            that.level.snapTo(this.line);
-//            this.normal = this.line;
-//            if(!this.normal.normal) {
-//              this.normal.normal = new vec2(0, 0);
-//            }
-//            this.line = null;
-//        } else if (!this.line && this.normal) {
-//           if(!this.normal.circularID) {
-//            var xposition = this.normal.p1.x;
-//            var yposition = this.normal.p1.y;
-//            
-//            this.line = new TerrainLine(
-//                    new vec2(xposition, yposition),
-//                    new vec2(xposition, yposition));
-//             that.level.pushTerrain(this.line);
-//         }
-//             this.normal = null;
-//             
-//            this.draw(ctx);
-//        }
-    
+           }    
     };
     line.onDrag = function(e) {
         
@@ -361,10 +313,10 @@ MapEditor.prototype.createLineButton = function(ctx) {
 };
 
 MapEditor.prototype.createStartPointButton = function(ctx) {
-	var line = new MapEditorButton("Start", 0, (buttonSize + 5) * 2, buttonSize, buttonSize);
+	var start = new MapEditorButton("Start", 0, (buttonSize + 5) * 2, buttonSize, buttonSize);
     var that = this;
 	
-	collect.onClick = function(e) {
+    start.onClick = function (e) {
 		var left = parseInt(that.ctx.canvas.style.left);
         var top =  parseInt(that.ctx.canvas.style.top);
         if(e.offsetX >  that.ctx.canvas.width + left || e.offsetX < left ||
@@ -374,7 +326,7 @@ MapEditor.prototype.createStartPointButton = function(ctx) {
                     var xposition = localToWorld(e.offsetX, "x");
                     var yposition = localToWorld(e.offsetY, "y");
 
-                    that.level.setStartPoint = new vec2(xposition, yposition);
+                    that.level.startPoint = new vec2(xposition, yposition);
 
                     button.isSelected = false;
                 }
@@ -384,10 +336,10 @@ MapEditor.prototype.createStartPointButton = function(ctx) {
 }
 
 MapEditor.prototype.createCheckpointLineButton = function(ctx) {
-	var line = new MapEditorButton("Check", 0, (buttonSize + 5) * 3, buttonSize, buttonSize);
+	var checkpointButton = new MapEditorButton("Check", 0, (buttonSize + 5) * 3, buttonSize, buttonSize);
     var that = this;
 
-	 line.onClick = function(e) {
+    checkpointButton.onClick = function (e) {
         
         var left = parseInt(that.ctx.canvas.style.left);
         var top =  parseInt(that.ctx.canvas.style.top);
@@ -398,7 +350,7 @@ MapEditor.prototype.createCheckpointLineButton = function(ctx) {
                     var xposition = localToWorld(e.offsetX, "x");
                     var yposition = localToWorld(e.offsetY, "y");
 
-                    this.locked =  this.line = new CheckpointLines(
+                    this.locked =  this.line = new CheckpointLine(
                             new vec2(xposition, yposition),
                             new vec2(xposition, yposition));
                      that.level.pushTerrain(this.line);
