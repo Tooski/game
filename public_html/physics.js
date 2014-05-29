@@ -1532,6 +1532,7 @@ PhysEng.prototype.getSurfaceEndEvent = function () {
   var adjData = getNextSurfaceData(this.player, this.player.surface);
   var adjDependencyMask = 0;
 
+
   //second, find the time that we will reach the end of the surface.
   //returns { pointNumber: 0 or 1, time }
   var endPointData = solveEarliestSurfaceEndpoint(this.player, this.player.surface);
