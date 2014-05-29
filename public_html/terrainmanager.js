@@ -1,6 +1,17 @@
 // classes
 
 
+
+
+
+
+
+
+
+
+
+
+
 	
 //object that represents a checkpoint. this is entirely different from a CheckpointLine.
 // id = "checkpoint " + x + " " + y;
@@ -53,7 +64,7 @@ function Collectible (id, x, y, pointValue) {
 Collectible.prototype = new vec2();
 
 Collectible.prototype.draw = function(ctx) {
-	ctx.beginPath():
+  ctx.beginPath();
 	ctx.arc(x,y,20,0,2*Math.PI,false);
 	ctx.fillStyle = "orange";
 	ctx.fill();
@@ -184,20 +195,6 @@ function KillLine() {
 
 
 
-//TerrainLine modifications
-function TerrainLine(point0, point1, player, adjacent0, adjacent1, normal) {
-  // this.p0            // MUST BE LinePoints. Enforced with throw in TerrainSurface constructor.
-  // this.p1            // MUST BE LinePoints. Enforced with throw in TerrainSurface constructor.
-
-
-  this.toJSON = function () {
-    var formattedObj = { id: this.id };
-    formattedObj = formatLineToJSON(this, formattedObj);
-
-    formattedObj.normal = this.normal;
-    return JSON.stringify(formattedObj);;
-  }
-}
 
 
 
@@ -208,18 +205,8 @@ function pointString(point) {
 
 
 
-// helper method to get the line part of any of the above things that are lines, and terrainLines.
-// objectToAppendTo is an object that is passed in 
-function formatLineToJSON (line, objectToAppendTo) { 	
-	var obj = objectToAppendTo;
-	obj.p0id = line.p0.id;
-	obj.p1id = line.p1.id;
-	obj.adj0id = line.adjacent0.id;
-	obj.adj1id = line.adjacent1.id;
-}
-	
-	
-	
+
+
 	
 //TerrainManager itself
  
@@ -378,46 +365,143 @@ TerrainManager.prototype.pushCheckpointLine = function(checkpointLine) {
 
 TerrainManager.prototype.draw = function(ctx) {
 
-    if(editMode) {
-        this.terrainList.forEach (function(ter) {
-            //if(!ter.circularID){
-                ter.draw(ctx);
-            //}
-        });
-        //for(var i = 0; i < this.closedTerrain.length; i++) {
-        //    this.closedTerrain[i].draw(ctx);
-        //}
-        //console.log(this.closedTerrain.length);
-		this.drawStart();
-    } else {
-        this.lineDraw = {};
-     for(var i = 0; i < this.terrainList.length; i++) {
-        if(!this.terrainList[i].adjacent0 && !this.terrainList[i].adjacent1) {
-            this.terrainList[i].draw(ctx);
-        } else {
-        ctx.lineWidth = this.terrainList[i].lineWidth;
-        if(this.terrainList[i].adjacent0) {
+  
 
-             createCurves(ctx, this.terrainList[i].p0, this.terrainList[i].p1, 
-             this.terrainList[i].adjacent0.p0, this.terrainList[i].adjacent0.p1, 
-             this.terrainList[i].adjacent1, true);
-        }
+
+
+  ////OLD SHIT
+//    if(editMode) {
+//        this.terrainList.forEach (function(ter) {
+//            //if(!ter.circularID){
+//                ter.draw(ctx);
+//            //}
+//        });
+//        //for(var i = 0; i < this.closedTerrain.length; i++) {
+//        //    this.closedTerrain[i].draw(ctx);
+//        //}
+//        //console.log(this.closedTerrain.length);
+//		this.drawStart();
+//    } else {
+//        this.lineDraw = {};
+//     for(var i = 0; i < this.terrainList.length; i++) {
+//        if(!this.terrainList[i].adjacent0 && !this.terrainList[i].adjacent1) {
+//            this.terrainList[i].draw(ctx);
+//        } else {
+//        ctx.lineWidth = this.terrainList[i].lineWidth;
+//        if(this.terrainList[i].adjacent0) {
+
+//             createCurves(ctx, this.terrainList[i].p0, this.terrainList[i].p1, 
+//             this.terrainList[i].adjacent0.p0, this.terrainList[i].adjacent0.p1, 
+//             this.terrainList[i].adjacent1, true);
+//        }
          
-        if(this.terrainList[i].adjacent1) {
+//        if(this.terrainList[i].adjacent1) {
 
-            createCurves(ctx, this.terrainList[i].p0, this.terrainList[i].p1, 
-            this.terrainList[i].adjacent1.p0, this.terrainList[i].adjacent1.p1,
-            this.terrainList[i].adjacent0, false);
-        }
-    }
-	//Draw other elements
-  }
-}
+//            createCurves(ctx, this.terrainList[i].p0, this.terrainList[i].p1, 
+//            this.terrainList[i].adjacent1.p0, this.terrainList[i].adjacent1.p1,
+//            this.terrainList[i].adjacent0, false);
+//        }
+//    }
+//	//Draw other elements
+//  }
+//}
 };
+
+
+////////////TerrainLine.prototype.draw = function (ctx) {
+////////////  ctx.beginPath();
+////////////  ctx.lineWidth = this.lineWidth;
+////////////  ctx.lineCap = "round";
+
+////////////  ctx.lineJoin = "round";
+////////////  ctx.miterLimit = 3;
+////////////  ctx.strokeStyle = "#000000";
+////////////  ctx.moveTo(this.p0.x, this.p0.y);
+////////////  ctx.lineTo(this.p1.x, this.p1.y);
+
+
+////////////  //// CODE BELOW ONLY SHOWS IF EDIT MODE IS ENABLED FOR MAP EDITOR!
+////////////  if (editMode) {
+////////////    //ctx.beginPath();
+////////////    ctx.moveTo(this.p0.x, this.p0.y);
+////////////    ctx.arc(this.p0.x, this.p0.y, 4, 0, 2 * Math.PI, false);
+////////////    //ctx.fillStyle = 'green';
+////////////    //ctx.fill();
+////////////    ctx.moveTo(this.p1.x, this.p1.y);
+////////////    ctx.arc(this.p1.x, this.p1.y, 4, 0, 2 * Math.PI, false);
+////////////    //ctx.fillStyle = 'red';
+////////////    ctx.fill();
+
+////////////    if (this.normal) {
+
+////////////      var midPoint = this.p0.add(this.p1).divf(2.0);
+////////////      //ctx.beginPath();
+////////////      //ctx.strokeStyle = "#001133";
+////////////      //ctx.lineWidth = 4;
+////////////      var pNormalPosEnd = midPoint.add(this.normal.multf(20));
+
+////////////      this.normalPosCol.x = pNormalPosEnd.x - this.normalPosCol.w / 2;
+////////////      this.normalPosCol.y = pNormalPosEnd.y - this.normalPosCol.h / 2;
+
+
+
+////////////      this.p0edit.x = this.p0.x;
+////////////      this.p0edit.y = this.p0.y;
+
+////////////      this.p1edit.x = this.p1.x;
+////////////      this.p1edit.y = this.p1.y;
+
+
+
+////////////      ctx.moveTo(midPoint.x, midPoint.y);
+////////////      ctx.lineTo(pNormalPosEnd.x, pNormalPosEnd.y);
+////////////      ctx.stroke();
+////////////      ctx.moveTo(this.p0edit.x, this.p0edit.y);
+
+////////////      ctx.arc(this.p0edit.x, this.p0edit.y, 4, 0, 2 * Math.PI, false);
+////////////      ctx.fill();
+
+////////////      //ctx.beginPath();
+
+
+////////////      this.p0edit.x = this.p0.x;
+////////////      this.p0edit.y = this.p0.y;
+
+////////////      this.p1edit.x = this.p1.x;
+////////////      this.p1edit.y = this.p1.y;
+
+
+
+////////////      ctx.moveTo(midPoint.x, midPoint.y);
+////////////      ctx.lineTo(pNormalPosEnd.x, pNormalPosEnd.y);
+////////////      ctx.stroke();
+////////////      ctx.moveTo(this.p0edit.x, this.p0edit.y);
+
+////////////      ctx.arc(this.p0edit.x, this.p0edit.y, 4, 0, 2 * Math.PI, false);
+////////////      ctx.fill();
+
+////////////      //ctx.beginPath();
+
+////////////      //ctx.arc(this.normalPosVec.x  , this.normalPosVec.y , this.normalPosCol.w/2, 0, 2 * Math.PI, false);
+////////////      //ctx.fillStyle = 'orange';
+////////////      //ctx.fill();
+////////////      //ctx.stroke();
+
+////////////    } else {
+
+////////////      ctx.stroke();
+////////////    }
+////////////    if (DEBUG_TERRAIN) {
+////////////      this.collidesWith(this.player.model.pos, DFLT_radius, ctx);
+////////////    }
+////////////  } else {
+////////////    ctx.stroke();
+////////////  }
+////////////};
 
 //Draws a circle denoting the set starting position if in edit mode 
 TerrainManager.prototype.drawStart = function(ctx) {
-	ctx.beginPath():
+  ctx.beginPath();
 	ctx.arc(startPoint.x,startPoint.y,10,0,2*Math.PI,false);
 	ctx.fillStyle = "green";
 	ctx.fill();

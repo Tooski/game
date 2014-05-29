@@ -68,6 +68,8 @@ function TerrainLine(point0, point1, player, adjacent0, adjacent1, normal) {
   TerrainSurface.apply(this, [point0, point1, adjacent0, adjacent1, player]); // Sets this up as a child of TerrainSurface and initializes TerrainSurface's fields.
   this.normal = normal;//.normalize();
 
+
+
   this.toJSON = function () {
     var formattedObj = { id: this.id };
     formattedObj = formatLineToJSON(this, formattedObj);
@@ -75,6 +77,8 @@ function TerrainLine(point0, point1, player, adjacent0, adjacent1, normal) {
     formattedObj.normal = this.normal;
     return JSON.stringify(formattedObj);;
   }
+
+
 
   this.getNormalAt = function (ballLocation, radius) {
     if (!ballLocation) {
@@ -204,96 +208,9 @@ TerrainLine.prototype = new TerrainSurface();      //Establishes this as a child
 TerrainLine.prototype.constructor = TerrainLine;   //Establishes this as having its own constructor.
 TerrainLine.prototype.lineWidth = 5;
 
-TerrainLine.prototype.draw = function (ctx) {
-  ctx.beginPath();
-  ctx.lineWidth = this.lineWidth;
-  ctx.lineCap = "round";
-
-  ctx.lineJoin = "round";
-  ctx.miterLimit = 3;
-  ctx.strokeStyle = "#000000";
-  ctx.moveTo(this.p0.x, this.p0.y);
-  ctx.lineTo(this.p1.x, this.p1.y);
-
-
-  //// CODE BELOW ONLY SHOWS IF EDIT MODE IS ENABLED FOR MAP EDITOR!
-  if (editMode) {
-    //ctx.beginPath();
-    ctx.moveTo(this.p0.x, this.p0.y);
-    ctx.arc(this.p0.x, this.p0.y, 4, 0, 2 * Math.PI, false);
-    //ctx.fillStyle = 'green';
-    //ctx.fill();
-    ctx.moveTo(this.p1.x, this.p1.y);
-    ctx.arc(this.p1.x, this.p1.y, 4, 0, 2 * Math.PI, false);
-    //ctx.fillStyle = 'red';
-    ctx.fill();
-
-    if (this.normal) {
-
-      var midPoint = this.p0.add(this.p1).divf(2.0);
-      //ctx.beginPath();
-      //ctx.strokeStyle = "#001133";
-      //ctx.lineWidth = 4;
-      var pNormalPosEnd = midPoint.add(this.normal.multf(20));
-
-      this.normalPosCol.x = pNormalPosEnd.x - this.normalPosCol.w / 2;
-      this.normalPosCol.y = pNormalPosEnd.y - this.normalPosCol.h / 2;
 
 
 
-      this.p0edit.x = this.p0.x;
-      this.p0edit.y = this.p0.y;
-
-      this.p1edit.x = this.p1.x;
-      this.p1edit.y = this.p1.y;
-
-
-
-      ctx.moveTo(midPoint.x, midPoint.y);
-      ctx.lineTo(pNormalPosEnd.x, pNormalPosEnd.y);
-      ctx.stroke();
-      ctx.moveTo(this.p0edit.x, this.p0edit.y);
-
-      ctx.arc(this.p0edit.x, this.p0edit.y, 4, 0, 2 * Math.PI, false);
-      ctx.fill();
-
-      //ctx.beginPath();
-
-
-      this.p0edit.x = this.p0.x;
-      this.p0edit.y = this.p0.y;
-
-      this.p1edit.x = this.p1.x;
-      this.p1edit.y = this.p1.y;
-
-
-
-      ctx.moveTo(midPoint.x, midPoint.y);
-      ctx.lineTo(pNormalPosEnd.x, pNormalPosEnd.y);
-      ctx.stroke();
-      ctx.moveTo(this.p0edit.x, this.p0edit.y);
-
-      ctx.arc(this.p0edit.x, this.p0edit.y, 4, 0, 2 * Math.PI, false);
-      ctx.fill();
-
-      //ctx.beginPath();
-
-      //ctx.arc(this.normalPosVec.x  , this.normalPosVec.y , this.normalPosCol.w/2, 0, 2 * Math.PI, false);
-      //ctx.fillStyle = 'orange';
-      //ctx.fill();
-      //ctx.stroke();
-
-    } else {
-
-      ctx.stroke();
-    }
-    if (DEBUG_TERRAIN) {
-      this.collidesWith(this.player.model.pos, DFLT_radius, ctx);
-    }
-  } else {
-    ctx.stroke();
-  }
-};
 
 // GoalLine object is the representation of a basic line that the player can roll on in a level. 
 // Extends TerrainSurface and implements its required methods and those of its parent, Collideable.
@@ -343,98 +260,6 @@ function GoalLine(point0, point1, player, adjacent0, adjacent1) {
 GoalLine.prototype = new TerrainSurface();      //Establishes this as a child of TerrainSurface.
 GoalLine.prototype.constructor = GoalLine;   //Establishes this as having its own constructor.
 GoalLine.prototype.lineWidth = 5;
-
-GoalLine.prototype.draw = function (ctx) {
-  ctx.beginPath();
-  ctx.lineWidth = this.lineWidth;
-  ctx.lineCap = "round";
-
-  ctx.lineJoin = "round";
-  ctx.miterLimit = 3;
-  ctx.strokeStyle = "#FF0000";
-  ctx.moveTo(this.p0.x, this.p0.y);
-  ctx.lineTo(this.p1.x, this.p1.y);
-
-
-  //// CODE BELOW ONLY SHOWS IF EDIT MODE IS ENABLED FOR MAP EDITOR!
-  if (editMode) {
-    //ctx.beginPath();
-    ctx.moveTo(this.p0.x, this.p0.y);
-    ctx.arc(this.p0.x, this.p0.y, 4, 0, 2 * Math.PI, false);
-    //ctx.fillStyle = 'green';
-    //ctx.fill();
-    ctx.moveTo(this.p1.x, this.p1.y);
-    ctx.arc(this.p1.x, this.p1.y, 4, 0, 2 * Math.PI, false);
-    //ctx.fillStyle = 'red';
-    ctx.fill();
-
-    if (this.normal) {
-
-      var midPoint = this.p0.add(this.p1).divf(2.0);
-      //ctx.beginPath();
-      //ctx.strokeStyle = "#001133";
-      //ctx.lineWidth = 4;
-      var pNormalPosEnd = midPoint.add(this.normal.multf(20));
-
-      this.normalPosCol.x = pNormalPosEnd.x - this.normalPosCol.w / 2;
-      this.normalPosCol.y = pNormalPosEnd.y - this.normalPosCol.h / 2;
-
-
-
-      this.p0edit.x = this.p0.x;
-      this.p0edit.y = this.p0.y;
-
-      this.p1edit.x = this.p1.x;
-      this.p1edit.y = this.p1.y;
-
-
-
-      ctx.moveTo(midPoint.x, midPoint.y);
-      ctx.lineTo(pNormalPosEnd.x, pNormalPosEnd.y);
-      ctx.stroke();
-      ctx.moveTo(this.p0edit.x, this.p0edit.y);
-
-      ctx.arc(this.p0edit.x, this.p0edit.y, 4, 0, 2 * Math.PI, false);
-      ctx.fill();
-
-      //ctx.beginPath();
-
-
-      this.p0edit.x = this.p0.x;
-      this.p0edit.y = this.p0.y;
-
-      this.p1edit.x = this.p1.x;
-      this.p1edit.y = this.p1.y;
-
-
-
-      ctx.moveTo(midPoint.x, midPoint.y);
-      ctx.lineTo(pNormalPosEnd.x, pNormalPosEnd.y);
-      ctx.stroke();
-      ctx.moveTo(this.p0edit.x, this.p0edit.y);
-
-      ctx.arc(this.p0edit.x, this.p0edit.y, 4, 0, 2 * Math.PI, false);
-      ctx.fill();
-
-      //ctx.beginPath();
-
-      //ctx.arc(this.normalPosVec.x  , this.normalPosVec.y , this.normalPosCol.w/2, 0, 2 * Math.PI, false);
-      //ctx.fillStyle = 'orange';
-      //ctx.fill();
-      //ctx.stroke();
-
-    } else {
-
-      ctx.stroke();
-    }
-    if (DEBUG_TERRAIN) {
-      this.collidesWith(this.player.model.pos, DFLT_radius, ctx);
-    }
-  } else {
-    ctx.stroke();
-  }
-};
-
 
 
 
@@ -487,96 +312,6 @@ CheckpointLine.prototype = new TerrainSurface();      //Establishes this as a ch
 CheckpointLine.prototype.constructor = CheckpointLine;   //Establishes this as having its own constructor.
 CheckpointLine.prototype.lineWidth = 5;
 
-CheckpointLine.prototype.draw = function (ctx) {
-  ctx.beginPath();
-  ctx.lineWidth = this.lineWidth;
-  ctx.lineCap = "round";
-
-  ctx.lineJoin = "round";
-  ctx.miterLimit = 3;
-  ctx.strokeStyle = "#FFFF00";
-  ctx.moveTo(this.p0.x, this.p0.y);
-  ctx.lineTo(this.p1.x, this.p1.y);
-
-
-  //// CODE BELOW ONLY SHOWS IF EDIT MODE IS ENABLED FOR MAP EDITOR!
-  if (editMode) {
-    //ctx.beginPath();
-    ctx.moveTo(this.p0.x, this.p0.y);
-    ctx.arc(this.p0.x, this.p0.y, 4, 0, 2 * Math.PI, false);
-    //ctx.fillStyle = 'green';
-    //ctx.fill();
-    ctx.moveTo(this.p1.x, this.p1.y);
-    ctx.arc(this.p1.x, this.p1.y, 4, 0, 2 * Math.PI, false);
-    //ctx.fillStyle = 'red';
-    ctx.fill();
-
-    if (this.normal) {
-
-      var midPoint = this.p0.add(this.p1).divf(2.0);
-      //ctx.beginPath();
-      //ctx.strokeStyle = "#001133";
-      //ctx.lineWidth = 4;
-      var pNormalPosEnd = midPoint.add(this.normal.multf(20));
-
-      this.normalPosCol.x = pNormalPosEnd.x - this.normalPosCol.w / 2;
-      this.normalPosCol.y = pNormalPosEnd.y - this.normalPosCol.h / 2;
-
-
-
-      this.p0edit.x = this.p0.x;
-      this.p0edit.y = this.p0.y;
-
-      this.p1edit.x = this.p1.x;
-      this.p1edit.y = this.p1.y;
-
-
-
-      ctx.moveTo(midPoint.x, midPoint.y);
-      ctx.lineTo(pNormalPosEnd.x, pNormalPosEnd.y);
-      ctx.stroke();
-      ctx.moveTo(this.p0edit.x, this.p0edit.y);
-
-      ctx.arc(this.p0edit.x, this.p0edit.y, 4, 0, 2 * Math.PI, false);
-      ctx.fill();
-
-      //ctx.beginPath();
-
-
-      this.p0edit.x = this.p0.x;
-      this.p0edit.y = this.p0.y;
-
-      this.p1edit.x = this.p1.x;
-      this.p1edit.y = this.p1.y;
-
-
-
-      ctx.moveTo(midPoint.x, midPoint.y);
-      ctx.lineTo(pNormalPosEnd.x, pNormalPosEnd.y);
-      ctx.stroke();
-      ctx.moveTo(this.p0edit.x, this.p0edit.y);
-
-      ctx.arc(this.p0edit.x, this.p0edit.y, 4, 0, 2 * Math.PI, false);
-      ctx.fill();
-
-      //ctx.beginPath();
-
-      //ctx.arc(this.normalPosVec.x  , this.normalPosVec.y , this.normalPosCol.w/2, 0, 2 * Math.PI, false);
-      //ctx.fillStyle = 'orange';
-      //ctx.fill();
-      //ctx.stroke();
-
-    } else {
-
-      ctx.stroke();
-    }
-    if (DEBUG_TERRAIN) {
-      this.collidesWith(this.player.model.pos, DFLT_radius, ctx);
-    }
-  } else {
-    ctx.stroke();
-  }
-};
 
 
 
@@ -623,96 +358,7 @@ KillLine.prototype = new TerrainSurface();      //Establishes this as a child of
 KillLine.prototype.constructor = KillLines;   //Establishes this as having its own constructor.
 KillLine.prototype.lineWidth = 5;
 
-KillLine.prototype.draw = function (ctx) {
-  ctx.beginPath();
-  ctx.lineWidth = this.lineWidth;
-  ctx.lineCap = "round";
 
-  ctx.lineJoin = "round";
-  ctx.miterLimit = 3;
-  ctx.strokeStyle = "#FF0000";
-  ctx.moveTo(this.p0.x, this.p0.y);
-  ctx.lineTo(this.p1.x, this.p1.y);
-
-
-  //// CODE BELOW ONLY SHOWS IF EDIT MODE IS ENABLED FOR MAP EDITOR!
-  if (editMode) {
-    //ctx.beginPath();
-    ctx.moveTo(this.p0.x, this.p0.y);
-    ctx.arc(this.p0.x, this.p0.y, 4, 0, 2 * Math.PI, false);
-    //ctx.fillStyle = 'green';
-    //ctx.fill();
-    ctx.moveTo(this.p1.x, this.p1.y);
-    ctx.arc(this.p1.x, this.p1.y, 4, 0, 2 * Math.PI, false);
-    //ctx.fillStyle = 'red';
-    ctx.fill();
-
-    if (this.normal) {
-
-      var midPoint = this.p0.add(this.p1).divf(2.0);
-      //ctx.beginPath();
-      //ctx.strokeStyle = "#001133";
-      //ctx.lineWidth = 4;
-      var pNormalPosEnd = midPoint.add(this.normal.multf(20));
-
-      this.normalPosCol.x = pNormalPosEnd.x - this.normalPosCol.w / 2;
-      this.normalPosCol.y = pNormalPosEnd.y - this.normalPosCol.h / 2;
-
-
-
-      this.p0edit.x = this.p0.x;
-      this.p0edit.y = this.p0.y;
-
-      this.p1edit.x = this.p1.x;
-      this.p1edit.y = this.p1.y;
-
-
-
-      ctx.moveTo(midPoint.x, midPoint.y);
-      ctx.lineTo(pNormalPosEnd.x, pNormalPosEnd.y);
-      ctx.stroke();
-      ctx.moveTo(this.p0edit.x, this.p0edit.y);
-
-      ctx.arc(this.p0edit.x, this.p0edit.y, 4, 0, 2 * Math.PI, false);
-      ctx.fill();
-
-      //ctx.beginPath();
-
-
-      this.p0edit.x = this.p0.x;
-      this.p0edit.y = this.p0.y;
-
-      this.p1edit.x = this.p1.x;
-      this.p1edit.y = this.p1.y;
-
-
-
-      ctx.moveTo(midPoint.x, midPoint.y);
-      ctx.lineTo(pNormalPosEnd.x, pNormalPosEnd.y);
-      ctx.stroke();
-      ctx.moveTo(this.p0edit.x, this.p0edit.y);
-
-      ctx.arc(this.p0edit.x, this.p0edit.y, 4, 0, 2 * Math.PI, false);
-      ctx.fill();
-
-      //ctx.beginPath();
-
-      //ctx.arc(this.normalPosVec.x  , this.normalPosVec.y , this.normalPosCol.w/2, 0, 2 * Math.PI, false);
-      //ctx.fillStyle = 'orange';
-      //ctx.fill();
-      //ctx.stroke();
-
-    } else {
-
-      ctx.stroke();
-    }
-    if (DEBUG_TERRAIN) {
-      this.collidesWith(this.player.model.pos, DFLT_radius, ctx);
-    }
-  } else {
-    ctx.stroke();
-  }
-};
 
 
 
@@ -867,3 +513,23 @@ function isPointWithinLineSegmentPerp(line, point) {
     return false;
   }
 }
+
+
+
+
+
+
+
+
+
+// helper method to get the line part of any of the above things that are lines, and terrainLines.
+// objectToAppendTo is an object that is passed in 
+function formatLineToJSON(line, objectToAppendTo) {
+  var obj = objectToAppendTo;
+  obj.p0id = line.p0.id;
+  obj.p1id = line.p1.id;
+  obj.adj0id = line.adjacent0.id;
+  obj.adj1id = line.adjacent1.id;
+}
+
+
