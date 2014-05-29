@@ -361,9 +361,9 @@ function solveQuadratic(a, b, c) {
     return [root, root];
 
   } else {
-    var x = (b * b) - (4 * a * c);
+    var d = (b * b) - (4 * a * c);
 
-    if (x < 0) {
+    if (d < 0) {
       // ROOTS ARE IMAGINARY!
       console.log("            roots are imaginary.... a ", a, ", b ", b, ", c ", c);
       return null;
@@ -371,7 +371,7 @@ function solveQuadratic(a, b, c) {
       //calculate roots
       var bNeg = -b;
       var aDoubled = 2 * a;
-      var t = Math.sqrt(x);
+      var t = Math.sqrt(d);
       var y = (bNeg + t) / (aDoubled);
       var z = (bNeg - t) / (aDoubled);
       //console.log("roots are ", y, ", ", z);
@@ -635,6 +635,21 @@ function solveTimeToDistFromLine(curPos, curVel, accel, targetLine, distanceGoal
 
 
 
+function getDistFromLine(point, line) {
+  var pA = line.p0;              // TerrainLine point 1
+  var pB = line.p1;              // TerrainLine point 2
+  var pC = point;                // center of the ball
+
+  var vAB = pB.subtract(pA);     // vector from A to B
+  var vAC = pC.subtract(pA);     // vector from A to the ball
+  var vBC = pC.subtract(pB);     // vector from B to the ball
+  //console.log(pA + " " + pB + " " + pC);
+  var vAD = projectVec2(vAC, vAB); //project the vector to the ball onto the surface.
+  var pD = pA.add(vAD);            // find the perpendicular intersect of the surface.
+  var vCD = pC.subtract(pD);       // find the vector from ball to the perpendicular intersection.
+  return vCD.length();
+}
+
 
 
 
@@ -798,9 +813,9 @@ function closestPositive(value1, value2) {
   var toReturn = null;
 
   //console.log("            Closest positive, ", "value1:  ", value1, "value2:  ", value2);
-  if (value1 === null && value2 >= TIME_EPSILON) {      //handle nulls.
+  if (value1 === null && value2 > TIME_EPSILON) {      //handle nulls.
     return value2;
-  } else if (value2 === null && value1 >= TIME_EPSILON) {
+  } else if (value2 === null && value1 > TIME_EPSILON) {
     return value1;
   }
 

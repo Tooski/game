@@ -214,7 +214,7 @@ function TerrainLine(point0, point1, player, adjacent0, adjacent1, normal) {
 
       //connection to adj0 is concave when the angle between this.normal and next surface is < HALF_PI, or 90 degrees. 
 
-      console.log("angleNorm0: ", angleNorm);
+      //console.log("angleNorm0: ", angleNorm);
       var result = { concave: (angleNorm < 0), angle: angle };
       return result;
 
@@ -239,7 +239,7 @@ function TerrainLine(point0, point1, player, adjacent0, adjacent1, normal) {
 
       //connection to adj0 is concave when the angle between this.normal and next surface is < HALF_PI, or 90 degrees. 
 
-      console.log("angleNorm1: ", angleNorm);
+      //console.log("angleNorm1: ", angleNorm);
       var result = { concave: (angleNorm < 0), angle: angle };
       return result;
 
