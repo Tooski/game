@@ -1,7 +1,7 @@
 
 
-function Save(terrainList) {
-    this.terrainList = terrainList;
+function Save(terrainmanager) {
+  this.level = terrainmanager;
     this.ih = this.h = 400; 
     this.iw = this.w = 400;
     this.x = 0, this.y = 0;
@@ -28,30 +28,11 @@ function Save(terrainList) {
             console.log(row);
             if (!isSaving) {
                 isSaving = true;
-                var terrain = [];
-                that.terrainList.forEach(function(ter) {
-
-                    if (ter.adjacent0)
-                        var adj0 = ter.adjacent0.id.toString();
-                    if (ter.adjacent1)
-                        var adj1 = ter.adjacent1.id.toString();
-                    if (ter.normal)
-                        var norm = ter.normal;
-                    terrain.push({
-                        "id": ter.id,
-                        "p0": {"x": ter.p0.x, "y": ter.p0.y},
-                        "p1": {"x": ter.p1.x, "y": ter.p1.y},
-                        "normal": {"x": norm.x, "y": norm.y},
-                        "adjacent0": adj0,
-                        "adjacent1": adj1}
-                    );
-                }
-                );
 
 
                 if (row.isEditable && row.items && row.items[0]._value) {
-                    console.log(row.items[0]._value);
-                    game.settings.post({"command": "savelevel", "data": {"jsonstring": JSON.stringify(terrain), "levelname": row.items[0]._value}}, function(callback) {
+                  console.log(row.items[0]._value);
+                    game.settings.post({"command": "savelevel", "data": {"jsonstring": JSON.stringify(that.level), "levelname": row.items[0]._value}}, function(callback) {
                         row.items[0].x(0);
                         row.items[0].y(0);
                         row.items[0] = row.items[0]._value;
@@ -60,7 +41,7 @@ function Save(terrainList) {
 
                     });
                 } else {
-                    game.settings.post({"command": "updatelevel", "data": {"jsonstring": JSON.stringify(terrain), "levelid": row.items[1]}}, function(callback) {
+                  game.settings.post({ "command": "updatelevel", "data": { "jsonstring": JSON.stringify(that.level), "levelid": row.items[1] } }, function (callback) {
 
                         isSaving = false;
                     });

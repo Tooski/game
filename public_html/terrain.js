@@ -7,52 +7,45 @@
 var DEBUG_TERRAIN = false;
 var editMode = true;
 
-// TerrainSurface object is the parent class for all collideable terrain objects. Has a start point and end point (and is therefore a line or curve).
-function TerrainSurface(point0, point1, adjacent0, adjacent1, pl) {
-  if (point0 && point1) {
-    //if (!point0.id || !point1.id) {
-    //  console.log("-+-");
-    //  console.log("-+-  (note that the below message is true for all line types, not just terrainLines. They are just an example)");
-    //  console.log("-+- bad new Line constructor call. It should look like below");
-    //  console.log("-+- new TerrainLine(tm.toLinePoint(p0), tm.toLinePoint(p1), player, adjacent0, adjacent1, normal)");
-    //  console.log("-+- where tm is the terrainManager, or use \"this\" in place of \"tm\" if constructing from within terrainmanager: ");
-    //  throw "point0 and point1 are not LinePoints. Ensure you use terrainManager.toLinePoint(), see above";
-    //}
-
-    Collideable.apply(this);    // SET UP TerrainSurface objects' inheritance from Collideable.
-    this.p0 = point0;                                   // p0 and p1 are either end of this TerrainSurface.
-    this.p1 = point1;
 
 
+// point class to make storing points less string intensive.
+// __EVERY POINT IN ANY LINE CLASS MUST BE REPLACED WITH THESE__  Use terrainManager.toLinePoint(point) to get a point converted to a LinePoint with an ID.
+// id = terrainmanager.nextPointNumber();      
+function LinePoint(id, x, y) {
+  if (!id || id < 0) {
+    console.log("_+_+_+_bad LinePoint id, id: " + id);
+    throw "_+_+_+_bad id for LinePoint, see above";
   }
-
-
-  this.adjacent0 = adjacent0;                         // THIS IS A LINK TO THE TerrainSurface CONNECTING AT p0. NULL IF p0 CONNECTS TO NOTHING.
-  this.adjacent1 = adjacent1;                         // THIS IS A LINK TO THE TerrainSurface CONNECTING AT p1. NULL IF p1 CONNECTS TO NOTHING.
-  this.player = pl;
-  this.getNormalAt = function (ballLocation) { };     // ballLocation is simple where the ball currently is, for which we are trying to obtain the normal applicable to the ball. 
-  this.getSurfaceAt = function (ballLocation) { };    // Gets a normalized surface vector.
-
-  this.string = function (pl) {
-    var str = "p0 " + rl(this.p0.x, pl) + "  " + rl(this.p0.y, pl) + "      p1 " + rl(this.p1.x, pl) + "  " + rl(this.p1.y, pl);
-    return str;
+  if (!(x || x === 0) && !(y || y === 0)) {
+    console.log("_+_+_+_bad LinePoint x or y.  x " + x + ", y " + y);
+    throw "_+_+_+_bad x or y in LinePoint, see above";
   }
-}
+  vec2.apply(this, [x, y]); 		 // initializes this as a vec2 with parameters x and y.  this.x is now x, this.y is now y
+  this.id = id;
 
-function normalDrag(terrain) {
-  if (terrain.normal) {
-    var oneNormal = terrain.p0.subtract(terrain.p1).perp().normalize();
-    if (oneNormal.dot(terrain.normal) < 0) {
-      oneNormal = oneNormal.negate();
+
+
+  this.collidesWith = function (point, radius) {
+    var toReturn = false;
+    var radSQ = radius * radius;
+    if (point.subtract(this).lengthsq() < radSQ) {
+      toReturn = true;
     }
-    terrain.normal.x = oneNormal.x;
-    terrain.normal.y = oneNormal.y;
+    return toReturn;
+  }
+
+
+
+  this.toJSON = function () {
+    var formattedObj = { id: this.id, x: this.x, y: this.y };
+    return JSON.stringify(formattedObj);
   }
 }
+LinePoint.prototype = new vec2();
 
 
-TerrainSurface.prototype = new Collideable();         // Establishes this as a child of Collideable.
-TerrainSurface.prototype.constructor = TerrainSurface;// Establishes this as having its own constructor.
+
 
 
 
@@ -62,9 +55,14 @@ TerrainSurface.prototype.constructor = TerrainSurface;// Establishes this as hav
 // Extends TerrainSurface and implements its required methods and those of its parent, Collideable.
 // @param normal is a normalized vector representing the normal of this line. 
 // @param adjacents is an array of terrainObjects where adjacents[0] is connected by p0, and adjacent
-function TerrainLine(point0, point1, player, adjacent0, adjacent1, normal) {
+function TerrainLine(id, polyID, point0, point1, adjacent0, adjacent1, normal) {
+  if (!id.toFixed) { //id.toFixed is ducktyping to check if id is a number.
+    throw "All level objects must have a sequentially incremented numerical id.";
+  }
+  TerrainSurface.apply(this, [point0, point1, adjacent0, adjacent1]); // Sets this up as a child of TerrainSurface and initializes TerrainSurface's fields.
 
-  TerrainSurface.apply(this, [point0, point1, adjacent0, adjacent1, player]); // Sets this up as a child of TerrainSurface and initializes TerrainSurface's fields.
+  this.id = id;
+  this.polyID = polyID;
   this.normal = normal;//.normalize();
 
 
@@ -201,9 +199,12 @@ function TerrainLine(point0, point1, player, adjacent0, adjacent1, normal) {
   this.isPointWithinPerpBounds = function (point) {
     return isPointWithinLineSegmentPerp(this, point);
   }
+
+  this.string = function (pl) {
+    var str = "p0 " + rl(this.p0.x, pl) + "  " + rl(this.p0.y, pl) + "      p1 " + rl(this.p1.x, pl) + "  " + rl(this.p1.y, pl);
+    return str;
+  }
 }
-TerrainLine.prototype = new TerrainSurface();      //Establishes this as a child of TerrainSurface.
-TerrainLine.prototype.constructor = TerrainLine;   //Establishes this as having its own constructor.
 
 
 
@@ -213,12 +214,17 @@ TerrainLine.prototype.constructor = TerrainLine;   //Establishes this as having 
 // Extends TerrainSurface and implements its required methods and those of its parent, Collideable.
 // @param normal is a normalized vector representing the normal of this line. 
 // @param adjacents is an array of terrainObjects where adjacents[0] is connected by p0, and adjacent
-function GoalLine(point0, point1, player, adjacent0, adjacent1) {
+function GoalLine(id, goalID, point0, point1, adjacent0, adjacent1) {
+  if (!id.toFixed || !goalID.toFixed) { //id.toFixed is ducktyping to check if id is a number.
+    throw "All level objects must have a sequentially incremented numerical id.";
+  }
+  this.p0 = point0;
+  this.p1 = point1;
+  this.adjacent0 = adjacent0;
+  this.adjacent1 = adjacent1;
 
-  TerrainSurface.apply(this, [point0, point1, adjacent0, adjacent1, player]); // Sets this up as a child of TerrainSurface and initializes TerrainSurface's fields.
-
-  this.id;
-  this.goalID;
+  this.id = id;
+  this.goalID = goalID;
 
   this.toJSON = function () {
     var formattedObj = { id: this.id, goalID: this.goalID };
@@ -253,9 +259,12 @@ function GoalLine(point0, point1, player, adjacent0, adjacent1) {
   this.isPointWithinPerpBounds = function (point) {
     return isPointWithinLineSegmentPerp(this, point);
   }
+
+  this.string = function (pl) {
+    var str = "p0 " + rl(this.p0.x, pl) + "  " + rl(this.p0.y, pl) + "      p1 " + rl(this.p1.x, pl) + "  " + rl(this.p1.y, pl);
+    return str;
+  }
 }
-GoalLine.prototype = new TerrainSurface();      //Establishes this as a child of TerrainSurface.
-GoalLine.prototype.constructor = GoalLine;   //Establishes this as having its own constructor.
 
 
 
@@ -265,10 +274,15 @@ GoalLine.prototype.constructor = GoalLine;   //Establishes this as having its ow
 // Extends TerrainSurface and implements its required methods and those of its parent, Collideable.
 // @param normal is a normalized vector representing the normal of this line. 
 // @param adjacents is an array of terrainObjects where adjacents[0] is connected by p0, and adjacent
-function CheckpointLine(point0, point1, player, adjacent0, adjacent1) {
-
-  TerrainSurface.apply(this, [point0, point1, adjacent0, adjacent1, player]); // Sets this up as a child of TerrainSurface and initializes TerrainSurface's fields.
-  this.id;
+function CheckpointLine(id, checkpointID, point0, point1, adjacent0, adjacent1) {
+  if (!id.toFixed || !checkpointID.toFixed) { //id.toFixed is ducktyping to check if id is a number.
+    throw "All level objects must have a sequentially incremented numerical id.";
+  }
+  this.p0 = point0;
+  this.p1 = point1;
+  this.adjacent0 = adjacent0;
+  this.adjacent1 = adjacent1;
+  this.id = id;
   this.checkpointID;
 
   this.toJSON = function () {
@@ -303,9 +317,12 @@ function CheckpointLine(point0, point1, player, adjacent0, adjacent1) {
   this.isPointWithinPerpBounds = function (point) {
     return isPointWithinLineSegmentPerp(this, point);
   }
+
+  this.string = function (pl) {
+    var str = "p0 " + rl(this.p0.x, pl) + "  " + rl(this.p0.y, pl) + "      p1 " + rl(this.p1.x, pl) + "  " + rl(this.p1.y, pl);
+    return str;
+  }
 }
-CheckpointLine.prototype = new TerrainSurface();      //Establishes this as a child of TerrainSurface.
-CheckpointLine.prototype.constructor = CheckpointLine;   //Establishes this as having its own constructor.
 
 
 
@@ -316,10 +333,13 @@ CheckpointLine.prototype.constructor = CheckpointLine;   //Establishes this as h
 // Extends TerrainSurface and implements its required methods and those of its parent, Collideable.
 // @param normal is a normalized vector representing the normal of this line. 
 // @param adjacents is an array of terrainObjects where adjacents[0] is connected by p0, and adjacent
-function KillLine(point0, point1, player, adjacent0, adjacent1) {
-
-  TerrainSurface.apply(this, [point0, point1, adjacent0, adjacent1, player]); // Sets this up as a child of TerrainSurface and initializes TerrainSurface's fields.
-  this.id;
+function KillLine(id, point0, point1) {
+  if (!id.toFixed) { //id.toFixed is ducktyping to check if id is a number.
+    throw "All level objects must have a sequentially incremented numerical id.";
+  }
+  this.p0 = point0;
+  this.p1 = point1;
+  this.id = id;
 
   this.toJSON = function () {
     var formattedObj = { id: this.id };
@@ -348,27 +368,135 @@ function KillLine(point0, point1, player, adjacent0, adjacent1) {
   this.isPointWithinPerpBounds = function (point) {
     return isPointWithinLineSegmentPerp(this, point);
   }
-}
-KillLine.prototype = new TerrainSurface();      //Establishes this as a child of TerrainSurface.
-KillLine.prototype.constructor = KillLine;   //Establishes this as having its own constructor.
 
-
-
-
-
-
-function findNormalByMouse(e, line) {
-  var mousePos = getMousePos(e);
-  var midPoint = line.p0.add(line.p1).divf(2.0);
-  var surfaceVector = line.p0.subtract(line.p1);
-  var mouseVector = new vec2(mousePos.x, mousePos.y).subtract(midPoint);
-  var oneNormal = surfaceVector.perp().normalize();
-
-  if (oneNormal.dot(mouseVector.normalize()) < 0) {
-    oneNormal = oneNormal.negate();
+  this.string = function (pl) {
+    var str = "p0 " + rl(this.p0.x, pl) + "  " + rl(this.p0.y, pl) + "      p1 " + rl(this.p1.x, pl) + "  " + rl(this.p1.y, pl);
+    return str;
   }
-  return oneNormal;
 }
+
+
+
+
+
+
+
+
+
+
+/**
+ * 
+ */
+function Polygon(polyID, polygon) {
+  //Entity.call();
+  this.polyID = polyID;
+  this.polygon = polygon;
+  for (var item in this.polygon) {
+    this.polygon[item].polygonID = this.polyID;
+
+  }
+}
+
+
+Polygon.prototype = new Entity();
+
+Polygon.prototype.draw = function (ctx) {
+
+  var rect = new Rectangle(Number.MAX_VALUE, Number.MAX_VALUE, Number.MIN_VALUE, Number.MIN_VALUE);
+  ctx.save();
+  ctx.beginPath();
+
+  for (var k in this.polygon) {
+    this.fillTerrain(ctx, this.polygon[k], {}, rect, {});
+
+    break;
+  }
+
+
+
+  ctx.closePath();
+  ctx.clip();
+  var img = ASSET_MANAGER.cache["assets/dirt.jpg"];
+  for (var x = rect.x1 ; x < rect.x2; x += img.width) {
+    for (var y = rect.y1; y < rect.y2; y += img.height) {
+      ctx.drawImage(img, x, y);
+    }
+  }
+  ctx.restore();
+  ctx.lineWidth = this.polygon[k].lineWidth;
+  ctx.stroke();
+
+
+  for (var item in this.polygon) {
+    var midPoint = this.polygon[item].p0.add(this.polygon[item].p1).divf(2.0);
+    var pNormalPosEnd = midPoint.add(this.polygon[item].normal.multf(20));
+    this.polygon[item].normalPosCol.x = pNormalPosEnd.x - this.polygon[item].normalPosCol.w / 2;
+    this.polygon[item].normalPosCol.y = pNormalPosEnd.y - this.polygon[item].normalPosCol.h / 2;
+    this.polygon[item].p0edit.x = this.polygon[item].p0.x;
+    this.polygon[item].p0edit.y = this.polygon[item].p0.y;
+    this.polygon[item].p1edit.x = this.polygon[item].p1.x;
+    this.polygon[item].p1edit.y = this.polygon[item].p1.y;
+    ctx.moveTo(midPoint.x, midPoint.y);
+    ctx.lineTo(pNormalPosEnd.x, pNormalPosEnd.y);
+    ctx.stroke();
+  }
+};
+
+
+Polygon.prototype.fillTerrain = function (ctx, terrain, visited, rect, visitedLine) {
+  if (rect.x1 > terrain.p0.x) rect.x1 = terrain.p0.x;
+  if (rect.x2 < terrain.p0.x) rect.x2 = terrain.p0.x;
+  if (rect.y1 > terrain.p0.y) rect.y1 = terrain.p0.y;
+  if (rect.y2 < terrain.p0.y) rect.y2 = terrain.p0.y;
+  if (rect.x1 > terrain.p1.x) rect.x1 = terrain.p1.x;
+  if (rect.x2 < terrain.p1.x) rect.x2 = terrain.p1.x;
+  if (rect.y1 > terrain.p1.y) rect.y1 = terrain.p1.y;
+  if (rect.y2 < terrain.p1.y) rect.y2 = terrain.p1.y;
+
+
+  visitedLine[terrain.id] = true;
+
+  var t0 = JSON.stringify(terrain.p0);
+  var t1 = JSON.stringify(terrain.p1);
+
+
+  if (visited.length === 0) {
+    ctx.moveTo(terrain.p0.x, terrain.p0.y);
+    visited[t0] = true;
+  }
+
+  if (!visited[t0]) ctx.lineTo(terrain.p0.x, terrain.p0.y);
+  else if (!visited[t1]) ctx.lineTo(terrain.p1.x, terrain.p1.y);
+
+  if (terrain.adjacent0 && !visitedLine[terrain.adjacent0.id]) {
+    var o0 = JSON.stringify(terrain.adjacent0.p0);
+    var o1 = JSON.stringify(terrain.adjacent0.p1);
+    if (!visited[t0] || !visited[t1]) {
+
+      if (t0 === o0 || t0 === o1) visited[t0] = true;
+      else if (t1 === o0 || t1 === o1) visited[t1] = true;
+
+
+
+      this.fillTerrain(ctx, terrain.adjacent0, visited, rect, visitedLine);
+    }
+  }
+  if (terrain.adjacent1 && !visitedLine[terrain.adjacent1.id]) {
+
+    var o0 = JSON.stringify(terrain.adjacent1.p0);
+    var o1 = JSON.stringify(terrain.adjacent1.p1);
+    if (!visited[t0] || !visited[t1]) {
+      if (t0 === o0 || t0 === o1) visited[t0] = true;
+      else if (t1 === o0 || t1 === o1) visited[t1] = true;
+
+
+
+
+      this.fillTerrain(ctx, terrain.adjacent1, visited, rect, visitedLine);
+    }
+  }
+
+};
 
 
 

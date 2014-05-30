@@ -2408,11 +2408,11 @@ CHILD.prototype.method = function () {
 
 
 // how2accessNewTerrain
-//function TerrainCircular(circular, closedTerrain) {
+//function Polygon(polygon, closedTerrain) {
 //  //Entity.call();
-//  this.circular = circular;
-//  for (var item in this.circular) {
-//    this.circular[item].circularID = this.id;
+//  this.polygon = polygon;
+//  for (var item in this.polygon) {
+//    this.polygon[item].polygonID = this.id;
 //  }
 //  closedTerrain.push(this);
 //}

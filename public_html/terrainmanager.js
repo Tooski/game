@@ -94,104 +94,6 @@ function Goal(id, goalNum) {			// ensure you terrainmanager.nextGoalNumber++; af
 
 
 
-//NOW FOR LINE STUFF
-
-// point class to make storing points less string intensive.
-// __EVERY POINT IN ANY LINE CLASS MUST BE REPLACED WITH THESE__  Use terrainManager.toLinePoint(point) to get a point converted to a LinePoint with an ID.
-// id = terrainmanager.nextPointNumber();      
-function LinePoint(id, x, y) {
-  if (!id || id < 0) {
-    console.log("_+_+_+_bad LinePoint id, id: " + id);
-    throw "_+_+_+_bad id for LinePoint, see above";
-  }
-  if (!(x || x === 0) && !(y || y === 0)) {
-    console.log("_+_+_+_bad LinePoint x or y.  x " + x + ", y " + y);
-    throw "_+_+_+_bad x or y in LinePoint, see above";
-  }
-  vec2.apply(this, [x, y]); 		 // initializes this as a vec2 with parameters x and y.  this.x is now x, this.y is now y
-  this.id = id;
-
-
-
-  this.collidesWith = function (point, radius) {
-    var toReturn = false;
-    var radSQ = radius * radius;
-    if (point.subtract(this).lengthsq() < radSQ) {
-      return true;
-    }
-    return toReturn;
-  }
-
-
-
-  this.toJSON = function () {
-    var formattedObj = { id: this.id, x: this.x, y: this.y };
-    return JSON.stringify(formattedObj);
-  }
-}
-LinePoint.prototype = new vec2();
-
-
-
-
-
-//GoalLine basically the same as terrainLine but with the below changes.
-function GoalLine() {
-  // this.p0            // MUST BE LinePoints. Enforced with throw in TerrainSurface constructor.
-  // this.p1            // MUST BE LinePoints. Enforced with throw in TerrainSurface constructor.
-  //this.id               // hopefully already set uniquely by the copied terrainLine code? if not, generate an ID.
-  //this.goalID           // the ID of the goal object this goal line links to. This ID /MUST/ map to a goal that exists in terrainManager.goals
-
-  //this.collidesWith()   //clone from terrainLine code, already done I'm assuming
-  //this.collidesData()   //clone from terrainLine code, already done I'm assuming
-
-  this.toJSON = function () {
-    var formattedObj = { id: this.id, goalID: this.goalID };
-    formattedObj = formatLineToJSON(this, formattedObj);
-    return JSON.stringify(formattedObj);
-  }
-}
-
-
-
-
-//CheckpointLine basically the same as terrainLine but with the below changes.
-function CheckpointLine() {
-  // this.p0            // MUST BE LinePoints. Enforced with throw in TerrainSurface constructor.
-  // this.p1            // MUST BE LinePoints. Enforced with throw in TerrainSurface constructor.
-  //this.id               // hopefully already set uniquely by the copied terrainLine code? if not, generate an ID.
-  //this.checkpointID     // the ID of the Checkpoint object this CheckpointLine links to. This ID /MUST/ map to a Checkpoint that exists in terrainManager.checkpoints
-
-  //this.collidesWith()   //clone from terrainLine code, already done I'm assuming
-  //this.collidesData()   //clone from terrainLine code, already done I'm assuming
-
-
-  this.toJSON = function () {
-    var formattedObj = { id: this.id, checkpointID: this.checkpointID };
-    formattedObj = formatLineToJSON(this, formattedObj);
-    return JSON.stringify(formattedObj);
-  }
-}
-
-
-
-
-//CheckpointLine basically the same as terrainLine but with the below changes.
-function KillLine() {
-  // this.p0            // MUST BE LinePoints. Enforced with throw in TerrainSurface constructor.
-  // this.p1            // MUST BE LinePoints. Enforced with throw in TerrainSurface constructor.
-  //this.id               // hopefully already set uniquely by the copied terrainLine code? if not, generate an ID.
-
-  //this.collidesWith()   //clone from terrainLine code, already done I'm assuming
-  //this.collidesData()   //clone from terrainLine code, already done I'm assuming
-
-
-  this.toJSON = function () {
-    var formattedObj = { id: this.id };
-    formattedObj = formatLineToJSON(this, formattedObj);
-    return JSON.stringify(formattedObj);
-  }
-}
 
 
 
@@ -212,36 +114,29 @@ function pointString(point) {
 
 
 function TerrainManager() {
-  //The two fields below are initially 0 because this is a blank level, currently. They /MUST/ be loaded from JSON any time a level is loaded.
-  this.levelName = null;
-  this.nextGoalNo = 1; // the next goal ID number. This must be saved along with the rest of the level.
-  this.nextPointNo = 1; // the next point ID number. This must be saved along with the rest of the level.
-
-  this.pointMap = new Array();			// this is a map of all LinePoints by their ID, used to reduce point replication everywhere.
-  // should only iterate through it or use this.toLinePoint(point) to modify it.
-
-  this.startPoint = new vec2(1, 1);      		// the level starting location.
-
-  this.goals = new Array();     	     // map of goals by ID that are currently contained in this level.	 /NOT THE GOAL LINES/
-  // goalID's is a number assigned to goalLines that link to the same goal, and also used for determining
-  // what leaderboard to put the players score on.
-
-  this.checkpoints = new Array();		   // map of checkpoints by ID.	 /NOT THE CHECKPOINT LINES/
-
-  this.collectibles = new Array();      // map of all collectibles by ID. 
-
-
-  this.terrainLines = new Array();		   // map of TerrainLines by ID that are currently contained in this level.
-
-  this.checkpointLines = new Array();	 // ^ but CheckpointLines
-
-  this.goalLines = new Array();         // ^ but GoalLines
-
-  this.killLines = new Array();         // ^ but KillLines
+                                    //SEE RESET FUNCTION BELOW FOR DOCUMENTATION OF FIELDS
+  this.nextGoalNo;
+  this.nextCollectibleNo;
+  this.nextCheckpointNo;
+  this.nextPointNo;
+  this.nextTerrainLineNo;
+  this.nextGoalLineNo;
+  this.nextCheckpointLineNo;
+  this.nextKillLineNo;
+  this.nextPolygonNo;
+  this.pointMap;
+  this.startPoint;
+  this.goals;
+  this.checkpoints;
+  this.collectibles;
+  this.terrainLines;
+  this.checkpointLines;
+  this.goalLines;
+  this.killLines;
 
 
-  this.isReset = true;
-  this.closedTerrain = [];
+  this.reset();
+
 
 
 
@@ -277,23 +172,61 @@ function TerrainManager() {
   // function that clears all the stuff in this terrainmanager. 
   this.reset = function () {
     this.levelName = null;
+
     this.nextGoalNo = 1;
+    this.nextCollectibleNo = 1;
+    this.nextCheckpointNo = 1;
     this.nextPointNo = 1;
-    this.pointMap = {};
-    this.startPoint = new vec2(1, 1);
-    this.goals = {};
-    this.checkpoints = {};
-    this.collectibles = {};
-    this.terrainLines = {};
-    this.checkpointLines = {};
-    this.goalLines = {};
-    this.killLines = {};
+    this.nextTerrainLineNo = 1;
+    this.nextGoalLineNo = 1;
+    this.nextCheckpointLineNo = 1;
+    this.nextKillLineNo = 1;
+    this.nextPolygonNo = 1;
+
+
+    this.pointMap = new Array();			// this is a map of all LinePoints by their ID, used to reduce point replication everywhere.
+    // should only iterate through it or use this.toLinePoint(point) to modify it.
+
+    this.startPoint = new vec2(1, 1);      		// the level starting location.
+
+    this.goals = new Array();     	     // map of goals by ID that are currently contained in this level.	 /NOT THE GOAL LINES/
+    // goalID's is a number assigned to goalLines that link to the same goal, and also used for determining
+    // what leaderboard to put the players score on.
+
+    this.checkpoints = new Array();		   // map of checkpoints by ID.	 /NOT THE CHECKPOINT LINES/
+
+    this.collectibles = new Array();      // map of all collectibles by ID. 
+
+
+    this.terrainLines = new Array();		   // map of TerrainLines by ID that are currently contained in this level.
+
+    this.checkpointLines = new Array();	 // ^ but CheckpointLines
+
+    this.goalLines = new Array();         // ^ but GoalLines
+
+    this.killLines = new Array();         // ^ but KillLines
+
     this.isReset = true;
   }
 
 
   this.toJSON = function () {					// gets the JSON version of this manager.
-    var JSONdata = { levelName: this.levelName, nextGoalNo: this.nextGoalNo, nextPointNo: this.nextPointNo, startPoint: this.startPoint };
+    var JSONdata = {
+      levelName: this.levelName,
+      startPoint: this.startPoint,
+
+      nextGoalNo: this.nextGoalNo, 
+      nextCollectibleNo: this.nextCollectibleNo,
+      nextCheckpointNo: this.nextCheckpointNo,
+      nextPointNo: this.nextPointNo, 
+      nextTerrainLineNo: this.nextTerrainLineNo, 
+      nextGoalLineNo: this.nextGoalLineNo, 
+      nextCheckpointLineNo: this.nextCheckpointLineNo, 
+      nextKillLineNo: this.nextKillLineNo, 
+      nextPolygonNo: this.nextPolygonNo, 
+    };
+
+
     JSONdata.pointMap = this.pointMap;
     JSONdata.goals = this.goals;
     JSONdata.checkpoints = this.checkpoints;
@@ -306,8 +239,12 @@ function TerrainManager() {
     var jsonString = JSON.stringify(JSONdata);
     var jsonTabbed = JSON.stringify(JSONdata, null, 3)
     console.log(jsonTabbed);
+
     return jsonString;
   }
+
+
+
 
   this.loadFromJSON = function (data) {  // parses a new terrainManager state from the provided 
     this.reset();
@@ -328,21 +265,165 @@ function TerrainManager() {
 TerrainManager.prototype = new Entity();
 TerrainManager.constructor = TerrainManager;
 
-TerrainManager.prototype.pushTerrain = function (terrain, list) {
-  this.createTerrainPoints(terrain);
-  this.snapTo(terrain);
-  this.terrainList.push(terrain);
-  if (!this.levelByID[terrain.id]) this.levelByID[terrain.id] = terrain;
-};
-
 //Adding of other elements
-TerrainManager.prototype.setStartPoint = function (vecStart) {
-  this.startPoint = vecStart;
+TerrainManager.prototype.setStart = function (point) {
+  this.startPoint = point;
 }
 
-TerrainManager.prototype.addCollectible = function (collectible) {
+TerrainManager.prototype.addCollectible = function (point) {
   if (!this.collectibles[collectible.id]) this.collectibles[collectible.id] = collectible;
 }
+
+
+
+
+/**
+ * Eats editor lines that have normals, adds them to the real level.
+ */
+TerrainManager.prototype.addTerrainLines = function (editorLineArray) {
+  var lines = editorLineArray;
+
+  var first = new TerrainLine(this.getNextTerrainLineNumber(), this.getNextPolygonNumber(), this.toLinePoint(lines[0].p0), this.toLinePoint(lines[0].p1), null, null, lines[0].normal);
+  this.terrainLines[first.id] = first;
+  var prev = first;
+  for (var i = 1; i < lines.length; i++) {
+    var converted = new TerrainLine(this.getNextTerrainLineNumber(), first.polyID, this.toLinePoint(lines[i].p0), this.toLinePoint(lines[i].p1), prev, null, lines[i].normal);
+    prev.adjacent1 = converted;
+    if (this.terrainLines[converted.id]) {
+      throw "what the hell, a TerrainLine already exists with this ID. Fix yo shit";
+    }
+    this.terrainLines[converted.id] = converted;
+    prev = converted;
+    //this.terrainLines
+  }
+  first.adjacent0 = prev;
+  prev.adjacent1 = first;
+}
+
+
+
+
+/**
+ * Eats editor lines and a checkpoint position, adds checkpoint / checkpointLines to the real level.
+ */
+TerrainManager.prototype.addCheckpointAndLines = function (checkpointPos, editorLineArray) {
+
+  var lines = editorLineArray;
+
+  var checkpoint = new Checkpoint(this.getNextCheckpointNumber(), checkpointPos.x, checkpointPos.y);
+
+  this.checkpoints[checkpoint.id] = checkpoint;
+
+  var first = new CheckpointLine(this.getNextCheckpointLineNumber(), checkpoint.id, this.toLinePoint(lines[0].p0), this.toLinePoint(lines[0].p1), null, null);
+  this.checkpointLines[first.id] = first;
+  var prev = first;
+
+  for (var i = 1; i < lines.length; i++) {
+    var converted = new CheckpointLine(this.getNextCheckpointLineNumber(), checkpoint.id, this.toLinePoint(lines[i].p0), this.toLinePoint(lines[i].p1), prev, null);
+    prev.adjacent1 = converted;
+    if (this.checkpointLines[converted.id]) {
+      throw "what the hell, a TerrainLine already exists with this ID. Fix yo shit";
+    }
+    this.terrainLines[converted.id] = converted;
+    prev = converted;
+    //this.terrainLines
+  }
+  first.adjacent0 = prev;
+  prev.adjacent1 = first;
+}
+
+
+
+
+/**
+ * Eats editor lines and a checkpoint position, adds checkpoint / checkpointLines to the real level.
+ */
+TerrainManager.prototype.addGoalAndLines = function (editorLineArray) {
+
+  var lines = editorLineArray;
+
+  var goal = new Goal(
+
+  this.checkpoints[checkpoint.id] = checkpoint;
+
+  var first = new CheckpointLine(this.getNextCheckpointLineNumber(), checkpoint.id, this.toLinePoint(lines[0].p0), this.toLinePoint(lines[0].p1), null, null);
+  this.checkpointLines[first.id] = first;
+  var prev = first;
+
+  for (var i = 1; i < lines.length; i++) {
+    var converted = new CheckpointLine(this.getNextCheckpointLineNumber(), checkpoint.id, this.toLinePoint(lines[i].p0), this.toLinePoint(lines[i].p1), prev, null);
+    prev.adjacent1 = converted;
+    if (this.checkpointLines[converted.id]) {
+      throw "what the hell, a TerrainLine already exists with this ID. Fix yo shit";
+    }
+    this.terrainLines[converted.id] = converted;
+    prev = converted;
+    //this.terrainLines
+  }
+  first.adjacent0 = prev;
+  prev.adjacent1 = first;
+}
+
+
+
+
+
+TerrainManager.prototype.addCheckpointAndLines = function (checkpointPos, editorLineArray) {
+
+  var lines = editorLineArray;
+
+  var checkpoint = new Checkpoint(this.getNextCheckpointNumber(), checkpointPos.x, checkpointPos.y);
+
+  this.checkpoints[checkpoint.id] = checkpoint;
+
+  var first = new CheckpointLine(this.getNextCheckpointLineNumber(), checkpoint.id, this.toLinePoint(lines[0].p0), this.toLinePoint(lines[0].p1), null, null);
+  this.checkpointLines[first.id] = first;
+  var prev = first;
+
+  for (var i = 1; i < lines.length; i++) {
+    var converted = new CheckpointLine(this.getNextCheckpointLineNumber(), checkpoint.id, this.toLinePoint(lines[i].p0), this.toLinePoint(lines[i].p1), prev, null);
+    prev.adjacent1 = converted;
+    if (this.checkpointLines[converted.id]) {
+      throw "what the hell, a TerrainLine already exists with this ID. Fix yo shit";
+    }
+    this.terrainLines[converted.id] = converted;
+    prev = converted;
+    //this.terrainLines
+  }
+  first.adjacent0 = prev;
+  prev.adjacent1 = first;
+}
+
+
+
+
+TerrainManager.prototype.addCheckpointAndLines = function (checkpointPos, editorLineArray) {
+
+  var lines = editorLineArray;
+
+  var checkpoint = new Checkpoint(this.getNextCheckpointNumber(), checkpointPos.x, checkpointPos.y);
+
+  this.checkpoints[checkpoint.id] = checkpoint;
+
+  var first = new CheckpointLine(this.getNextCheckpointLineNumber(), checkpoint.id, this.toLinePoint(lines[0].p0), this.toLinePoint(lines[0].p1), null, null);
+  this.checkpointLines[first.id] = first;
+  var prev = first;
+
+  for (var i = 1; i < lines.length; i++) {
+    var converted = new CheckpointLine(this.getNextCheckpointLineNumber(), checkpoint.id, this.toLinePoint(lines[i].p0), this.toLinePoint(lines[i].p1), prev, null);
+    prev.adjacent1 = converted;
+    if (this.checkpointLines[converted.id]) {
+      throw "what the hell, a TerrainLine already exists with this ID. Fix yo shit";
+    }
+    this.terrainLines[converted.id] = converted;
+    prev = converted;
+    //this.terrainLines
+  }
+  first.adjacent0 = prev;
+  prev.adjacent1 = first;
+}
+
+
 
 TerrainManager.prototype.addCheckpoint = function (checkpoint) {
   if (!this.checkpoints[checkpoint.id]) this.checkpoints[checkpoint.id] = checkpoint;
@@ -411,7 +492,7 @@ TerrainManager.prototype.draw = function (ctx) {
   ////OLD SHIT
   //    if(editMode) {
   //        this.terrainList.forEach (function(ter) {
-  //            //if(!ter.circularID){
+  //            //if(!ter.polygonID){
   //                ter.draw(ctx);
   //            //}
   //        });
@@ -476,7 +557,6 @@ function drawPointArray(ctx, pointArray, color, pointWidth) {
 function drawLineArray(ctx, lineArray, color, lineWidth, lineJoin, lineCap) {
   ctx.save();
 
-
   ctx.beginPath();
   ctx.lineWidth = lineWidth;
 
@@ -486,16 +566,12 @@ function drawLineArray(ctx, lineArray, color, lineWidth, lineJoin, lineCap) {
 
   lineArray.forEach(function (line) {
 
-
     ctx.moveTo(line.p0.x, line.p0.y);
     ctx.lineTo(line.p1.x, line.p1.y);
 
-
     //// CODE BELOW ONLY SHOWS IF EDIT MODE IS ENABLED FOR MAP EDITOR!
     if (editMode) {
-
       if (line.normal) {
-
         var midPoint = line.p0.add(line.p1).divf(2.0);
 
         var pNormalPosEnd = midPoint.add(line.normal.multf(20));
@@ -503,32 +579,24 @@ function drawLineArray(ctx, lineArray, color, lineWidth, lineJoin, lineCap) {
         line.normalPosCol.x = pNormalPosEnd.x - line.normalPosCol.w / 2;
         line.normalPosCol.y = pNormalPosEnd.y - line.normalPosCol.h / 2;
 
-
-
         //line.p0edit.x = line.p0.x;
         //line.p0edit.y = line.p0.y;
 
         //line.p1edit.x = line.p1.x;
         //line.p1edit.y = line.p1.y;
-
-
 
         ctx.moveTo(midPoint.x, midPoint.y);
         ctx.lineTo(pNormalPosEnd.x, pNormalPosEnd.y);
 
 
-
         //line.p0edit.x = line.p0.x;
         //line.p0edit.y = line.p0.y;
 
         //line.p1edit.x = line.p1.x;
         //line.p1edit.y = line.p1.y;
-
       }
     }
-
   });
-
 
   ctx.stroke();
 
@@ -540,7 +608,7 @@ function drawLineArray(ctx, lineArray, color, lineWidth, lineJoin, lineCap) {
 
 
 
-var START_RADIUS = 30;
+var START_RADIUS = DFLT_radius;
 var START_COLOR_LINE = "navy";
 var START_COLOR_FILL = "blue";
 var START_COLOR_INNER_LINE = "lightblue";
@@ -561,6 +629,44 @@ TerrainManager.prototype.drawStart = function (ctx) {
   ctx.fillStyle = START_COLOR_INNER_FILL;
   ctx.fill();
   context.strokeStyle = START_COLOR_INNER_LINE;
+  ctx.stroke();
+}
+
+
+
+
+
+var CHECKPOINT_RADIUS = DFLT_radius;
+var CHECKPOINT_COLOR_LINE = "black";
+var CHECKPOINT_COLOR_FILL = "darkgreen";
+var CHECKPOINT_COLOR_INNER_LINE = "green";
+var CHECKPOINT_COLOR_INNER_FILL = "silver";
+
+//Draws a circle denoting the set checkpoint positions if in edit mode 
+TerrainManager.prototype.drawCheckpointArray = function (ctx) {
+  ctx.lineWidth = 6;
+  ctx.beginPath();
+  for (var i = 0; i < this.checkpoints.length; i++) {
+    if (this.checkpoints[i]) {
+      ctx.arc(this.checkpoints[i].x, this.checkpoints[i].y, CHECKPOINT_RADIUS, 0, TWO_PI, false);
+    }
+  }
+  ctx.fillStyle = CHECKPOINT_COLOR_FILL;
+  ctx.fill();
+  ctx.strokeStyle = CHECKPOINT_COLOR_LINE;
+  ctx.stroke();
+
+
+
+  ctx.beginPath();
+  for (var i = 0; i < this.checkpoints.length; i++) {
+    if (this.checkpoints[i]) {
+      ctx.arc(checkpoint.x, checkpoint.y, CHECKPOINT_RADIUS / 2, 0, TWO_PI, false);
+    }
+  }
+  ctx.fillStyle = CHECKPOINT_COLOR_INNER_FILL;
+  ctx.fill();
+  ctx.strokeStyle = CHECKPOINT_COLOR_INNER_LINE;
   ctx.stroke();
 }
 
@@ -602,327 +708,6 @@ TerrainManager.prototype.loadFromFile = function (id, init, callback) {
 };
 
 
-
-
-TerrainManager.prototype.createTerrainPoints = function (terrain) {
-  var that = this;
-  //    if(editMode) {
-  var wh = 10;
-  terrain.p0edit = new MouseCollideable(false, terrain.p0.x - wh, terrain.p0.y - wh, wh * 2, wh * 2);
-
-  terrain.p0edit.onDrag = function (e) {
-    var xOffset = localToWorld(e.offsetX * (initWidth / ctx.canvas.width), "x");
-    var yOffset = localToWorld(e.offsetY * (initWidth / ctx.canvas.width), "y");
-
-    terrain.x = (terrain.p0.x = xOffset) - wh;
-    terrain.y = (terrain.p0.y = yOffset) - wh;
-    normalDrag(terrain);
-    if (terrain.adjacent0) {
-      if (terrain.adjacent0.adjacent1 === terrain) {
-        terrain.adjacent0.p1edit.x = (terrain.adjacent0.p1.x = xOffset) - wh;
-        terrain.adjacent0.p1edit.y = (terrain.adjacent0.p1.y = yOffset) - wh;
-        normalDrag(terrain.adjacent0);
-      } else if (terrain.adjacent0.adjacent0 === terrain) {
-        terrain.adjacent0.p0edit.x = (terrain.adjacent0.p0.x = xOffset) - wh;
-        terrain.adjacent0.p0edit.y = (terrain.adjacent0.p0.y = yOffset) - wh;
-        normalDrag(terrain.adjacent0);
-      }
-    }
-  };
-  terrain.p0edit.onRelease = function (e) {
-    that.snapTo(terrain);
-  };
-  terrain.p1edit = new MouseCollideable(false, terrain.p1.x - wh, terrain.p1.y - wh, wh * 2, wh * 2);
-  terrain.p1edit.onDrag = function (e) {
-    var xOffset = localToWorld(e.offsetX * (initWidth / ctx.canvas.width), "x");
-    var yOffset = localToWorld(e.offsetY * (initWidth / ctx.canvas.width), "y");
-
-    terrain.x = (terrain.p1.x = xOffset) - wh;
-    terrain.y = (terrain.p1.y = yOffset) - wh;
-    normalDrag(terrain);
-    if (terrain.adjacent1) {
-      if (terrain.adjacent1.adjacent1 === terrain) {
-        terrain.adjacent1.p1edit.x = (terrain.adjacent1.p1.x = xOffset) - wh;
-        terrain.adjacent1.p1edit.y = (terrain.adjacent1.p1.y = yOffset) - wh;
-        normalDrag(terrain.adjacent1);
-      } else if (terrain.adjacent1.adjacent0 === terrain) {
-        terrain.adjacent1.p0edit.x = (terrain.adjacent1.p0.x = xOffset) - wh;
-        terrain.adjacent1.p0edit.y = (terrain.adjacent1.p0.y = yOffset) - wh;
-        normalDrag(terrain.adjacent1);
-      }
-    }
-
-  };
-  terrain.p1edit.onRelease = function (e) {
-    that.snapTo(terrain);
-  };
-
-  terrain.normalPosVec = new vec2(terrain.p0.x, terrain.p0.y);
-  terrain.normalPosCol = new MouseCollideable(false, terrain.p0.x - wh, terrain.p0.y - wh, wh * 2, wh * 2);
-  terrain.normalPosCol.onDrag = function (e) {
-    if (terrain.normal) {
-      var point = findNormalByMouse(e, terrain);
-
-
-      terrain.normal.x = point.x;
-      terrain.normal.y = point.y;
-
-    }
-  };
-
-  //    }
-};
-
-TerrainManager.prototype.snapTo = function (terrain) {
-  for (var i = 0; i < this.terrainList.length; i++) {
-    if (terrain !== this.terrainList[i]) {
-      if (!this.terrainList[i].adjacent0 && checkBounds(terrain.p0, this.terrainList[i].p0)) {
-        terrain.p0.x = this.terrainList[i].p0.x = (terrain.p0.x + this.terrainList[i].p0.x) / 2;
-        terrain.p0.y = this.terrainList[i].p0.y = (terrain.p0.y + this.terrainList[i].p0.y) / 2;
-        this.terrainList[i].adjacent0 = terrain;
-        terrain.adjacent0 = this.terrainList[i];
-        break;
-      } else if (!this.terrainList[i].adjacent1 && checkBounds(terrain.p0, this.terrainList[i].p1)) {
-        terrain.p0.x = this.terrainList[i].p1.x = (terrain.p0.x + this.terrainList[i].p1.x) / 2;
-        terrain.p0.y = this.terrainList[i].p1.y = (terrain.p0.y + this.terrainList[i].p1.y) / 2;
-        this.terrainList[i].adjacent1 = terrain;
-        terrain.adjacent0 = this.terrainList[i];
-        break;
-      } else if (!this.terrainList[i].adjacent0 && checkBounds(terrain.p1, this.terrainList[i].p0)) {
-        terrain.p1.x = this.terrainList[i].p0.x = (terrain.p1.x + this.terrainList[i].p0.x) / 2;
-        terrain.p1.y = this.terrainList[i].p0.y = (terrain.p1.y + this.terrainList[i].p0.y) / 2;
-        this.terrainList[i].adjacent0 = terrain;
-        terrain.adjacent1 = this.terrainList[i];
-        break;
-      } else if (!this.terrainList[i].adjacent1 && checkBounds(terrain.p1, this.terrainList[i].p1)) {
-        terrain.p1.x = this.terrainList[i].p1.x = (terrain.p1.x + this.terrainList[i].p1.x) / 2;
-        terrain.p1.y = this.terrainList[i].p1.y = (terrain.p1.y + this.terrainList[i].p1.y) / 2;
-        this.terrainList[i].adjacent1 = terrain;
-        terrain.adjacent1 = this.terrainList[i];
-        break;
-      }
-    }
-  }
-
-  var circular = {};
-  if (terrain.adjacent0) {
-    circular[terrain.adjacent0.id] = terrain.adjacent0;
-    var d = checkCircular(terrain.adjacent0, circular, terrain, {});
-
-
-    if (!terrain.circularID && d) {
-
-      var c = new TerrainCircular(circular, this.closedTerrain);
-
-    }
-  }
-};
-
-function TerrainCircular(circular, closedTerrain) {
-  //Entity.call();
-  this.circular = circular;
-  for (var item in this.circular) {
-    this.circular[item].circularID = this.id;
-
-  }
-  closedTerrain.push(this);
-}
-
-TerrainCircular.prototype = new Entity();
-
-TerrainCircular.prototype.draw = function (ctx) {
-
-  var rect = new Rectangle(Number.MAX_VALUE, Number.MAX_VALUE, Number.MIN_VALUE, Number.MIN_VALUE);
-  ctx.save();
-  ctx.beginPath();
-
-  for (var k in this.circular) {
-    this.fillTerrain(ctx, this.circular[k], {}, rect, {});
-
-    break;
-  }
-
-
-
-  ctx.closePath();
-  ctx.clip();
-  var img = ASSET_MANAGER.cache["assets/dirt.jpg"];
-  for (var x = rect.x1 ; x < rect.x2; x += img.width) {
-    for (var y = rect.y1; y < rect.y2; y += img.height) {
-      ctx.drawImage(img, x, y);
-    }
-  }
-  ctx.restore();
-  ctx.lineWidth = this.circular[k].lineWidth;
-  ctx.stroke();
-
-
-  for (var item in this.circular) {
-    var midPoint = this.circular[item].p0.add(this.circular[item].p1).divf(2.0);
-    var pNormalPosEnd = midPoint.add(this.circular[item].normal.multf(20));
-    this.circular[item].normalPosCol.x = pNormalPosEnd.x - this.circular[item].normalPosCol.w / 2;
-    this.circular[item].normalPosCol.y = pNormalPosEnd.y - this.circular[item].normalPosCol.h / 2;
-    this.circular[item].p0edit.x = this.circular[item].p0.x;
-    this.circular[item].p0edit.y = this.circular[item].p0.y;
-    this.circular[item].p1edit.x = this.circular[item].p1.x;
-    this.circular[item].p1edit.y = this.circular[item].p1.y;
-    ctx.moveTo(midPoint.x, midPoint.y);
-    ctx.lineTo(pNormalPosEnd.x, pNormalPosEnd.y);
-    ctx.stroke();
-  }
-};
-
-
-TerrainCircular.prototype.fillTerrain = function (ctx, terrain, visited, rect, visitedLine) {
-  if (rect.x1 > terrain.p0.x) rect.x1 = terrain.p0.x;
-  if (rect.x2 < terrain.p0.x) rect.x2 = terrain.p0.x;
-  if (rect.y1 > terrain.p0.y) rect.y1 = terrain.p0.y;
-  if (rect.y2 < terrain.p0.y) rect.y2 = terrain.p0.y;
-  if (rect.x1 > terrain.p1.x) rect.x1 = terrain.p1.x;
-  if (rect.x2 < terrain.p1.x) rect.x2 = terrain.p1.x;
-  if (rect.y1 > terrain.p1.y) rect.y1 = terrain.p1.y;
-  if (rect.y2 < terrain.p1.y) rect.y2 = terrain.p1.y;
-
-
-  visitedLine[terrain.id] = true;
-
-  var t0 = JSON.stringify(terrain.p0);
-  var t1 = JSON.stringify(terrain.p1);
-
-
-  if (visited.length === 0) {
-    ctx.moveTo(terrain.p0.x, terrain.p0.y);
-    visited[t0] = true;
-  }
-
-  if (!visited[t0]) ctx.lineTo(terrain.p0.x, terrain.p0.y);
-  else if (!visited[t1]) ctx.lineTo(terrain.p1.x, terrain.p1.y);
-
-  if (terrain.adjacent0 && !visitedLine[terrain.adjacent0.id]) {
-    var o0 = JSON.stringify(terrain.adjacent0.p0);
-    var o1 = JSON.stringify(terrain.adjacent0.p1);
-    if (!visited[t0] || !visited[t1]) {
-
-      if (t0 === o0 || t0 === o1) visited[t0] = true;
-      else if (t1 === o0 || t1 === o1) visited[t1] = true;
-
-
-
-      this.fillTerrain(ctx, terrain.adjacent0, visited, rect, visitedLine);
-    }
-  }
-  if (terrain.adjacent1 && !visitedLine[terrain.adjacent1.id]) {
-
-    var o0 = JSON.stringify(terrain.adjacent1.p0);
-    var o1 = JSON.stringify(terrain.adjacent1.p1);
-    if (!visited[t0] || !visited[t1]) {
-      if (t0 === o0 || t0 === o1) visited[t0] = true;
-      else if (t1 === o0 || t1 === o1) visited[t1] = true;
-
-
-
-
-      this.fillTerrain(ctx, terrain.adjacent1, visited, rect, visitedLine);
-    }
-  }
-
-};
-
-TerrainManager.prototype.removeFrom = function (terrain) {
-
-  if (terrain.adjacent0) {
-    if (terrain.adjacent0.adjacent0 === terrain) {
-      terrain.adjacent0.adjacent0 = terrain.adjacent0 = null;
-    } else if (terrain.adjacent0.adjacent1 === terrain) {
-      terrain.adjacent0.adjacent1 = terrain.adjacent0 = null;
-    }
-  }
-  if (terrain.adjacent1) {
-    if (terrain.adjacent1.adjacent0 === terrain) {
-      terrain.adjacent1.adjacent0 = terrain.adjacent1 = null;
-    } else if (terrain.adjacent1.adjacent1 === terrain) {
-      terrain.adjacent1.adjacent1 = terrain.adjacent1 = null;
-    }
-  }
-
-  if (terrain.p0edit) removeMouseCollideable(terrain.p0edit);
-  if (terrain.p1edit) removeMouseCollideable(terrain.p1edit);
-
-  return true;
-};
-
-function checkBounds(p1, p2) {
-  return (p1.x <= p2.x + graceSize &&
-         p1.x >= p2.x - graceSize &&
-         p1.y <= p2.y + graceSize &&
-         p1.y >= p2.y - graceSize);
-};
-
-function checkCircular(nextLine, array, original, visited) {
-  if (!nextLine.adjacent0 || !nextLine.adjacent1) return false;
-  if (nextLine) {
-    var t0 = JSON.stringify(nextLine.p0);
-    var t1 = JSON.stringify(nextLine.p1);
-    if (nextLine.id === original.id) {
-      return true;
-    } else {
-
-      if (nextLine.adjacent0 && !array[nextLine.adjacent0.id]) {
-        var o0 = JSON.stringify(nextLine.adjacent0.p0);
-        var o1 = JSON.stringify(nextLine.adjacent0.p1);
-
-
-
-        if (!visited[t0] || !visited[t1]) {
-          if (t0 === o0 || t0 === o1) visited[t0] = true;
-          else if (t1 === o0 || t1 === o1) visited[t1] = true;
-          array[nextLine.adjacent0.id] = nextLine.adjacent0;
-          return checkCircular(nextLine.adjacent0, array, original, visited);
-        }
-      }
-      if (nextLine.adjacent1 && !array[nextLine.adjacent1.id]) {
-        var o0 = JSON.stringify(nextLine.adjacent1.p0);
-        var o1 = JSON.stringify(nextLine.adjacent1.p1);
-        if (!visited[t0] || !visited[t1]) {
-          if (t0 === o0 || t0 === o1) visited[t0] = true;
-          else if (t1 === o0 || t1 === o1) visited[t1] = true;
-          array[nextLine.adjacent1.id] = nextLine.adjacent1;
-          return checkCircular(nextLine.adjacent1, array, original, visited);
-        }
-      }
-
-
-      //            if(nextLine.adjacent0) {
-      //                
-      //                var o0 = JSON.stringify(nextLine.adjacent0.p0);
-      //                var o1 = JSON.stringify(nextLine.adjacent0.p1);
-      //          
-      //                
-      //                
-      //                if(!array[nextLine.adjacent0.id] && (!visited[t0] || !visited[t1]) ) {
-      //                    if(t0 === o0 || t0 === o1) visited[t0] = true;
-      //                    else if (t1 === o0 || t1 === t1) visited[t1] = true;
-      //                    
-      //                    array[nextLine.adjacent0.id] = nextLine.adjacent0;
-      //                    return checkCircular(nextLine.adjacent0, array, original, visited);
-      //                }
-      //            }
-      //            if (nextLine.adjacent1 && !array[nextLine.adjacent1.id]  && (!visited[t0] || !visited[t1])) {
-      //                array[nextLine.adjacent1.id] = nextLine.adjacent1;
-      //                
-      //                var o0 = JSON.stringify(nextLine.adjacent1.p0);
-      //                var o1 = JSON.stringify(nextLine.adjacent1.p1);
-      //          
-      //                if(t0 === o0 || t0 === o1) visited[t0] = true;
-      //                else if (t1 === o0 || t1 === t1) visited[t1] = true;
-      //                
-      //                
-      //                return  checkCircular(nextLine.adjacent1, array, original, visited);
-      //            }
-    }
-  }
-  return false;
-}
 
 function createCurves(ctx, a0, a1, b0, b1, other, check) {
   var midPoint1 = a0.add(a1).divf(2.0);

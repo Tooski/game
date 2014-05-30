@@ -9,17 +9,6 @@ var COLLISION_TEST_COUNT = 0;
 
 
 
-
-  // Collideable parent class for all things collideable with by a collider.
-function Collideable() {
-  Entity.apply(this);
-}
-Collideable.prototype = new Entity();
-Collideable.prototype.collidesWith = function (point, radius) { }; // for now just checks a point and its radius aka the hamster ball's center + radius to see if it collides. 
-Collideable.prototype.collidesData = function (point, radius) { }; // for now just checks a point and its radius aka the hamster ball's center + radius to see if it collides. 
-Collideable.constructor = Collideable;
-
-
 /*
 	RETURN:
 		What was collided with.
@@ -107,8 +96,6 @@ function TerrainPoint(pos, line0, line1) {
   } else {
     throw "no line passed into TerrainPoint constructor.";
   }
-
-  console.log("angle0, ", this.angle0, ", angle1, ", this.angle1);
 }
 
 
@@ -116,7 +103,6 @@ function TerrainPoint(pos, line0, line1) {
 //What I will be calling in the recursive physics bounds checking function to check the initial collision list.
 //doNotCheck may be empty.
 function getCollisionsInList(ballState, collidersToCheck, doNotCheck) {
-  "use strict";
   //code to check for collisions ONLY WITH THE THINGS IN THE PASSED LIST! Should be about the same as the above method but only searches this specific list, and returns the subset of it that is still being collided with.
   var stuffWeCollidedWith = [];
   //console.log("collidersToCheck, ", collidersToCheck);
