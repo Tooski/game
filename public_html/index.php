@@ -7,6 +7,7 @@
             canvas { display:block; } /* To remove the scrollbars */
         </style>
         <link rel="stylesheet" type="text/css" href="css/login.css">
+        <link rel="stylesheet" type="text/css" href="css/leaderboard.css">
         <meta charset="utf-8" />
         <title>Game Project Shell</title>
         <script type="text/javascript" src="./canvasinput.min.js"></script>
