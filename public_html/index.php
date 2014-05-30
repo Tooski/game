@@ -39,6 +39,7 @@
         <script type="text/javascript" src="./gameMainManu.js"></script>
 		<script type="text/javascript" src="./controlDisplay.js"></script>
 		<script type="text/javascript" src="./logInBoard.js"></script>
+                <script type="text/javascript" src="./leaderBoard.js"></script>
     </head>
     <body>
         <!--       <div>
