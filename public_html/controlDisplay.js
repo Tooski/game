@@ -1,7 +1,7 @@
 /*
 	Minkwan Choi
 	last updated : 5/30/2014
-	methods(functions) of cantrol dispaly
+	methods(functions) of control dispaly
 */
 
 

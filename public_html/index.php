@@ -7,6 +7,7 @@
             canvas { display:block; } /* To remove the scrollbars */
         </style>
         <link rel="stylesheet" type="text/css" href="css/login.css">
+        <link rel="stylesheet" type="text/css" href="css/leaderboard.css">
         <meta charset="utf-8" />
         <title>Game Project Shell</title>
         <script type="text/javascript" src="./canvasinput.min.js"></script>
@@ -36,8 +37,8 @@
         <script type="text/javascript" src="./game.js"></script>
         <script type="text/javascript" src="./stageBoard.js"></script>
         <script type="text/javascript" src="./gameMainManu.js"></script>
-		<script type="text/javascript" src="./controlDisplay.js"></script>
-		<script type="text/javascript" src="./logInBoard.js"></script>
+        <script type="text/javascript" src="./controlDisplay.js"></script>
+        <script type="text/javascript" src="./logInBoard.js"></script>
     </head>
     <body>
         <!--       <div>
@@ -90,7 +91,7 @@
             </form>  
 
         </div>
-<div class="outer-leaderboard-container" id="login">
+        <div class="outer-leaderboard-container" id="login">
             <div class="title-container">
                 Top Times and Scores!!!
             </div>
@@ -124,7 +125,7 @@
                     <span>18.  mike 234,000</span>
                     <span>19.  mike 234,000</span>
                     <span>20.  mike 234,000</span>
-   
+
                 </div>
                 <div class="right_box">
                     <span>1.  mike 22.4 seconds</span>
@@ -151,7 +152,7 @@
 
             </div>
             <div class="footer-container">
-                <button type="button">Close</button>             
+                <button id="close" type="button" onClick= "closeButtonAction()">Close</button>             
             </div>
 
 
