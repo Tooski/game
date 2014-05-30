@@ -241,6 +241,7 @@ function TerrainManager () {
 
 	
 	this.isReset = true;
+	this.closedTerrain = [];
 	
 	
 	
