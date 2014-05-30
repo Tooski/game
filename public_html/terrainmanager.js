@@ -1,16 +1,8 @@
-// classes
-
-
-
-
-
-
-
-
-
-
-
-
+/**
+ * terrainmanager.js
+ * Original author: Joe
+ * Heavily revised and edited by Travis and Michael Vlaming
+ */
 
 
 //object that represents a checkpoint. this is entirely different from a CheckpointLine.
@@ -33,6 +25,8 @@ function Checkpoint(id, x, y) {
     return JSON.stringify(formattedObj);
   }
 }
+
+
 
 
 //object that represents a collectible.
@@ -74,15 +68,17 @@ Collectible.prototype.draw = function (ctx) {
 }
 
 
-// object that represents a specific goal. this is different from a GoalLine
-// goalNum = terrainmanager.nextGoalNumber();
-// id = "goal " + this.goalNum;       		
-function Goal(id, goalNum) {			// ensure you terrainmanager.nextGoalNumber++; after passing in nextGoalNumber.
-  this.goalNum = goalNum;					// sets this goals number to a new goal number. 
-  // used to determine what goal the player completed at the end of the level,
-  // and used to determine the leaderboard to submit to.
 
-  this.id = id;
+
+/**
+ * object that represents a specific goal. this is different from a GoalLine
+ * id = terrainmanager.nextGoalNumber();
+ */   		
+function Goal(id) {	
+
+  this.id = id;		// sets this goals number to a new goal number. 
+                  // used to determine what goal the player completed at the end of the level,
+                  // and used to determine the leaderboard to submit to.
 
 
   this.toJSON = function () {
@@ -90,10 +86,6 @@ function Goal(id, goalNum) {			// ensure you terrainmanager.nextGoalNumber++; af
     return JSON.stringify(formattedObj);
   }
 }
-
-
-
-
 
 
 
@@ -111,8 +103,6 @@ function pointString(point) {
 
 
 //TerrainManager itself
-
-
 function TerrainManager() {
                                     //SEE RESET FUNCTION BELOW FOR DOCUMENTATION OF FIELDS
   this.nextGoalNo;
@@ -136,18 +126,21 @@ function TerrainManager() {
 
 
   this.reset();
+  
 
 
 
+  this.nextGoalNumber             = function () { return this.nextGoalNo++;           }
+  this.nextCheckpointNumber       = function () { return this.nextCheckpointNo++;     }
+  this.nextCollectibleNumber      = function () { return this.nextCollectibleNo++;    }
+  this.nextPointNumber            = function () { return this.nextPointNo++;          }
+  this.nextTerrainLineNumber      = function () { return this.nextTerrainLineNo++;    }
+  this.nextGoalLineNumber         = function () { return this.nextGoalLineNo++;       }
+  this.nextCheckpointLineNumber   = function () { return this.nextCheckpointLineNo++; }
+  this.nextKillLineNumber         = function () { return this.nextKillLineNo++;       }
+  this.nextPolygonNumber          = function () { return this.nextPolygonNo++;        }
+  this.nextPointNumber            = function () { return this.nextPointNo++;          }
 
-  this.nextGoalNumber = function () {
-    return this.nextGoalNo++;
-  }
-
-
-  this.nextPointNumber = function () {
-    return this.nextPointNo++;
-  }
 
 
   /**
@@ -184,23 +177,23 @@ function TerrainManager() {
     this.nextPolygonNo = 1;
 
 
-    this.pointMap = new Array();			// this is a map of all LinePoints by their ID, used to reduce point replication everywhere.
-    // should only iterate through it or use this.toLinePoint(point) to modify it.
+    this.pointMap = new Array();			    // this is a map of all LinePoints by their ID, used to reduce point replication everywhere.
+                                          // should only iterate through it or use this.toLinePoint(point) to modify it.
 
-    this.startPoint = new vec2(1, 1);      		// the level starting location.
+    this.startPoint = new vec2(1, 1);     // the level starting location.
 
-    this.goals = new Array();     	     // map of goals by ID that are currently contained in this level.	 /NOT THE GOAL LINES/
-    // goalID's is a number assigned to goalLines that link to the same goal, and also used for determining
-    // what leaderboard to put the players score on.
+    this.goals = new Array();     	      // map of goals by ID that are currently contained in this level.	 /NOT THE GOAL LINES/
+                                          // goalID's is a number assigned to goalLines that link to the same goal, and also used for determining
+                                          // what leaderboard to put the players score on.
 
-    this.checkpoints = new Array();		   // map of checkpoints by ID.	 /NOT THE CHECKPOINT LINES/
+    this.checkpoints = new Array();		    // map of checkpoints by ID.	 /NOT THE CHECKPOINT LINES/
 
     this.collectibles = new Array();      // map of all collectibles by ID. 
 
 
-    this.terrainLines = new Array();		   // map of TerrainLines by ID that are currently contained in this level.
+    this.terrainLines = new Array();		  // map of TerrainLines by ID that are currently contained in this level.
 
-    this.checkpointLines = new Array();	 // ^ but CheckpointLines
+    this.checkpointLines = new Array();	  // ^ but CheckpointLines
 
     this.goalLines = new Array();         // ^ but GoalLines
 
@@ -210,7 +203,7 @@ function TerrainManager() {
   }
 
 
-  this.toJSON = function () {					// gets the JSON version of this manager.
+  this.toJSON = function () {					    // gets the JSON version of this manager.
     var JSONdata = {
       levelName: this.levelName,
       startPoint: this.startPoint,
