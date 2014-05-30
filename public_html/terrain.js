@@ -10,14 +10,14 @@ var editMode = true;
 // TerrainSurface object is the parent class for all collideable terrain objects. Has a start point and end point (and is therefore a line or curve).
 function TerrainSurface(point0, point1, adjacent0, adjacent1, pl) {
   if (point0 && point1) {
-    if (!point0.id || !point1.id) {
-      console.log("-+-");
-      console.log("-+-  (note that the below message is true for all line types, not just terrainLines. They are just an example)");
-      console.log("-+- bad new Line constructor call. It should look like below");
-      console.log("-+- new TerrainLine(tm.toLinePoint(p0), tm.toLinePoint(p1), player, adjacent0, adjacent1, normal)");
-      console.log("-+- where tm is the terrainManager, or use \"this\" in place of \"tm\" if constructing from within terrainmanager: ");
-      throw "-+- point0 and point1 are not LinePoints. Ensure you use terrainManager.toLinePoint(), see above";
-    }
+    //if (!point0.id || !point1.id) {
+    //  console.log("-+-");
+    //  console.log("-+-  (note that the below message is true for all line types, not just terrainLines. They are just an example)");
+    //  console.log("-+- bad new Line constructor call. It should look like below");
+    //  console.log("-+- new TerrainLine(tm.toLinePoint(p0), tm.toLinePoint(p1), player, adjacent0, adjacent1, normal)");
+    //  console.log("-+- where tm is the terrainManager, or use \"this\" in place of \"tm\" if constructing from within terrainmanager: ");
+    //  throw "point0 and point1 are not LinePoints. Ensure you use terrainManager.toLinePoint(), see above";
+    //}
 
     Collideable.apply(this);    // SET UP TerrainSurface objects' inheritance from Collideable.
     this.p0 = point0;                                   // p0 and p1 are either end of this TerrainSurface.

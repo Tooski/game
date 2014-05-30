@@ -515,7 +515,25 @@ TerrainManager.prototype.loadFromFile = function(id, init, callback) {
     this.levelByID = {};
 
      if(init) init();
-     game.settings.get({ "command": "getleveljson", "data": { "levelid": (id || 1) } }, this.parseFromJSON(data));
+     game.settings.get({ "command": "getleveljson", "data": { "levelid": (id || 1) } },
+       function (data) {
+             var obj = $.parseJSON($.parseJSON(data));
+             for (var i = 0; i < obj.length; i++) {
+               var ter = new TerrainLine(new vec2(obj[i].p0.x, obj[i].p0.y), new vec2(obj[i].p1.x, obj[i].p1.y));
+               ter.id = obj[i].id;
+               ter.normal = new vec2(obj[i].normal.x, obj[i].normal.y);
+               that.levelByID[obj[i].id] = ter;
+             }
+             // Adds neighbors to the object.
+             for (var i = 0; i < obj.length; i++) {
+               if (obj[i].adjacent0 && that.levelByID[obj[i].adjacent0]) that.levelByID[obj[i].id].adjacent0 = that.levelByID[obj[i].adjacent0];
+               if (obj[i].adjacent1 && that.levelByID[obj[i].adjacent1]) that.levelByID[obj[i].id].adjacent1 = that.levelByID[obj[i].adjacent1];
+               that.pushTerrain(that.levelByID[obj[i].id], that.levelByID);
+
+             }
+             gameEngine.initializePhysEng();
+       }
+     );
 
   
 //    gameEngine.initializePhysEng();
@@ -524,23 +542,8 @@ TerrainManager.prototype.loadFromFile = function(id, init, callback) {
     
 };
 
-TerrainManager.prototype.parseFromJSON = function(data) {
-  var obj = $.parseJSON($.parseJSON( data ));
-  for(var i = 0; i < obj.length; i++) {
-    var ter = new TerrainLine(new vec2(obj[i].p0.x, obj[i].p0.y), new vec2(obj[i].p1.x, obj[i].p1.y));
-    ter.id = obj[i].id;
-    ter.normal = new vec2(obj[i].normal.x, obj[i].normal.y);
-    that.levelByID[obj[i].id] = ter;
-  }
-  // Adds neighbors to the object.
-  for(var i = 0; i < obj.length; i++) {
-    if (obj[i].adjacent0 && that.levelByID[obj[i].adjacent0]) that.levelByID[obj[i].id].adjacent0 = that.levelByID[obj[i].adjacent0];
-    if (obj[i].adjacent1 && that.levelByID[obj[i].adjacent1]) that.levelByID[obj[i].id].adjacent1 = that.levelByID[obj[i].adjacent1];
-    that.pushTerrain(that.levelByID[obj[i].id], that.levelByID);
 
-  }
-  gameEngine.initializePhysEng();
-}
+
 
 TerrainManager.prototype.createTerrainPoints = function(terrain) {
     var that = this;
