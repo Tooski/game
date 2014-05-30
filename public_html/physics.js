@@ -1588,7 +1588,7 @@ PhysEng.prototype.getSurfaceEndEvent = function () {
           if (this.player.onPoint) {
             throw "bullshit"
           }
-          DEBUG_DRAW_GRAY.push(new DebugCircle(endPointState.pos, this.player.radius, 5));
+          //DEBUG_DRAW_GRAY.push(new DebugCircle(endPointState.pos, this.player.radius, 5));
           //throw "Debug, but this technically shouldnt happen where endpoint was hit before the adjacent line was.";
         }
         //handle me.
@@ -1613,7 +1613,7 @@ PhysEng.prototype.getSurfaceEndEvent = function () {
             throw "bullshit"
           }                         //(adjData.time, adjDependencyMask, this.player.surface, (adjData.adjNumber === 0 ? this.player.surface.adjacent0 : this.player.surface.adjacent1), adjData.angle, true);
           nextSurfaceEvent = new SurfaceEndEvent(endPointData.time, endPointDependencyMask, this.player.surface, (endPointData.pointNumber === 0 ? this.player.surface.adjacent0 : this.player.surface.adjacent1), (endPointData.pointNumber === 0 ? this.player.surface.p0 : this.player.surface.p1), endPointAngle, true)
-          DEBUG_DRAW_GRAY.push(new DebugCircle(endPointState.pos, this.player.radius, 5));
+          //DEBUG_DRAW_GRAY.push(new DebugCircle(endPointState.pos, this.player.radius, 5));
         }
 
         console.log("");
@@ -1681,7 +1681,7 @@ PhysEng.prototype.getSurfaceEndEvent = function () {
     console.log("- =-= - =-= - =-=  gray thing");
     console.log("- =-= - =-= - =-=  endPointState", endPointState);
     nextSurfaceEvent = new SurfaceEndEvent(endPointData.time, endPointDependencyMask, this.player.surface, (endPointData.pointNumber === 0 ? this.player.surface.adjacent0 : this.player.surface.adjacent1), (endPointData.pointNumber === 0 ? this.player.surface.p0 : this.player.surface.p1), endPointAngle, true)
-    DEBUG_DRAW_GRAY.push(new DebugCircle(endPointState.pos, this.player.radius, 5));
+    //DEBUG_DRAW_GRAY.push(new DebugCircle(endPointState.pos, this.player.radius, 5));
   } else {
     throw "hi, no valid surface event???";
   }
