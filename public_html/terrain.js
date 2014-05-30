@@ -355,7 +355,7 @@ function KillLine(point0, point1, player, adjacent0, adjacent1) {
   }
 }
 KillLine.prototype = new TerrainSurface();      //Establishes this as a child of TerrainSurface.
-KillLine.prototype.constructor = KillLines;   //Establishes this as having its own constructor.
+KillLine.prototype.constructor = KillLine;   //Establishes this as having its own constructor.
 KillLine.prototype.lineWidth = 5;
 
 

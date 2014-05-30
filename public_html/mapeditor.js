@@ -336,10 +336,10 @@ MapEditor.prototype.createStartPointButton = function(ctx) {
 }
 
 MapEditor.prototype.createCheckpointLineButton = function(ctx) {
-	var checkpointButton = new MapEditorButton("Check", 0, (buttonSize + 5) * 3, buttonSize, buttonSize);
+	var checkpoint = new MapEditorButton("Check", 0, (buttonSize + 5) * 3, buttonSize, buttonSize);
     var that = this;
 
-    checkpointButton.onClick = function (e) {
+    checkpoint.onClick = function (e) {
         
         var left = parseInt(that.ctx.canvas.style.left);
         var top =  parseInt(that.ctx.canvas.style.top);
@@ -360,7 +360,7 @@ MapEditor.prototype.createCheckpointLineButton = function(ctx) {
             }
         }
     };
-	line.onDrag = function(e) {
+	checkpoint.onDrag = function(e) {
 		if(this.line) {
         	var mousePos = getMousePos(e);
         	this.line.p1edit.x = (this.line.p1.x = mousePos.x) - this.line.p1edit.w/2;
@@ -368,7 +368,7 @@ MapEditor.prototype.createCheckpointLineButton = function(ctx) {
            	//console.log(this.line.p1edit);
         }
     };
-	line.onRelease = function(e) {
+	checkpoint.onRelease = function(e) {
         if(this.line && this.line.p1.x !== this.line.p0.x && this.line.p1.y !== this.line.p0.y) {
             that.level.snapTo(this.line);
             this.locked = this.prev = this.line;

@@ -507,6 +507,7 @@ TerrainManager.prototype.drawStart = function(ctx) {
 	ctx.fill();
 }
 
+
 TerrainManager.prototype.loadFromFile = function(id, init, callback) {
     var that = this;
     
