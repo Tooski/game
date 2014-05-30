@@ -5,7 +5,6 @@
  * Skeleton by Travis Drake
  */
 var DEBUG_TERRAIN = false;
-var editMode = true;
 
 
 

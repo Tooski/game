@@ -31,8 +31,6 @@ function Player(x, y, timer) {
 Player.prototype = new Entity();
 Player.prototype.update = function() {
 
-  //console.log(this.model.animationSpeed);
-  //console.log(this.model.animationAngle);
     if (this.model.animationSpeed <= 0) {
         this.model.animationStanding = true;
     } else {

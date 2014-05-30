@@ -65,6 +65,7 @@ Collectible.prototype.draw = function (ctx) {
   ctx.lineWidth = 3;
   ctx.strokeStyle = "000000";
   ctx.stroke();
+
 }
 
 

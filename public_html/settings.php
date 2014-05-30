@@ -2,8 +2,9 @@
 
 include 'database.php';
 //constants
+  
 $db = Database::getConnection();
-
+  
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $_POST = sanitize($db, $_POST);
     switch ($_POST["command"]) {
@@ -44,6 +45,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 } else if ($_SERVER['REQUEST_METHOD'] === 'GET') {
     $_GET = sanitize($db, $_GET);
+    
 
     switch ($_GET["command"]) {
 
@@ -59,9 +61,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             mysqli_stmt_execute($stmt);
 
             mysqli_stmt_bind_result($stmt, $str);
+            
+      
             while ($stmt->fetch()) {
+
                 echo json_encode(stripslashes($str));
             }
+       
             break;
         case "login":
             $stmt = mysqli_prepare($db, "SELECT EXISTS(select * from Users where username = ? and password = ?);");

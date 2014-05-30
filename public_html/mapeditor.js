@@ -12,6 +12,8 @@ var buttonSize = 100;
 
 var button;
 var buttonList = [];
+var editMode = true;
+var editMovementSpeed = 10;
 
 
 var graceSize = 10;
@@ -66,38 +68,40 @@ function MapEditorButton(name, x, y, w, h) {
 }
 
 
-MapEditorButton.onClick = function (e) { };
-MapEditorButton.onDrag = function (e) { };
-MapEditorButton.onRelease = function (e) { };
-MapEditorButton.prototype.draw = function (ctx) {
 
+MapEditorButton.onClick = function(e){};
+MapEditorButton.onDrag = function(e){};
+MapEditorButton.onRelease = function(e){};
+MapEditorButton.prototype.draw = function(ctx) {
+  
+        
+        var v = (canvas.width/initWidth) * initScale;
+        if(ctx.initScale !== v || ctx.isEdited) {
+            
+            ctx.initScale = v;
+            ctx.canvas.width = ctx.canvas.setWidth * ctx.initScale;
+            ctx.canvas.height = ctx.canvas.setHeight * ctx.initScale;
+            ctx.scale(ctx.initScale,ctx.initScale);
+            ctx.isEdited = false;
+      
+        }
+        this.collider.w = (this.w = this.iw) * v;
+        this.collider.h = (this.h = this.ih) * v;
+        this.collider.x = (this.x = this.ix) * v;
+        this.collider.y = (this.y = this.iy) * v;
+        
+        ctx.beginPath();
+        ctx.fillStyle = this.isSelected ? "#00FF00" : "#FF0000";
+        ctx.fillRect(this.x,this.y, this.w, this.h);
 
-  var v = (canvas.width / initWidth) * initScale;
-  if (ctx.initScale !== v) {
-    ctx.initScale = v;
-    ctx.canvas.width = buttonListEnd.x * ctx.initScale;
-    ctx.canvas.height = buttonListEnd.y * ctx.initScale;
-    ctx.scale(ctx.initScale, ctx.initScale);
+        ctx.stroke();
 
-
-  }
-  this.collider.w = (this.w = this.iw) * v;
-  this.collider.h = (this.h = this.ih) * v;
-  this.collider.x = (this.x = this.ix) * v;
-  this.collider.y = (this.y = this.iy) * v;
-
-  ctx.beginPath();
-  ctx.fillStyle = this.isSelected ? "#66FF66" : "#FF4444";
-  ctx.fillRect(this.x, this.y, this.w, this.h);
-
-  ctx.stroke();
-
-  var size = 16;
-  ctx.fillStyle = "black";
-  ctx.font = "bold " + size + "px Arial";
-  ctx.textAlign = "center";
-  ctx.fillText(this.name, this.x + this.w / 2, this.y + this.h / 2 + size / 2);
-  //    }
+        var size = 16;
+        ctx.fillStyle = "black";
+        ctx.font = "bold "+size+"px Arial";
+        ctx.textAlign="center"; 
+        ctx.fillText(this.name, this.x +  this.w/2, this.y  + this.h/2 + size/2);        
+        //    }
 };
 
 
@@ -134,6 +138,8 @@ function MapEditor(level, editMode) {
   this.createCheckpointLineButton(this.ctx);
   this.createCollectibleButton(this.ctx);
   this.createStartPointButton(this.ctx);
+  this.createIncreaseSpeedButton();
+  this.createDecreaseSpeedButton();
   var that = this;
   c.addEventListener('mousedown', function (e) {
 
@@ -202,14 +208,18 @@ function MapEditor(level, editMode) {
   }, false);
 
 
-
-
-
+  
   c.width = buttonListEnd.x;
   c.height = buttonListEnd.y;
+  
+  c.setWidth  = c.width = buttonListEnd.x;
+  c.setHeight = c.height = buttonListEnd.y;
+  gameEngine.entitiesGUI.push(this);
+
 
   this.draw(this.ctx);
 
+    
 }
 
 
@@ -732,17 +742,6 @@ MapEditor.prototype.createSaveButton = function (ctx) {
 
 
 
-MapEditor.prototype.createEditModeButton = function () {
-  var editmode = new MapEditorButton("Edit Mode", 0, 0, buttonSize * 2, buttonSize);
-  editmode.collider.onEditMode = false;
-  editmode.onRelease = function (e) {
-    this.editMode = !this.editMode;
-    this.isSelected = button = null;
-
-  };
-};
-
-
 
 
 MapEditor.prototype.eraseFromArrayByClick = function (array, position) {
@@ -973,7 +972,54 @@ MapEditor.prototype.removeFrom = function (terrain) {
   if (terrain.p1edit) removeMouseCollideable(terrain.p1edit);
 
   return true;
+}
+
+
+
+
+MapEditor.prototype.createIncreaseSpeedButton = function() {
+    var inc = new MapEditorButton("Camera speed up", 0, (buttonSize + 5) * 9, buttonSize * 2, buttonSize);
+    inc.onRelease = function(e) {
+        editMovementSpeed += 10;
+    };
 };
+
+
+
+
+MapEditor.prototype.createDecreaseSpeedButton = function() {
+    var inc = new MapEditorButton("Camera speed down", 0, (buttonSize + 5) * 10, buttonSize * 2, buttonSize);
+    inc.onRelease = function(e) {
+        
+        editMovementSpeed -= 10;
+        if(editMovementSpeed <= 0) editMovementSpeed = 1;
+    };
+};
+
+
+
+
+MapEditor.prototype.createEditModeButton = function(ctx) {
+    var editmode = new MapEditorButton("Test level", 0, 0, buttonSize * 2, buttonSize);
+    editmode.collider.onEditMode = false;
+    var that = this;
+    editmode.onRelease = function(e) {
+    if(that.ctx.canvas.setHeight !== buttonSize) {
+        that.ctx.canvas.setWidth = that.ctx.canvas.setHeight =  buttonSize;
+        editMode = false;
+    } else { 
+        that.ctx.canvas.setWidth = buttonSize;
+        that.ctx.canvas.setHeight = buttonListEnd.y;
+        editMode = true;
+    }
+        ctx.isEdited = true;
+        that.draw(that.ctx);
+        that.editMode = !that.editMode;
+        that.isSelected = button = null;
+
+    };
+};
+
 
 
 
@@ -983,6 +1029,7 @@ function checkBounds(p1, p2) {
          p1.y <= p2.y + graceSize &&
          p1.y >= p2.y - graceSize);
 };
+
 
 
 
