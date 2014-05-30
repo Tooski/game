@@ -4,6 +4,8 @@ var buttonSize = 75;
 
 var button;
 var buttonList = [];
+var editMode = true;
+var editMovementSpeed = 10;
 
 // Button dimensions, if user is clicking in this area it will check to see
 // if a button has been clicked.
@@ -49,12 +51,13 @@ MapEditorButton.prototype.draw = function(ctx) {
   
         
         var v = (canvas.width/initWidth) * initScale;
-        if(ctx.initScale !== v) {
+        if(ctx.initScale !== v || ctx.isEdited) {
+            
             ctx.initScale = v;
-            ctx.canvas.width = buttonListEnd.x * ctx.initScale;
-            ctx.canvas.height = buttonListEnd.y * ctx.initScale;
+            ctx.canvas.width = ctx.canvas.setWidth * ctx.initScale;
+            ctx.canvas.height = ctx.canvas.setHeight * ctx.initScale;
             ctx.scale(ctx.initScale,ctx.initScale);
-         
+            ctx.isEdited = false;
       
         }
         this.collider.w = (this.w = this.iw) * v;
@@ -85,7 +88,7 @@ function MapEditor(level, editMode) {
     this.ctx.initScale = 1/(initWidth/c.width) * initScale;
     this.ctx.scale(this.ctx.initScale, this.ctx.initScale);
     this.editMode = editMode || true ;
-    this.createEditModeButton();
+    this.createEditModeButton(this.ctx);
     this.createLineButton(this.ctx);
 	this.createGoalLineButton(this.ctx);
     this.createEraseButton();
@@ -94,6 +97,8 @@ function MapEditor(level, editMode) {
 	this.createCheckpointLineButton(this.ctx);
 	this.createCollectibleButton(this.ctx);
 	this.createStartPointButton(this.ctx);
+        this.createIncreaseSpeedButton();
+        this.createDecreaseSpeedButton();
     var that = this;
     c.addEventListener('mousedown', function(e) {
             
@@ -165,8 +170,10 @@ function MapEditor(level, editMode) {
     
 
     
-    c.width  = buttonListEnd.x;
-    c.height = buttonListEnd.y;
+    c.setWidth  = c.width = buttonListEnd.x;
+    c.setHeight = c.height = buttonListEnd.y;
+    gameEngine.entitiesGUI.push(this);
+    
     
     this.draw(this.ctx);
  
@@ -180,6 +187,7 @@ MapEditor.constructor = MapEditor;
 
 
 MapEditor.prototype.draw = function(ctxGUI) {
+    
     
         for(var i = 0; i < buttonList.length; i++) {
             buttonList[i].draw(ctxGUI);
@@ -365,6 +373,8 @@ MapEditor.prototype.createStartPointButton = function(ctx) {
     var that = this;
 }
 
+
+
 MapEditor.prototype.createCheckpointLineButton = function(ctx) {
 	var line = new MapEditorButton("Check", 0, (buttonSize + 5) * 3, buttonSize, buttonSize);
     var that = this;
@@ -540,12 +550,40 @@ MapEditor.prototype.createSaveButton = function(ctx) {
     };
 
 };
-MapEditor.prototype.createEditModeButton = function() {
+
+
+
+MapEditor.prototype.createIncreaseSpeedButton = function() {
+    var inc = new MapEditorButton("+ Speed", 0, (buttonSize + 5) * 9, buttonSize, buttonSize);
+    inc.onRelease = function(e) {
+        editMovementSpeed += 10;
+    };
+};
+
+MapEditor.prototype.createDecreaseSpeedButton = function() {
+    var inc = new MapEditorButton("- Speed", 0, (buttonSize + 5) * 10, buttonSize, buttonSize);
+    inc.onRelease = function(e) {
+        
+        editMovementSpeed -= 10;
+        if(editMovementSpeed <= 0) editMovementSpeed = 1;
+    };
+};
+
+MapEditor.prototype.createEditModeButton = function(ctx) {
     var editmode = new MapEditorButton("Edit Mode", 0, 0, buttonSize, buttonSize);
     editmode.collider.onEditMode = false;
+    var that = this;
     editmode.onRelease = function(e) {
-        this.editMode = !this.editMode;
-        this.isSelected = button = null;
+    if(that.ctx.canvas.setHeight !== buttonSize) {
+        that.ctx.canvas.setWidth = that.ctx.canvas.setHeight =  buttonSize;
+    } else { 
+        that.ctx.canvas.setWidth = buttonSize;
+        that.ctx.canvas.setHeight = buttonListEnd.y;
+    }
+        ctx.isEdited = true;
+        that.draw(that.ctx);
+        that.editMode = !that.editMode;
+        that.isSelected = button = null;
 
     };
 };

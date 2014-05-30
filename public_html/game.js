@@ -144,7 +144,7 @@ function GameEngine(player) {
     this.player = player;
     this.input = new InputObject;
     this.player.inputs = this.input;
-
+    this.editPos = new vec2(0,0);
 
     //this.physParams = new PhysParams(DFLT_gravity);
     //this.controlParams = new ControlParams(DFLT_gLRaccel, DFLT_aLRaccel, DFLT_aUaccel, DFLT_aDaccel, DFLT_gUaccel, DFLT_gDaccel, DFLT_gBoostLRvel, DFLT_aBoostLRvel, DFLT_aBoostDownVel, DFLT_jumpVelNormPulse, DFLT_doubleJumpVelYPulse, DFLT_doubleJumpVelYMin, DFLT_numAirCharges, 0.0, 100000000, 2, DFLT_jumpSurfaceSpeedLossRatio);
@@ -240,6 +240,7 @@ GameEngine.prototype.startInput = function() {
     }, false);
 
     this.ctx.canvas.addEventListener("keydown", function (e) {
+        if(!editMode) {
         //console.log(e.keyCode);
         //console.log(gameEngine.input);
         if (e.keyCode === gameEngine.input.leftKey && gameEngine.input.leftPressed === false) {
@@ -266,11 +267,27 @@ GameEngine.prototype.startInput = function() {
           } else if (e.keyCode === gameEngine.input.pauseKey && gameEngine.input.pausePressed === false) {
             gameEngine.setPause(true, performance.now());
             //console.log("Pause pressed");
-		  }
+            }
+        } else {
+            if (e.keyCode === gameEngine.input.leftKey) {
+               that.editPos.x -= editMovementSpeed;
+            
+            } if (e.keyCode === gameEngine.input.rightKey) {
+               that.editPos.x += editMovementSpeed;
+            } 
+            
+            if (e.keyCode === gameEngine.input.upKey ) {
+               that.editPos.y -= editMovementSpeed;
+           } 
+           if (e.keyCode === gameEngine.input.downKey ) {
+               that.editPos.y += editMovementSpeed;
+            }
+        }
         //e.preventDefault();
     }, false);
     
     this.ctx.canvas.addEventListener("keyup", function (e) {
+             if(!editMode) {
       if (e.keyCode === DEBUG_KEY) {
         e.preventDefault();
         gameEngine.physEng.stepDebug();
@@ -297,7 +314,7 @@ GameEngine.prototype.startInput = function() {
 		}
       }
       //e.preventDefault();
-    }, false);
+    }}, false);
     
     //console.log('Input started');
 }
@@ -460,7 +477,7 @@ function parallax(ctx, backgroundImage, offsetSpeed, position) {
 
 
 GameEngine.prototype.draw = function(drawCallback) {
-  
+ 
   this.ctx.clearRect(0, 0, this.ctx.canvas.width, this.ctx.canvas.height);
   ctx.lineCap = "round";
 
@@ -468,7 +485,7 @@ GameEngine.prototype.draw = function(drawCallback) {
   ctx.miterLimit = 2;
     this.ctx.save();
 
-        
+
     if(initScale !== 0) {
                 var hasNotChanged = canvas.width === window.innerWidth && canvas.height === window.innerHeight;
                 canvas.width = window.innerWidth;
@@ -493,6 +510,7 @@ GameEngine.prototype.draw = function(drawCallback) {
                     ctxGUI.clearRect(0, 0, ctxGUI.canvas.width, ctxGUI.canvas.height);
          
                     
+            
                     for(var i = 0; i < this.entitiesGUI.length; i++) {
                         this.entitiesGUI[i].draw(ctxGUI);
                     }
@@ -506,19 +524,27 @@ GameEngine.prototype.draw = function(drawCallback) {
             ctx.scale(initScale * canvas.width / initWidth, initScale * canvas.width / initWidth);
             //  ctxGUI.scale(initScale * canvas.width / initWidth, initScale * canvas.width / initWidth);
       
-  
-  
-        // Adjusts the canvas' move position as well as the post scaling.
-        this.ctx.translate(
-        (initWidth/this.ctx.canvas.width) * this.ctx.canvas.width / initScale / 2 - this.player.model.pos.x,  
-        (initWidth/this.ctx.canvas.width) * this.ctx.canvas.height / initScale / 2 - this.player.model.pos.y);
-
+            var pos = this.player.model.pos;
+        if(!editMode) {
+            // Adjusts the canvas' move position as well as the post scaling.
+            
+            this.editPos = this.player.model.pos;
+            this.ctx.translate(
+            (initWidth/this.ctx.canvas.width) * this.ctx.canvas.width / initScale / 2 - this.player.model.pos.x,  
+            (initWidth/this.ctx.canvas.width) * this.ctx.canvas.height / initScale / 2 - this.player.model.pos.y);
+            
+        } else {
+            pos = this.editPos;
+             this.ctx.translate(
+                    (initWidth/this.ctx.canvas.width) * this.ctx.canvas.width / initScale / 2 -  this.editPos.x, 
+                    (initWidth/this.ctx.canvas.width) * this.ctx.canvas.height / initScale / 2 - this.editPos.y);
+        }
+        parallax(this.ctx, ASSET_MANAGER.cache[imagePaths[0]], 1 / 4, pos);
+        parallax(this.ctx, ASSET_MANAGER.cache[imagePaths[1]], 1 / 2, pos);
     }
 
 
 
-    parallax(this.ctx, ASSET_MANAGER.cache[imagePaths[0]], 1 / 4, this.player.model.pos);
-    parallax(this.ctx, ASSET_MANAGER.cache[imagePaths[1]], 1 / 2, this.player.model.pos);
     for (var i = 0; i < this.entities.length; i++) {
         this.entities[i].draw(this.ctx);
     }
@@ -1061,7 +1087,6 @@ ASSET_MANAGER.downloadAll(function() {
     
      game.settings.query(function(){ // if callback is returned, run the application.
          
-     
     var timer = new Timer();
     player  = new Player(canvas.width/2, canvas.height/2, timer);
     canvas.tabIndex = 1;
@@ -1137,10 +1162,10 @@ function localToWorld(value, dimension) {
 
     if(dimension === "x")
         return value / initScale - (initWidth/ctx.canvas.width) * 
-            ctx.canvas.width / initScale / 2 + player.model.pos.x;
+            ctx.canvas.width / initScale / 2 + gameEngine.editPos.x;
     else if (dimension === "y") {
         return value / initScale - (initWidth/ctx.canvas.width) * 
-            ctx.canvas.height / initScale / 2 + player.model.pos.y;
+            ctx.canvas.height / initScale / 2 + gameEngine.editPos.y;
     }
 }
 

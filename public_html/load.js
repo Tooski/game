@@ -31,7 +31,10 @@ function Load(level) {
     
     
     game.settings.get({"command":"getlevelinfo"}, function(data) {
+        
         var json = $.parseJSON(data);
+           if(json.length >  0) {
+        
         var keys = Object.keys(json[0]);
         
         for(var i = 0; i < keys.length; i++) {
@@ -46,6 +49,7 @@ function Load(level) {
             that.table.addRow(row);
         });
         that.table.setParent(that);
+    }
     });
     
 
