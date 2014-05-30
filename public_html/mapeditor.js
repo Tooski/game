@@ -382,7 +382,7 @@ MapEditor.prototype.createLineButton = function (ctx) {
 
     if (completed) {
       console.log("completed and selected normals for terrainLine polygon.");
-      that.level.pushTerrain(that.currentLines);
+      that.level.addTerrain(that.currentLines);
       that.resetCurrent();
       that.level.modified = true;
     }
@@ -465,23 +465,67 @@ MapEditor.prototype.createCheckpointLineButton = function (ctx) {
 
   checkpoint.onClick = function (e) {
 
-    var left = parseInt(that.ctx.canvas.style.left);
-    var top = parseInt(that.ctx.canvas.style.top);
-    if (e.offsetX > that.ctx.canvas.width + left || e.offsetX < left ||
-       e.offsetY > that.ctx.canvas.height + top || e.offsetX < top) {
-      if (!this.line) {
-        if (!this.prev || (this.prev && !this.prev.polygonID)) {
+    if (this.line) {
+
+
+      if (this.line && this.line.p1.x !== this.line.p0.x && this.line.p1.y !== this.line.p0.y) {
+
+        //that.snapTo(this.line);
+        this.locked = this.prev = this.line;
+
+
+
+        if (!this.prev.polygonID) {
+
           var xposition = localToWorld(e.offsetX, "x");
           var yposition = localToWorld(e.offsetY, "y");
 
-          this.locked = this.line = new CheckpointLine(
-                  new vec2(xposition, yposition),
-                  new vec2(xposition, yposition));
-          that.pushLine(this.line);
+          if (!checkBounds(this.line.p0, new vec2(xposition, yposition))) {
 
-          button.isSelected = false;
+
+
+            this.line = new EditorLine(new vec2(this.prev.p1.x, this.prev.p1.y), new vec2(xposition, yposition));
+            
+            if (this.attemptSnap(this.line)) {         //true if we completed our polygon.
+              that.currentLines.push(line);
+            } else {
+              that.currentLines.push(line);
+            }
+          }
+        } else {
+
+
+          this.setNormals = this.line.adjacent1;
+          this.line = null;
+
+        }
+
+
+      }
+    } else {      // create initial line point. DEBUG WAIT REALLY IS THAT WHAT THIS DOES? 
+      var left = parseInt(that.ctx.canvas.style.left);
+      var top = parseInt(that.ctx.canvas.style.top);
+      if (e.offsetX > that.ctx.canvas.width + left || e.offsetX < left ||
+         e.offsetY > that.ctx.canvas.height + top || e.offsetX < top) {
+        if (!this.line) {
+          if (!this.prev || (this.prev && !this.prev.polygonID)) {
+            var xposition = localToWorld(e.offsetX, "x");
+            var yposition = localToWorld(e.offsetY, "y");
+
+            this.locked = this.line = new EditorLine(new vec2(xposition, yposition), new vec2(xposition, yposition));
+            that.currentLines.push(this.line);
+
+            button.isSelected = false;
+          }
         }
       }
+    }
+
+    if (completed) {
+      console.log("completed and selected normals for terrainLine polygon.");
+      that.level.addCheckpoint(that.currentLines);
+      that.resetCurrent();
+      that.level.modified = true;
     }
   };
 
@@ -516,24 +560,67 @@ MapEditor.prototype.createGoalLineButton = function (ctx) {
   var that = this;
 
   line.onClick = function (e) {
+if (this.line) {
 
-    var left = parseInt(that.ctx.canvas.style.left);
-    var top = parseInt(that.ctx.canvas.style.top);
-    if (e.offsetX > that.ctx.canvas.width + left || e.offsetX < left ||
-       e.offsetY > that.ctx.canvas.height + top || e.offsetX < top) {
-      if (!this.line) {
-        if (!this.prev || (this.prev && !this.prev.polygonID)) {
+
+      if (this.line && this.line.p1.x !== this.line.p0.x && this.line.p1.y !== this.line.p0.y) {
+
+        //that.snapTo(this.line);
+        this.locked = this.prev = this.line;
+
+
+
+        if (!this.prev.polygonID) {
+
           var xposition = localToWorld(e.offsetX, "x");
           var yposition = localToWorld(e.offsetY, "y");
 
-          this.locked = this.line = new GoalLine(
-                  new vec2(xposition, yposition),
-                  new vec2(xposition, yposition));
-          that.level.pushTerrain(this.line);
+          if (!checkBounds(this.line.p0, new vec2(xposition, yposition))) {
 
-          button.isSelected = false;
+
+
+            this.line = new EditorLine(new vec2(this.prev.p1.x, this.prev.p1.y), new vec2(xposition, yposition));
+            
+            if (this.attemptSnap(this.line)) {         //true if we completed our polygon.
+              that.currentLines.push(line);
+            } else {
+              that.currentLines.push(line);
+            }
+          }
+        } else {
+
+
+          this.setNormals = this.line.adjacent1;
+          this.line = null;
+
+        }
+
+
+      }
+    } else {      // create initial line point. DEBUG WAIT REALLY IS THAT WHAT THIS DOES? 
+      var left = parseInt(that.ctx.canvas.style.left);
+      var top = parseInt(that.ctx.canvas.style.top);
+      if (e.offsetX > that.ctx.canvas.width + left || e.offsetX < left ||
+         e.offsetY > that.ctx.canvas.height + top || e.offsetX < top) {
+        if (!this.line) {
+          if (!this.prev || (this.prev && !this.prev.polygonID)) {
+            var xposition = localToWorld(e.offsetX, "x");
+            var yposition = localToWorld(e.offsetY, "y");
+
+            this.locked = this.line = new EditorLine(new vec2(xposition, yposition), new vec2(xposition, yposition));
+            that.currentLines.push(this.line);
+
+            button.isSelected = false;
+          }
         }
       }
+    }
+
+    if (completed) {
+      console.log("completed and selected normals for terrainLine polygon.");
+      that.level.addGoal(that.currentLines);
+      that.resetCurrent();
+      that.level.modified = true;
     }
   };
 
