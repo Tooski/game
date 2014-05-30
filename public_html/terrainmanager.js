@@ -4,7 +4,7 @@ function TerrainManager() {
     this.terrainList = [];
     this.closedTerrain = [];
     this.terrainListByID = {};
-    this.playerStartPos = new vec2(0, 0);
+    //this.playerStartPos = new vec2(0, 0);
    
 }
 
@@ -277,6 +277,8 @@ TerrainManager.prototype.loadFromFile = function(id, init, callback) {
 
      if(init) init();
      game.settings.get({"command":"getleveljson", "data":{"levelid": (id || 1)}}, function(data) {
+         
+        if(data) {
         var obj = $.parseJSON($.parseJSON( data ));
         for(var i = 0; i < obj.length; i++) {
             var ter = new TerrainLine(new vec2(obj[i].p0.x, obj[i].p0.y), new vec2(obj[i].p1.x, obj[i].p1.y));
@@ -291,8 +293,10 @@ TerrainManager.prototype.loadFromFile = function(id, init, callback) {
             that.pushTerrain (that.terrainListByID[obj[i].id], that.terrainListByID);
 
         }
+        }
             gameEngine.initializePhysEng();
-    });
+    }
+     );
 
   
 //    gameEngine.initializePhysEng();

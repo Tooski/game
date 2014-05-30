@@ -30,6 +30,7 @@
 
                  //pubic method gets the resources.
                  "get" : function(data, callback){
+                     console.log(data);
                      $.get(baseUrl ,data,callback)
                     .fail(function () {
                         alert("error");

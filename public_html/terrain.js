@@ -5,7 +5,6 @@
  * Skeleton by Travis Drake
  */
 var DEBUG_TERRAIN = false;
-var editMode = true;
 
 // TerrainSurface object is the parent class for all collideable terrain objects. Has a start point and end point (and is therefore a line or curve).
 function TerrainSurface(point0, point1, adjacent0, adjacent1, pl) {
