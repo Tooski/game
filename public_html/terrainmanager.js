@@ -23,8 +23,7 @@ function Checkpoint(id, x, y) {
 
 
   this.toJSON = function () {
-    var formattedObj = { id: this.id, x: this.x, y: this.y };
-    return JSON.stringify(formattedObj);
+    return { id: this.id, x: this.x, y: this.y };
   }
 }
 
@@ -53,8 +52,7 @@ function Collectible(id, x, y, pointValue) {
 
 
   this.toJSON = function () {
-    var formattedObj = { id: this.id, points: this.pointValue, x: this.x, y: this.y };
-    return JSON.stringify(formattedObj);
+    return { id: this.id, points: this.pointValue, x: this.x, y: this.y };
   }
 }
 Collectible.prototype = new vec2();
@@ -105,8 +103,7 @@ function KillZone(id) {
 
 
   this.toJSON = function () {
-    var formattedObj = { id: this.id };
-    return JSON.stringify(formattedObj);
+    return { id: this.id };
   }
 }
 
@@ -232,11 +229,7 @@ function TerrainManager() {
     JSONdata.goalLines = this.goalLines;
     JSONdata.killLines = this.killLines;
 
-    var jsonString = JSON.stringify(JSONdata);
-    var jsonTabbed = JSON.stringify(JSONdata, null, 3)
-    console.log(jsonTabbed);
-
-    return jsonString;
+    return JSONdata;
   }
 
 
@@ -759,7 +752,7 @@ TerrainManager.prototype.loadOldLevel = function (obj) {
   this.reset();
   this.addTerrain(obj);
 
-  var jsonPretty = JSON.stringify(this, null, 4);
+  var jsonPretty = JSON.stringify(this, null, 2);
   document.getElementById("eklipzConsole").innerHTML = jsonPretty;
 }
 

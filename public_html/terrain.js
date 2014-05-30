@@ -38,8 +38,7 @@ function LinePoint(id, x, y) {
 
 
   this.toJSON = function () {
-    var formattedObj = { id: this.id, x: this.x, y: this.y };
-    return JSON.stringify(formattedObj);
+    return { id: this.id, x: this.x, y: this.y };
   }
 }
 LinePoint.prototype = new vec2();
@@ -62,16 +61,21 @@ function TerrainLine(id, polyID, point0, point1, adjacent0, adjacent1, normal) {
 
   this.id = id;
   this.polyID = polyID;
+  this.p0 = point0;
+  this.p1 = point1;
+  this.adjacent0 = adjacent0;
+  this.adjacent1 = adjacent1;
   this.normal = normal;//.normalize();
 
 
 
   this.toJSON = function () {
     var formattedObj = { id: this.id };
-    formattedObj = formatLineToJSON(this, formattedObj);
+    console.log("this ", this);
+    formatLineToJSON(this, formattedObj);
 
     formattedObj.normal = this.normal;
-    return JSON.stringify(formattedObj);
+    return formattedObj;
   }
 
 
@@ -228,7 +232,7 @@ function GoalLine(id, goalID, point0, point1, adjacent0, adjacent1) {
   this.toJSON = function () {
     var formattedObj = { id: this.id, goalID: this.goalID };
     formattedObj = formatLineToJSON(this, formattedObj);
-    return JSON.stringify(formattedObj);
+    return formattedObj;
   }
 
   /**
@@ -284,10 +288,12 @@ function CheckpointLine(id, checkpointID, point0, point1, adjacent0, adjacent1) 
   this.id = id;
   this.checkpointID;
 
+
+
   this.toJSON = function () {
     var formattedObj = { id: this.id, checkpointID: this.checkpointID };
     formattedObj = formatLineToJSON(this, formattedObj);
-    return JSON.stringify(formattedObj);
+    return formattedObj;
   }
   /**
    * checks for a collision.
@@ -332,18 +338,22 @@ function CheckpointLine(id, checkpointID, point0, point1, adjacent0, adjacent1) 
 // Extends TerrainSurface and implements its required methods and those of its parent, Collideable.
 // @param normal is a normalized vector representing the normal of this line. 
 // @param adjacents is an array of terrainObjects where adjacents[0] is connected by p0, and adjacent
-function KillLine(id, point0, point1) {
-  if (!id.toFixed) { //id.toFixed is ducktyping to check if id is a number.
+function KillLine(id, killZoneID, point0, point1, adjacent0, adjacent1) {
+  if (!id.toFixed || !killZoneID.toFixed) { //id.toFixed is ducktyping to check if id is a number.
     throw "All level objects must have a sequentially incremented numerical id.";
   }
   this.p0 = point0;
   this.p1 = point1;
+  this.adjacent0 = adjacent0;
+  this.adjacent1 = adjacent1;
   this.id = id;
+
+
 
   this.toJSON = function () {
     var formattedObj = { id: this.id };
     formattedObj = formatLineToJSON(this, formattedObj);
-    return JSON.stringify(formattedObj);
+    return formattedObj;
   }
 
   /**
@@ -393,6 +403,12 @@ function Polygon(polyID, polygon) {
   for (var item in this.polygon) {
     this.polygon[item].polygonID = this.polyID;
 
+  }
+
+
+
+  this.toJSON = function () {
+    return { polyID: this.polyID };
   }
 }
 
