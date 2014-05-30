@@ -576,9 +576,11 @@ MapEditor.prototype.createEditModeButton = function(ctx) {
     editmode.onRelease = function(e) {
     if(that.ctx.canvas.setHeight !== buttonSize) {
         that.ctx.canvas.setWidth = that.ctx.canvas.setHeight =  buttonSize;
+        editMode = false;
     } else { 
         that.ctx.canvas.setWidth = buttonSize;
         that.ctx.canvas.setHeight = buttonListEnd.y;
+        editMode = true;
     }
         ctx.isEdited = true;
         that.draw(that.ctx);
