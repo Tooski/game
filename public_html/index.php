@@ -36,7 +36,7 @@
         <script type="text/javascript" src="./game.js"></script>
         <script type="text/javascript" src="./stageBoard.js"></script>
         <script type="text/javascript" src="./gameMainManu.js"></script>
-		<script type="text/javascript" src="./controlPage.js"></script>
+		<script type="text/javascript" src="./controlDisplay.js"></script>
 		<script type="text/javascript" src="./logInBoard.js"></script>
     </head>
     <body>
