@@ -993,27 +993,8 @@ for(var i = 0; i < imagePaths.length; i++) {
 }
 
 
-//------------------------
-
-/*
-	by. Minkwan Choi.
-	array of gamecavse that needs to control from other js. 
-*/
+// array of game canvas...
 var GameCanvas = [];
-// to un-display.
-function noneDisplayGame(){
-	for(var i = 0; i < GameCanvas.length; i++){
-		GameCanvas[i].style.display = "none";
-	}
-
-}
-// to display game canvas and other things for game..
-function blockDisplayGame(){
-	for(var i = 0; i < GameCanvas.length; i++){
-		GameCanvas[i].style.display = "block";
-	}
-}
-
 
 var guiPadding = 20;
 //--------------------------------

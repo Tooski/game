@@ -6,7 +6,7 @@
             html, body { width:100%; height:100%; } /* just to be sure these are full screen*/
             canvas { display:block; } /* To remove the scrollbars */
         </style>
-        <link rel="stylesheet" type="text/css" href="login.css">
+        <link rel="stylesheet" type="text/css" href="css/login.css">
         <meta charset="utf-8" />
         <title>Game Project Shell</title>
         <script type="text/javascript" src="./canvasinput.min.js"></script>
@@ -36,7 +36,8 @@
         <script type="text/javascript" src="./game.js"></script>
         <script type="text/javascript" src="./stageBoard.js"></script>
         <script type="text/javascript" src="./gameMainManu.js"></script>
-
+		<script type="text/javascript" src="./controlPage.js"></script>
+		<script type="text/javascript" src="./logInBoard.js"></script>
     </head>
     <body>
         <!--       <div>
@@ -57,7 +58,7 @@
                 <!--<canvas id="time" style="z-index: 2; background: red"></canvas> -->
 
 
-        <canvas id="time" style= "display : block; position:absolute; z-index: 2;  left:1150px; top:25px; background: white" height="50px" width="100px"></canvas>
+        <canvas id="time" style= "display : none; position:absolute; z-index: 2;  left:1150px; top:25px; background: white" height="50px" width="100px"></canvas>
         <canvas id="score" style="display : none; position:absolute; z-index: 2;  left:25px; top:25px; background: white" height="50px" width="100px"></canvas>
         <canvas id="pause" style="display : none; position:absolute; z-index: 2; left:475px; top:125px; background: white; display: none" height="525" width="350"></canvas>
         <canvas id="remap" style="display : none; position:absolute; z-index: 3; left:475px; top:125px; background: white; display: none" height="525" width="350"></canvas>
@@ -66,12 +67,12 @@
             <script src="classie.js"></script>
             <canvas id="gameWorld" style="border: 0px solid brown; background: white; display : none"></canvas>
 
-            <canvas id="game_manu_board" style= "display : block; position: absolute; " width="400" height="350"></canvas>
+            <canvas id="game_manu_board" style= "display : none; position: absolute; " width="400" height="350"></canvas>
             <canvas id="stage_board" style= "display : none; position: absolute; " width="400" height="350"></canvas>
         </div>
 
 
-        <div class="outer-container" id="login">
+        <div class="outer-container" id="login_board">
 
             <form name="input" action="settings.php" method="post">
                 <div class="inner-top">
@@ -82,7 +83,7 @@
 
                 </div>
                 <div class="inner-bottom">
-                    <input type="submit" value="Enter">
+                    <input type="button" value="Enter" onClick= "logInButtonAction()" >
                 </div>
 
 
