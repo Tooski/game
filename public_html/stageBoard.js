@@ -379,8 +379,7 @@ SBImageButton.prototype.startGame = function () {
 	if(this.my_world_map_id === -1){
 		switch (this.my_sub_stage) {
 			case 0:
-				MY_STAGE_CANVAS.style.display = "none";
-				MY_GAME_MANU_CANVAS.style.display = "block";
+				displayMainManu();
 				break;
 			case 1:
 				my_stage_board.setWorldMapID(1);
@@ -395,27 +394,31 @@ SBImageButton.prototype.startGame = function () {
 	// for world map 1
 	
 	}else if(this.my_world_map_id ===1){ 
-		MY_STAGE_CANVAS.style.display = "none";
-		MY_GAME_MANU_CANVAS.style.display = "none";
+		//MY_STAGE_CANVAS.style.display = "none";
+		//MY_GAME_MANU_CANVAS.style.display = "none";
 		
 		switch (this.my_sub_stage) {
 			case 1: // game for stage 1.
 			// if you want to change game just change number for - > currentLevel.loadFromFile( this ); 
-				currentLevel.loadFromFile(15); 
-				blockDisplayGame();
+				//currentLevel.loadFromFile(15); 
+				//blockDisplayGame();
+				displayGame(15);
 				break;
 			case 2: // game for stage 2.
-				currentLevel.loadFromFile(14);
-				blockDisplayGame();
+				//currentLevel.loadFromFile(14);
+				//blockDisplayGame();
+				displayGame(14);
 				break;
 			case 3:// game for stage 3.
-				currentLevel.loadFromFile(19);
-				blockDisplayGame();
+				//currentLevel.loadFromFile(19);
+				//blockDisplayGame();
+				displayGame(19);
 				break;
 				
 			case 4:// game for stage 4.
-				currentLevel.loadFromFile(17);
-				blockDisplayGame();
+				//currentLevel.loadFromFile(17);
+				//blockDisplayGame();
+				displayGame(17);
 				break;
 			default: // if do not have game... will return to main cavas.
 				MY_GAME_MANU_CANVAS.style.display = "block";
@@ -425,25 +428,28 @@ SBImageButton.prototype.startGame = function () {
 		
 	// for world map 2
 	} else if (this.my_world_map_id === 2){ 
-	    		MY_STAGE_CANVAS.style.display = "none";
-		MY_GAME_MANU_CANVAS.style.display = "none";
+	    	//	MY_STAGE_CANVAS.style.display = "none";
+	//	MY_GAME_MANU_CANVAS.style.display = "none";
 		
 		switch (this.my_sub_stage) {
 			case 1:// game for stage 1.
-				currentLevel.loadFromFile(15);
-				blockDisplayGame();
+			//	currentLevel.loadFromFile(15);
+			//	blockDisplayGame();
+				displayGame(15);
 				break;
 			case 2: // game for stage 2.
-				currentLevel.loadFromFile(14);
-				blockDisplayGame();
+			//	currentLevel.loadFromFile(14);
+			//	blockDisplayGame();
+				displayGame(14);
 				break;
 			case 3:// game for stage 3.
-				currentLevel.loadFromFile(19);
-				blockDisplayGame();
+			//	currentLevel.loadFromFile(19);
+			//	blockDisplayGame();
+				displayGame(19);
 				break;
 				
 			default: // if do not have game... will return to main cavas.
-				MY_GAME_MANU_CANVAS.style.display = "block";
+				displayMainManu();
 				break;
 		}
 		

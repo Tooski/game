@@ -6,7 +6,7 @@
             html, body { width:100%; height:100%; } /* just to be sure these are full screen*/
             canvas { display:block; } /* To remove the scrollbars */
         </style>
-        <link rel="stylesheet" type="text/css" href="login.css">
+        <link rel="stylesheet" type="text/css" href="css/login.css">
         <meta charset="utf-8" />
         <title>Game Project Shell</title>
         <script type="text/javascript" src="./canvasinput.min.js"></script>
@@ -36,7 +36,8 @@
         <script type="text/javascript" src="./game.js"></script>
         <script type="text/javascript" src="./stageBoard.js"></script>
         <script type="text/javascript" src="./gameMainManu.js"></script>
-
+		<script type="text/javascript" src="./controlDisplay.js"></script>
+		<script type="text/javascript" src="./logInBoard.js"></script>
     </head>
     <body>
         <!--       <div>
@@ -57,7 +58,7 @@
                 <!--<canvas id="time" style="z-index: 2; background: red"></canvas> -->
 
 
-        <canvas id="time" style= "display : block; position:absolute; z-index: 2;  left:1150px; top:25px; background: white" height="50px" width="100px"></canvas>
+        <canvas id="time" style= "display : none; position:absolute; z-index: 2;  left:1150px; top:25px; background: white" height="50px" width="100px"></canvas>
         <canvas id="score" style="display : none; position:absolute; z-index: 2;  left:25px; top:25px; background: white" height="50px" width="100px"></canvas>
         <canvas id="pause" style="display : none; position:absolute; z-index: 2; left:475px; top:125px; background: white; display: none" height="525" width="350"></canvas>
         <canvas id="remap" style="display : none; position:absolute; z-index: 3; left:475px; top:125px; background: white; display: none" height="525" width="350"></canvas>
@@ -66,12 +67,12 @@
             <script src="classie.js"></script>
             <canvas id="gameWorld" style="border: 0px solid brown; background: white; display : none"></canvas>
 
-            <canvas id="game_manu_board" style= "display : block; position: absolute; " width="400" height="350"></canvas>
+            <canvas id="game_manu_board" style= "display : none; position: absolute; " width="400" height="350"></canvas>
             <canvas id="stage_board" style= "display : none; position: absolute; " width="400" height="350"></canvas>
         </div>
 
 
-        <div class="outer-container" id="login">
+        <div class="outer-container" id="login_board">
 
             <form name="input" action="settings.php" method="post">
                 <div class="inner-top">
@@ -82,14 +83,79 @@
 
                 </div>
                 <div class="inner-bottom">
-                    <input type="submit" value="Enter">
+                    <input type="button" value="Enter" onClick= "logInButtonAction()" >
                 </div>
 
 
             </form>  
 
         </div>
+<div class="outer-leaderboard-container" id="login">
+            <div class="title-container">
+                Top Times and Scores!!!
+            </div>
+            <div class="sub-title-container">
+                <div class ="left-sub-title">
+                    Level 1: Points
+                </div>
+                <div class ="right-sub-title">
+                    Level 1: Times
+                </div>
+            </div>
+            <div class="body-container">
+                <div class="left-box">
+                    <span>1.  mike 234,000</span>
+                    <span>2.  mike 234,000</span>
+                    <span>3.  mike 234,000</span>
+                    <span>4.  mike 234,000</span>
+                    <span>5.  mike 234,000</span>
+                    <span>6.  mike 234,000</span>
+                    <span>7.  mike 234,000</span>
+                    <span>8.  mike 234,000</span>
+                    <span>9.  mike 234,000</span>
+                    <span>10.  mike 234,000</span>
+                    <span>11.  mike 234,000</span>
+                    <span>12.  mike 234,000</span>
+                    <span>13.  mike 234,000</span>
+                    <span>14.  mike 234,000</span>
+                    <span>15.  mike 234,000</span>
+                    <span>16.  mike 234,000</span>
+                    <span>17.  mike 234,000</span>
+                    <span>18.  mike 234,000</span>
+                    <span>19.  mike 234,000</span>
+                    <span>20.  mike 234,000</span>
+   
+                </div>
+                <div class="right_box">
+                    <span>1.  mike 22.4 seconds</span>
+                    <span>2.  mike 22.4 seconds</span>
+                    <span>3.  mike 22.4 seconds</span>
+                    <span>4.  mike 22.4 seconds</span>
+                    <span>5.  mike 22.4 seconds</span>
+                    <span>6.  mike 22.4 seconds</span>
+                    <span>7.  mike 22.4 seconds</span>
+                    <span>8.  mike 22.4 seconds</span>
+                    <span>9.  mike 22.4 seconds</span>
+                    <span>10.  mike 22.4 seconds</span>
+                    <span>11.  mike 22.4 seconds</span>
+                    <span>12.  mike 22.4 seconds</span>
+                    <span>13.  mike 22.4 seconds</span>
+                    <span>14.  mike 22.4 seconds</span>
+                    <span>15.  mike 22.4 seconds</span>
+                    <span>16.  mike 22.4 seconds</span>
+                    <span>17.  mike 22.4 seconds</span>
+                    <span>18.  mike 22.4 seconds</span>
+                    <span>19.  mike 22.4 seconds</span>
+                    <span>20.  mike 22.4 seconds</span>
+                </div>
 
+            </div>
+            <div class="footer-container">
+                <button type="button">Close</button>             
+            </div>
+
+
+        </div>
 
     </body>
 </html>
