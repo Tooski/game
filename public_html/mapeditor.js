@@ -14,6 +14,8 @@ var button;
 var buttonList = [];
 
 
+var graceSize = 10;
+
 
 /**
  * These are lines that are stored temporarily in the editor while a polygon / set of lines / line is being drawn.
@@ -345,7 +347,7 @@ MapEditor.prototype.createLineButton = function (ctx) {
 
             this.line = new EditorLine(new vec2(this.prev.p1.x, this.prev.p1.y), new vec2(xposition, yposition));
             
-            if (this.attemptSnap(this.line)) {         //true if we completed our polygon.
+            if (that.attemptSnap(this.line)) {         //true if we completed our polygon.
               that.currentLines.push(line);
             } else {
               that.currentLines.push(line);
@@ -394,8 +396,11 @@ MapEditor.prototype.createLineButton = function (ctx) {
 
     if (this.line) {
       var mousePos = getMousePos(e);
-      this.line.p1edit.x = (this.line.p1.x = mousePos.x) - this.line.p1edit.w / 2;
-      this.line.p1edit.y = (this.line.p1.y = mousePos.y) - this.line.p1edit.h / 2;
+      //this.line.p1edit.x = (this.line.p1.x = mousePos.x) - this.line.p1edit.w / 2;
+      //this.line.p1edit.y = (this.line.p1.y = mousePos.y) - this.line.p1edit.h / 2;
+
+      this.line.p1.x = mousePos.x;
+      this.line.p1.y = mousePos.y;
 
       //console.log(this.line.p1edit);
 
@@ -790,7 +795,7 @@ function normalDrag(terrain) {
 
 
 
-TerrainManager.prototype.attemptSnap = function (line) {
+MapEditor.prototype.attemptSnap = function (line) {
   //for (var i = 0; i < this.currentLines.length; i++) {
   //  if (line !== this.currentLines[i]) {
   //    if (!this.currentLines[i].adjacent0 && checkBounds(line.p0, this.currentLines[i].p0)) {

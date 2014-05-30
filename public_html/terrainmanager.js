@@ -187,6 +187,7 @@ function TerrainManager() {
       var newID = this.getNextPointNumber();
       var linePoint = new LinePoint(newID, point.x, point.y);
       this.pointMap[ps] = linePoint;
+      this.points[newID] = linePoint;
       console.log("mapPoint false, creating and returning linepoint", linePoint);
       return linePoint;
     }
@@ -218,8 +219,9 @@ function TerrainManager() {
       nextPolygonNo: this.nextPolygonNo,
     };
 
-
+    
     JSONdata.pointMap = this.pointMap;
+    JSONdata.points = this.points;
     JSONdata.goals = this.goals;
     JSONdata.killZones = this.killZones;
     JSONdata.checkpoints = this.checkpoints;
@@ -231,24 +233,6 @@ function TerrainManager() {
 
     return JSONdata;
   }
-
-
-
-
-  this.loadFromJSON = function (data) {  // parses a new terrainManager state from the provided 
-    this.reset();
-    console.log("loading JSON data into terrainManager. JSON: ")
-    var jsonTabbed = JSON.stringify(data, null, 3)
-
-    this.levelName = data.levelName;
-
-
-
-
-
-    this.isReset = false;
-  }
-
 }
 
 TerrainManager.prototype = new Entity();
@@ -267,7 +251,7 @@ TerrainManager.prototype.reset = function () {
 
   this.nextGoalNo = 1;
   this.goals = new Array();     	      // Array of all goals indexed by ID that are currently contained in this level.	 /NOT THE GOAL LINES/
-  // id is also used for determining what leaderboard to put the players entry on.
+                                        // id is also used for determining what leaderboard to put the players entry on.
 
   this.nextGoalLineNo = 1;
   this.goalLines = new Array();         //  Array of all GoalLines indexed by id
@@ -278,13 +262,14 @@ TerrainManager.prototype.reset = function () {
   this.checkpointLines = new Array();	  // Array of all checkpoint lines indexed by id
 
   this.nextKillZoneNo = 1;
-  this.killZones = new Array();         // the KillZone objects in the level.
+  this.killZones = new Array();         // the KillZones in the level.
   this.nextKillLineNo = 1;
   this.killLines = new Array();         // Array of all KillLines indexed by id 
 
   this.nextPointNo = 1;
+  this.points = new Array();			      // Array of all points, indexed by id.
   this.pointMap = {};			              // this is a map of all LinePoints by their position, used to reduce point replication everywhere.
-  // should only iterate through it or use this.toLinePoint(point) to modify it.
+                                        // should only iterate through it or use this.toLinePoint(point) to modify it.
 
   this.nextTerrainLineNo = 1;
   this.terrainLines = new Array();		  // Array of all TerrainLines indexed by id that are currently contained in the level.
@@ -292,7 +277,7 @@ TerrainManager.prototype.reset = function () {
   this.polygons = new Array();          // Array of all polygons from ALL the different line types indexed by polyID.
 
 
-  this.startPoint = new vec2(1, 1);     // the level starting location.
+  this.startPoint = new vec2(1, 1);     // the player starting location.
 
   this.isReset = true;
 }
@@ -349,6 +334,7 @@ TerrainManager.prototype.addTerrain = function (editorLineArray) {
   first.adjacent0 = prev;
   prev.adjacent1 = first;
   this.modified = true;
+  console.log(this.terrainLines);
 }
 
 
@@ -484,10 +470,6 @@ TerrainManager.prototype.addKillZone = function (editorLineArray) {
 
 
 
-
-
-
-
 var POINT_COLOR = "#FFFFFF";
 var POINT_SIZE = 6;
 var DRAW_POINTS = true;
@@ -518,7 +500,7 @@ TerrainManager.prototype.draw = function (ctx) {
   drawLineArray(ctx, this.killLines, KILL_LINE_COLOR, LINE_WIDTH, LINE_JOIN, LINE_CAP);
   drawLineArray(ctx, this.checkpointLines, CHECKPOINT_LINE_COLOR, LINE_WIDTH, LINE_JOIN, LINE_CAP);
 
-  drawPointArray(ctx, this.pointMap, POINT_COLOR, POINT_SIZE);
+  drawPointArray(ctx, this.points, POINT_COLOR, POINT_SIZE);
 
   this.drawCheckpointArray(ctx);
   this.drawStart(ctx);
@@ -657,19 +639,19 @@ var START_COLOR_INNER_FILL = "lightgreen";
 
 //Draws a circle denoting the set starting position if in edit mode 
 TerrainManager.prototype.drawStart = function (ctx) {
-  context.lineWidth = 6;
+  ctx.lineWidth = 6;
   ctx.beginPath();
   ctx.arc(this.startPoint.x, this.startPoint.y, START_RADIUS, 0, TWO_PI, false);
   ctx.fillStyle = START_COLOR_FILL;
   ctx.fill();
-  context.strokeStyle = START_COLOR_LINE;
+  ctx.strokeStyle = START_COLOR_LINE;
   ctx.stroke();
 
   ctx.beginPath();
   ctx.arc(this.startPoint.x, this.startPoint.y, START_RADIUS / 2, 0, TWO_PI, false);
   ctx.fillStyle = START_COLOR_INNER_FILL;
   ctx.fill();
-  context.strokeStyle = START_COLOR_INNER_LINE;
+  ctx.strokeStyle = START_COLOR_INNER_LINE;
   ctx.stroke();
 }
 
@@ -724,13 +706,13 @@ TerrainManager.prototype.loadFromFile = function (id, init, callback) {
     function (data) {
       var obj = $.parseJSON($.parseJSON(data));
       if (!obj[0].id.toFixed) {      //Ducktyping check, is this an integer? if not this is an old level. 
-        that.loadOldLevel(obj);
+        that.loadOldLevelFromJSON(obj);
       }
 
+      that.loadFromJSON(obj);
 
 
-
-      gameEngine.initializePhysEng();
+      gameEngine.initializePhysEng(that);
     }
   );
 
@@ -748,13 +730,174 @@ TerrainManager.prototype.loadFromFile = function (id, init, callback) {
 /**
  * Converts an old level to the new format.
  */
-TerrainManager.prototype.loadOldLevel = function (obj) {
+TerrainManager.prototype.loadOldLevelFromJSON = function (obj) {
   this.reset();
-  this.addTerrain(obj);
-
-  var jsonPretty = JSON.stringify(this, null, 2);
-  document.getElementById("eklipzConsole").innerHTML = jsonPretty;
+  //this.addTerrain(obj);
+  //console.log("Loading from old level", obj);
+  //var jsonPretty = JSON.stringify(this, null, 2);
+  //console.log(this);
+  //document.getElementById("eklipzConsole").innerHTML = jsonPretty;
 }
+
+
+
+
+
+/**
+ * Loads a new formatted level.
+ */
+TerrainManager.prototype.loadFromJSON = function (obj) {
+  this.reset();
+
+
+  //var jsonPretty = JSON.stringify(this, null, 2);
+  //document.getElementById("eklipzConsole").innerHTML = jsonPretty;
+}
+
+
+
+
+
+TerrainManager.prototype.loadPoints = function (pointMap) {
+  pointMap.forEach(function (point) {
+    if (point) {
+      this.toLinePoint(point);
+    } else {
+      console.log("!point???? ", point);
+      throw "???";
+    }
+  });
+}
+
+
+
+
+
+TerrainManager.prototype.loadTerrain = function (tList) {
+  var polygonsDiscovered = {};
+
+  tList.forEach(function (ter) {
+    if (ter) {
+      this.terrainLines[ter.id] = new TerrainLine(ter.id, ter.polyID, this.points[ter.p0id], this.points[ter.p1id], null, null, new vec2(ter.normal.x, ter.normal.y));
+    }
+  });
+
+  tList.forEach(function (ter) {
+    if (ter) {
+      this.terrainLines[ter.id].adjacent0 = this.terrainLines[ter.adj0id];
+      this.terrainLines[ter.id].adjacent1 = this.terrainLines[ter.adj1id];
+    }
+  });
+}
+
+
+
+//TerrainManager.prototype.loadTerrain = function (tList) {
+
+//}
+
+
+
+//TerrainManager.prototype.loadTerrain = function (tList) {
+
+//}
+
+
+
+//TerrainManager.prototype.loadTerrain = function (tList) {
+
+//}
+
+
+
+//TerrainManager.prototype.loadTerrain = function (tList) {
+
+//}
+
+
+
+//TerrainManager.prototype.loadTerrain = function (tList) {
+
+//}
+
+
+
+//TerrainManager.prototype.loadTerrain = function (tList) {
+
+//}
+
+
+
+//TerrainManager.prototype.loadTerrain = function (tList) {
+
+//}
+
+
+TerrainManager.prototype.getTerrainCollisions = function (ballstate, doNotCheck) {
+  return this.getCollisionsInList(ballstate, this.terrainLines, doNotCheck);
+}
+
+TerrainManager.prototype.getGoalCollisions = function (ballstate) {
+
+}
+
+TerrainManager.prototype.getCheckpointCollisions = function (ballstate) {
+
+}
+
+TerrainManager.prototype.getKillZoneCollisions = function (ballstate) {
+
+}
+
+TerrainManager.prototype.getCollectibleCollisions = function (ballstate, doNotCheck) {
+
+}
+
+
+
+
+
+
+//What I will be calling in the recursive physics bounds checking function to check the initial collision list.
+//doNotCheck may be empty.
+TerrainManager.prototype.getCollisionsInList = function (ballState, collidersToCheck, doNotCheck) {
+  //code to check for collisions ONLY WITH THE THINGS IN THE PASSED LIST! Should be about the same as the above method but only searches this specific list, and returns the subset of it that is still being collided with.
+  var stuffWeCollidedWith = [];
+  //console.log("collidersToCheck, ", collidersToCheck);
+  for (var i = 0; i < collidersToCheck.length; i++) {
+    if (!contains(doNotCheck, collidersToCheck[i])) {
+      //data { collided, collidedLine, collidedP0, collidedP1, surface, perpendicularIntersect }
+      var data = collidersToCheck[i].collidesData(ballState.pos, ballState.radius);
+      //console.log(data);
+      if (data.collided) {
+        stuffWeCollidedWith.push(data);
+      }
+
+      //if (data.collidedP0) {
+      //  stuffWeCollidedWith.push(new TerrainPoint(collidersToCheck[i].p0, collidersToCheck[i].adjacent0, collidersToCheck[i]));
+      //}
+      //if (data.collidedP1) {
+      //  stuffWeCollidedWith.push(new TerrainPoint(collidersToCheck[i].p1, collidersToCheck[i], collidersToCheck[i].adjacent1));
+      //}
+      //if (data.collidedLine) {
+      //  stuffWeCollidedWith.push(collidersToCheck[i]);
+      //}
+
+    } else {
+      //console.log("doNotCheck contained colliders[i]: ", collidersToCheck[i]);
+    }
+  }
+  var didWeCollide = false;
+  if (stuffWeCollidedWith.length > 0) {
+    didWeCollide = true;
+  }
+  //console.log("stuffWeCollidedWith:", stuffWeCollidedWith);
+  return stuffWeCollidedWith;
+}
+
+
+
+
 
 
 

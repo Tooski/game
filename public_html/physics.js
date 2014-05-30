@@ -1176,14 +1176,14 @@ PhysEng.prototype.attemptAngularStep = function (goalGameTime) {
     normalState = convertAngularToNormalState(tempState);
 
 
-    collisionList = getCollisionsInList(normalState, this.tm.terrainList, doNotCheck);    //TODO MINIMIZE THIS LIST SIZE, THIS IS IDIOTIC
+    collisionList = this.tm.getTerrainCollisions(normalState, doNotCheck);
 
     //console.log("      tweenStepping, i: ", i, " tweenTime: ", tweenTime);
   }
 
   var events = [];
   if (collisionList.length > 0) {   // WE COLLIDED WITH STUFF AND EXITED THE LOOP EARLY, handle.
-    throw "collided in angular step";
+    throw "collided in angular step, no handler yet. Dont build levels like this for now.";
     events = this.findEventsAndTimesFromCollisions(collisionList);         // a bunch of TerrainCollisionEvent's hopefully?
     tempState = events[0].state;
     //this.resetPredicted();
@@ -1201,12 +1201,11 @@ PhysEng.prototype.attemptAngularStep = function (goalGameTime) {
     tempState = stepAngularStateToTime(this.player, tweenTime);
 
     normalState = convertAngularToNormalState(tempState);
-    
-    collisionList = getCollisionsInList(normalState, this.tm.terrainList, doNotCheck);    //TODO MINIMIZE THIS LIST SIZE, THIS IS IDIOTIC
-    //console.log(this.tm.terrainList);
-    //console.log(this.tm);
+
+    collisionList = this.tm.getTerrainCollisions(normalState, doNotCheck);
+
     if (collisionList.length > 0) {   // WE COLLIDED WITH STUFF ON FINAL STEP.
-      throw "collided in angular step";
+      throw "collided in angular step, no handler yet. Dont build levels like this for now.";
       events = this.findEventsAndTimesFromCollisions(collisionList);
       tempState = events[0].state;
       //this.resetPredicted();
@@ -1218,7 +1217,7 @@ PhysEng.prototype.attemptAngularStep = function (goalGameTime) {
   }
 
 
-  var results = new StepResult(tempState, events);
+  var results = new StepResult(tempState, events);                                                                                                        // INSTEAD SET RESULTS FIELDS IN PHYSENG, ONE FOR EACH TYPE.
   //console.log("  End attemptAngularStep, results", results);
   return results;
 }
@@ -1264,7 +1263,7 @@ PhysEng.prototype.attemptNormalStep = function (goalGameTime) {
     tweenTime = startGameTime + stepFraction * deltaTime;
 
     tempState = stepStateToTime(this.player, tweenTime);
-    collisionList = getCollisionsInList(tempState, this.tm.terrainList, doNotCheck);    //TODO MINIMIZE THIS LIST SIZE, THIS IS IDIOTIC
+    collisionList = this.tm.getTerrainCollisions(tempState, doNotCheck);
 
     //console.log("      tweenStepping, i: ", i, " tweenTime: ", tweenTime);
   }
@@ -1286,8 +1285,8 @@ PhysEng.prototype.attemptNormalStep = function (goalGameTime) {
     tweenTime = goalGameTime;
     //console.log("  finalStepping, i: ", stepCount, " tweenTime: ", tweenTime);
     tempState = stepStateToTime(this.player, tweenTime);
-    collisionList = getCollisionsInList(tempState, this.tm.terrainList, doNotCheck);    //TODO MINIMIZE THIS LIST SIZE, THIS IS IDIOTIC
-    //console.log(this.tm.terrainList);
+    collisionList = this.tm.getTerrainCollisions(tempState, doNotCheck);
+
     //console.log(this.tm);
     if (collisionList.length > 0) {   // WE COLLIDED WITH STUFF ON FINAL STEP.
       events = this.findEventsAndTimesFromCollisions(collisionList);
