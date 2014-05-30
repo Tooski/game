@@ -90,7 +90,72 @@
             </form>  
 
         </div>
+<div class="outer-leaderboard-container" id="login">
+            <div class="title-container">
+                Top Times and Scores!!!
+            </div>
+            <div class="sub-title-container">
+                <div class ="left-sub-title">
+                    Level 1: Points
+                </div>
+                <div class ="right-sub-title">
+                    Level 1: Times
+                </div>
+            </div>
+            <div class="body-container">
+                <div class="left-box">
+                    <span>1.  mike 234,000</span>
+                    <span>2.  mike 234,000</span>
+                    <span>3.  mike 234,000</span>
+                    <span>4.  mike 234,000</span>
+                    <span>5.  mike 234,000</span>
+                    <span>6.  mike 234,000</span>
+                    <span>7.  mike 234,000</span>
+                    <span>8.  mike 234,000</span>
+                    <span>9.  mike 234,000</span>
+                    <span>10.  mike 234,000</span>
+                    <span>11.  mike 234,000</span>
+                    <span>12.  mike 234,000</span>
+                    <span>13.  mike 234,000</span>
+                    <span>14.  mike 234,000</span>
+                    <span>15.  mike 234,000</span>
+                    <span>16.  mike 234,000</span>
+                    <span>17.  mike 234,000</span>
+                    <span>18.  mike 234,000</span>
+                    <span>19.  mike 234,000</span>
+                    <span>20.  mike 234,000</span>
+   
+                </div>
+                <div class="right_box">
+                    <span>1.  mike 22.4 seconds</span>
+                    <span>2.  mike 22.4 seconds</span>
+                    <span>3.  mike 22.4 seconds</span>
+                    <span>4.  mike 22.4 seconds</span>
+                    <span>5.  mike 22.4 seconds</span>
+                    <span>6.  mike 22.4 seconds</span>
+                    <span>7.  mike 22.4 seconds</span>
+                    <span>8.  mike 22.4 seconds</span>
+                    <span>9.  mike 22.4 seconds</span>
+                    <span>10.  mike 22.4 seconds</span>
+                    <span>11.  mike 22.4 seconds</span>
+                    <span>12.  mike 22.4 seconds</span>
+                    <span>13.  mike 22.4 seconds</span>
+                    <span>14.  mike 22.4 seconds</span>
+                    <span>15.  mike 22.4 seconds</span>
+                    <span>16.  mike 22.4 seconds</span>
+                    <span>17.  mike 22.4 seconds</span>
+                    <span>18.  mike 22.4 seconds</span>
+                    <span>19.  mike 22.4 seconds</span>
+                    <span>20.  mike 22.4 seconds</span>
+                </div>
 
+            </div>
+            <div class="footer-container">
+                <button type="button">Close</button>             
+            </div>
+
+
+        </div>
 
     </body>
 </html>
