@@ -122,7 +122,7 @@ function MapEditor(level, editMode) {
   this.ctx.canvas = c;
 
 
-  this.currentLines = [];   // the lines currently being drawn.
+  this.level.tempLines = [];   // the lines currently being drawn.
 
   //this.completionHandler;    // function pointer that will contain the function to call when a polygon is completed. Set by buttons.
 
@@ -246,15 +246,18 @@ MapEditor.prototype.draw = function (ctxGUI) {
   ctx.lineCap = "round";
   ctx.strokeStyle = "#333333";
 
-  this.currentLines.forEach(function (line) {
+  this.level.tempLines.forEach(function (line) {
 
-    ctx.moveTo(line.localp0.x, line.localp0.y);
-    ctx.lineTo(line.localp1.x, line.localp1.y);
+    ctx.moveTo(line.p0.x, line.p0.y);
+    ctx.lineTo(line.p1.x, line.p1.y);
+
+    //ctx.moveTo(line.localp0.x, line.localp0.y);
+    //ctx.lineTo(line.localp1.x, line.localp1.y);
 
     //// CODE BELOW ONLY SHOWS IF EDIT MODE IS ENABLED FOR MAP EDITOR!
     if (editMode) {
       if (line.normal) {
-        var midPoint = line.localp0.add(line.localp1).divf(2.0);
+        var midPoint = line.p0.add(line.p1).divf(2.0);
 
         var pNormalPosEnd = midPoint.add(line.normal.multf(20));
 
@@ -358,9 +361,9 @@ MapEditor.prototype.createLineButton = function (ctx) {
             this.line = new EditorLine(new vec2(this.prev.p1.x, this.prev.p1.y), new vec2(xposition, yposition));
             
             if (that.attemptSnap(this.line)) {         //true if we completed our polygon.
-              that.currentLines.push(line);
+              that.level.tempLines.push(line);
             } else {
-              that.currentLines.push(line);
+              that.level.tempLines.push(line);
             }
           }
         } else {
@@ -384,7 +387,7 @@ MapEditor.prototype.createLineButton = function (ctx) {
             var yposition = localToWorld(e.offsetY, "y");
 
             this.locked = this.line = new EditorLine(new vec2(xposition, yposition), new vec2(xposition, yposition));
-            that.currentLines.push(this.line);
+            that.level.tempLines.push(this.line);
 
             button.isSelected = false;
           }
@@ -394,7 +397,7 @@ MapEditor.prototype.createLineButton = function (ctx) {
 
     if (completed) {
       console.log("completed and selected normals for terrainLine polygon.");
-      that.level.addTerrain(that.currentLines);
+      that.level.addTerrain(that.level.tempLines);
       that.resetCurrent();
       that.level.modified = true;
     }
@@ -502,9 +505,9 @@ MapEditor.prototype.createCheckpointLineButton = function (ctx) {
             this.line = new EditorLine(new vec2(this.prev.p1.x, this.prev.p1.y), new vec2(xposition, yposition));
             
             if (this.attemptSnap(this.line)) {         //true if we completed our polygon.
-              that.currentLines.push(line);
+              that.level.tempLines.push(line);
             } else {
-              that.currentLines.push(line);
+              that.level.tempLines.push(line);
             }
           }
         } else {
@@ -528,7 +531,7 @@ MapEditor.prototype.createCheckpointLineButton = function (ctx) {
             var yposition = localToWorld(e.offsetY, "y");
 
             this.locked = this.line = new EditorLine(new vec2(xposition, yposition), new vec2(xposition, yposition));
-            that.currentLines.push(this.line);
+            that.level.tempLines.push(this.line);
 
             button.isSelected = false;
           }
@@ -538,7 +541,7 @@ MapEditor.prototype.createCheckpointLineButton = function (ctx) {
 
     if (completed) {
       console.log("completed and selected normals for terrainLine polygon.");
-      that.level.addCheckpoint(that.currentLines);
+      that.level.addCheckpoint(that.level.tempLines);
       that.resetCurrent();
       that.level.modified = true;
     }
@@ -597,9 +600,9 @@ if (this.line) {
             this.line = new EditorLine(new vec2(this.prev.p1.x, this.prev.p1.y), new vec2(xposition, yposition));
             
             if (this.attemptSnap(this.line)) {         //true if we completed our polygon.
-              that.currentLines.push(line);
+              that.level.tempLines.push(line);
             } else {
-              that.currentLines.push(line);
+              that.level.tempLines.push(line);
             }
           }
         } else {
@@ -623,7 +626,7 @@ if (this.line) {
             var yposition = localToWorld(e.offsetY, "y");
 
             this.locked = this.line = new EditorLine(new vec2(xposition, yposition), new vec2(xposition, yposition));
-            that.currentLines.push(this.line);
+            that.level.tempLines.push(this.line);
 
             button.isSelected = false;
           }
@@ -633,7 +636,7 @@ if (this.line) {
 
     if (completed) {
       console.log("completed and selected normals for terrainLine polygon.");
-      that.level.addGoal(that.currentLines);
+      that.level.addGoal(that.level.tempLines);
       that.resetCurrent();
       that.level.modified = true;
     }
@@ -781,7 +784,7 @@ MapEditor.prototype.eraseFromArrayByClick = function (array, position) {
 
 
 MapEditor.prototype.resetCurrent = function () {
-  this.currentLines = [];
+  this.level.tempLines = [];
 }
 
 
@@ -882,31 +885,31 @@ function normalDrag(terrain) {
 
 
 MapEditor.prototype.attemptSnap = function (line) {
-  //for (var i = 0; i < this.currentLines.length; i++) {
-  //  if (line !== this.currentLines[i]) {
-  //    if (!this.currentLines[i].adjacent0 && checkBounds(line.p0, this.currentLines[i].p0)) {
-  //      line.p0.x = this.currentLines[i].p0.x = (line.p0.x + this.currentLines[i].p0.x) / 2;
-  //      line.p0.y = this.currentLines[i].p0.y = (line.p0.y + this.currentLines[i].p0.y) / 2;
-  //      this.currentLines[i].adjacent0 = line;
-  //      line.adjacent0 = this.currentLines[i];
+  //for (var i = 0; i < this.level.tempLines.length; i++) {
+  //  if (line !== this.level.tempLines[i]) {
+  //    if (!this.level.tempLines[i].adjacent0 && checkBounds(line.p0, this.level.tempLines[i].p0)) {
+  //      line.p0.x = this.level.tempLines[i].p0.x = (line.p0.x + this.level.tempLines[i].p0.x) / 2;
+  //      line.p0.y = this.level.tempLines[i].p0.y = (line.p0.y + this.level.tempLines[i].p0.y) / 2;
+  //      this.level.tempLines[i].adjacent0 = line;
+  //      line.adjacent0 = this.level.tempLines[i];
   //      break;
-  //    } else if (!this.currentLines[i].adjacent1 && checkBounds(line.p0, this.currentLines[i].p1)) {
-  //      line.p0.x = this.currentLines[i].p1.x = (line.p0.x + this.currentLines[i].p1.x) / 2;
-  //      line.p0.y = this.currentLines[i].p1.y = (line.p0.y + this.currentLines[i].p1.y) / 2;
-  //      this.currentLines[i].adjacent1 = line;
-  //      line.adjacent0 = this.currentLines[i];
+  //    } else if (!this.level.tempLines[i].adjacent1 && checkBounds(line.p0, this.level.tempLines[i].p1)) {
+  //      line.p0.x = this.level.tempLines[i].p1.x = (line.p0.x + this.level.tempLines[i].p1.x) / 2;
+  //      line.p0.y = this.level.tempLines[i].p1.y = (line.p0.y + this.level.tempLines[i].p1.y) / 2;
+  //      this.level.tempLines[i].adjacent1 = line;
+  //      line.adjacent0 = this.level.tempLines[i];
   //      break;
-  //    } else if (!this.currentLines[i].adjacent0 && checkBounds(line.p1, this.currentLines[i].p0)) {
-  //      line.p1.x = this.currentLines[i].p0.x = (line.p1.x + this.currentLines[i].p0.x) / 2;
-  //      line.p1.y = this.currentLines[i].p0.y = (line.p1.y + this.currentLines[i].p0.y) / 2;
-  //      this.currentLines[i].adjacent0 = line;
-  //      terrain.adjacent1 = this.currentLines[i];
+  //    } else if (!this.level.tempLines[i].adjacent0 && checkBounds(line.p1, this.level.tempLines[i].p0)) {
+  //      line.p1.x = this.level.tempLines[i].p0.x = (line.p1.x + this.level.tempLines[i].p0.x) / 2;
+  //      line.p1.y = this.level.tempLines[i].p0.y = (line.p1.y + this.level.tempLines[i].p0.y) / 2;
+  //      this.level.tempLines[i].adjacent0 = line;
+  //      terrain.adjacent1 = this.level.tempLines[i];
   //      break;
-  //    } else if (!this.currentLines[i].adjacent1 && checkBounds(line.p1, this.currentLines[i].p1)) {
-  //      line.p1.x = this.currentLines[i].p1.x = (line.p1.x + this.currentLines[i].p1.x) / 2;
-  //      line.p1.y = this.currentLines[i].p1.y = (line.p1.y + this.currentLines[i].p1.y) / 2;
-  //      this.currentLines[i].adjacent1 = line;
-  //      line.adjacent1 = this.currentLines[i];
+  //    } else if (!this.level.tempLines[i].adjacent1 && checkBounds(line.p1, this.level.tempLines[i].p1)) {
+  //      line.p1.x = this.level.tempLines[i].p1.x = (line.p1.x + this.level.tempLines[i].p1.x) / 2;
+  //      line.p1.y = this.level.tempLines[i].p1.y = (line.p1.y + this.level.tempLines[i].p1.y) / 2;
+  //      this.level.tempLines[i].adjacent1 = line;
+  //      line.adjacent1 = this.level.tempLines[i];
   //      break;
   //    }       //ADD SNAPPING TO THINGS ALREADY IN THE LEVEL HERE.
   //  }
@@ -914,7 +917,7 @@ MapEditor.prototype.attemptSnap = function (line) {
 
   var completedPolygon = false;
 
-  var startLine = this.currentLines[0];
+  var startLine = this.level.tempLines[0];
   if (line !== startLine && !startLine.adjacent1 && checkBounds(line.p0, startLine.p1)) {
     line.p0 = startLine.p1;
     startLine.adjacent1 = line;
@@ -930,7 +933,7 @@ MapEditor.prototype.attemptSnap = function (line) {
 
 
     if (!line.polygonID) {
-      var c = new Polygon(this.level.getNextPolygonID(), this.currentLines);
+      var c = new Polygon(this.level.getNextPolygonID(), this.level.tempLines);
     }
   } 
 

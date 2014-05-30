@@ -125,7 +125,10 @@ function pointString(point) {
 
 //TerrainManager itself
 function TerrainManager() {
-                                    //SEE RESET FUNCTION BELOW FOR DOCUMENTATION OF FIELDS
+  //SEE RESET FUNCTION BELOW FOR DOCUMENTATION OF FIELDS
+
+  this.tempLines = [];
+
   this.nextCollectibleNo;
   this.collectibles;
 
@@ -495,6 +498,8 @@ TerrainManager.prototype.draw = function (ctx) {
   if (this.terrainList && this.terrainList.length) {
     drawLineArray(ctx, this.terrainList, TERRAIN_LINE_COLOR, LINE_WIDTH, LINE_JOIN, LINE_CAP);
   }
+
+  drawLineArray(ctx, this.tempLines, "#222222", LINE_WIDTH, LINE_JOIN, LINE_CAP);
 
   drawLineArray(ctx, this.terrainLines, TERRAIN_LINE_COLOR, LINE_WIDTH, LINE_JOIN, LINE_CAP);
   drawLineArray(ctx, this.goalLines, GOAL_LINE_COLOR, LINE_WIDTH, LINE_JOIN, LINE_CAP);
