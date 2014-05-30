@@ -1151,8 +1151,8 @@ function loadingScreen(ctx) {
 }
 
 function scoreTest(ctx) {
-    ctx.font =  "20px Arial";
-    ctx.fillText("30,000",20,35);
+    ctx.font =  "10px Arial";
+    ctx.fillText("HOLD \"D\" Key!",20,35);
 }
 
 function Rectangle(x1,y1,x2,y2) {

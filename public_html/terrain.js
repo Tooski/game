@@ -33,8 +33,7 @@ function TerrainSurface(point0, point1, adjacent0, adjacent1, pl) {
   this.getNormalAt = function (ballLocation) { };     // ballLocation is simple where the ball currently is, for which we are trying to obtain the normal applicable to the ball. 
   this.getSurfaceAt = function (ballLocation) { };    // Gets a normalized surface vector.
 
-  this.toString = function () {
-    var pl = 5;
+  this.string = function (pl) {
     var str = "p0 " + rl(this.p0.x, pl) + "  " + rl(this.p0.y, pl) + "      p1 " + rl(this.p1.x, pl) + "  " + rl(this.p1.y, pl);
     return str;
   }
@@ -125,7 +124,6 @@ function TerrainLine(point0, point1, player, adjacent0, adjacent1, normal) {
 
 
 
-
   /**
     * Returns a result object detailing whether or not this adjacent is concave, and the angle between this surface and adj0.
     * return { concave: true or false, angle } angle is in radians, the closer to Math.PI the less the angle of change between surfaces.
@@ -139,7 +137,7 @@ function TerrainLine(point0, point1, player, adjacent0, adjacent1, normal) {
 
       //connection to adj0 is concave when the angle between this.normal and next surface is < HALF_PI, or 90 degrees. 
 
-      console.log("angleNorm0: ", angleNorm);
+      //console.log("angleNorm0: ", angleNorm);
       var result = { concave: (angleNorm < 0), angle: angle };
       return result;
 
@@ -164,7 +162,7 @@ function TerrainLine(point0, point1, player, adjacent0, adjacent1, normal) {
 
       //connection to adj0 is concave when the angle between this.normal and next surface is < HALF_PI, or 90 degrees. 
 
-      console.log("angleNorm1: ", angleNorm);
+      //console.log("angleNorm1: ", angleNorm);
       var result = { concave: (angleNorm < 0), angle: angle };
       return result;
 

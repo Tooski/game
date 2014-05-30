@@ -8,7 +8,7 @@
 function Player(x, y, timer) {
     Entity.call(this, null, 0, 0, 0, 0);
     this.walkingSpeed = 0.10;
-    this.runningSpeed = 0.04;
+    this.runningSpeed = 0.01;
     this.boostSpeed = 0.06;
     this.jumpSpeed = 0.7;
     this.idleAnimation = new Animation(ASSET_MANAGER.getAsset("assets/HamsterSprites.png"), 0, 0, 300, 300, 0.1, 1, true, false);
@@ -31,7 +31,9 @@ function Player(x, y, timer) {
 Player.prototype = new Entity();
 Player.prototype.update = function() {
 
-    if (this.model.animationSpeed === 0) {
+  //console.log(this.model.animationSpeed);
+  //console.log(this.model.animationAngle);
+    if (this.model.animationSpeed <= 0) {
         this.model.animationStanding = true;
     } else {
         this.model.animationStanding = false;
@@ -41,11 +43,13 @@ Player.prototype.update = function() {
 
         this.model.animationStanding = false;
         this.facing = false;
-        if (this.model.animationSpeed <= 3000) {
+        if (this.model.animationSpeed <= 1000) {
             this.model.animationWalking = true;
-            //this.model.animationRunning = false;
-        } else {
-            //this.model.animationRunning = true;
+            this.model.animationRunning = false;
+        } 
+        else {
+            this.model.animationRunning = true;
+            console.log(this.model.animationRunning);
             this.model.animationWalking = false;
         }
     }
@@ -184,8 +188,7 @@ Player.prototype.draw = function(ctx) {
 Player.prototype.walking = function(ctx, scaleFactor) {
 
     this.walkingAnimation.drawFrame(this.timer.gameDelta, ctx, this.model.pos.x - this.walkingAnimation.frameWidth / 2 * scaleFactor,
-            this.model.pos.y - this.walkingAnimation.frameHeight / 2 * scaleFactor, scaleFactor, this.facing);
-
+            this.model.pos.y - this.walkingAnimation.frameHeight / 2 * scaleFactor, scaleFactor, this.facing,this.model.animationAngle);
 };
 
 /**
@@ -197,7 +200,7 @@ Player.prototype.walking = function(ctx, scaleFactor) {
 Player.prototype.idle = function(ctx, scaleFactor) {
     this.idleAnimation.drawFrame(0
             , ctx, this.model.pos.x - this.idleAnimation.frameWidth / 2 * scaleFactor,
-            this.model.pos.y - this.idleAnimation.frameHeight / 2 * scaleFactor, scaleFactor, this.facing);
+            this.model.pos.y - this.idleAnimation.frameHeight / 2 * scaleFactor, scaleFactor, this.facing,this.model.animationAngle);
 };
 
 /**
@@ -208,7 +211,7 @@ Player.prototype.idle = function(ctx, scaleFactor) {
  */
 Player.prototype.running = function(ctx, scaleFactor) {
     this.runningAnimation.drawFrame(this.timer.gameDelta, ctx, this.model.pos.x - this.runningAnimation.frameWidth / 2 * scaleFactor,
-            this.model.pos.y - this.runningAnimation.frameHeight / 2 * scaleFactor, scaleFactor, this.facing);
+            this.model.pos.y - this.runningAnimation.frameHeight / 2 * scaleFactor, scaleFactor, this.facing, this.model.animationAngle);
 };
 
 /**
@@ -220,7 +223,7 @@ Player.prototype.running = function(ctx, scaleFactor) {
 Player.prototype.groundBoost = function(ctx, scaleFactor) {
     //console.log(" start y" + this.groundBoostAnimation.startY +", start x" + this.groundBoostAnimation.startX);
     this.groundBoostAnimation.drawFrameFreeze(this.timer.gameDelta, ctx, this.model.pos.x - this.groundBoostAnimation.frameWidth / 2 * scaleFactor,
-            this.model.pos.y - this.groundBoostAnimation.frameHeight / 2 * scaleFactor, scaleFactor, this.facing);
+            this.model.pos.y - this.groundBoostAnimation.frameHeight / 2 * scaleFactor, scaleFactor, this.facing,this.model.animationAngle);
 };
 /**
  * player function to drwa frames for jumping from a surface animation.
@@ -230,13 +233,13 @@ Player.prototype.groundBoost = function(ctx, scaleFactor) {
  */
 Player.prototype.groundJumping = function(ctx, scaleFactor) {
     this.jumpingAnimation.drawFrame(this.timer.gameDelta, ctx, this.model.pos.x - this.jumpingAnimation.frameWidth / 2 * scaleFactor,
-            this.model.pos.y - this.jumpingAnimation.frameHeight / 2 * scaleFactor, scaleFactor, this.facing);
+            this.model.pos.y - this.jumpingAnimation.frameHeight / 2 * scaleFactor, scaleFactor, this.facing,this.model.animationAngle);
 };
 
 Player.prototype.freeFall = function(ctx, scaleFactor) {
 
     this.fallingAnimation.drawFrame(this.timer.gameDelta, ctx, this.model.pos.x - this.fallingAnimation.frameWidth / 2 * scaleFactor,
-            this.model.pos.y - this.fallingAnimation.frameHeight / 2 * scaleFactor, scaleFactor, this.facing);
+            this.model.pos.y - this.fallingAnimation.frameHeight / 2 * scaleFactor, scaleFactor, this.facing,this.model.animationAngle);
 };
 
 
