@@ -204,7 +204,6 @@ function TerrainLine(point0, point1, player, adjacent0, adjacent1, normal) {
 }
 TerrainLine.prototype = new TerrainSurface();      //Establishes this as a child of TerrainSurface.
 TerrainLine.prototype.constructor = TerrainLine;   //Establishes this as having its own constructor.
-TerrainLine.prototype.lineWidth = 5;
 
 
 
@@ -257,7 +256,6 @@ function GoalLine(point0, point1, player, adjacent0, adjacent1) {
 }
 GoalLine.prototype = new TerrainSurface();      //Establishes this as a child of TerrainSurface.
 GoalLine.prototype.constructor = GoalLine;   //Establishes this as having its own constructor.
-GoalLine.prototype.lineWidth = 5;
 
 
 
@@ -308,7 +306,6 @@ function CheckpointLine(point0, point1, player, adjacent0, adjacent1) {
 }
 CheckpointLine.prototype = new TerrainSurface();      //Establishes this as a child of TerrainSurface.
 CheckpointLine.prototype.constructor = CheckpointLine;   //Establishes this as having its own constructor.
-CheckpointLine.prototype.lineWidth = 5;
 
 
 
@@ -354,7 +351,6 @@ function KillLine(point0, point1, player, adjacent0, adjacent1) {
 }
 KillLine.prototype = new TerrainSurface();      //Establishes this as a child of TerrainSurface.
 KillLine.prototype.constructor = KillLine;   //Establishes this as having its own constructor.
-KillLine.prototype.lineWidth = 5;
 
 
 
