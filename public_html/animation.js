@@ -152,21 +152,20 @@ Animation.prototype.drawFrameFreeze = function (tick, ctx, x, y, scaleBy, flip, 
     var locY = y;
     var offset = vindex === 0 ? this.startX : 0;
 
+	ctx.save();
+	ctx.translate(locX  + this.frameWidth*scaleBy / 2, locY+ this.frameHeight* scaleBy / 2);
     if(rotateBy) { 
         //ctx.translate(this.frameWidth, this.frameHeight);
         ctx.rotate(rotateBy); }
-    ctx.save();
-    ctx.scale(flip, 1);
+		ctx.scale(flip, 1);
     ctx.drawImage(this.spriteSheet,
-                  index * this.frameWidth  + offset , vindex*this.frameHeight + this.startY,  // source from sheet
-                  this.frameWidth, this.frameHeight,
-                  locX  * flip - (flip === -1 ? this.frameWidth*scaleBy : 0) , locY,
-                  this.frameWidth * scaleBy,
-                  this.frameHeight * scaleBy);
+                 index * this.frameWidth  + offset , vindex*this.frameHeight + this.startY,  // source from sheet
+               this.frameWidth, this.frameHeight,
+               - this.frameWidth*scaleBy / 2 , - this.frameHeight* scaleBy / 2,
+               this.frameWidth * scaleBy,
+                 this.frameHeight * scaleBy);
+
     ctx.restore();
-    if(rotateBy) { 
-     //   ctx.translate(-this.frameWidth/2, -this.frameHeight/2);
-        ctx.rotate(-rotateBy);}
 //    if(is_done){
 //      this.elapsedTime  = this.totalTime;
 //    }
@@ -209,21 +208,20 @@ Animation.prototype.drawFrameFalling = function (tick, ctx, x, y, scaleBy, flip,
     var locY = y;
 
 
+	ctx.save();
+	ctx.translate(locX  + this.frameWidth*scaleBy / 2, locY+ this.frameHeight* scaleBy / 2);
     if(rotateBy) { 
         //ctx.translate(this.frameWidth, this.frameHeight);
         ctx.rotate(rotateBy); }
-    ctx.save();
-    ctx.scale(flip, 1);
+		ctx.scale(flip, 1);
     ctx.drawImage(this.spriteSheet,
-                  this.frameWidth2 , this.frameHeight2,  // source from sheet
-                  this.frameWidth, this.frameHeight,
-                  locX  * flip - (flip === -1 ? this.frameWidth*scaleBy : 0) , locY,
-                  this.frameWidth * scaleBy,
-                  this.frameHeight * scaleBy);
+                 index * this.frameWidth  + offset , vindex*this.frameHeight + this.startY,  // source from sheet
+               this.frameWidth, this.frameHeight,
+               - this.frameWidth*scaleBy / 2 , - this.frameHeight* scaleBy / 2,
+               this.frameWidth * scaleBy,
+                 this.frameHeight * scaleBy);
+
     ctx.restore();
-    if(rotateBy) { 
-     //   ctx.translate(-this.frameWidth/2, -this.frameHeight/2);
-        ctx.rotate(-rotateBy);}
 //    if(is_done){
 //      this.elapsedTime  = this.totalTime;
 //    }
