@@ -82,14 +82,14 @@ vec2.prototype.sangle = function () { // returns the perpendicular vector to thi
 }
 
 
-vec2.prototype.toJSON = function () {
-  var formattedObj = { x: this.x, y: this.y };
-  if (this.id) {
-    throw "??? should we ever have an id in vec2 toJSON() ? most likely vec2.apply() is fucking with shit";
-    formattedObj.id = this.id;
-  }
-  return JSON.stringify(formattedObj);;
-}
+//vec2.prototype.toJSON = function () {
+//  var formattedObj = { x: this.x, y: this.y };
+//  if (this.id) {
+//    throw "??? should we ever have an id in vec2 toJSON() ? most likely vec2.apply() is fucking with shit";
+//    formattedObj.id = this.id;
+//  }
+//  return JSON.stringify(formattedObj);;
+//}
 
 
 //projects vec2 a onto vec2 b.
@@ -100,9 +100,9 @@ function projectVec2(a, b) {
 }
 
 
-vec2.prototype.toString = function () {
-  return "X: " + this.x.toFixed(2); + ", Y: " + this.y.toFixed(2);
-};
+//vec2.prototype.toString = function () {
+//  return "X: " + this.x.toFixed(2); + ", Y: " + this.y.toFixed(2);
+//};
 
 
 vec2.prototype.equals = function(otherVec) {

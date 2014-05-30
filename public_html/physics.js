@@ -10,6 +10,8 @@
  * All rights reserved.
  */
 
+console.log('%c Oh my heavens! ', 'background: #222; color: #bada55');
+
 
 //IF FALSE, RUN NORMALLY
 var DEBUG_STEP =                                    false;
@@ -46,7 +48,7 @@ var TIME_EPSILON = 0.00000001;
 var TIME_EPSILON_SQ = TIME_EPSILON * TIME_EPSILON;
 var COLLISION_EPSILON_SQ = 0.0000; // fuck the police
 var ANGLE_EPSILON = 0.000001;
-var ARC_RADIUS_PADDING = 0.001;
+//var ARC_RADIUS_PADDING = 0.001;
 
 
 //DEFAULT PHYSICS VALS, TWEAK HERE
@@ -95,7 +97,7 @@ var DFLT_reverseAirJumpSpeed = 300;
 /*
  * The fraction of player radius that our max movement distance will be.
 */
-var MAX_MOVE_FRACTION_OF_RADIUS = 1.0;
+var MAX_MOVE_FRACTION_OF_RADIUS = 0.2;
 
 
 var REPLAY_SYNC_INTERVAL = 1.0;
@@ -128,7 +130,6 @@ State.prototype.print = function (prefix) {
     throw "missing prefix";
   }
   var pl = this.PRINT_LENGTH;
-  console.log(prefix + "STATE");
   console.log(prefix + "time     " + rl(this.time, pl) + "    --   radius " + this.radius);
   console.log(prefix + "pos      " + rl(this.pos.x, pl) + "  " + rl(this.pos.y, pl));
   console.log(prefix + "vel      " + rl(this.vel.x, pl) + "  " + rl(this.vel.y, pl));
@@ -167,7 +168,6 @@ AngularState.prototype.print = function (prefix) {
     throw "missing prefix";
   }
   var pl = this.PRINT_LENGTH;
-  console.log(prefix + "STATE");
   console.log(prefix + "time     " + rl(this.time, pl) + "    --   radius" + this.radius);
   console.log(prefix + "point    " + rl(this.point.x, pl) + "  " + rl(this.point.y, pl));
   console.log(prefix + "a(ngle)  " + rl(this.a, pl));
@@ -406,7 +406,7 @@ function PlayerModel(controlParams, physParams, time, radius, pos, vel, accel, s
     }
 
     if (state instanceof AngularState) {
-      console.log("instanceof AngularState");
+      //console.log("instanceof AngularState");
       if (!(
         (state.time || state.time === 0) &&
         (state.radius || state.radius === 0) &&
@@ -433,7 +433,7 @@ function PlayerModel(controlParams, physParams, time, radius, pos, vel, accel, s
       this.aVel = state.aVel;
       this.aAccel = state.aAccel;
 
-      console.log("~ ~ ~ ~ ~ ~ ~ ~ ~   angstate before conversion: ", state.toString());
+      //console.log("~ ~ ~ ~ ~ ~ ~ ~ ~   angstate before conversion: ", state.toString());
       state = convertAngularToNormalState(state);
     }
 
@@ -739,7 +739,7 @@ PlayerModel.prototype.getSurfaceVec = function () {
   if (this.onPoint) {
     return vecFromAngleLength(this.a, 1).perp();
   } else if (this.onSurface) {
-    return this.surface.p0.subtract(this.surface.p1).normalize();
+    return this.surface.p1.subtract(this.surface.p0).normalize();
   } else {
     throw "not on surface or point, why are you getting surface vec?";
   }
@@ -756,6 +756,13 @@ PlayerModel.prototype.surfaceLock = function (surface) {
     console.log("surface", surface);
     throw "no surface passed into surfaceLock";
   }
+
+  var ejectDist = this.radius - getDistFromLine(this.pos, surface);
+
+  var ejectVec = surface.normal.multf(ejectDist);
+  var ejectedPos = this.pos.add(ejectVec);
+  this.pos = ejectedPos;
+
   this.airChargeCount = this.controlParams.numAirCharges;
   this.surface = surface;
   this.onSurface = true;
@@ -764,30 +771,6 @@ PlayerModel.prototype.surfaceLock = function (surface) {
   this.updateVecs(this.inputState);
 }
 
-
-
-/**
- * Function that deals with arking the player to a surface.
- */
-PlayerModel.prototype.arcTo = function (surface) {
-  console.log("this.a ", this.a);
-  console.log("surface.normal.sangle() ", surface.normal.sangle())
-  var cartesianState = convertAngularToNormalState(this);
-  var accel = this.accel;
-  this.updateToState(cartesianState);
-  this.accel = accel;             // TODO better way to keep from changing accel to the angular accel???? Do we even care?
-  if (surface) {
-    // didnt end arc early
-    console.log(" +++++++++ arcTo: didnt end arc early. surface ", surface);
-    this.surfaceLock(surface);
-  } else {
-    // ended arc early, in the air.
-    console.log(" +++++++++ arcTo: ended arc early, in the air.");
-    this.leaveGround();
-  }
-  this.leaveArc();
-  this.updateVecs(this.inputState);   // TODO remove?
-}
 
 
 
@@ -799,7 +782,7 @@ PlayerModel.prototype.startArc = function (point, arcAngle, pointToPosVec) {
 
 
 
-  var ang = getSignedAngleFromAToB(HORIZ_NORM, ptpNorm.multf(this.radius));
+  var ang = getSignedAngleFromAToB(HORIZ_NORM, ptpNorm);
 
   var angVel = (arcAngle < 0 ? -this.vel.length() : this.vel.length());
   var angAccel = (arcAngle < 0 ? -this.accel.length() : this.accel.length());
@@ -818,6 +801,42 @@ PlayerModel.prototype.startArc = function (point, arcAngle, pointToPosVec) {
   this.onSurface = false;
   this.onPoint = true;
 }
+
+
+
+/**
+ * Function that deals with arking the player to a surface.
+ */
+PlayerModel.prototype.arcTo = function (surface) {
+  console.log(" ");
+  console.log(" ");
+
+  var isAccelerating = ((this.onSurface && this.vel.length() > 0) || (this.onPoint && this.aVel !== 0));
+  console.log("-=-=-=-=-=-=  ACCELERATING???", isAccelerating);
+  console.log(" / / / /        player ang", this.a, "   ! _ ! _ ! _ ! _ ! _ ! _ ! _ ! _ ! _ ! _ ! _ ! _ ");
+  console.log(" / / / /  surface norm ang", surface.normal.sangle(), "   ! _ ! _ ! _ ! _ ! _ ! _ ! _ ! _ ! _ ! _ ! _ ");
+  console.log(" / / / /        difference", this.a - surface.normal.sangle(), "   ! _ ! _ ! _ ! _ ! _ ! _ ! _ ! _ ! _ ! _ ! _ ");
+  //console.log(" / / / /        difference", this.a - surface.normal.sangle(), "   ! _ ! _ ! _ ! _ ! _ ! _ ! _ ! _ ! _ ! _ ! _ ");
+  console.log(" ");
+  //var cartesianState = convertAngularToNormalState(this);
+  //var accel = this.accel;
+  //this.updateToState(cartesianState);
+  //this.accel = accel;             // TODO better way to keep from changing accel to the angular accel???? Do we even care?
+  if (surface) {
+    // didnt end arc early
+    console.log(" +++++++++ arcTo: didnt end arc early. surface ", surface);
+    var surfaceVecNorm = surface.p1.subtract(surface.p0).normalize();
+    this.lockTo(surface, surfaceVecNorm);
+    this.leaveArc();
+  } else {
+    // ended arc early, in the air.
+    console.log(" +++++++++ arcTo: ended arc early, in the air.");
+    this.leaveArc();
+    this.leaveGround();
+  }
+  this.updateVecs(this.inputState);   // TODO remove?
+}
+
 
 
 
@@ -856,7 +875,7 @@ PlayerModel.prototype.print = function (prefix) {
     throw "missing prefix";
   }
   var pl = this.PRINT_LENGTH;
-  console.log(prefix + "STATE");
+  console.log(prefix + "PlayerModel print");
   console.log(prefix + "time      " + rl(this.time, pl) + "    --   radius " + this.radius);
 
   if (this.surface) {
@@ -1088,13 +1107,18 @@ PhysEng.prototype.updatePhys = function (newEvents, stepToRender) {
         console.log(" -=-=-=-=- TIME_EPSILON_SQ, ", TIME_EPSILON_SQ);
         console.log(" -=-=-=-=- times dont match between the event and the stepResult.state");
         var eventState = stepStateToTime(this.player, currentEvent.time);
-        var collidedSurface =  stepResult.events[0].collidedWithList[0];
-        console.log(" -=-=-=-=- state at closest event ", eventState);
-        if (!this.isPaused && collidedSurface.collidesWith(eventState.pos, eventState.radius)) {
-          console.log(" -=-=-=-=- despite nearest collision time happening later,");
-          console.log(" -=-=-=-=- the state at the closest event collides with terrain ", collidedSurface);
-          //throw "times dont match between the event and the stepResult.state";
+        if (stepResult.events[0].tp) {
+
+        } else {
+          var collidedSurface = stepResult.events[0].collidedWithList[0];
+          console.log(" -=-=-=-=- state at closest event ", eventState);
+          if (!this.isPaused && collidedSurface.collidesWith(eventState.pos, eventState.radius)) {
+            console.log(" -=-=-=-=- despite nearest collision time happening later,");
+            console.log(" -=-=-=-=- the state at the closest event collides with terrain ", collidedSurface);
+            //throw "times dont match between the event and the stepResult.state";
+          }
         }
+
 
 
         this.tweenEventHeap = getNewTweenHeap();
@@ -1263,7 +1287,7 @@ PhysEng.prototype.attemptAngularStep = function (goalGameTime) {
 
 
   var results = new StepResult(tempState, events);
-  console.log("  End attemptAngularStep, results", results);
+  //console.log("  End attemptAngularStep, results", results);
   return results;
 }
 
@@ -1508,76 +1532,156 @@ PhysEng.prototype.getSurfaceEndEvent = function () {
   var adjData = getNextSurfaceData(this.player, this.player.surface);
   var adjDependencyMask = 0;
 
+
   //second, find the time that we will reach the end of the surface.
   //returns { pointNumber: 0 or 1, time }
   var endPointData = solveEarliestSurfaceEndpoint(this.player, this.player.surface);
   var endPointDependencyMask = 0;
   var surface = this.player.surface;
   var endPointAngle = (endPointData.pointNumber !== 0 ? getSignedAngleFromAToB(surface.normal, surface.adjacent1.normal) : getSignedAngleFromAToB(surface.normal, surface.adjacent0.normal));
-  console.log("-=-=-=-=-=-=  endPointData ", endPointData);
-  console.log("-=-=-=-=-=-=  endPointAngle ", endPointAngle);
 
+
+  console.log("");
+  console.log("");
 
   var nextSurfaceEvent = null;  //SurfaceAdjacentEvent(predictedTime, dependencyMask, surface, nextSurface, angle, allowLock)
 
   if (adjData && (adjData.time || adjData.time === 0)) {
     if (endPointData && (endPointData.time || endPointData.time === 0)) {
+      console.log("-=-=-=-=-=-=  endpointData AND adjData. Should be adjData, but testing shit below to ensure nothing is wrong. ");
+
+      var endPointState = stepStateToTime(this.player, endPointData.time);
+      var adjDataState = stepStateToTime(this.player, adjData.time);
+
+      this.player.print("- =-= - =-= - =-=  ");
+
+      console.log("");
+      console.log("-=-=-=-=-=-=  endPointData ", endPointData);
+      console.log("-=-=-=-=-=-=  endPointAngle ", endPointAngle);
+      console.log("-=-=-=-=-=-=  adjData ", adjData);
+
+
+      console.log("");
+      console.log("- =-= - =-= - =-=  adjDataState");
+      adjDataState.print("- =-= - =-= - =-=  ");
+      console.log("- =-= - =-= - =-=  endPointState");
+      endPointState.print("- =-= - =-= - =-=  ");
+
+      console.log("");
+      var isAccelerating = ((this.player.onSurface && this.player.vel.length() > 0) || (this.player.onPoint && this.player.aVel !== 0));
+      console.log("-=-=-=-=-=-=  ACCELERATING???", isAccelerating);
+      console.log("distance from current surface when collision happens with adjacent line: " + getDistFromLine(adjDataState.pos, this.player.surface));
+      console.log("distance from adj line when collision happens with adjacent line: " + getDistFromLine(adjDataState.pos, (adjData.adjNumber === 0 ? this.player.surface.adjacent0 : this.player.surface.adjacent1)));
+      console.log("distance from current surface when collision happens with point: " + getDistFromLine(endPointState.pos, this.player.surface));
+      console.log("distance from adj line when collision happens with point: " + getDistFromLine(endPointState.pos, (endPointData.pointNumber === 0 ? this.player.surface.adjacent0 : this.player.surface.adjacent1)));
+
+      console.log("");
+
+
       if (adjData.adjNumber === endPointData.pointNumber) {
         // use the adjacent surface for the event. It was concave, doesnt matter what time it supposedly comes at.
         if (adjData.time > endPointData.time) {
           //console.log("adjData.time, ", adjData.time, "endPointData.time, ", endPointData.time);
-          var adjDataState = stepStateToTime(this.player, adjData.time);
           //DEBUG_DRAW_GREEN.push(new DebugCircle(adjDataState.pos, this.player.radius, 5));
 
           console.log("- =-= - =-= - =-=  gray thing");
-          this.player.print("- =-= - =-= - =-=  ");
-          var endPointState = stepStateToTime(this.player, endPointData.time);
-          console.log("- =-= - =-= - =-=  endPointState", endPointState);
           if (this.player.onPoint) {
             throw "bullshit"
           }
-          DEBUG_DRAW_GRAY.push(new DebugCircle(endPointState.pos, this.player.radius, 5));
-          
-          throw "Debug, but this technically shouldnt happen where endpoint was hit before the adjacent line was.";
+          //DEBUG_DRAW_GRAY.push(new DebugCircle(endPointState.pos, this.player.radius, 5));
+          //throw "Debug, but this technically shouldnt happen where endpoint was hit before the adjacent line was.";
         }
         //handle me.
         nextSurfaceEvent = new SurfaceAdjacentEvent(adjData.time, adjDependencyMask, this.player.surface, (adjData.adjNumber === 0 ? this.player.surface.adjacent0 : this.player.surface.adjacent1), adjData.angle, true);
-        var adjDataState = stepStateToTime(this.player, adjData.time);
         //DEBUG_DRAW_GREEN.push(new DebugCircle(adjDataState.pos, this.player.radius, 5));
       } else {
+        console.log("");
+        console.log("");
+        console.log("");
+        console.log(" ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ");
+        console.log("-=-=-=-=-=-=   endpoint and adjSurface are on opposite ends. Event whichever is soonest. ");
         // endpoint and adjSurface are on opposite ends. Event whichever is soonest.
         if (adjData.time < endPointData.time) {
           // use adjacent.
+          console.log("-=-=-=-=-=-=-=   using adjacent");
           nextSurfaceEvent = new SurfaceAdjacentEvent(adjData.time, adjDependencyMask, this.player.surface, (adjData.adjNumber === 0 ? this.player.surface.adjacent0 : this.player.surface.adjacent1), adjData.angle, true);
-          var adjDataState = stepStateToTime(this.player, adjData.time);
           //DEBUG_DRAW_GREEN.push(new DebugCircle(adjDataState.pos, this.player.radius, 5));
         } else {
           // use endpoint.
-          console.log("- =-= - =-= - =-=  gray thing");
-          this.player.print("- =-= - =-= - =-=  ");
-          var endPointState = stepStateToTime(this.player, endPointData.time);
-          console.log("- =-= - =-= - =-=  endPointState", endPointState);
+          console.log("-=-=-=-=-=-=-=   using endpoint");
           if (this.player.onPoint) {
             throw "bullshit"
           }                         //(adjData.time, adjDependencyMask, this.player.surface, (adjData.adjNumber === 0 ? this.player.surface.adjacent0 : this.player.surface.adjacent1), adjData.angle, true);
           nextSurfaceEvent = new SurfaceEndEvent(endPointData.time, endPointDependencyMask, this.player.surface, (endPointData.pointNumber === 0 ? this.player.surface.adjacent0 : this.player.surface.adjacent1), (endPointData.pointNumber === 0 ? this.player.surface.p0 : this.player.surface.p1), endPointAngle, true)
-          DEBUG_DRAW_GRAY.push(new DebugCircle(endPointState.pos, this.player.radius, 5));
+          //DEBUG_DRAW_GRAY.push(new DebugCircle(endPointState.pos, this.player.radius, 5));
         }
+
+        console.log("");
+        console.log("");
+        console.log("");
+        console.log("");
       }
+
+      console.log("");
+      console.log("");
+      console.log("");
     } else {
       // no endPointData, use adjacent.
-      nextSurfaceEvent = new SurfaceAdjacentEvent(adjData.time, adjDependencyMask, this.player.surface, (adjData.adjNumber === 0 ? this.player.surface.adjacent0 : this.player.surface.adjacent1), adjData.angle, true);
+      throw "did we ever get here?";
+      console.log("  ??   ??   ??   ??   ??   ??   ??   ??   ??   ??   ??   ??   ??   ??   ??   ??   ??   ??   ??   ??   ??   ??   ??   ??  ");
+      console.log("  ??   ??   ??   ??   ??   ??   ??   ??   ??   ??   ??   ??   ??   ??   ??   ??   ??   ??   ??   ??   ??   ??   ??   ??  ");
+      console.log("-=-=-=-=-=-=  no endpoint data, using adjacent ");
+
       var adjDataState = stepStateToTime(this.player, adjData.time);
+
+      this.player.print("- =-= - =-= - =-=  ");
+
+      console.log("");
+      console.log("-=-=-=-=-=-=  adjData ", adjData);
+
+
+      console.log("");
+      console.log("- =-= - =-= - =-=  adjDataState");
+      adjDataState.print("- =-= - =-= - =-=  ");
+
+      console.log("");
+      var isAccelerating = ((this.player.onSurface && this.player.vel.length() > 0) || (this.player.onPoint && this.player.aVel !== 0));
+      console.log("-=-=-=-=-=-=  ACCELERATING???", isAccelerating);
+      console.log("distance from current surface when collision happens with adjacent line: " + getDistFromLine(adjDataState.pos, this.player.surface));
+      console.log("distance from adj line when collision happens with adjacent line: " + getDistFromLine(adjDataState.pos, (adjData.adjNumber === 0 ? this.player.surface.adjacent0 : this.player.surface.adjacent1)));
+
+      console.log("");
+
+      nextSurfaceEvent = new SurfaceAdjacentEvent(adjData.time, adjDependencyMask, this.player.surface, (adjData.adjNumber === 0 ? this.player.surface.adjacent0 : this.player.surface.adjacent1), adjData.angle, true);
       //DEBUG_DRAW_GREEN.push(new DebugCircle(adjDataState.pos, this.player.radius, 5));
     }
   } else if (endPointData && (endPointData.time || endPointData.time === 0)) {
     // no adjData, use endPointData.
-    console.log("- =-= - =-= - =-=  gray thing");
-    this.player.print("- =-= - =-= - =-=  ");
+
     var endPointState = stepStateToTime(this.player, endPointData.time);
+    console.log("-=-=-=-=-=-=  no adjData, using endPoint ");
+
+    this.player.print("- =-= - =-= - =-=  ");
+
+    console.log("");
+    console.log("-=-=-=-=-=-=  endPointData ", endPointData);
+    console.log("-=-=-=-=-=-=  endPointAngle ", endPointAngle);
+
+
+    console.log("- =-= - =-= - =-=  endPointState");
+    endPointState.print("- =-= - =-= - =-=  ");
+
+    console.log("");
+    var isAccelerating = ((this.player.onSurface && this.player.vel.length() > 0) || (this.player.onPoint && this.player.aVel !== 0));
+    console.log("-=-=-=-=-=-=  ACCELERATING???", isAccelerating);
+    console.log("distance from current surface when collision happens with point: " + getDistFromLine(endPointState.pos, this.player.surface));
+
+    console.log("");
+
+    console.log("- =-= - =-= - =-=  gray thing");
     console.log("- =-= - =-= - =-=  endPointState", endPointState);
     nextSurfaceEvent = new SurfaceEndEvent(endPointData.time, endPointDependencyMask, this.player.surface, (endPointData.pointNumber === 0 ? this.player.surface.adjacent0 : this.player.surface.adjacent1), (endPointData.pointNumber === 0 ? this.player.surface.p0 : this.player.surface.p1), endPointAngle, true)
-    DEBUG_DRAW_GRAY.push(new DebugCircle(endPointState.pos, this.player.radius, 5));
+    //DEBUG_DRAW_GRAY.push(new DebugCircle(endPointState.pos, this.player.radius, 5));
   } else {
     throw "hi, no valid surface event???";
   }
@@ -1742,17 +1846,17 @@ PhysEng.prototype.findEventsAndTimesFromCollisions = function (collisionList) {
         throw "bullshit, the solved time of something we supposedly collided with was null";
       }
       var lineTime = this.player.time + futureTime;
-      var tempState = stepStateToTime(this.player, lineTime);
+      var lineState = stepStateToTime(this.player, lineTime);
       
       if (DEBUG_DRAW) {
         //DEBUG_DRAW_LIGHTBLUE.push(new DebugCircle(tempState.pos, tempState.radius, 5));
       }
 
-      console.log("~~~~~~~~~~~~ lineTime " + lineTime + ", tempState: ", tempState);
-      if (collision.surface.isPointWithinPerpBounds(tempState.pos) && lineTime && lineTime > 0 && lineTime < 200000000) {   // Ensures that the real collision was with the line and not the points.
+      console.log("~~~~~~~~~~~~ lineTime " + lineTime + ", lineState: ", lineState);
+      if (collision.surface.isPointWithinPerpBounds(lineState.pos) && (lineTime || lineTime === 0) && lineTime >= 0 && lineTime < 200000000) {   // Ensures that the real collision was with the line and not the points.
 
-        console.log("~~~~~~~~~~~~~~ and tempstate within line perp bounds: ", tempState);
-        var collisionHeapObj = new CollisionHeapObj(tempState, collision.surface);
+        console.log("~~~~~~~~~~~~~~ and linestate within line perp bounds: ", lineState);
+        var collisionHeapObj = new CollisionHeapObj(lineState, collision.surface);
         collisionHeap.push(collisionHeapObj);
 
       } else {                // We didnt really collide with the line. Try to add points instead.
