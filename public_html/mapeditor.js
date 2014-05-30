@@ -77,6 +77,9 @@ MapEditorButton.prototype.draw = function(ctx) {
 };
 
 function MapEditor(level, editMode) {
+	if (!level) {
+		throw "no level";
+	}
     this.level = level;
     var c = new CanvasFactory({id : "mapEditor"});
     this.ctx = c.getContext('2d');
@@ -226,8 +229,8 @@ MapEditor.prototype.createLineButton = function(ctx) {
                     var yposition = localToWorld(e.offsetY, "y");
 
                     this.locked =  this.line = new TerrainLine(
-                            new vec2(xposition, yposition),
-                            new vec2(xposition, yposition));
+                            this.level.toLinePoint(new vec2(xposition, yposition)),
+                            this.level.toLinePoint(new vec2(xposition, yposition)));
                      that.level.pushTerrain(this.line);
 
                     button.isSelected = false;
@@ -294,8 +297,8 @@ MapEditor.prototype.createLineButton = function(ctx) {
             
             
             this.line = new TerrainLine(
-                    new vec2(this.prev.p1.x, this.prev.p1.y),
-                    new vec2(xposition, yposition));
+                    this.level.toLinePoint(new vec2(this.prev.p1.x, this.prev.p1.y)),
+                    this.level.toLinePoint(new vec2(xposition, yposition)));
                     
                 that.level.pushTerrain(this.line);
             }
