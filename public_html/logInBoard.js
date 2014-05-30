@@ -12,7 +12,6 @@ function logInButtonAction(){
 	
 	if(is_log_in){
 		my_user_name = input_user_name;
-		document.getElementById("login_board").style.display = "none";
 		displayMainManu();
 	}
 }

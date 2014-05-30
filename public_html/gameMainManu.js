@@ -218,7 +218,7 @@ GMImageButton.prototype.playButton = function () {
 
     switch (this.my_manu_type) {
         case 1:
-		 displayWorldMap();
+			displayWorldMap();
             // to world map
             // un-display play game manu canvas
        //     MY_GAME_MANU_CANVAS.style.display = "none";
@@ -232,7 +232,8 @@ GMImageButton.prototype.playButton = function () {
 		//	my_stage_board.setWorldMapID(1);
             break;
         case 2: // open up costom game.
-			
+			// for testing... leader board...
+			displayLeaderBoard();
 
 			
             // to custom game manu. open up canvas for custom game...

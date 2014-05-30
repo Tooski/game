@@ -92,7 +92,7 @@
             </form>  
 
         </div>
-<div class="outer-leaderboard-container" id="login">
+<div class="outer-leaderboard-container" id="leader_board">
             <div class="title-container">
                 Top Times and Scores!!!
             </div>
@@ -153,7 +153,7 @@
 
             </div>
             <div class="footer-container">
-                <button type="button">Close</button>             
+                <button type="button" onClick= "leaderBoardButtonAction()" >Close</button>             
             </div>
 
 

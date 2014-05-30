@@ -1,9 +1,8 @@
 
 
-function logInButtonAction(){
+function leaderBoardButtonAction(){
 
-document.getElementById("login_board").style.display = "none";
-displayMainManu();
+	displayWorldMap();
 	
 }
 
