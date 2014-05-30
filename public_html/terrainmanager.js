@@ -105,41 +105,50 @@ function pointString(point) {
 //TerrainManager itself
 function TerrainManager() {
                                     //SEE RESET FUNCTION BELOW FOR DOCUMENTATION OF FIELDS
-  this.nextGoalNo;
   this.nextCollectibleNo;
-  this.nextCheckpointNo;
-  this.nextPointNo;
-  this.nextTerrainLineNo;
-  this.nextGoalLineNo;
-  this.nextCheckpointLineNo;
-  this.nextKillLineNo;
-  this.nextPolygonNo;
-  this.pointMap;
-  this.startPoint;
-  this.goals;
-  this.checkpoints;
   this.collectibles;
-  this.terrainLines;
-  this.checkpointLines;
+
+  this.nextGoalNo;
+  this.goals;
+  this.nextGoalLineNo;
   this.goalLines;
+
+  this.nextCheckpointNo;
+  this.checkpoints;
+  this.nextCheckpointLineNo;
+  this.checkpointLines;
+
+  this.nextKillZoneNo;
+  this.killZones;
+  this.nextKillLineNo;
   this.killLines;
+
+  this.nextPointNo;
+  this.pointMap;
+
+  this.nextTerrainLineNo;
+  this.terrainLines;
+  this.nextPolygonNo;
+  this.polygons;
+
+  this.startPoint;
+
 
 
   this.reset();
   
 
 
-
-  this.nextGoalNumber             = function () { return this.nextGoalNo++;           }
-  this.nextCheckpointNumber       = function () { return this.nextCheckpointNo++;     }
   this.nextCollectibleNumber      = function () { return this.nextCollectibleNo++;    }
+  this.nextGoalNumber             = function () { return this.nextGoalNo++;           }
+  this.nextGoalLineNumber         = function () { return this.nextGoalLineNo++;       }
+  this.nextCheckpointNumber       = function () { return this.nextCheckpointNo++;     }
+  this.nextCheckpointLineNumber   = function () { return this.nextCheckpointLineNo++; }
+  this.nextKillZoneNumber         = function () { return this.nextCollectibleNo++;    }
+  this.nextKillLineNumber         = function () { return this.nextKillLineNo++;       }
   this.nextPointNumber            = function () { return this.nextPointNo++;          }
   this.nextTerrainLineNumber      = function () { return this.nextTerrainLineNo++;    }
-  this.nextGoalLineNumber         = function () { return this.nextGoalLineNo++;       }
-  this.nextCheckpointLineNumber   = function () { return this.nextCheckpointLineNo++; }
-  this.nextKillLineNumber         = function () { return this.nextKillLineNo++;       }
   this.nextPolygonNumber          = function () { return this.nextPolygonNo++;        }
-  this.nextPointNumber            = function () { return this.nextPointNo++;          }
 
 
 
@@ -162,44 +171,45 @@ function TerrainManager() {
   }
 
 
+
   // function that clears all the stuff in this terrainmanager. 
   this.reset = function () {
     this.levelName = null;
 
-    this.nextGoalNo = 1;
     this.nextCollectibleNo = 1;
+    this.collectibles = new Array();      // Array of all collectibles indexed by ID that are currently contained in this level.	
+
+
+    this.nextGoalNo = 1;
+		this.goals = new Array();     	      // Array of all goals indexed by ID that are currently contained in this level.	 /NOT THE GOAL LINES/
+																					// id is also used for determining what leaderboard to put the players entry on.
+
+		this.nextGoalLineNo = 1;
+		this.goalLines = new Array();         //  Array of all GoalLines indexed by id
+
     this.nextCheckpointNo = 1;
-    this.nextPointNo = 1;
-    this.nextTerrainLineNo = 1;
-    this.nextGoalLineNo = 1;
+    this.checkpoints = new Array();		    // Array of all checkpoints indexed by id /NOT THE CHECKPOINT LINES/
     this.nextCheckpointLineNo = 1;
+    this.checkpointLines = new Array();	  // Array of all checkpoint lines indexed by id
+
+    this.nextKillZoneNo = 1;
+    this.killZones = new Array();         // the KillZone objects in the level.
     this.nextKillLineNo = 1;
-    this.nextPolygonNo = 1;
+    this.killLines = new Array();         // Array of all KillLines indexed by id 
 
-
-    this.pointMap = new Array();			    // this is a map of all LinePoints by their ID, used to reduce point replication everywhere.
+    this.nextPointNo = 1;
+    this.pointMap = {};			              // this is a map of all LinePoints by their position, used to reduce point replication everywhere.
                                           // should only iterate through it or use this.toLinePoint(point) to modify it.
 
-    this.startPoint = new vec2(1, 1);     // the level starting location.
-
-    this.goals = new Array();     	      // map of goals by ID that are currently contained in this level.	 /NOT THE GOAL LINES/
-                                          // goalID's is a number assigned to goalLines that link to the same goal, and also used for determining
-                                          // what leaderboard to put the players score on.
-
-    this.checkpoints = new Array();		    // map of checkpoints by ID.	 /NOT THE CHECKPOINT LINES/
-
-    this.collectibles = new Array();      // map of all collectibles by ID. 
+    this.nextTerrainLineNo = 1;
+    this.terrainLines = new Array();		  // Array of all TerrainLines indexed by id that are currently contained in the level.
+    this.nextPolygonNo = 1;
+    this.polygons = new Array();          // Array of all polygons from ALL the different line types indexed by polyID.
 
 
-    this.terrainLines = new Array();		  // map of TerrainLines by ID that are currently contained in this level.
+		this.startPoint = new vec2(1, 1);     // the level starting location.
 
-    this.checkpointLines = new Array();	  // ^ but CheckpointLines
-
-    this.goalLines = new Array();         // ^ but GoalLines
-
-    this.killLines = new Array();         // ^ but KillLines
-
-    this.isReset = true;
+		this.isReset = true;
   }
 
 
@@ -208,20 +218,27 @@ function TerrainManager() {
       levelName: this.levelName,
       startPoint: this.startPoint,
 
-      nextGoalNo: this.nextGoalNo, 
       nextCollectibleNo: this.nextCollectibleNo,
+
+      nextGoalNo: this.nextGoalNo,
+      nextGoalLineNo: this.nextGoalLineNo,
+
       nextCheckpointNo: this.nextCheckpointNo,
-      nextPointNo: this.nextPointNo, 
-      nextTerrainLineNo: this.nextTerrainLineNo, 
-      nextGoalLineNo: this.nextGoalLineNo, 
-      nextCheckpointLineNo: this.nextCheckpointLineNo, 
-      nextKillLineNo: this.nextKillLineNo, 
-      nextPolygonNo: this.nextPolygonNo, 
+      nextCheckpointLineNo: this.nextCheckpointLineNo,
+
+      nextKillZoneNo: this.nextCheckpointNo,
+      nextKillLineNo: this.nextKillLineNo,
+
+      nextPointNo: this.nextPointNo,
+
+      nextTerrainLineNo: this.nextTerrainLineNo,
+      nextPolygonNo: this.nextPolygonNo,
     };
 
 
     JSONdata.pointMap = this.pointMap;
     JSONdata.goals = this.goals;
+    JSONdata.killZones = this.killZones;
     JSONdata.checkpoints = this.checkpoints;
     JSONdata.collectibles = this.collectibles;
     JSONdata.terrainLines = this.terrainLines;
@@ -261,10 +278,15 @@ TerrainManager.constructor = TerrainManager;
 //Adding of other elements
 TerrainManager.prototype.setStart = function (point) {
   this.startPoint = point;
+  this.modified = true;
 }
 
+var DFLT_collectibleValue = 100;
+
 TerrainManager.prototype.addCollectible = function (point) {
-  if (!this.collectibles[collectible.id]) this.collectibles[collectible.id] = collectible;
+  var collectible = new Collectible(this.nextCollectibleNumber(), point.x, point.y, DFLT_collectibleValue);
+  if (!this.collectibles[collectible.id]) { this.collectibles[collectible.id] = collectible; } else { throw "wtf yo collectible id already exists";}
+  this.modified = true;
 }
 
 
@@ -277,7 +299,11 @@ TerrainManager.prototype.addTerrainLines = function (editorLineArray) {
   var lines = editorLineArray;
 
   var first = new TerrainLine(this.getNextTerrainLineNumber(), this.getNextPolygonNumber(), this.toLinePoint(lines[0].p0), this.toLinePoint(lines[0].p1), null, null, lines[0].normal);
-  this.terrainLines[first.id] = first;
+  if (this.terrainLines[first.id]) {
+    throw "what the hell, a TerrainLine already exists with this ID. Fix yo shit";
+  } else {
+    this.terrainLines[first.id] = first;
+  }
   var prev = first;
   for (var i = 1; i < lines.length; i++) {
     var converted = new TerrainLine(this.getNextTerrainLineNumber(), first.polyID, this.toLinePoint(lines[i].p0), this.toLinePoint(lines[i].p1), prev, null, lines[i].normal);
@@ -291,6 +317,7 @@ TerrainManager.prototype.addTerrainLines = function (editorLineArray) {
   }
   first.adjacent0 = prev;
   prev.adjacent1 = first;
+  this.modified = true;
 }
 
 
@@ -304,11 +331,19 @@ TerrainManager.prototype.addCheckpointAndLines = function (checkpointPos, editor
   var lines = editorLineArray;
 
   var checkpoint = new Checkpoint(this.getNextCheckpointNumber(), checkpointPos.x, checkpointPos.y);
-
-  this.checkpoints[checkpoint.id] = checkpoint;
+  if (this.checkpoints[checkpoint.id]) {
+    throw "what the hell, already a checkpoint with this id in checkpoints array";
+  } else {
+    this.checkpoints[checkpoint.id] = checkpoint;
+  }
 
   var first = new CheckpointLine(this.getNextCheckpointLineNumber(), checkpoint.id, this.toLinePoint(lines[0].p0), this.toLinePoint(lines[0].p1), null, null);
-  this.checkpointLines[first.id] = first;
+  
+  if (this.checkpointLines[first.id]) {
+    throw "what the hell, a TerrainLine already exists with this ID. Fix yo shit";
+  } else {
+    this.checkpointLines[first.id] = first;
+  }
   var prev = first;
 
   for (var i = 1; i < lines.length; i++) {
@@ -317,7 +352,7 @@ TerrainManager.prototype.addCheckpointAndLines = function (checkpointPos, editor
     if (this.checkpointLines[converted.id]) {
       throw "what the hell, a TerrainLine already exists with this ID. Fix yo shit";
     }
-    this.terrainLines[converted.id] = converted;
+    this.checkpointLines[converted.id] = converted;
     prev = converted;
     //this.terrainLines
   }
@@ -329,33 +364,85 @@ TerrainManager.prototype.addCheckpointAndLines = function (checkpointPos, editor
 
 
 /**
- * Eats editor lines and a checkpoint position, adds checkpoint / checkpointLines to the real level.
+ * Eats editor lines and a goal / GoalLines to the real level.
  */
-TerrainManager.prototype.addGoalAndLines = function (editorLineArray) {
+TerrainManager.prototype.addCheckpointAndLines = function (editorLineArray) {
 
   var lines = editorLineArray;
 
-  var goal = new Goal(
+  var goal = new Goal(this.nextGoalNumber());
 
-  this.checkpoints[checkpoint.id] = checkpoint;
+  if (this.goals[goal.id]) {
+    throw "what the hell, already a checkpoint with this id in checkpoints array";
+  } else {
+    this.goals[goal.id] = goal;
+  }
 
-  var first = new CheckpointLine(this.getNextCheckpointLineNumber(), checkpoint.id, this.toLinePoint(lines[0].p0), this.toLinePoint(lines[0].p1), null, null);
-  this.checkpointLines[first.id] = first;
+  var first = new GoalLine(this.nextGoalLineNumber(), goal.id, this.toLinePoint(lines[0].p0), this.toLinePoint(lines[0].p1), null, null);
+
+  if (this.goalLines[first.id]) {
+    throw "what the hell, a GoalLine already exists with this ID. Fix yo shit";
+  } else {
+    this.goalLines[first.id] = first;
+  }
   var prev = first;
 
   for (var i = 1; i < lines.length; i++) {
-    var converted = new CheckpointLine(this.getNextCheckpointLineNumber(), checkpoint.id, this.toLinePoint(lines[i].p0), this.toLinePoint(lines[i].p1), prev, null);
+    var converted = new GoalLine(this.nextGoalLineNumber(), goal.id, this.toLinePoint(lines[i].p0), this.toLinePoint(lines[i].p1), prev, null);
     prev.adjacent1 = converted;
-    if (this.checkpointLines[converted.id]) {
-      throw "what the hell, a TerrainLine already exists with this ID. Fix yo shit";
+    if (this.goalLines[converted.id]) {
+      throw "what the hell, a GoalLine already exists with this ID. Fix yo shit";
     }
-    this.terrainLines[converted.id] = converted;
+    this.goalLines[converted.id] = converted;
     prev = converted;
     //this.terrainLines
   }
   first.adjacent0 = prev;
   prev.adjacent1 = first;
 }
+
+
+
+
+
+/**
+ * Eats editor lines and spits out KillLines to the real level.
+ */
+TerrainManager.prototype.addKillLines = function (editorLineArray) {
+
+  var lines = editorLineArray;
+
+  var goal = new Goal(this.nextGoalNumber());
+
+  if (this.goals[goal.id]) {
+    throw "what the hell, already a checkpoint with this id in checkpoints array";
+  } else {
+    this.goals[goal.id] = goal;
+  }
+
+  var first = new GoalLine(this.nextGoalLineNumber(), goal.id, this.toLinePoint(lines[0].p0), this.toLinePoint(lines[0].p1), null, null);
+
+  if (this.goalLines[first.id]) {
+    throw "what the hell, a GoalLine already exists with this ID. Fix yo shit";
+  } else {
+    this.goalLines[first.id] = first;
+  }
+  var prev = first;
+
+  for (var i = 1; i < lines.length; i++) {
+    var converted = new GoalLine(this.nextGoalLineNumber(), goal.id, this.toLinePoint(lines[i].p0), this.toLinePoint(lines[i].p1), prev, null);
+    prev.adjacent1 = converted;
+    if (this.goalLines[converted.id]) {
+      throw "what the hell, a GoalLine already exists with this ID. Fix yo shit";
+    }
+    this.goalLines[converted.id] = converted;
+    prev = converted;
+    //this.terrainLines
+  }
+  first.adjacent0 = prev;
+  prev.adjacent1 = first;
+}
+
 
 
 

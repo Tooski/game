@@ -41,8 +41,8 @@ performance.now = (function () {
 
 
 //CONSTANTS
-var HALF_PI = Math.PI / 2.0;   // AKA 90 DEGREES IN RADIANS
-var HALF_PI_NEG = -Math.PI / 2.0;   // AKA 90 DEGREES IN RADIANS
+var HALF_PI = Math.PI / 2.0;        // AKA 90 DEGREES IN RADIANS
+var HALF_PI_NEG = -Math.PI / 2.0;   // AKA -90 DEGREES IN RADIANS
 
 var TIME_EPSILON = 0.00000001;
 var TIME_EPSILON_SQ = TIME_EPSILON * TIME_EPSILON;
@@ -59,11 +59,11 @@ var DFLT_gravity = 00;        // FORCE EXERTED BY GRAVITY IS 400 ADDITIONAL UNIT
 var DFLT_lockThreshold = 1000;
 var DFLT_autoLockThreshold = 700;
 
-var DFLT_pointLockRoundMinAngle = -(45                 / 180) * Math.PI + Math.PI;            //TODO add to shit
+var DFLT_pointLockRoundMinAngle = -(45                 / 180) * Math.PI + Math.PI;            
 
 
 //angle between surfaces at which the player continues onto the next surface whether locked or not.
-var DFLT_surfaceSnapAngle = -(45               / 180) * Math.PI + Math.PI;
+var DFLT_surfaceSnapAngle = -(45                       / 180) * Math.PI + Math.PI;
 
 var DFLT_JUMP_HOLD_TIME = 0.15; // To jump full height, jump must be held for this long. Anything less creates a fraction of the jump height based on the fraction of the full time the button was held. TODO implement.
 
@@ -504,22 +504,8 @@ function PlayerModel(controlParams, physParams, time, radius, pos, vel, accel, s
 
     var surface = this.surface;
     var baseForceNormalized = baseForceVec.normalize();
-    //console.log("");
-    //console.log("");
-    //console.log("in updateVecsGround(),  surface: ", surface);
-    //console.log("surface.getNormalAt(this.pos, this.radius), ", surface.getNormalAt(this.pos, this.radius));
-    //console.log("baseForceVec.lengthsq(), ", baseForceVec.lengthsq());
     var angleToNormal = Math.acos(surface.getNormalAt(this.pos, this.radius).dot(baseForceNormalized));
 
-    //if (angleToNormal > HALF_PI) {
-    //  console.log("GREATER angleToNormal, ", angleToNormal)
-    //} else if (angleToNormal < -HALF_PI) {
-    //  console.log("LESSER  angleToNormal, ", angleToNormal)
-
-    //} else {
-    //  console.log("BETWEEN angleToNormal, ", angleToNormal)
-
-    //}
 
 
     if (baseForceVec.lengthsq() === 0) {
@@ -534,14 +520,14 @@ function PlayerModel(controlParams, physParams, time, radius, pos, vel, accel, s
       
     } else if (angleToNormal >= HALF_PI || angleToNormal <= -HALF_PI) {          // If the baseForceVec is pushing us towards the surface we're on:
       //console.log("   we are being pushed TOWARDS the surface we are on.");
+
       // WE ASSUME PLAYER'S VELOCITY VECTOR IS ALREADY ALIGNED WITH THE SURFACE.
       // ___+____+____+___ magnitude acceleration along a sloped surface = magnitude of force * sin(angle between force and surface normal)
       var surfaceDir = surface.getSurfaceAt(this.pos, this.radius);
-      //console.log("surfaceDir: ", surfaceDir);
+
       this.accel = projectVec2(baseForceVec, surfaceDir);
       this.predictedDirty = true;
-      //console.log("this.accel: ", this.accel);
-      //var angleToSurface = Math.acos(surfaceVec.normalize().dot(baseForceNormalized));
+
     } else  {  // we are being pushed away from the surface we are on. Updating states to have left the ground, and then calling updateAirStates.
       //console.log("   we are being pushed AWAY from the surface we are on. Simply calling updateAirStates.");
       this.doNotCheckStepSurfaces.push(this.surface);

@@ -24,10 +24,9 @@ function EditorLine(point0, point1) {
 // Button dimensions, if user is clicking in this area it will check to see
 // if a button has been clicked.
 var buttonListStart = new vec2(0, 0), buttonListEnd = new vec2(0, 0);
+
+
 function MapEditorButton(name, x, y, w, h) {
-
-
-
   this.name = name;
   this.parent;
   this.ix = this.x = x;
