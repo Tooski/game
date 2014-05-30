@@ -97,7 +97,7 @@ var DFLT_reverseAirJumpSpeed = 300;
 /*
  * The fraction of player radius that our max movement distance will be.
 */
-var MAX_MOVE_FRACTION_OF_RADIUS = 1.0;
+var MAX_MOVE_FRACTION_OF_RADIUS = 0.2;
 
 
 var REPLAY_SYNC_INTERVAL = 1.0;

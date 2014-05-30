@@ -321,7 +321,7 @@ function InputEventJump(browserTime, pressed, eventTime) {   //
     if (pressed) {
       input.jump = true;
 
-      if (p.surface) {  //handle jumping from a surface
+      if (p.onSurface) {  //handle jumping from a surface
         p.jump();
         console.log("ground jumping", this);
         p.updateVecs(input);
@@ -383,13 +383,13 @@ function InputEventLock(browserTime, pressed, eventTime) {   //
     var curInputState = p.inputState;
     if (this.pressed && (!curInputState.lock)) {  // Input was just pressed down.
       curInputState.lock = true;
-      if (p.surface) {
+      if (p.onSurface) {
         p.locked = true;
       }
       //physEng.accelState.update();                              // TODO MOST LIKELY UNNECESSARY BUT MAY BE NEEDED LATER???
     } else if (!this.pressed && (curInputState.lock)) { // Input was just released.
+      curInputState.lock = false;
       if (p.locked) {
-        curInputState.lock = false;
         p.locked = false;
         p.updateVecs(curInputState);
       }
@@ -533,11 +533,14 @@ function TerrainLineCollisionEvent(gameTimeOfCollision, collidedWithList, stateA
     console.log(gameTimeOfCollision, collidedWithList, stateAtCollision, surfaceVec, normalVec, allowLock);
     throw "missing params.";
   }
-  console.log("");
-  console.log("");
-  console.log("stateAtCollision: ", stateAtCollision);
-  console.log("");
-  console.log("");
+  console.log(" ");
+  console.log(" ");
+  console.log(">>>> TerrainLineCollisionEvent, state at collision: ");
+  stateAtCollision.print(">>>> ");
+  if (collidedWithList.length > 1) {
+    console.log(collidedWithList);
+    throw "got a terrainLineCollisionEvent with more than one line. See above: ^";
+  }
   //DEBUG_DRAW_BROWN.push(new DebugCircle(stateAtCollision.pos, stateAtCollision.radius, 5));
   this.mask += E_LINE_COLLISION_MASK;
   //this.time
@@ -567,7 +570,7 @@ function TerrainLineCollisionEvent(gameTimeOfCollision, collidedWithList, stateA
 
 
     if (this.allowLock && collisionForceVecLen < p.physParams.autoLockThreshold) {
-      console.log("TerrainLineCollisionEvent auto locked!?!?");
+      console.log(">>>> TerrainLineCollisionEvent auto locked!?!?");
       var surfaceVecNorm = collisionVecNorm.perp();      //TODO OHGOD REFACTOR TO THIS METHOD TAKING A COLLISION OBJECT THAT STORES NORMALS AND THE SINGLE SURFACE TO LOCK TO
       if (this.collidedWithList.length > 1) {
         throw "allowLock is true but theres multiple things in collidedWithList.";
@@ -582,18 +585,17 @@ function TerrainLineCollisionEvent(gameTimeOfCollision, collidedWithList, stateA
       //  surfaceVec = surfaceVec.negate();
       //}
       //this.player.vel = surfaceVec.multf(velocityMag);              // END DISABLED FOR REALISTIC PHYSICS
-      console.log("collidedWithList: ", collidedWithList);
+      console.log(">>>> collidedWithList: ", collidedWithList);
       p.lockTo(surface, this.surfaceVec.normalize());
 
       animationSetPlayerRunning(p, this.time);
     } else if (input.lock && this.allowLock && collisionForceVecLen < p.physParams.lockThreshold) {
       // IF PLAYER IS HOLDING LOCK, ATTEMPT TO LOCK IF WITHIN BOUNDARIES! TODO IS THE NEGATIVE LOCK_MIN_ANGLE CHECK NEEDED!!!?
-      console.log("TerrainLineCollisionEvent locked!?!?");
+      console.log(">>>> TerrainLineCollisionEvent locked!?!?");
       if (this.collidedWithList.length > 1) {
         throw "allowLock is true but theres multiple things in collidedWithList.";
       }
       var surface = this.collidedWithList[0];
-      console.log("collidedWithList: ", this.collidedWithList);
       p.lockTo(surface, surfaceVec.normalize());
       animationSetPlayerRunning(p, this.time);
     } else {
@@ -603,7 +605,7 @@ function TerrainLineCollisionEvent(gameTimeOfCollision, collidedWithList, stateA
       p.pos = this.state.pos;
       p.leaveGround();
     }
-    console.log("fin TerrainLineCollisionEvent");
+    console.log(">>>> fin TerrainLineCollisionEvent");
     physEng.updatePredicted();
   }
 }
@@ -630,11 +632,10 @@ function TerrainPointCollisionEvent(gameTimeOfCollision, terrainPointCollidedWit
     console.log(gameTimeOfCollision, collidedWithList, stateAtCollision, surfaceVec, normalVec, allowLock);
     throw "missing params.";
   }
-  console.log("");
-  console.log("");
-  console.log("stateAtCollision: ", stateAtCollision);
-  console.log("");
-  console.log("");
+  console.log(" ");
+  console.log(" ");
+  console.log("<<<< TerrainLineCollisionEvent, state at collision: ");
+  stateAtCollision.print("<<<< ");
   this.mask += E_POINT_COLLISION_MASK;
   //this.time
   //this.collidedWithList = collidedWithList;
@@ -658,14 +659,14 @@ function TerrainPointCollisionEvent(gameTimeOfCollision, terrainPointCollidedWit
 
 
     if (this.allowLock && collisionForceVecLen < p.physParams.autoLockThreshold) {
-      console.log("TerrainPointCollisionEvent auto locked!?!?");
+      console.log("<<<< TerrainPointCollisionEvent auto locked!?!?");
 
       this.lockTo(physEng);
 
       animationSetPlayerRunning(p, this.time);
     } else if (input.lock && this.allowLock && collisionForceVecLen < p.physParams.lockThreshold) {
       // IF PLAYER IS HOLDING LOCK, ATTEMPT TO LOCK IF WITHIN BOUNDARIES! TODO IS THE NEGATIVE LOCK_MIN_ANGLE CHECK NEEDED!!!?
-      console.log("TerrainCollisionEvent locked!?!?");
+      console.log("<<<< TerrainCollisionEvent locked!?!?");
 
       this.lockTo(physEng);
 
@@ -677,7 +678,7 @@ function TerrainPointCollisionEvent(gameTimeOfCollision, terrainPointCollidedWit
       p.pos = this.state.pos;
       p.leaveGround();
     }
-    console.log("fin TerrainPointCollisionEvent");
+    console.log("<<<< fin TerrainPointCollisionEvent");
     physEng.updatePredicted();
   }
 
@@ -692,9 +693,9 @@ function TerrainPointCollisionEvent(gameTimeOfCollision, terrainPointCollidedWit
 
 
 
-    p.startArc(new vec2(this.tp.x, this.tp.y), this.angle, this.normalVec);
     p.surface = this.tp.line1;
     p.nextSurface = this.tp.line0;
+    p.startArc(new vec2(this.tp.x, this.tp.y), this.angle, this.normalVec);
 
     return;
   }
