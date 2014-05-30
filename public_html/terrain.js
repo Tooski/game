@@ -59,7 +59,6 @@ function TerrainLine(id, polyID, point0, point1, adjacent0, adjacent1, normal) {
   if (!id.toFixed) { //id.toFixed is ducktyping to check if id is a number.
     throw "All level objects must have a sequentially incremented numerical id.";
   }
-  TerrainSurface.apply(this, [point0, point1, adjacent0, adjacent1]); // Sets this up as a child of TerrainSurface and initializes TerrainSurface's fields.
 
   this.id = id;
   this.polyID = polyID;
@@ -72,7 +71,7 @@ function TerrainLine(id, polyID, point0, point1, adjacent0, adjacent1, normal) {
     formattedObj = formatLineToJSON(this, formattedObj);
 
     formattedObj.normal = this.normal;
-    return JSON.stringify(formattedObj);;
+    return JSON.stringify(formattedObj);
   }
 
 
@@ -647,11 +646,10 @@ function isPointWithinLineSegmentPerp(line, point) {
 // helper method to get the line part of any of the above things that are lines, and terrainLines.
 // objectToAppendTo is an object that is passed in 
 function formatLineToJSON(line, objectToAppendTo) {
-  var obj = objectToAppendTo;
-  obj.p0id = line.p0.id;
-  obj.p1id = line.p1.id;
-  obj.adj0id = line.adjacent0.id;
-  obj.adj1id = line.adjacent1.id;
+  objectToAppendTo.p0id = line.p0.id;
+  objectToAppendTo.p1id = line.p1.id;
+  objectToAppendTo.adj0id = line.adjacent0.id;
+  objectToAppendTo.adj1id = line.adjacent1.id;
 }
 
 

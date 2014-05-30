@@ -9,10 +9,11 @@
  * All rights reserved.
  */
 
-var TWO_PI = Math.PI * 2;
+
+
 
 /**
- * Steps either an angular 
+ * Steps either an angular or a normal state.
  */
 function stepStateToTime(state, targetGameTime) {
   //console.log(" ! ! ! ! ! ! ! ! ! ! ! ! ! ! stepping state to time: ", state);

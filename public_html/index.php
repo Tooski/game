@@ -1,10 +1,13 @@
 <html>
 <head>
 <style> 
+* { margin:0; padding:0;   } 
     
-* { margin:0; padding:0;   overflow: hidden; } /* to remove the top and left whitespace */
-html, body { width:100%; height:100%; } /* just to be sure these are full screen*/
-canvas { display:block; } /* To remove the scrollbars */
+/* * { margin:0; padding:0;   overflow: hidden; } /* to remove the top and left whitespace */ 
+/* html, body { width:100%; height:100%; } /* just to be sure these are full screen*/ 
+/* canvas { display:block; } /* To remove the scrollbars */ 
+#eklipzConsole { 			margin-left: 200px;
+			z-index: 9999; }
 </style>
 
     <meta charset="utf-8" />
@@ -18,6 +21,7 @@ canvas { display:block; } /* To remove the scrollbars */
     <script type="text/javascript" src="./timer.js"></script>
     <script type="text/javascript" src="./animation.js"></script>
     <script type="text/javascript" src="./vec2.js"></script>
+    <script type="text/javascript" src="./CONSTANTS.js"></script>
     <script type="text/javascript" src="./mousecollision.js"></script>
     <script type="text/javascript" src="./menu.js"></script>
     <script type="text/javascript" src="./event.js"></script>
@@ -48,7 +52,7 @@ canvas { display:block; } /* To remove the scrollbars */
                 <input type="submit" value="submit"/>
             </form>
         </div>-->
-
+				<pre id="eklipzConsole"></pre>
 	<!--<canvas id="gameWorld" style="position:absolute; display : block; border: 0px solid brown; z-index: 1; background: white"></canvas>
 		<canvas id="time" style="position:absolute; z-index: 2;  left:1150px; top:25px; background: white" height="50px" width="100px"></canvas>
 		<canvas id="score" style="position:absolute; z-index: 2;  left:25px; top:25px; background: white" height="50px" width="100px"></canvas>

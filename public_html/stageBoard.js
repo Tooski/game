@@ -461,11 +461,19 @@ var STAGE_ASSET_MANAGER = new AssetManager();
 var ST_BOARD_BACK_PATH = "./img/bg_stage_board.png";
 
 
-var WORLD_MAP_1= "./img/world_map_button_1.png";
-var WORLD_MAP_2= "./img/world_map_button_2.png";
+//var WORLD_MAP_1= "./img/world_map_button_1.png";
+//var WORLD_MAP_2= "./img/world_map_button_2.png";
 
-var WORLD_MAP_ON_1= "./img/world_map_on_button_1.png";
-var WORLD_MAP_ON_2= "./img/world_map_on_button_2.png";
+//var WORLD_MAP_ON_1= "./img/world_map_on_button_1.png";
+//var WORLD_MAP_ON_2= "./img/world_map_on_button_2.png";
+
+
+var WORLD_MAP_1 = "./img/black.png";
+var WORLD_MAP_2 = "./img/black.png";
+
+var WORLD_MAP_ON_1 = "./img/black.png";
+var WORLD_MAP_ON_2 = "./img/black.png";
+
 
 var IM_BACK_PATH = "./img/back_button.png";
 var IM_ON_BACK_PATH = "./img/on_back_button.png";

@@ -1,5 +1,10 @@
 /**
  * Jesus, Joe comment your code please for the love of all things holy this has been ridiculous to overhaul
+ *
+ * mapeditor.js
+ *
+ * Original author Joe
+ * Extensively overhauled by Travis
  */
 
 var buttonSize = 100;
@@ -13,9 +18,11 @@ var buttonList = [];
 /**
  * These are lines that are stored temporarily in the editor while a polygon / set of lines / line is being drawn.
  */
-function EditorLine(point0, point1) {
+function EditorLine(point0, point1, localp0, localp1) {
   this.p0 = point0;
   this.p1 = point1;
+  this.localp0 = localp0;
+  this.localp1 = localp1;
 }
 
 
@@ -217,6 +224,54 @@ MapEditor.prototype.draw = function (ctxGUI) {
     buttonList[i].draw(ctxGUI);
 
   }
+
+  ctx.save();
+
+  ctx.beginPath();
+  ctx.lineWidth = 6;
+
+  ctx.lineJoin = "round";
+  ctx.lineCap = "round";
+  ctx.strokeStyle = "#333333";
+
+  this.currentLines.forEach(function (line) {
+
+    ctx.moveTo(line.localp0.x, line.localp0.y);
+    ctx.lineTo(line.localp1.x, line.localp1.y);
+
+    //// CODE BELOW ONLY SHOWS IF EDIT MODE IS ENABLED FOR MAP EDITOR!
+    if (editMode) {
+      if (line.normal) {
+        var midPoint = line.localp0.add(line.localp1).divf(2.0);
+
+        var pNormalPosEnd = midPoint.add(line.normal.multf(20));
+
+        line.normalPosCol.x = pNormalPosEnd.x - line.normalPosCol.w / 2;
+        line.normalPosCol.y = pNormalPosEnd.y - line.normalPosCol.h / 2;
+
+        //line.p0edit.x = line.p0.x;
+        //line.p0edit.y = line.p0.y;
+
+        //line.p1edit.x = line.p1.x;
+        //line.p1edit.y = line.p1.y;
+
+        ctx.moveTo(midPoint.x, midPoint.y);
+        ctx.lineTo(pNormalPosEnd.x, pNormalPosEnd.y);
+
+
+        //line.p0edit.x = line.p0.x;
+        //line.p0edit.y = line.p0.y;
+
+        //line.p1edit.x = line.p1.x;
+        //line.p1edit.y = line.p1.y;
+      }
+    }
+  });
+
+  ctx.stroke();
+
+  ctx.restore();
+
 };
 
 
@@ -240,7 +295,7 @@ function getMousePos(evt) {
 
 
 MapEditor.prototype.createLineButton = function (ctx) {
-  var terrainButton = new MapEditorButton("Terrain", 0, (buttonSize + 5), buttonSize, buttonSize);
+  var terrainButton = new MapEditorButton("Terrain", 0, (buttonSize + 5), buttonSize * 2, buttonSize);
   var that = this;
 
 
@@ -383,7 +438,7 @@ MapEditor.prototype.createLineButton = function (ctx) {
  * Selects the players starting position.
  */
 MapEditor.prototype.createStartPointButton = function (ctx) {
-  var start = new MapEditorButton("Start Location", 0, (buttonSize + 5) * 2, buttonSize, buttonSize);
+  var start = new MapEditorButton("Move Start Pos", 0, (buttonSize + 5) * 2, buttonSize * 2, buttonSize);
   var that = this;
 
   start.onClick = function (e) {
@@ -395,10 +450,9 @@ MapEditor.prototype.createStartPointButton = function (ctx) {
       var xposition = localToWorld(e.offsetX, "x");
       var yposition = localToWorld(e.offsetY, "y");
 
-      that.level.startPoint = new vec2(xposition, yposition);
+      that.level.setStart(new vec2(xposition, yposition));
 
       button.isSelected = false;
-      that.level.modified = true;
     }
   };
 }
@@ -406,7 +460,7 @@ MapEditor.prototype.createStartPointButton = function (ctx) {
 
 
 MapEditor.prototype.createCheckpointLineButton = function (ctx) {
-  var checkpoint = new MapEditorButton("Checkpoint", 0, (buttonSize + 5) * 3, buttonSize, buttonSize);
+  var checkpoint = new MapEditorButton("Add Checkpoint", 0, (buttonSize + 5) * 3, buttonSize * 2, buttonSize);
   var that = this;
 
   checkpoint.onClick = function (e) {
@@ -458,7 +512,7 @@ MapEditor.prototype.createCheckpointLineButton = function (ctx) {
 
 
 MapEditor.prototype.createGoalLineButton = function (ctx) {
-  var line = new MapEditorButton("Goal", 0, (buttonSize + 5) * 4, buttonSize, buttonSize);
+  var line = new MapEditorButton("Add Goal", 0, (buttonSize + 5) * 4, buttonSize * 2, buttonSize);
   var that = this;
 
   line.onClick = function (e) {
@@ -510,7 +564,7 @@ MapEditor.prototype.createGoalLineButton = function (ctx) {
 
 
 MapEditor.prototype.createCollectibleButton = function (ctx) {
-  var collect = new MapEditorButton("Collect", 0, (buttonSize + 5) * 5, buttonSize, buttonSize);
+  var collect = new MapEditorButton("Collectibles", 0, (buttonSize + 5) * 5, buttonSize * 2, buttonSize);
   var that = this;
 
   collect.onClick = function (e) {
@@ -518,17 +572,12 @@ MapEditor.prototype.createCollectibleButton = function (ctx) {
     var top = parseInt(that.ctx.canvas.style.top);
     if (e.offsetX > that.ctx.canvas.width + left || e.offsetX < left ||
        e.offsetY > that.ctx.canvas.height + top || e.offsetX < top) {
-      if (!this.collectible) {
-        if (!this.prev || (this.prev && !this.prev.polygonID)) {
-          var xposition = localToWorld(e.offsetX, "x");
-          var yposition = localToWorld(e.offsetY, "y");
+      var xposition = localToWorld(e.offsetX, "x");
+      var yposition = localToWorld(e.offsetY, "y");
 
-          this.locked = this.collectible = new collectible(new vec2(xposition, yposition));
-          that.level.addCollectible(this.line);
+      that.level.addCollectible(new vec2(xposition, yposition));
 
-          button.isSelected = false;
-        }
-      }
+      button.isSelected = false;
     }
   };
 }
@@ -537,7 +586,7 @@ MapEditor.prototype.createCollectibleButton = function (ctx) {
 
 
 MapEditor.prototype.createEraseButton = function () {
-  var erase = new MapEditorButton("Erase", 0, (buttonSize + 5) * 6, buttonSize, buttonSize);
+  var erase = new MapEditorButton("Erase Lines", 0, (buttonSize + 5) * 6, buttonSize * 2, buttonSize);
   var that = this;
 
   erase.onClick = function (e) {
@@ -551,7 +600,7 @@ MapEditor.prototype.createEraseButton = function () {
 
 
 MapEditor.prototype.createLoadButton = function (ctx) {
-  var erase = new MapEditorButton("Load", 0, (buttonSize + 5) * 7, buttonSize, buttonSize);
+  var erase = new MapEditorButton("Load Level", 0, (buttonSize + 5) * 7, buttonSize * 2, buttonSize);
   var that = this;
   erase.onRelease = function (e) {
     //that.level.loadFromFile();
@@ -573,7 +622,7 @@ MapEditor.prototype.createLoadButton = function (ctx) {
 MapEditor.prototype.createSaveButton = function (ctx) {
 
 
-  var save = new MapEditorButton("Save", 0, (buttonSize + 5) * 8, buttonSize, buttonSize);
+  var save = new MapEditorButton("Save Level", 0, (buttonSize + 5) * 8, buttonSize * 2, buttonSize);
   var that = this;
   save.onRelease = function (e) {
     console.log(e);
@@ -592,7 +641,7 @@ MapEditor.prototype.createSaveButton = function (ctx) {
 
 
 MapEditor.prototype.createEditModeButton = function () {
-  var editmode = new MapEditorButton("Edit Mode", 0, 0, buttonSize, buttonSize);
+  var editmode = new MapEditorButton("Edit Mode", 0, 0, buttonSize * 2, buttonSize);
   editmode.collider.onEditMode = false;
   editmode.onRelease = function (e) {
     this.editMode = !this.editMode;
