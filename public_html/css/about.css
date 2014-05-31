@@ -1,0 +1,39 @@
+.outer-about-container{
+    border: 1px blue solid;
+    min-width:425px;
+    display: block;
+    position:absolute;
+    z-index:15;
+    top:50%;
+    left:50%;
+    margin:-250px 0 0 -200px;
+    overflow: hidden;
+    padding-right: 10px;
+    padding-left: 10px;
+    padding-top: 10px;
+    padding-bottom: 10px;
+    border-radius: 5px;
+    overflow: hidden;
+}
+.inner-about-title{
+    text-align: center;
+    font-size: 2em;
+    padding:10px;
+    border-radius: 4px;
+    border: 1px red solid;
+    margin-bottom: 10px;
+}
+.inner-about-container{
+    border: 1px red solid;
+    min-height: 350px;
+    min-width:325px;
+    border-radius: 4px;
+}
+.inner-about-footer{
+    text-align: center;
+    font-size: 2em;
+    padding:10px;
+    border-radius: 4px;
+    border: 1px red solid;
+    margin-top: 10px;
+}
