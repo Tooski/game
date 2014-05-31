@@ -41,7 +41,7 @@ function displayGame(id){
 	document.getElementById("leader_board").style.display = "none";
 	
 	
-	my_g_level_id = null; = id;
+	my_g_level_id = id;
 	currentLevel.loadFromFile(id); 
 	blockDisplayGame();
 	//console.log(	my_g_world_id +","+my_g_stage_id +","+my_g_game_id);
