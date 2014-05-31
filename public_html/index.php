@@ -8,6 +8,7 @@
         </style>
         <link rel="stylesheet" type="text/css" href="css/login.css">
         <link rel="stylesheet" type="text/css" href="css/leaderboard.css">
+        <link rel="stylesheet" type="text/css" href="css/about.css">
         <meta charset="utf-8" />
         <title>Game Project Shell</title>
         <script type="text/javascript" src="./canvasinput.min.js"></script>
@@ -37,9 +38,9 @@
         <script type="text/javascript" src="./game.js"></script>
         <script type="text/javascript" src="./stageBoard.js"></script>
         <script type="text/javascript" src="./gameMainManu.js"></script>
-		<script type="text/javascript" src="./controlDisplay.js"></script>
-		<script type="text/javascript" src="./logInBoard.js"></script>
-                <script type="text/javascript" src="./leaderBoard.js"></script>
+        <script type="text/javascript" src="./controlDisplay.js"></script>
+        <script type="text/javascript" src="./logInBoard.js"></script>
+        <script type="text/javascript" src="./leaderBoard.js"></script>
     </head>
     <body>
         <!--       <div>
@@ -73,9 +74,8 @@
             <canvas id="stage_board" style= "display : none; position: absolute; " width="400" height="350"></canvas>
         </div>
 
-
+        <!--div for login-->
         <div class="outer-container" id="login_board">
-
             <form name="input" action="settings.php" method="post">
                 <div class="inner-top">
                     <label for="username">Name</label>
@@ -87,12 +87,11 @@
                 <div class="inner-bottom">
                     <input type="button" value="Enter" onClick= "logInButtonAction()" >
                 </div>
-
-
             </form>  
-
         </div>
-<div class="outer-leaderboard-container" id="leader_board">
+        <!--end of div for login-->
+        <!--div for leader board-->
+        <div class="outer-leaderboard-container" id="leader_board">
             <div class="title-container" id="title_container">
                 Top Times and Scores!!!
             </div>
@@ -106,58 +105,29 @@
             </div>
             <div class="body-container">
                 <div class="left-box" id="left-box">
-<!--                    <span>1.  mike 234,000</span>
-                    <span>2.  mike 234,000</span>
-                    <span>3.  mike 234,000</span>
-                    <span>4.  mike 234,000</span>
-                    <span>5.  mike 234,000</span>
-                    <span>6.  mike 234,000</span>
-                    <span>7.  mike 234,000</span>
-                    <span>8.  mike 234,000</span>
-                    <span>9.  mike 234,000</span>
-                    <span>10.  mike 234,000</span>
-                    <span>11.  mike 234,000</span>
-                    <span>12.  mike 234,000</span>
-                    <span>13.  mike 234,000</span>
-                    <span>14.  mike 234,000</span>
-                    <span>15.  mike 234,000</span>
-                    <span>16.  mike 234,000</span>
-                    <span>17.  mike 234,000</span>
-                    <span>18.  mike 234,000</span>
-                    <span>19.  mike 234,000</span>
-                    <span>20.  mike 234,000</span>-->
-   
                 </div>
                 <div class="right_box" id="right-box">
-<!--                    <span>1.  mike 22.4 seconds</span>
-                    <span>2.  mike 22.4 seconds</span>
-                    <span>3.  mike 22.4 seconds</span>
-                    <span>4.  mike 22.4 seconds</span>
-                    <span>5.  mike 22.4 seconds</span>
-                    <span>6.  mike 22.4 seconds</span>
-                    <span>7.  mike 22.4 seconds</span>
-                    <span>8.  mike 22.4 seconds</span>
-                    <span>9.  mike 22.4 seconds</span>
-                    <span>10.  mike 22.4 seconds</span>
-                    <span>11.  mike 22.4 seconds</span>
-                    <span>12.  mike 22.4 seconds</span>
-                    <span>13.  mike 22.4 seconds</span>
-                    <span>14.  mike 22.4 seconds</span>
-                    <span>15.  mike 22.4 seconds</span>
-                    <span>16.  mike 22.4 seconds</span>
-                    <span>17.  mike 22.4 seconds</span>
-                    <span>18.  mike 22.4 seconds</span>
-                    <span>19.  mike 22.4 seconds</span>
-                    <span>20.  mike 22.4 seconds</span>-->
+
                 </div>
 
             </div>
             <div class="footer-container">
                 <button type="button" onClick= "leaderBoardButtonAction()" >Close</button>             
             </div>
-
-
         </div>
+        <!--end of div for leader board-->
+        <!--div for about page-->
+        <div class="outer-about-container" id="about_board"  style= "display : none">
+            <div class="inner-about-title">
+                About Hamster Storm
+            </div>
+            <div class ="inner-about-container">
 
+            </div>
+            <div class="inner-about-footer">
+                <button type="button" onClick= "displayMainManu()">Done</button>
+            </div>
+        </div>
+        <!--end of div for about page-->
     </body>
 </html>

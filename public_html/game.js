@@ -797,16 +797,18 @@ function pauseClicked (e) {
 		//Fix bug
 		gameEngine.setPause(true, performance.now());
 	} else if (restartButton.checkClicked()) {
+		// written by Min -----
+		currentLevel.loadFromFile(my_g_level_id);
+		canvas3.style.display = "none";
+		canvas4.style.display = "none";
+		//---------------
 		console.log("Restart!");
 	} else if (quitButton.checkClicked()) {
-				//console.log("da");
-	    MY_GAME_MANU_CANVAS.style.display = "none";
+		// written by Min -----
+		displayLeaderBoard();
+		canvas3.style.display = "none";
 		canvas4.style.display = "none";
-            // dispaly the world map canvase 
-        MY_STAGE_CANVAS.style.display = "block";
-            //.... just incase dislay = "non for any other screen for gaming later...."
-		noneDisplayGame();
-	
+		//---------------
 		console.log("Quit!");
 	}
 }
@@ -973,11 +975,6 @@ var GameCanvas = [];
 var guiPadding = 20;
 //--------------------------------
 ASSET_MANAGER.downloadAll(function() {
-    
-    
-
-  
-    
     
     
     console.log("starting up da sheild");
