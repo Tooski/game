@@ -313,7 +313,7 @@ function getMousePos(evt) {
 
 
 MapEditor.prototype.createLineButton = function (ctx) {
-  var terrainButton = new MapEditorButton("Terrain", 0, (buttonSize + 5), buttonSize * 2, buttonSize);
+  var terrainButton = new MapEditorButton("Add Terrain", 0, (buttonSize + 5), buttonSize * 2, buttonSize);
   var that = this;
   var clicked = true;
 
