@@ -501,7 +501,7 @@ TerrainManager.prototype.draw = function (ctx) {
   ctx.miterLimit = 3;
   //  drawLineArray(ctx, this.currentLines, CURRENT_LINE_COLOR, DrawLine.lineWidth, LINE_JOIN, LINE_CAP);
   
-  drawPolygons(ctx, this.polygons, "#222222", LINE_WIDTH, LINE_JOIN, LINE_CAP);
+  //drawPolygons(ctx, this.polygons, "#222222", LINE_WIDTH, LINE_JOIN, LINE_CAP);
   if (this.terrainList && this.terrainList.length) {
     drawLineArray(ctx, this.terrainList, TERRAIN_LINE_COLOR, LINE_WIDTH, LINE_JOIN, LINE_CAP);
   }
@@ -656,8 +656,8 @@ function drawLineArray(ctx, lineArray, color, lineWidth, lineJoin, lineCap) {
 
         var pNormalPosEnd = midPoint.add(line.normal.multf(20));
 
-        line.normalPosCol.x = pNormalPosEnd.x - line.normalPosCol.w / 2;
-        line.normalPosCol.y = pNormalPosEnd.y - line.normalPosCol.h / 2;
+        //line.normalPosCol.x = pNormalPosEnd.x - line.normalPosCol.w / 2;
+        //line.normalPosCol.y = pNormalPosEnd.y - line.normalPosCol.h / 2;
 
         //line.p0edit.x = line.p0.x;
         //line.p0edit.y = line.p0.y;
@@ -920,9 +920,9 @@ TerrainManager.prototype.getCollectibleCollisions = function (ballstate, doNotCh
 TerrainManager.prototype.getCollisionsInList = function (ballState, collidersToCheck, doNotCheck) {
   //code to check for collisions ONLY WITH THE THINGS IN THE PASSED LIST! Should be about the same as the above method but only searches this specific list, and returns the subset of it that is still being collided with.
   var stuffWeCollidedWith = [];
-  //console.log("collidersToCheck, ", collidersToCheck);
+
   for (var i = 0; i < collidersToCheck.length; i++) {
-    if (!contains(doNotCheck, collidersToCheck[i])) {
+    if (collidersToCheck[i] && !contains(doNotCheck, collidersToCheck[i])) {
       //data { collided, collidedLine, collidedP0, collidedP1, surface, perpendicularIntersect }
       var data = collidersToCheck[i].collidesData(ballState.pos, ballState.radius);
       //console.log(data);

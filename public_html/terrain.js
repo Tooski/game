@@ -409,12 +409,12 @@ function Polygon(polygon) {
     var poly = this.polygon[0];
     var itr = poly;
     while(itr.adjacent1 !== poly) {
-        itr.adjacent0 = this.polygon[polygon[itr.id].localp0.id];
-        itr.adjacent1 = this.polygon[polygon[itr.id].localp1.id];
+        itr.adjacent0 = this.polygon[polygon[itr.id].adjacent0.id];
+        itr.adjacent1 = this.polygon[polygon[itr.id].adjacent1.id];
         itr = itr.adjacent1;
     }
-        itr.adjacent0 = this.polygon[polygon[itr.id].localp0.id];
-        itr.adjacent1 = this.polygon[polygon[itr.id].localp1.id];
+        itr.adjacent0 = this.polygon[polygon[itr.id].adjacent0.id];
+        itr.adjacent1 = this.polygon[polygon[itr.id].adjacent1.id];
 
 
   this.toJSON = function () {

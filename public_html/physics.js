@@ -2245,22 +2245,28 @@ function getNewPrimaryHeap() {
 // Checks to see if array a contains Object obj.
 function contains(a, obj) {
   //if (!(obj.id) || a.length === 0 || !a) {
-  if (!(obj.id)) {
+  console.log(a);
+  console.log(obj);
+
+  if (obj && !(obj.id)) {
     console.log("obj w/ no ID: ", obj);
     console.log("array: ", a);
     throw "!obj.id, ^";
   }
-  var i = a.length;
-  while (i--) {
-    //console.log("obj contained: ", obj);
-    //console.log("array: ", a);
-    if (a[i].id === obj.id) {
-      return true;
-    } else {
 
+  if (obj) {
+    var i = a.length;
+    while (i--) {
+      //console.log("obj contained: ", obj);
+      //console.log("array: ", a);
+      if (a[i].id === obj.id) {
+        return true;
+      } else {
+
+      }
     }
+    return null;
   }
-  return null;
 }
 
 
