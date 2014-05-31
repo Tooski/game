@@ -37,3 +37,26 @@
     border: 1px red solid;
     margin-top: 10px;
 }
+
+#exit_about_button{
+    width: 96px;
+    height: 36px;
+    background: url(../img/close1.png) no-repeat;
+    background-size: contain;
+    outline:0;
+}
+
+#exit_about_button:hover{
+    width: 99px;
+    height: 36px;
+    background: url(../img/close2.png) no-repeat;
+    background-size: contain;
+
+}
+#exit_about_button:active{
+    width: 99px;
+    height: 36px;
+    background: url(../img/close3.png) no-repeat;
+    background-size: contain;
+
+}

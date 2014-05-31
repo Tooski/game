@@ -272,7 +272,16 @@ SBImageButton.prototype.canPlay = function () {
 // decide which picture will show for this button.
 SBImageButton.prototype.setPath = function (the_where_mouse) {
 	if(this.my_world_map_id === -1){
-		if (the_where_mouse && this.isOnButton(the_where_mouse)) { // on mouse.. 
+		if( this.my_sub_stage === my_stage_board.my_world_map_id){
+			switch (this.my_sub_stage){
+				case 1:
+					this.my_icon_path = WORLD_MAP_SELECT_1;
+					break;
+				case 2: 
+					this.my_icon_path = WORLD_MAP_SELECT_2;
+					break;
+			}
+		} else if (the_where_mouse && this.isOnButton(the_where_mouse)) { // on mouse.. 
 
             switch (this.my_sub_stage) {
 
@@ -308,6 +317,7 @@ SBImageButton.prototype.setPath = function (the_where_mouse) {
             }
 
         }
+
 	} else if (this.canPlay()) {
         if (the_where_mouse && this.isOnButton(the_where_mouse)) { // on mouse.. 
 
@@ -385,7 +395,7 @@ SBImageButton.prototype.startGame = function () {
 	if(this.my_world_map_id === -1){
 		switch (this.my_sub_stage) {
 			case 0:
-				displayMainManu();
+				displayMainMenu();
 				break;
 			case 1:
 				my_stage_board.setWorldMapID(1);
@@ -479,6 +489,9 @@ var WORLD_MAP_2= "./img/world_map_button_2.png";
 var WORLD_MAP_ON_1= "./img/world_map_on_button_1.png";
 var WORLD_MAP_ON_2= "./img/world_map_on_button_2.png";
 
+var WORLD_MAP_SELECT_1= "./img/world_map_select_button_1.png";
+var WORLD_MAP_SELECT_2= "./img/world_map_select_button_2.png";
+
 var IM_BACK_PATH = "./img/back_button.png";
 var IM_ON_BACK_PATH = "./img/on_back_button.png";
 var LOCK_IM_PATH = "./img/lock.png";
@@ -510,6 +523,8 @@ STAGE_ASSET_MANAGER.queueDownload(WORLD_MAP_1);
 STAGE_ASSET_MANAGER.queueDownload(WORLD_MAP_2);
 STAGE_ASSET_MANAGER.queueDownload(WORLD_MAP_ON_1);
 STAGE_ASSET_MANAGER.queueDownload(WORLD_MAP_ON_2);
+STAGE_ASSET_MANAGER.queueDownload(WORLD_MAP_SELECT_1);
+STAGE_ASSET_MANAGER.queueDownload(WORLD_MAP_SELECT_2);
 
 
 STAGE_ASSET_MANAGER.queueDownload(IM_ON_BACK_PATH);

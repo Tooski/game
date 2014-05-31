@@ -66,7 +66,7 @@
         <canvas id="pause" style="display : none; position:absolute; z-index: 2; left:475px; top:125px; background: white; display: none" height="525" width="350"></canvas>
         <canvas id="remap" style="display : none; position:absolute; z-index: 3; left:475px; top:125px; background: white; display: none" height="525" width="350"></canvas>
 
-        <div>
+      <div>
             <script src="classie.js"></script>
             <canvas id="gameWorld" style="border: 0px solid brown; background: white; display : none"></canvas>
 
@@ -75,7 +75,7 @@
         </div>
 
         <!--div for login-->
-        <div class="outer-container" id="login_board">
+         <div class="outer-container" id="login_board" style= "display : block">
             <form name="input" action="settings.php" method="post">
                 <div class="inner-top">
                     <label for="username">Name</label>
@@ -85,34 +85,32 @@
 
                 </div>
                 <div class="inner-bottom">
-                    <input type="button" value="Enter" onClick= "logInButtonAction()" >
+                    <input type="button" id="login_button" onClick= "logInButtonAction()" >
                 </div>
             </form>  
-        </div>
+        </div> 		
         <!--end of div for login-->
+        
         <!--div for leader board-->
         <div class="outer-leaderboard-container" id="leader_board">
             <div class="title-container" id="title_container">
-                Top Times and Scores!!!
             </div>
             <div class="sub-title-container" id="sub-title-container">
                 <div class ="left-sub-title" id="left-sub-title">
-                    Level 1: Points
                 </div>
                 <div class ="right-sub-title" id="right-sub-title">
-                    Level 1: Times
                 </div>
             </div>
             <div class="body-container">
                 <div class="left-box" id="left-box">
                 </div>
-                <div class="right_box" id="right-box">
+                <div class="right-box" id="right-box">
 
                 </div>
 
             </div>
             <div class="footer-container">
-                <button type="button" onClick= "leaderBoardButtonAction()" >Close</button>             
+                <button type="button" id="exit_button" onClick= "leaderBoardButtonAction()" ></button>             
             </div>
         </div>
         <!--end of div for leader board-->
@@ -125,7 +123,7 @@
 
             </div>
             <div class="inner-about-footer">
-                <button type="button" onClick= "displayMainManu()">Done</button>
+                <button type="button" id="exit_about_button" onClick= "displayMainManu()"></button>
             </div>
         </div>
         <!--end of div for about page-->

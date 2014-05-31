@@ -130,7 +130,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             /* fetch values */
             while ($stmt->fetch()) {
-                printf("%s&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;%s-", $col1, $col2, $col3);
+                printf("%s&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;%s- %s-", $col1, $col2, $col3);
             }
             break;
         case "topTenHighScore":
@@ -143,7 +143,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             /* fetch values */
             while ($stmt->fetch()) {
-                printf("%s&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;%s-", $col1, $col2, $col3);
+                printf("%s&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;%s- %s-", $col1, $col2, $col3);
             }
             break;
         case "getStageLevels":

@@ -46,7 +46,8 @@ function displayGame(id){
 	document.getElementById("about_board").style.display = "none";
 	
 	my_g_level_id = id;
-	currentLevel.loadFromFile(id); 
+	//console.log(my_g_level_id);
+        currentLevel.loadFromFile(id); 
 	blockDisplayGame();
 	GameCanvas[0].focus(); // focus on game canvs.
 }
@@ -57,12 +58,12 @@ function displayReplayGame(str){
 	document.getElementById("login_board").style.display = "none";
 	document.getElementById("leader_board").style.display = "none";
 	document.getElementById("about_board").style.display = "none";
-	
+	console.log(str);
 	 //my_g_level_id= id;
 	currentLevel.loadFromFile(my_g_level_id);
-	//physEng.loadReplay(str)
+	//physEng.loadReplay(str);
 	blockDisplayGame();
-	GameCanvas[0].focus(); // focus on game canvs.
+	//GameCanvas[0].focus(); // focus on game canvs.
 }
 
 
