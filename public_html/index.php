@@ -109,7 +109,7 @@
             <div class="body-container">
                 <div class="left-box" id="left-box">
                 </div>
-                <div class="right_box" id="right-box">
+                <div class="right-box" id="right-box">
 
                 </div>
 

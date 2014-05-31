@@ -58,18 +58,20 @@
     width:100%;
     display:inline-block; 
     cursor: pointer;
+    padding: 2px;
+    overflow: hidden;
 }
 .left-box a:hover{
-    background-color: red;
+    background-color: #bde0f6;
 }
 .left-box a:active{
-    background-color: yellow;
+    background-color: #8ac6ed;
 }
 .left-box a:link{
     background-color: #3498db;
 }
 
-.right_box{
+.right-box{
     float: right;
     width:200px;
     max-height: 300px;
@@ -79,10 +81,21 @@
     text-align: center;
 }
 
-.right_box span{
+.right-box span{
     width:100%;
     display:inline-block;  
     cursor: pointer;
+    padding: 2px;
+    overflow: hidden;
+}
+.right-box a:hover{
+    background-color: #bde0f6;
+}
+.right-box a:active{
+    background-color: #8ac6ed;
+}
+.right-box a:link{
+    background-color: #3498db;
 }
 .footer-container{
     border: 1px blue solid;
