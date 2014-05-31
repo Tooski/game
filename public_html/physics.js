@@ -2245,8 +2245,6 @@ function getNewPrimaryHeap() {
 // Checks to see if array a contains Object obj.
 function contains(a, obj) {
   //if (!(obj.id) || a.length === 0 || !a) {
-  console.log(a);
-  console.log(obj);
 
   if (obj && !(obj.id)) {
     console.log("obj w/ no ID: ", obj);
@@ -2274,7 +2272,13 @@ function contains(a, obj) {
 
 function pushAllAIntoB(a, b) {
   for (var i = 0; i < a.length; i++) {
-    b.push(a[i]);
+    if (a[i]) {
+      b.push(a[i]);
+    } else {
+      console.log("a[i]", a[i]);
+      throw "bad a[i] ???";
+    }
+    
   }
 }
 

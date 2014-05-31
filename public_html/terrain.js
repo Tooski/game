@@ -54,9 +54,9 @@ LinePoint.prototype = new vec2();
 // @param normal is a normalized vector representing the normal of this line. 
 // @param adjacents is an array of terrainObjects where adjacents[0] is connected by p0, and adjacent
 function TerrainLine(id, polyID, point0, point1, adjacent0, adjacent1, normal) {
-//  if (!id.toFixed) { //id.toFixed is ducktyping to check if id is a number.
-//    throw "All level objects must have a sequentially incremented numerical id.";
-//  }
+  //  if (!id.toFixed) { //id.toFixed is ducktyping to check if id is a number.
+  //    throw "All level objects must have a sequentially incremented numerical id.";
+  //  }
 
   this.id = id;
   this.polyID = polyID;
@@ -132,7 +132,7 @@ function TerrainLine(id, polyID, point0, point1, adjacent0, adjacent1, normal) {
     if (this.adjacent0) {
       var thisVec = this.p1.subtract(this.p0).normalize();
       var adjVec = this.adjacent0.p0.subtract(this.adjacent0.p1).normalize();
-      var angleNorm = getSignedAngleFromAToB( this.adjacent0.normal, this.normal);
+      var angleNorm = getSignedAngleFromAToB(this.adjacent0.normal, this.normal);
       var angle = Math.acos(thisVec.dot(adjVec));
 
       //connection to adj0 is concave when the angle between this.normal and next surface is < HALF_PI, or 90 degrees. 
@@ -399,22 +399,22 @@ function Polygon(polygon) {
   //Entity.call();
   this.polyID = generateID();
   this.polygon = {};
-  
+
   var i = 0;
   for (var item in polygon) {
-        var temp = polygon[item];
-         this.polygon[i++] = this.polygon[temp.id] = (new TerrainLine(temp.id, this.polyID, temp.p0, temp.p1));
+    var temp = polygon[item];
+    this.polygon[i++] = this.polygon[temp.id] = (new TerrainLine(temp.id, this.polyID, temp.p0, temp.p1));
   }
-  
-    var poly = this.polygon[0];
-    var itr = poly;
-    while(itr.adjacent1 !== poly) {
-        itr.adjacent0 = this.polygon[polygon[itr.id].adjacent0.id];
-        itr.adjacent1 = this.polygon[polygon[itr.id].adjacent1.id];
-        itr = itr.adjacent1;
-    }
-        itr.adjacent0 = this.polygon[polygon[itr.id].adjacent0.id];
-        itr.adjacent1 = this.polygon[polygon[itr.id].adjacent1.id];
+
+  var poly = this.polygon[0];
+  var itr = poly;
+  while (itr.adjacent1 !== poly) {
+    itr.adjacent0 = this.polygon[polygon[itr.id].adjacent0.id];
+    itr.adjacent1 = this.polygon[polygon[itr.id].adjacent1.id];
+    itr = itr.adjacent1;
+  }
+  itr.adjacent0 = this.polygon[polygon[itr.id].adjacent0.id];
+  itr.adjacent1 = this.polygon[polygon[itr.id].adjacent1.id];
 
 
   this.toJSON = function () {
@@ -534,7 +534,7 @@ Polygon.prototype.fillTerrain = function (ctx, terrain, visited, rect, visitedLi
 /**
  * Removing mass duplicate code from across the different line types.
  */
-function lineCollidesWith (line, point, radius, ctx) {
+function lineCollidesWith(line, point, radius, ctx) {
   var pA = line.p0;              // TerrainLine point 1
   var pB = line.p1;              // TerrainLine point 2
   var pC = ORIGIN.add(point);                // center of the ball

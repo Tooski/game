@@ -160,19 +160,19 @@ function TerrainManager() {
 
 
   this.reset();
-  
 
 
-  this.getNextCollectibleNumber       = function () { return this.nextCollectibleNo++;    }
-  this.getNextGoalNumber              = function () { return this.nextGoalNo++;           }
-  this.getNextGoalLineNumber          = function () { return this.nextGoalLineNo++;       }
-  this.getNextCheckpointNumber        = function () { return this.nextCheckpointNo++;     }
-  this.getNextCheckpointLineNumber    = function () { return this.nextCheckpointLineNo++; }
-  this.getNextKillZoneNumber          = function () { return this.nextCollectibleNo++;    }
-  this.getNextKillLineNumber          = function () { return this.nextKillLineNo++;       }
-  this.getNextPointNumber             = function () { return this.nextPointNo++;          }
-  this.getNextTerrainLineNumber       = function () { return this.nextTerrainLineNo++;    }  
-  this.getNextPolygonNumber           = function () { return this.nextPolygonNo++;        }
+
+  this.getNextCollectibleNumber = function () { return this.nextCollectibleNo++; }
+  this.getNextGoalNumber = function () { return this.nextGoalNo++; }
+  this.getNextGoalLineNumber = function () { return this.nextGoalLineNo++; }
+  this.getNextCheckpointNumber = function () { return this.nextCheckpointNo++; }
+  this.getNextCheckpointLineNumber = function () { return this.nextCheckpointLineNo++; }
+  this.getNextKillZoneNumber = function () { return this.nextCollectibleNo++; }
+  this.getNextKillLineNumber = function () { return this.nextKillLineNo++; }
+  this.getNextPointNumber = function () { return this.nextPointNo++; }
+  this.getNextTerrainLineNumber = function () { return this.nextTerrainLineNo++; }
+  this.getNextPolygonNumber = function () { return this.nextPolygonNo++; }
 
 
 
@@ -199,7 +199,7 @@ function TerrainManager() {
 
 
 
- 
+
 
   this.toJSON = function () {					    // gets the JSON version of this manager.
     var JSONdata = {
@@ -223,7 +223,7 @@ function TerrainManager() {
       nextPolygonNo: this.nextPolygonNo,
     };
 
-    
+
     JSONdata.pointMap = this.pointMap;
     JSONdata.points = this.points;
     JSONdata.goals = this.goals;
@@ -245,8 +245,8 @@ TerrainManager.prototype = new Entity();
 TerrainManager.constructor = TerrainManager;
 
 
-TerrainManager.prototype.addPolygon = function(polygon) {
-    this.polygons.push(polygon);    
+TerrainManager.prototype.addPolygon = function (polygon) {
+  this.polygons.push(polygon);
 }
 
 
@@ -263,7 +263,7 @@ TerrainManager.prototype.reset = function () {
 
   this.nextGoalNo = 1;
   this.goals = new Array();     	      // Array of all goals indexed by ID that are currently contained in this level.	 /NOT THE GOAL LINES/
-                                        // id is also used for determining what leaderboard to put the players entry on.
+  // id is also used for determining what leaderboard to put the players entry on.
 
   this.nextGoalLineNo = 1;
   this.goalLines = new Array();         //  Array of all GoalLines indexed by id
@@ -281,7 +281,7 @@ TerrainManager.prototype.reset = function () {
   this.nextPointNo = 1;
   this.points = new Array();			      // Array of all points, indexed by id.
   this.pointMap = {};			              // this is a map of all LinePoints by their position, used to reduce point replication everywhere.
-                                        // should only iterate through it or use this.toLinePoint(point) to modify it.
+  // should only iterate through it or use this.toLinePoint(point) to modify it.
 
   this.nextTerrainLineNo = 1;
   this.terrainLines = new Array();		  // Array of all TerrainLines indexed by id that are currently contained in the level.
@@ -313,7 +313,7 @@ TerrainManager.prototype.setStart = function (point) {
  */
 TerrainManager.prototype.addCollectible = function (point) {
   var collectible = new Collectible(this.nextCollectibleNumber(), point.x, point.y, DFLT_collectibleValue);
-  if (!this.collectibles[collectible.id]) { this.collectibles[collectible.id] = collectible; } else { throw "wtf yo collectible id already exists";}
+  if (!this.collectibles[collectible.id]) { this.collectibles[collectible.id] = collectible; } else { throw "wtf yo collectible id already exists"; }
   this.modified = true;
 }
 
@@ -367,7 +367,7 @@ TerrainManager.prototype.addCheckpoint = function (checkpointPos, editorLineArra
   }
 
   var first = new CheckpointLine(this.getNextCheckpointLineNumber(), checkpoint.id, this.toLinePoint(lines[0].p0), this.toLinePoint(lines[0].p1), null, null);
-  
+
   if (this.checkpointLines[first.id]) {
     throw "what the hell, a TerrainLine already exists with this ID. Fix yo shit";
   } else {
@@ -500,7 +500,7 @@ TerrainManager.prototype.draw = function (ctx) {
 
   ctx.miterLimit = 3;
   //  drawLineArray(ctx, this.currentLines, CURRENT_LINE_COLOR, DrawLine.lineWidth, LINE_JOIN, LINE_CAP);
-  
+
   //drawPolygons(ctx, this.polygons, "#222222", LINE_WIDTH, LINE_JOIN, LINE_CAP);
   if (this.terrainList && this.terrainList.length) {
     drawLineArray(ctx, this.terrainList, TERRAIN_LINE_COLOR, LINE_WIDTH, LINE_JOIN, LINE_CAP);
@@ -592,39 +592,39 @@ function drawPolygons(ctx, polygons, color, lineWidth, lineJoin, lineCap) {
   ctx.lineJoin = lineJoin;
   ctx.lineCap = lineCap;
   ctx.strokeStyle = color;
-    console.log(polygons.length);
+  console.log(polygons.length);
   polygons.forEach(function (poly) {
-      var original = poly.polygon[0];
-      ctx.moveTo(original.p0.x, original.p0.y);
-      var line = original;
-    
-      
-      while(line.adjacent1 !== original) {
-        ctx.lineTo(line.p1.x, line.p1.y);
-        line = line.adjacent1;
-      }
-      ctx.closePath();
+    var original = poly.polygon[0];
+    ctx.moveTo(original.p0.x, original.p0.y);
+    var line = original;
 
-      var first;
-      while(!first || line.adjacent1 !== original) {
-          first = true;
-          
-        if (editMode) {
-          if (line.normal) {
-            var midPoint = line.p0.add(line.p1).divf(2.0);
 
-            var pNormalPosEnd = midPoint.add(line.normal.multf(20));
-                
-//            line.normalPosCol.x = pNormalPosEnd.x - line.normalPosCol.w / 2;
-//            line.normalPosCol.y = pNormalPosEnd.y - line.normalPosCol.h / 2;
-            ctx.moveTo(midPoint.x, midPoint.y);
-            ctx.lineTo(pNormalPosEnd.x, pNormalPosEnd.y);
-          }
+    while (line.adjacent1 !== original) {
+      ctx.lineTo(line.p1.x, line.p1.y);
+      line = line.adjacent1;
+    }
+    ctx.closePath();
+
+    var first;
+    while (!first || line.adjacent1 !== original) {
+      first = true;
+
+      if (editMode) {
+        if (line.normal) {
+          var midPoint = line.p0.add(line.p1).divf(2.0);
+
+          var pNormalPosEnd = midPoint.add(line.normal.multf(20));
+
+          //            line.normalPosCol.x = pNormalPosEnd.x - line.normalPosCol.w / 2;
+          //            line.normalPosCol.y = pNormalPosEnd.y - line.normalPosCol.h / 2;
+          ctx.moveTo(midPoint.x, midPoint.y);
+          ctx.lineTo(pNormalPosEnd.x, pNormalPosEnd.y);
         }
-        line = line.adjacent1;
       }
-      
-        
+      line = line.adjacent1;
+    }
+
+
   });
   ctx.stroke();
   ctx.restore();
