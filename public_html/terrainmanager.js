@@ -153,7 +153,7 @@ function TerrainManager() {
   this.nextTerrainLineNo;
   this.terrainLines;
   this.nextPolygonNo;
-  this.polygons;
+  this.polygons = [];
 
   this.startPoint;
 
@@ -239,8 +239,16 @@ function TerrainManager() {
   }
 }
 
+
+
 TerrainManager.prototype = new Entity();
 TerrainManager.constructor = TerrainManager;
+
+
+TerrainManager.prototype.addPolygon = function(polygon) {
+    this.polygons.push(polygon);    
+}
+
 
 
 /**
@@ -383,8 +391,6 @@ TerrainManager.prototype.addCheckpoint = function (checkpointPos, editorLineArra
 }
 
 
-
-
 /**
  * Eats editor lines and a goal / GoalLines to the real level.
  */
@@ -494,12 +500,14 @@ TerrainManager.prototype.draw = function (ctx) {
 
   ctx.miterLimit = 3;
   //  drawLineArray(ctx, this.currentLines, CURRENT_LINE_COLOR, DrawLine.lineWidth, LINE_JOIN, LINE_CAP);
-
+  
+  drawPolygons(ctx, this.polygons, "#222222", LINE_WIDTH, LINE_JOIN, LINE_CAP);
   if (this.terrainList && this.terrainList.length) {
     drawLineArray(ctx, this.terrainList, TERRAIN_LINE_COLOR, LINE_WIDTH, LINE_JOIN, LINE_CAP);
   }
 
   drawLineArray(ctx, this.tempLines, "#222222", LINE_WIDTH, LINE_JOIN, LINE_CAP);
+
 
   drawLineArray(ctx, this.terrainLines, TERRAIN_LINE_COLOR, LINE_WIDTH, LINE_JOIN, LINE_CAP);
   drawLineArray(ctx, this.goalLines, GOAL_LINE_COLOR, LINE_WIDTH, LINE_JOIN, LINE_CAP);
@@ -577,7 +585,50 @@ function drawPointArray(ctx, pointArray, color, pointWidth) {
   ctx.restore();
 }
 
+function drawPolygons(ctx, polygons, color, lineWidth, lineJoin, lineCap) {
+  ctx.save();
+  ctx.beginPath();
+  ctx.lineWidth = lineWidth;
+  ctx.lineJoin = lineJoin;
+  ctx.lineCap = lineCap;
+  ctx.strokeStyle = color;
+    console.log(polygons.length);
+  polygons.forEach(function (poly) {
+      var original = poly.polygon[0];
+      ctx.moveTo(original.p0.x, original.p0.y);
+      var line = original;
+    
+      
+      while(line.adjacent1 !== original) {
+        ctx.lineTo(line.p1.x, line.p1.y);
+        line = line.adjacent1;
+      }
+      ctx.closePath();
 
+      var first;
+      while(!first || line.adjacent1 !== original) {
+          first = true;
+          
+        if (editMode) {
+          if (line.normal) {
+            var midPoint = line.p0.add(line.p1).divf(2.0);
+
+            var pNormalPosEnd = midPoint.add(line.normal.multf(20));
+                
+//            line.normalPosCol.x = pNormalPosEnd.x - line.normalPosCol.w / 2;
+//            line.normalPosCol.y = pNormalPosEnd.y - line.normalPosCol.h / 2;
+            ctx.moveTo(midPoint.x, midPoint.y);
+            ctx.lineTo(pNormalPosEnd.x, pNormalPosEnd.y);
+          }
+        }
+        line = line.adjacent1;
+      }
+      
+        
+  });
+  ctx.stroke();
+  ctx.restore();
+}
 
 
 

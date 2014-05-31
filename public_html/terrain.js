@@ -54,9 +54,9 @@ LinePoint.prototype = new vec2();
 // @param normal is a normalized vector representing the normal of this line. 
 // @param adjacents is an array of terrainObjects where adjacents[0] is connected by p0, and adjacent
 function TerrainLine(id, polyID, point0, point1, adjacent0, adjacent1, normal) {
-  if (!id.toFixed) { //id.toFixed is ducktyping to check if id is a number.
-    throw "All level objects must have a sequentially incremented numerical id.";
-  }
+//  if (!id.toFixed) { //id.toFixed is ducktyping to check if id is a number.
+//    throw "All level objects must have a sequentially incremented numerical id.";
+//  }
 
   this.id = id;
   this.polyID = polyID;
@@ -395,15 +395,26 @@ function KillLine(id, killZoneID, point0, point1, adjacent0, adjacent1) {
 /**
  * 
  */
-function Polygon(polyID, polygon) {
+function Polygon(polygon) {
   //Entity.call();
-  this.polyID = polyID;
-  this.polygon = polygon;
-  for (var item in this.polygon) {
-    this.polygon[item].polygonID = this.polyID;
-
+  this.polyID = generateID();
+  this.polygon = {};
+  
+  var i = 0;
+  for (var item in polygon) {
+        var temp = polygon[item];
+         this.polygon[i++] = this.polygon[temp.id] = (new TerrainLine(temp.id, this.polyID, temp.p0, temp.p1));
   }
-
+  
+    var poly = this.polygon[0];
+    var itr = poly;
+    while(itr.adjacent1 !== poly) {
+        itr.adjacent0 = this.polygon[polygon[itr.id].localp0.id];
+        itr.adjacent1 = this.polygon[polygon[itr.id].localp1.id];
+        itr = itr.adjacent1;
+    }
+        itr.adjacent0 = this.polygon[polygon[itr.id].localp0.id];
+        itr.adjacent1 = this.polygon[polygon[itr.id].localp1.id];
 
 
   this.toJSON = function () {

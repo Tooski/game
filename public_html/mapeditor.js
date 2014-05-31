@@ -19,6 +19,8 @@ var editMovementSpeed = 10;
 var graceSize = 10;
 
 
+
+
 /**
  * These are lines that are stored temporarily in the editor while a polygon / set of lines / line is being drawn.
  */
@@ -27,6 +29,7 @@ function EditorLine(point0, point1, localp0, localp1) {
   this.p1 = point1;
   this.localp0 = localp0;
   this.localp1 = localp1;
+  this.id = generateID(this);
 }
 
 
@@ -312,42 +315,32 @@ function getMousePos(evt) {
 MapEditor.prototype.createLineButton = function (ctx) {
   var terrainButton = new MapEditorButton("Terrain", 0, (buttonSize + 5), buttonSize * 2, buttonSize);
   var that = this;
-
+  var clicked = true;
 
 
   terrainButton.onClick = function (e) {
+           console.log(this.setNormals);
     var completed = false;
     if (this.setNormals) {
-      var itr = this.prev;
-      itr.normal = findNormalByMouse(e, itr);
-
-      while (itr.adjacent1 !== this.prev) {
-        var selected = itr;
-        var selectedVec = selected.p0.subtract(selected.p1).normalize();
-        itr = itr.adjacent1;
-        var nextVec = selected.adjacent1.p1.subtract(selected.adjacent1.p0).normalize();
-        var potentialNormal = nextVec.perp();
-        var negPotentialNormal = potentialNormal.negate();
-        var h = Math.acos(selectedVec.dot(nextVec));
-        if (h > HALF_PI) {
-          itr.normal = (selected.normal.dot(potentialNormal) < selected.normal.dot(negPotentialNormal) ? negPotentialNormal : potentialNormal);
-        } else {
-          itr.normal = (selected.normal.dot(potentialNormal) < selected.normal.dot(negPotentialNormal) ? potentialNormal : negPotentialNormal);
-        }
-      }
-      this.locked = this.setNormals = this.prev = null;
-      var completed = true;
-    }
+        
+        placeNormals(e, this.prev); 
+         this.locked = this.setNormals = this.prev = null;
+    } else {
 
     if (this.line) {
 
 
       if (this.line && this.line.p1.x !== this.line.p0.x && this.line.p1.y !== this.line.p0.y) {
 
-        //that.snapTo(this.line);
+        that.snapTo(this.line);
+        var polygon = that.attemptSnap(this.line);
         this.locked = this.prev = this.line;
-
-
+        if(polygon) {
+            this.prev.polygonID = polygon.polyID;
+        }
+      
+        
+        
 
         if (!this.prev.polygonID) {
 
@@ -359,18 +352,22 @@ MapEditor.prototype.createLineButton = function (ctx) {
 
 
             this.line = new EditorLine(new vec2(this.prev.p1.x, this.prev.p1.y), new vec2(xposition, yposition));
+            this.line.localp0 = this.prev;
+            this.prev.localp1 = this.line;
             
-            if (that.attemptSnap(this.line)) {         //true if we completed our polygon.
-              that.level.tempLines.push(line);
-            } else {
-              that.level.tempLines.push(line);
-            }
+//            if (that.attemptSnap(this.line)) {         //true if we completed our polygon.
+//                console.log ("FOUND");
+//                
+              that.level.tempLines.push(this.line);
+//            } else {
+//              that.level.tempLines.push(this.line);
+//            }
           }
         } else {
-
-
-          this.setNormals = this.line.adjacent1;
-          this.line = null;
+            console.log("FUUUUDFUJSDHIUSDHBFUIHBDSF");
+            this.prev = polygon.polygon[0];
+            this.setNormals = this.line.localp1;
+            this.line = null;
 
         }
 
@@ -401,6 +398,7 @@ MapEditor.prototype.createLineButton = function (ctx) {
       that.resetCurrent();
       that.level.modified = true;
     }
+     }
   };
 
 
@@ -420,10 +418,17 @@ MapEditor.prototype.createLineButton = function (ctx) {
     }
 
     if (this.setNormals) {
-      var itr = this.prev;
-      itr.normal = findNormalByMouse(e, itr);
+        placeNormals(e, this.prev); 
+    }
 
-      while (itr.adjacent1 !== this.prev) {
+  };
+
+  function placeNormals(e, prev) {
+      prev = prev.adjacent1;
+      var itr = prev;
+      itr.normal = findNormalByMouse(e, prev);
+
+      while (itr.adjacent1 !== prev) {
         var selected = itr;
         var selectedVec = selected.p0.subtract(selected.p1).normalize();
         itr = itr.adjacent1;
@@ -437,11 +442,7 @@ MapEditor.prototype.createLineButton = function (ctx) {
           itr.normal = (selected.normal.dot(potentialNormal) < selected.normal.dot(negPotentialNormal) ? potentialNormal : negPotentialNormal);
         }
       }
-    }
-
-  };
-
-
+  }
 
 
   terrainButton.onRelease = function (e) {
@@ -473,7 +474,43 @@ MapEditor.prototype.createStartPointButton = function (ctx) {
       button.isSelected = false;
     }
   };
-}
+};
+
+
+MapEditor.prototype.snapTo = function(terrain) {
+    var list = this.level.tempLines;
+
+    
+    for(var i = 0; i < list.length; i++) {
+        if (terrain !== list[i]){
+            if(!list[i].localp0 && checkBounds (terrain.p0, list[i].p0)){
+                terrain.p0.x = list[i].p0.x = (terrain.p0.x + list[i].p0.x)/2;
+                terrain.p0.y = list[i].p0.y = (terrain.p0.y + list[i].p0.y)/2;
+                list[i].localp0 = terrain;
+                terrain.localp0 = list[i];
+                break;
+            } else if (!list[i].localp1 && checkBounds (terrain.p0, list[i].p1)) {
+                terrain.p0.x = list[i].p1.x = (terrain.p0.x + list[i].p1.x)/2;
+                terrain.p0.y = list[i].p1.y = (terrain.p0.y + list[i].p1.y)/2;
+                list[i].localp1 = terrain;
+                terrain.localp0 = list[i];
+                break;
+            } else if(!list[i].localp0 && checkBounds (terrain.p1, list[i].p0)){
+                terrain.p1.x = list[i].p0.x = (terrain.p1.x + list[i].p0.x)/2;
+                terrain.p1.y = list[i].p0.y = (terrain.p1.y + list[i].p0.y)/2;
+                list[i].localp0 = terrain;
+                terrain.localp1 = list[i];
+                break;
+            } else if (!list[i].localp1 && checkBounds (terrain.p1, list[i].p1)) {
+                terrain.p1.x = list[i].p1.x = (terrain.p1.x + list[i].p1.x)/2;
+                terrain.p1.y = list[i].p1.y = (terrain.p1.y + list[i].p1.y)/2;
+                list[i].localp1 = terrain;
+                terrain.localp1 = list[i];
+                break;
+            }
+        }
+    }
+};
 
 
 
@@ -583,7 +620,7 @@ if (this.line) {
 
       if (this.line && this.line.p1.x !== this.line.p0.x && this.line.p1.y !== this.line.p0.y) {
 
-        //that.snapTo(this.line);
+        that.snapTo(this.line);
         this.locked = this.prev = this.line;
 
 
@@ -918,23 +955,32 @@ MapEditor.prototype.attemptSnap = function (line) {
   var completedPolygon = false;
 
   var startLine = this.level.tempLines[0];
-  if (line !== startLine && !startLine.adjacent1 && checkBounds(line.p0, startLine.p1)) {
-    line.p0 = startLine.p1;
-    startLine.adjacent1 = line;
-    line.adjacent0 = startLine;
+
+  if (line !== startLine) {
+//    line.p0 = startLine.p1;
+//    startLine.localp1 = line;
+//    line.localp0 = startLine;
 
     completedPolygon = true;
 
-    var polygon = {};
-    polygon[line.adjacent0.id] = line.adjacent0;
-    if (!checkPolygon(line.adjacent0, polygon, line, {})) {
-      throw "connected polygon together and it didnt validate?";
-    }
 
+        var polygon = {};
+        if(line.localp0) {
+        polygon[line.localp0.id] = line.localp0;
+        var d = checkPolygon(line.localp0, polygon, line, {});
+  console.log(d);
+  
 
-    if (!line.polygonID) {
-      var c = new Polygon(this.level.getNextPolygonID(), this.level.tempLines);
+        if(!line.polygonID && d) {
+            this.level.tempLines = [];
+            var poly = new Polygon(polygon);
+            this.level.addPolygon(poly);
+            return poly;
+
+        }
     }
+    
+    
   } 
 
 
@@ -1007,15 +1053,18 @@ MapEditor.prototype.createEditModeButton = function(ctx) {
     editmode.collider.onEditMode = false;
     var that = this;
     editmode.onRelease = function(e) {
+    // Hides the remaining buttons if pressed.
     if(that.ctx.canvas.setHeight !== buttonSize) {
-        that.ctx.canvas.setWidth = that.ctx.canvas.setHeight =  buttonSize;
+        that.ctx.canvas.setWidth = buttonSize * 2;
+        that.ctx.canvas.setHeight =  buttonSize;
         editMode = false;
     } else { 
-        that.ctx.canvas.setWidth = buttonSize;
+        that.ctx.canvas.setWidth = buttonListEnd.y;
         that.ctx.canvas.setHeight = buttonListEnd.y;
         editMode = true;
     }
-        ctx.isEdited = true;
+    
+        that.ctx.isEdited = true;
         that.draw(that.ctx);
         that.editMode = !that.editMode;
         that.isSelected = button = null;
@@ -1027,6 +1076,7 @@ MapEditor.prototype.createEditModeButton = function(ctx) {
 
 
 function checkBounds(p1, p2) {
+    
   return (p1.x <= p2.x + graceSize &&
          p1.x >= p2.x - graceSize &&
          p1.y <= p2.y + graceSize &&
@@ -1037,7 +1087,9 @@ function checkBounds(p1, p2) {
 
 
 function checkPolygon(nextLine, array, original, visited) {
-  if (!nextLine.adjacent0 || !nextLine.adjacent1) return false;
+      console.log("fuuuuuuuuck", nextLine);
+  if (!nextLine.localp0 || !nextLine.localp1) return false;
+
   if (nextLine) {
     var t0 = JSON.stringify(nextLine.p0);             //stringify might cause problems with new code but unlikely?
     var t1 = JSON.stringify(nextLine.p1);
@@ -1045,27 +1097,27 @@ function checkPolygon(nextLine, array, original, visited) {
       return true;
     } else {
 
-      if (nextLine.adjacent0 && !array[nextLine.adjacent0.id]) {
-        var o0 = JSON.stringify(nextLine.adjacent0.p0);
-        var o1 = JSON.stringify(nextLine.adjacent0.p1);
+      if (nextLine.localp0 && !array[nextLine.localp0.id]) {
+        var o0 = JSON.stringify(nextLine.localp0.p0);
+        var o1 = JSON.stringify(nextLine.localp0.p1);
 
 
 
         if (!visited[t0] || !visited[t1]) {
           if (t0 === o0 || t0 === o1) visited[t0] = true;
           else if (t1 === o0 || t1 === o1) visited[t1] = true;
-          array[nextLine.adjacent0.id] = nextLine.adjacent0;
-          return checkPolygon(nextLine.adjacent0, array, original, visited);
+          array[nextLine.localp0.id] = nextLine.localp0;
+          return checkPolygon(nextLine.localp0, array, original, visited);
         }
       }
-      if (nextLine.adjacent1 && !array[nextLine.adjacent1.id]) {
-        var o0 = JSON.stringify(nextLine.adjacent1.p0);
-        var o1 = JSON.stringify(nextLine.adjacent1.p1);
+      if (nextLine.localp1 && !array[nextLine.localp1.id]) {
+        var o0 = JSON.stringify(nextLine.localp1.p0);
+        var o1 = JSON.stringify(nextLine.localp1.p1);
         if (!visited[t0] || !visited[t1]) {
           if (t0 === o0 || t0 === o1) visited[t0] = true;
           else if (t1 === o0 || t1 === o1) visited[t1] = true;
-          array[nextLine.adjacent1.id] = nextLine.adjacent1;
-          return checkPolygon(nextLine.adjacent1, array, original, visited);
+          array[nextLine.localp1.id] = nextLine.localp1;
+          return checkPolygon(nextLine.localp1, array, original, visited);
         }
       }
     }
