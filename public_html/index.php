@@ -79,9 +79,9 @@
             <form name="input" action="settings.php" method="post">
                 <div class="inner-top">
                     <label for="username">Name</label>
-                    <input type="text" name="username" id="username"><br>
+                    <input type="text" name="username" id="username" value="donkey"><br>
                     <label for="password">Password</label>
-                    <input type="password" name="password" id="password"><br>
+                    <input type="password" name="password" id="password" value="ferter"><br>
 
                 </div>
                 <div class="inner-bottom">
@@ -105,8 +105,8 @@
                 </div>
             </div>
             <div class="body-container">
-                <div class="left-box">
-                    <span>1.  mike 234,000</span>
+                <div class="left-box" id="left-box">
+<!--                    <span>1.  mike 234,000</span>
                     <span>2.  mike 234,000</span>
                     <span>3.  mike 234,000</span>
                     <span>4.  mike 234,000</span>
@@ -125,11 +125,11 @@
                     <span>17.  mike 234,000</span>
                     <span>18.  mike 234,000</span>
                     <span>19.  mike 234,000</span>
-                    <span>20.  mike 234,000</span>
+                    <span>20.  mike 234,000</span>-->
    
                 </div>
-                <div class="right_box">
-                    <span>1.  mike 22.4 seconds</span>
+                <div class="right_box" id="right-box">
+<!--                    <span>1.  mike 22.4 seconds</span>
                     <span>2.  mike 22.4 seconds</span>
                     <span>3.  mike 22.4 seconds</span>
                     <span>4.  mike 22.4 seconds</span>
@@ -148,7 +148,7 @@
                     <span>17.  mike 22.4 seconds</span>
                     <span>18.  mike 22.4 seconds</span>
                     <span>19.  mike 22.4 seconds</span>
-                    <span>20.  mike 22.4 seconds</span>
+                    <span>20.  mike 22.4 seconds</span>-->
                 </div>
 
             </div>

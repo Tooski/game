@@ -148,6 +148,7 @@ function Save(terrainList) {
         function(callback) {
             console.log(callback);
             if (callback === "1") {
+            
                 console.log("user exists " + callback);
             } else {
                 console.log("user does not exist " + callback);
@@ -180,15 +181,6 @@ function Save(terrainList) {
         });
     };
 
-    var highScore = new MenuButton("high score");
-    highScore.collider.onClick = function(e) {
-        game.settings.get({"command": "highScore",
-            "data": {"levelID": "14"}},
-        function(callback) {
-            console.log(callback);
-
-        });
-    };
 
     var bestTime = new MenuButton("best time");
     bestTime.collider.onClick = function(e) {
