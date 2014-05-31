@@ -10,7 +10,7 @@
 
 
 function GameManu() {
-    console.log('start creating GameBoard');
+    //console.log('start creating GameBoard');
     this.my_ctx = null;
     this.my_where_click = null;
     this.my_where_mouse = null;
@@ -18,18 +18,18 @@ function GameManu() {
     this.my_surface_height = null;
     this.my_image_button_arr = [];
     this.my_stage_background = null;
-    console.log('finish creating GameManu');
+   // console.log('finish creating GameManu');
 }
 
 
 GameManu.prototype.init = function (the_ctx) {
-    console.log('start init GameManu.');
+  //  console.log('start init GameManu.');
     this.my_ctx = the_ctx;
     this.my_surface_width = this.my_ctx.canvas.width;
     this.my_surface_height = this.my_ctx.canvas.height;
 
     this.setActions();
-    console.log('finish init GameManu.');
+  //  console.log('finish init GameManu.');
 }
 
 GameManu.prototype.setBackground = function (the_path) {
@@ -42,7 +42,7 @@ GameManu.prototype.pushButton = function (the_button) {
 }
 
 GameManu.prototype.setActions = function () {
-    console.log('start setting actions.');
+   // console.log('start setting actions.');
 
     var getXandY = function (e) {
         var x = e.clientX - that.my_ctx.canvas.getBoundingClientRect().left;
@@ -82,7 +82,7 @@ GameManu.prototype.setActions = function () {
         //console.log(that.my_where_mouse.x + ', ' + that.my_where_mouse.y);
     }, false);
 
-    console.log('finish setting actions.');
+   // console.log('finish setting actions.');
 }
 
 GameManu.prototype.start = function () {
@@ -283,7 +283,7 @@ GM_BOARD_ASSET_MANAGER.queueDownload(ON_LOG_OUT_IIM_PATH);
 
 var MY_GAME_MANU_CANVAS;
 GM_BOARD_ASSET_MANAGER.downloadAll(function () {
-    console.log("starting up da sheild");
+ //   console.log("starting up da sheild");
     //var game_manu_canvas = document.getElementById('game_manu_board');
     MY_GAME_MANU_CANVAS = document.getElementById('game_manu_board');
     var game_manu_ctx = MY_GAME_MANU_CANVAS.getContext('2d');

@@ -43,7 +43,7 @@ function displayGame(id){
 	my_g_game_id = id;
 	currentLevel.loadFromFile(id); 
 	blockDisplayGame();
-	console.log(	my_g_world_id +","+my_g_stage_id +","+my_g_game_id);
+	//console.log(	my_g_world_id +","+my_g_stage_id +","+my_g_game_id);
 	GameCanvas[0].focus(); // focus on game canvs.
 }
 

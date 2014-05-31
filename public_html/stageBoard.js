@@ -15,7 +15,7 @@
 
 
 function StageBoard() {
-    console.log('start creating StageBoard');
+  //  console.log('start creating StageBoard');
     this.my_ctx = null;
     this.my_where_click = null;
     this.my_where_mouse = null;
@@ -28,12 +28,12 @@ function StageBoard() {
     this.my_world_mapname = null;
 
     this.running = false;
-    console.log('finish creating StageBoard');
+   // console.log('finish creating StageBoard');
 }
 
 
 StageBoard.prototype.init = function (the_ctx, the_world_map_id, the_world_map_name) {
-    console.log('start init StageBoard.');
+   // console.log('start init StageBoard.');
     if (the_world_map_id && the_world_map_name) {
         this.my_world_map_id = the_world_map_id;
     this.my_world_map_name = the_world_map_name;
@@ -46,7 +46,7 @@ StageBoard.prototype.init = function (the_ctx, the_world_map_id, the_world_map_n
 
     this.setActions();
     
-    console.log('finish init StageBoard.');
+  //  console.log('finish init StageBoard.');
 }
 
 StageBoard.prototype.setBackground = function (the_path) {
@@ -65,7 +65,7 @@ StageBoard.prototype.pushButton = function (the_button) {
 }
 
 StageBoard.prototype.setActions = function () {
-    console.log('start setting actions.');
+  //  console.log('start setting actions.');
 
     var getXandY = function (e) {
         var x = e.clientX - that.my_ctx.canvas.getBoundingClientRect().left;
@@ -108,7 +108,7 @@ StageBoard.prototype.setActions = function () {
         //console.log(that.my_where_mouse.x + ', ' + that.my_where_mouse.y);
     }, false);
 
-    console.log('finish setting actions.');
+  //  console.log('finish setting actions.');
 }
 
 StageBoard.prototype.start = function () {
@@ -377,8 +377,9 @@ SBImageButton.prototype.setPath = function (the_where_mouse) {
 
 // starting game..... 
 SBImageButton.prototype.startGame = function () {
- 
-
+	
+	my_g_world_id = this.my_world_map_id;
+	my_g_stage_id = this.my_sub_stage;
     //console.log('startGame.' + stage_id + this.my_sub_stage);
     // displaying gmae... 
 	if(this.my_world_map_id === -1){
@@ -532,7 +533,7 @@ STAGE_ASSET_MANAGER.queueDownload(ON_M_STAGE_7_PATH);
 var MY_STAGE_CANVAS;
 var my_stage_board;
 STAGE_ASSET_MANAGER.downloadAll(function () {
-    console.log("starting up da sheild");
+    //console.log("starting up da sheild");
     //var stage_canvas = document.getElementById('stage_board');
     MY_STAGE_CANVAS = document.getElementById('stage_board');
     var stage_ctx = MY_STAGE_CANVAS.getContext('2d');
