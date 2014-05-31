@@ -32,8 +32,8 @@ function leaderBoardUpdate(){
         var mySplitResult = callback.split("-");
 
          var div = document.getElementById('left-box');
-        for(var i =0; i< mySplitResult.length;i++){
-             div.innerHTML = div.innerHTML + "<a onClick= 'displayReplayGame("+json+")'><span>"+mySplitResult[i]+"</span></a>";
+        for(var i =0; i< mySplitResult.length;i+=2){
+             div.innerHTML = div.innerHTML + "<a onClick= 'displayReplayGame("+mySplitResult[i+1]+")'><span>"+mySplitResult[i]+"</span></a>";
         }      
      
     });
@@ -47,8 +47,8 @@ function leaderBoardUpdate(){
         var mySplitResult = callback.split("-");
 
          var div1 = document.getElementById('right-box');
-        for(var i =0; i< mySplitResult.length;i++){
-             div1.innerHTML = div1.innerHTML + "<span>"+mySplitResult[i]+"</span>";
+        for(var i =0; i< mySplitResult.length;i+=2){
+             div1.innerHTML = div1.innerHTML + "<a onClick= 'displayReplayGame("+mySplitResult[i+1]+")'><span>"+mySplitResult[i]+"</span></a>";
         }      
     });
 }

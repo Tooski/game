@@ -56,7 +56,17 @@
 }
 .left-box span{
     width:100%;
-    display:inline-block;  
+    display:inline-block; 
+    cursor: pointer;
+}
+.left-box a:hover{
+    background-color: red;
+}
+.left-box a:active{
+    background-color: yellow;
+}
+.left-box a:link{
+    background-color: #3498db;
 }
 
 .right_box{
@@ -72,6 +82,7 @@
 .right_box span{
     width:100%;
     display:inline-block;  
+    cursor: pointer;
 }
 .footer-container{
     border: 1px blue solid;
