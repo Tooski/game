@@ -6,6 +6,11 @@ function leaderBoardButtonAction() {
     displayWorldMap();
     
 }
+function getJsonReplayString(){
+    //call diplayReplayGame(str)
+}
+
+
 
 function leaderBoardUpdate(){
     var title = document.getElementById('title_container');
@@ -28,7 +33,7 @@ function leaderBoardUpdate(){
 
          var div = document.getElementById('left-box');
         for(var i =0; i< mySplitResult.length;i++){
-             div.innerHTML = div.innerHTML + "<a onClick= 'displayMainMenu()'><span>"+mySplitResult[i]+"</span></a>";
+             div.innerHTML = div.innerHTML + "<a onClick= 'displayReplayGame("+json+")'><span>"+mySplitResult[i]+"</span></a>";
         }      
      
     });
