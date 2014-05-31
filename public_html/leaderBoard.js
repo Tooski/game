@@ -1,5 +1,6 @@
 
 
+
 function leaderBoardButtonAction() {
     document.getElementById('left-box').innerHTML = null;
     
@@ -31,8 +32,7 @@ function leaderBoardButtonAction() {
     });
     //displayWorldMap();
 
-
 }
-;
+
 
 

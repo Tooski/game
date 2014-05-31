@@ -40,8 +40,10 @@ function displayGame(id){
 	document.getElementById("login_board").style.display = "none";
 	document.getElementById("leader_board").style.display = "none";
 	
+	my_g_game_id = id;
 	currentLevel.loadFromFile(id); 
 	blockDisplayGame();
+	console.log(	my_g_world_id +","+my_g_stage_id +","+my_g_game_id);
 	GameCanvas[0].focus(); // focus on game canvs.
 }
 
@@ -52,6 +54,16 @@ function displayLeaderBoard(){
 	document.getElementById("login_board").style.display = "none";
 	
 	document.getElementById("leader_board").style.display = "block";
+}
+
+
+function displayAboutBoard(){
+	MY_STAGE_CANVAS.style.display = "none";
+	MY_GAME_MANU_CANVAS.style.display = "none";
+	noneDisplayGame();
+	document.getElementById("login_board").style.display = "none";
+	document.getElementById("leader_board").style.display = "none";
+	
 }
 
 // to un-display.
