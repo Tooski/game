@@ -53,7 +53,7 @@ function displayLeaderBoard(){
 	MY_GAME_MANU_CANVAS.style.display = "none";
 	noneDisplayGame();
 	document.getElementById("login_board").style.display = "none";
-	
+	leaderBoardUpdate();
 	document.getElementById("leader_board").style.display = "block";
 }
 

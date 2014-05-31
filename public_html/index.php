@@ -93,14 +93,14 @@
 
         </div>
 <div class="outer-leaderboard-container" id="leader_board">
-            <div class="title-container">
+            <div class="title-container" id="title_container">
                 Top Times and Scores!!!
             </div>
-            <div class="sub-title-container">
-                <div class ="left-sub-title">
+            <div class="sub-title-container" id="sub-title-container">
+                <div class ="left-sub-title" id="left-sub-title">
                     Level 1: Points
                 </div>
-                <div class ="right-sub-title">
+                <div class ="right-sub-title" id="right-sub-title">
                     Level 1: Times
                 </div>
             </div>

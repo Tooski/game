@@ -2,11 +2,26 @@
 
 
 function leaderBoardButtonAction() {
+
+    displayWorldMap();
+    
+}
+
+function leaderBoardUpdate(){
+    var title = document.getElementById('title_container');
+    var left = document.getElementById('left-sub-title');
+    var right = document.getElementById('right-sub-title');
+    
+    title.innerHTML = "World " + my_g_stage_id + ", Top Times and Scores!!!";
+    
+    left.innerHTML = "Level "+ my_g_position_id+": Points";
+    right.innerHTML = "Level "+ my_g_position_id+": Times";
+    
     document.getElementById('left-box').innerHTML = null;
     document.getElementById('right-box').innerHTML = null;
     
     game.settings.get({"command": "topTenHighScore",
-        "data": {"levelID": "14"}},
+        "data": {"levelID": "14"}},//my_g_level_id
     function(callback) {
 
         var mySplitResult = callback.split("-");
@@ -15,14 +30,14 @@ function leaderBoardButtonAction() {
         for(var i =0; i< mySplitResult.length;i++){
              div.innerHTML = div.innerHTML + "<span>"+mySplitResult[i]+"</span>";
         }      
-        //div.appendChild(spanTag); 
+     
     });
 
 
 
 
     game.settings.get({"command": "topTenTime",
-        "data": {"levelID": "14"}},
+        "data": {"levelID": "14"}},//my_g_level_id
     function(callback) {
         var mySplitResult = callback.split("-");
 
@@ -31,8 +46,6 @@ function leaderBoardButtonAction() {
              div1.innerHTML = div1.innerHTML + "<span>"+mySplitResult[i]+"</span>";
         }      
     });
-    //displayWorldMap();
-
 }
 
 

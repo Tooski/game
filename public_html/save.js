@@ -192,6 +192,7 @@ function Save(terrainList) {
         });
     };
 
+
     var topTenTime = new MenuButton("top ten time");
     topTenTime.collider.onClick = function(e) {
         game.settings.get({"command": "topTenTime",
