@@ -51,6 +51,21 @@ function displayGame(id){
 	GameCanvas[0].focus(); // focus on game canvs.
 }
 
+function displayReplayGame(str){
+	MY_STAGE_CANVAS.style.display = "none";
+	MY_GAME_MANU_CANVAS.style.display = "none";
+	document.getElementById("login_board").style.display = "none";
+	document.getElementById("leader_board").style.display = "none";
+	document.getElementById("about_board").style.display = "none";
+	
+	 //my_g_level_id= id;
+	currentLevel.loadFromFile(my_g_level_id);
+	//physEng.loadReplay(str)
+	blockDisplayGame();
+	GameCanvas[0].focus(); // focus on game canvs.
+}
+
+
 function displayLeaderBoard(){
 	MY_STAGE_CANVAS.style.display = "none";
 	MY_GAME_MANU_CANVAS.style.display = "none";
