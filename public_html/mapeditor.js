@@ -1059,7 +1059,7 @@ MapEditor.prototype.createEditModeButton = function(ctx) {
         that.ctx.canvas.setHeight =  buttonSize;
         editMode = false;
     } else { 
-        that.ctx.canvas.setWidth = buttonListEnd.y;
+        that.ctx.canvas.setWidth = buttonListEnd.x;
         that.ctx.canvas.setHeight = buttonListEnd.y;
         editMode = true;
     }
@@ -1076,11 +1076,11 @@ MapEditor.prototype.createEditModeButton = function(ctx) {
 
 
 function checkBounds(p1, p2) {
-    
-  return (p1.x <= p2.x + graceSize &&
-         p1.x >= p2.x - graceSize &&
-         p1.y <= p2.y + graceSize &&
-         p1.y >= p2.y - graceSize);
+  var gs = graceSize / (editMode ? scaleSize : 1);
+  return (p1.x <= p2.x + gs  &&
+         p1.x >= p2.x - gs &&
+         p1.y <= p2.y + gs &&
+         p1.y >= p2.y - gs);
 };
 
 

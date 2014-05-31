@@ -461,15 +461,15 @@ GameEngine.prototype.addEntity = function(entity) {
  * @returns nothing.
  */
 function parallax(ctx, backgroundImage, offsetSpeed, position) {
-    var w = -position.x*offsetSpeed - backgroundImage.width ;
-    var movePositionX =  backgroundImage.width * Math.floor((w / backgroundImage.width) + 1)  - position.x;
+    var w = -position.x /(editMode ? scaleSize : 1) *offsetSpeed - backgroundImage.width ;
+    var movePositionX =  backgroundImage.width * Math.floor((w / backgroundImage.width) + 1)  - position.x /(editMode ? scaleSize : 1) ;
    
    
     var scale =  canvas.width/ initWidth * (initScale !== 0 ? initScale : 1) ;
-    for (w -= movePositionX; w < canvas.width / scale - position.x*offsetSpeed - movePositionX; w += backgroundImage.width) {
-        var h = -canvas.height * scale/2-position.y*offsetSpeed - backgroundImage.height;
-        var movePositionY =  backgroundImage.height * Math.floor((h / backgroundImage.height) + 1) -  position.y;
-        for (h -= movePositionY; h < canvas.height / scale - position.y*offsetSpeed - movePositionY; h  += backgroundImage.height) {
+    for (w -= movePositionX; w < canvas.width / scale / (editMode ? scaleSize : 1) - position.x /(editMode ? scaleSize : 1) *offsetSpeed - movePositionX; w += backgroundImage.width) {
+        var h = -canvas.height * scale/2-position.y /(editMode ? scaleSize : 1) *offsetSpeed - backgroundImage.height;
+        var movePositionY =  backgroundImage.height * Math.floor((h / backgroundImage.height) + 1) -  position.y /(editMode ? scaleSize : 1) ;
+        for (h -= movePositionY; h < canvas.height / scale / (editMode ? scaleSize : 1) - position.y /(editMode ? scaleSize : 1) *offsetSpeed - movePositionY; h  += backgroundImage.height) {
             ctx.drawImage(backgroundImage, w - canvas.width / scale/2,  h-canvas.height / scale/2);
         }
     }
@@ -518,12 +518,13 @@ GameEngine.prototype.draw = function(drawCallback) {
       
             }
             
-
             // initScale is the window's width / 16 / player width. this should allow everything to scale down
             // the player will be 1/16 the width of the window at all times and everything will scale with him.
-            ctx.scale(initScale * canvas.width / initWidth, initScale * canvas.width / initWidth);
+            
+          //  ctx.translate(   (initWidth/this.ctx.canvas.width) *this.ctx.canvas.width / 2/ initScale ,   (initWidth/this.ctx.canvas.width) * this.ctx.canvas.height / 2 / initScale );
+            ctx.scale((initScale * canvas.width / initWidth) * (editMode ? scaleSize : 1), (initScale * canvas.width / initWidth) * (editMode ? scaleSize : 1));
             //  ctxGUI.scale(initScale * canvas.width / initWidth, initScale * canvas.width / initWidth);
-      
+        //     ctx.translate( (initWidth/this.ctx.canvas.width) *-this.ctx.canvas.width/ initScale,  (initWidth/this.ctx.canvas.width) *-  this.ctx.canvas.height / initScale);
             var pos = this.player.model.pos;
         if(!editMode) {
             // Adjusts the canvas' move position as well as the post scaling.
@@ -536,8 +537,8 @@ GameEngine.prototype.draw = function(drawCallback) {
         } else {
             pos = this.editPos;
              this.ctx.translate(
-                    (initWidth/this.ctx.canvas.width) * this.ctx.canvas.width / initScale / 2 -  this.editPos.x, 
-                    (initWidth/this.ctx.canvas.width) * this.ctx.canvas.height / initScale / 2 - this.editPos.y);
+                    (initWidth/this.ctx.canvas.width) * this.ctx.canvas.width / initScale / 2 -  this.editPos.x /(editMode ? scaleSize : 1)  , 
+                    (initWidth/this.ctx.canvas.width) * this.ctx.canvas.height / initScale / 2 - this.editPos.y /(editMode ? scaleSize : 1) );
         }
         parallax(this.ctx, ASSET_MANAGER.cache[imagePaths[0]], 1 / 4, pos);
         parallax(this.ctx, ASSET_MANAGER.cache[imagePaths[1]], 1 / 2, pos);
@@ -1140,10 +1141,29 @@ ASSET_MANAGER.downloadAll(function() {
         }
         selectedItem = null;
     }, false);
+    
+    $(canvas).bind('mousewheel', function(event) {
+        if(editMode) {
+            if (event.originalEvent.wheelDelta >= 0) {
+                scaleSize += 0.1;
+                
+                
+            }
+            else {
+              
+                scaleSize -= 0.1;
+                
+                 if(scaleSize <= 0.25) scaleSize = 0.25;
+               
+            }
+            
+        }
+});
 
     
 });
 });
+var scaleSize = 1;
 
 var enemy = [
     [10,10], [30,30], [50,50]
@@ -1161,11 +1181,11 @@ function localToWorld(value, dimension) {
 
 
     if(dimension === "x")
-        return value / initScale - (initWidth/ctx.canvas.width) * 
-            ctx.canvas.width / initScale / 2 + gameEngine.editPos.x;
+        return (value / initScale/ (editMode ? scaleSize : 1) - (initWidth/ctx.canvas.width) * 
+            ctx.canvas.width / initScale / 2  + gameEngine.editPos.x);
     else if (dimension === "y") {
-        return value / initScale - (initWidth/ctx.canvas.width) * 
-            ctx.canvas.height / initScale / 2 + gameEngine.editPos.y;
+        return (value / initScale/ (editMode ? scaleSize : 1) - (initWidth/ctx.canvas.width) * 
+            ctx.canvas.height / initScale / 2  + gameEngine.editPos.y) ;
     }
 }
 
