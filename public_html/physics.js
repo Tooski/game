@@ -2171,11 +2171,13 @@ PhysEng.prototype.getTime = function () {
 
 
 
-PhysEng.prototype.loadReplay = function(inputEventList) {
-  this.primaryEventHeap = new MinHeap(inputEventList, function(e1, e2) {
-    return e1.time == e2.time ? 0 : e1.time < e2.time ? -1 : 1;
-  });
-  this.inReplay = true;
+PhysEng.prototype.loadReplay = function(jsonString) {
+  //this.primaryEventHeap = new MinHeap(inputEventList, function(e1, e2) {
+  //  return e1.time == e2.time ? 0 : e1.time < e2.time ? -1 : 1;
+  //});
+  //this.inReplay = true;
+  console.log("Awesome, trying to load a replay!");
+  console.log("recieved replay JSON: ", JSON.parse(jsonString));
 }
 	
 
