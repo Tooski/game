@@ -3,6 +3,7 @@
 
 function leaderBoardButtonAction() {
     document.getElementById('left-box').innerHTML = null;
+    document.getElementById('right-box').innerHTML = null;
     
     game.settings.get({"command": "topTenHighScore",
         "data": {"levelID": "14"}},
