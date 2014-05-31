@@ -385,7 +385,7 @@ SBImageButton.prototype.startGame = function () {
 	if(this.my_world_map_id === -1){
 		switch (this.my_sub_stage) {
 			case 0:
-				displayMainManu();
+				displayMainMenu();
 				break;
 			case 1:
 				my_stage_board.setWorldMapID(1);
