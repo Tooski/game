@@ -154,6 +154,9 @@ StageBoard.prototype.loop = function () {
 //--------------------------------------------------
 
 //------------------------ button node------------------------
+var my_g_world_id = null;
+var my_g_stage_id = null;
+var my_g_game_id = null;
 
 function SBImageButton() {
     this.my_sub_stage = null;
@@ -374,6 +377,8 @@ SBImageButton.prototype.setPath = function (the_where_mouse) {
 
 // starting game..... 
 SBImageButton.prototype.startGame = function () {
+ 
+
     //console.log('startGame.' + stage_id + this.my_sub_stage);
     // displaying gmae... 
 	if(this.my_world_map_id === -1){
