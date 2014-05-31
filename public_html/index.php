@@ -85,25 +85,20 @@
 
                 </div>
                 <div class="inner-bottom">
-                    <input type="button" value="Enter" onClick= "logInButtonAction()" >
+                    <input type="button" id="login_button" onClick= "logInButtonAction()" >
                 </div>
             </form>  
-        </div> -->
-		
-		
-		
+        </div> 		
         <!--end of div for login-->
+        
         <!--div for leader board-->
         <div class="outer-leaderboard-container" id="leader_board">
             <div class="title-container" id="title_container">
-                Top Times and Scores!!!
             </div>
             <div class="sub-title-container" id="sub-title-container">
                 <div class ="left-sub-title" id="left-sub-title">
-                    Level 1: Points
                 </div>
                 <div class ="right-sub-title" id="right-sub-title">
-                    Level 1: Times
                 </div>
             </div>
             <div class="body-container">
@@ -115,7 +110,7 @@
 
             </div>
             <div class="footer-container">
-                <button type="button" onClick= "leaderBoardButtonAction()" >Close</button>             
+                <button type="button" id="exit_button" onClick= "leaderBoardButtonAction()" ></button>             
             </div>
         </div>
         <!--end of div for leader board-->
@@ -128,7 +123,7 @@
 
             </div>
             <div class="inner-about-footer">
-                <button type="button" onClick= "displayMainManu()">Done</button>
+                <button type="button" id="exit_about_button" onClick= "displayMainManu()"></button>
             </div>
         </div>
         <!--end of div for about page-->
