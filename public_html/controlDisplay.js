@@ -15,7 +15,7 @@ function displayLogIN(){
 	document.getElementById("login_board").style.display = "block";
 }
 
-function displayMainManu(){
+function displayMainMenu(){
 	MY_STAGE_CANVAS.style.display = "none";
 	document.getElementById("login_board").style.display = "none";
 	document.getElementById("leader_board").style.display = "none";

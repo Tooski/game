@@ -10,7 +10,7 @@ function logInButtonAction() {
         console.log(callback);
         if (callback === "1") {
             my_user_name = input_user_name;
-            displayMainManu();
+            displayMainMenu();
             console.log("user is in db");
         } else {
             console.log("invalid name");

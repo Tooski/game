@@ -28,7 +28,7 @@ function leaderBoardUpdate(){
 
          var div = document.getElementById('left-box');
         for(var i =0; i< mySplitResult.length;i++){
-             div.innerHTML = div.innerHTML + "<span>"+mySplitResult[i]+"</span>";
+             div.innerHTML = div.innerHTML + "<a onClick= 'displayMainMenu()'><span>"+mySplitResult[i]+"</span></a>";
         }      
      
     });

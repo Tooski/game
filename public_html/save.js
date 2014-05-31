@@ -157,11 +157,13 @@ function Save(terrainList) {
         });
     };
 
+
+//should work add the replay column
     var insertScore = new MenuButton("insert score");
     insertScore.collider.onClick = function(e) {
         game.settings.post({"command": "insertScore",
             "data": {"userID": "1003", "levelID": "14",
-                "score": "4567", "completetime": "140000"}},
+                "score": "4567", "completetime": "140000","replay":"json string will go here for the replay"}},
         function(callback) {
             if (callback === "1") {
                 console.log("score inserted");
