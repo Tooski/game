@@ -67,14 +67,14 @@ function displayReplayGame(the_index){
 }
 
 
-function displayLeaderBoard(){
+function displayLeaderBoard(the_game_result){
 	MY_STAGE_CANVAS.style.display = "none";
 	MY_GAME_MANU_CANVAS.style.display = "none";
 	noneDisplayGame();
 	document.getElementById("login_board").style.display = "none";
 	document.getElementById("about_board").style.display = "none";
 	
-	leaderBoardUpdate();
+	leaderBoardUpdate(the_game_result);
 	document.getElementById("leader_board").style.display = "block";
 }
 
