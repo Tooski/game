@@ -10,9 +10,10 @@ function getJsonReplayString() {
     //call diplayReplayGame(str)
 }
 
-
+var my_jar_list= null;
 
 function leaderBoardUpdate() {
+	my_jar_list = [];
     var title = document.getElementById('title_container');
     var left = document.getElementById('left-sub-title');
     var right = document.getElementById('right-sub-title');
@@ -33,9 +34,8 @@ function leaderBoardUpdate() {
 
         var div = document.getElementById('left-box');
         for (var i = 0; i < mySplitResult.length - 1; i += 2) {
-           
-
-            div.innerHTML = div.innerHTML + "<span><a onClick= 'displayReplayGame(\"" + a + "\")'>" + mySplitResult[i] + "</a></span>";
+			my_jar_list.push( mySplitResult[i + 1]);
+            div.innerHTML = div.innerHTML + "<span><a onClick= 'displayReplayGame(\"" + Math.floor(i/2) + "\")'>" + mySplitResult[i] + "</a></span>";
         }
 
     });

@@ -52,16 +52,16 @@ function displayGame(id){
 	GameCanvas[0].focus(); // focus on game canvs.
 }
 
-function displayReplayGame(str){
+function displayReplayGame(the_index){
 	MY_STAGE_CANVAS.style.display = "none";
 	MY_GAME_MANU_CANVAS.style.display = "none";
 	document.getElementById("login_board").style.display = "none";
 	document.getElementById("leader_board").style.display = "none";
 	document.getElementById("about_board").style.display = "none";
-	console.log(str);
+	//console.log(my_jar_list[the_index]);
 	 //my_g_level_id= id;
 	currentLevel.loadFromFile(my_g_level_id);
-	gameEngine.physEng.loadReplay(str);
+	gameEngine.physEng.loadReplay(my_jar_list[the_index]);
 	blockDisplayGame();
 	//GameCanvas[0].focus(); // focus on game canvs.
 }
