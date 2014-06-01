@@ -164,11 +164,12 @@ GameEngine.prototype.initializePhysEng = function () {
   this.playerModel = new PlayerModel(this.controlParams, this.physParams, 0.0, DFLT_radius, new vec2(0, 0), new vec2(0, -0), new vec2(0, -0), null);
   this.physEng = new PhysEng(this, this.playerModel);
  
- 
 
  
  
   this.player.model = this.playerModel;              // backwards add a playerModel to player.
+    this.player.model.pos = currentLevel.startPoint;
+
   this.eventsSinceLastFrame = [];
 
       this.start();
@@ -1182,10 +1183,10 @@ function localToWorld(value, dimension) {
 
     if(dimension === "x")
         return (value / initScale/ (editMode ? scaleSize : 1) - (initWidth/ctx.canvas.width) * 
-            ctx.canvas.width / initScale / 2  + gameEngine.editPos.x);
+            ctx.canvas.width / initScale / 2  + gameEngine.editPos.x/ (editMode ? scaleSize : 1));
     else if (dimension === "y") {
         return (value / initScale/ (editMode ? scaleSize : 1) - (initWidth/ctx.canvas.width) * 
-            ctx.canvas.height / initScale / 2  + gameEngine.editPos.y) ;
+            ctx.canvas.height / initScale / 2  + gameEngine.editPos.y/ (editMode ? scaleSize : 1)) ;
     }
 }
 
