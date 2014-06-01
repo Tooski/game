@@ -635,6 +635,15 @@ GameEngine.prototype.update = function () {
   var display = time.toFixed(2);
   //ctx.fillText(min + ":" + add + sec,30,35);
   ctx2.fillText(display, 30, 35);
+  
+  if (!editMode) {
+    var score = document.getElementById('score');
+    score.style.display = '';
+  }
+  else {
+	var score = document.getElementById('score');
+    score.style.display = 'none';
+  }
 };
 
 GameEngine.prototype.loop = function () {
