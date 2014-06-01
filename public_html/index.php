@@ -123,7 +123,7 @@
 
             </div>
             <div class="inner-about-footer">
-                <button type="button" id="exit_about_button" onClick= "displayMainManu()"></button>
+                <button type="button" id="exit_about_button" onClick= "displayMainMenu()"></button>
             </div>
         </div>
         <!--end of div for about page-->
