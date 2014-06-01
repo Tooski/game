@@ -345,7 +345,7 @@ TerrainManager.prototype.addTerrain = function (editorLineArray) {
   var prev = first;
   for (var i = 1; i < lines.length; i++) {
     var converted = new TerrainLine(this.getNextTerrainLineNumber(), first.polyID, this.toLinePoint(lines[i].p0), this.toLinePoint(lines[i].p1), prev, null, lines[i].normal);
-    prev.adjacent0 = converted;
+    prev.adjacent1 = converted;
     if (this.terrainLines[converted.id]) {
       throw "what the hell, a TerrainLine already exists with this ID. Fix yo shit";
     }
