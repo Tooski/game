@@ -1,4 +1,3 @@
-
 /**
  * Jesus, Joe comment your code please for the love of all things holy this has been ridiculous to overhaul
  *
@@ -13,6 +12,8 @@ var buttonSize = 100;
 
 var button;
 var buttonList = [];
+var editMode = true;
+var editMovementSpeed = 10;
 
 
 var graceSize = 10;
@@ -230,6 +231,7 @@ function MapEditor(level, editMode) {
 
 MapEditor.prototype = new GUIEntity();
 MapEditor.constructor = MapEditor;
+
 
 
 MapEditor.prototype.draw = function (ctxGUI) {
@@ -726,7 +728,7 @@ MapEditor.prototype.createEraseButton = function () {
 
   erase.onClick = function (e) {
     var position = new vec2(localToWorld(e.offsetX, "x"), localToWorld(e.offsetY, "y"));
-
+    that.eraseFromArrayByClick(that.level, position);
   };
 
 };
@@ -774,45 +776,36 @@ MapEditor.prototype.createSaveButton = function (ctx) {
 };
 
 
-MapEditor.prototype.eraseFromArrayByClick = function (array, position) {
 
-  for (var i = 0; i < array.length; i++) {
 
-    if (array[i] && array[i].collidesWith(position, 10)) {
 
-      console.log("erasing from array, index " + i + ", item: ");
-      console.log(item);
-
-      var item = array[i];
-
-      array[i] = null;
-      if (item.polygonID) {
-        var start, itr;
-        itr = start = item;
-
-        while (itr.adjacent1 !== start) {
-          itr = itr.adjacent1;
-
-          delete array[itr.id];
+MapEditor.prototype.eraseFromArrayByClick = function (items, position) {
+    var array = items.terrainLines;
+    var points = items.points;
+    
+    for (var i = 0; i < array.length; i++) {
+    if(array[i]) {
+        if (array[i] && array[i].collidesWith(position, 10)) {
+            var start, itr, first;
+            start = itr = array[i];
+            while(!first || itr !== start) {
+                delete array[itr.id];
+                delete points[itr.id];
+                first = true;
+                itr = itr.adjacent1;
+            }        
+            break;
+            }
         }
-
-        delete that.level.polygons[item.polygonID];
-
-        that.level.removeFrom(itr);
-      }
-
-      that.level.removeFrom(item);
-      break;
     }
-  }
-}
+};
 
 
 
 
 MapEditor.prototype.resetCurrent = function () {
   this.level.tempLines = [];
-}
+};
 
 
 function findNormalByMouse(e, line) {
@@ -826,7 +819,7 @@ function findNormalByMouse(e, line) {
     oneNormal = oneNormal.negate();
   }
   return oneNormal;
-}
+};
 
 
 
@@ -1021,7 +1014,9 @@ MapEditor.prototype.createIncreaseSpeedButton = function () {
   inc.onRelease = function (e) {
     editMovementSpeed += 10;
   };
-}
+};
+
+
 
 
 MapEditor.prototype.createDecreaseSpeedButton = function () {
@@ -1031,7 +1026,9 @@ MapEditor.prototype.createDecreaseSpeedButton = function () {
     editMovementSpeed -= 10;
     if (editMovementSpeed <= 0) editMovementSpeed = 1;
   };
-}
+};
+
+
 
 
 MapEditor.prototype.createEditModeButton = function (ctx) {
@@ -1044,19 +1041,18 @@ MapEditor.prototype.createEditModeButton = function (ctx) {
       that.ctx.canvas.setWidth = buttonSize * 2;
       that.ctx.canvas.setHeight = buttonSize;
       editMode = false;
-      gameEngine.initializePhysEng();
-      GameCanvas[0].focus(); // focus on game canvs.
+    
     } else {
       that.ctx.canvas.setWidth = buttonListEnd.x;
       that.ctx.canvas.setHeight = buttonListEnd.y;
       editMode = true;
-
-      that.ctx.isEdited = true;
-      that.draw(that.ctx);
-      that.editMode = !that.editMode;
-      that.isSelected = button = null;
-      GameCanvas[0].focus(); // focus on game canvs.
     }
+  gameEngine.initializePhysEng();
+    that.ctx.isEdited = true;
+    that.draw(that.ctx);
+    that.editMode = !that.editMode;
+    that.isSelected = button = null;
+    canvas.focus();
   };
 };
 
