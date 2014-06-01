@@ -243,7 +243,7 @@ GameEngine.prototype.startInput = function () {
   }, false);
 
   this.ctx.canvas.addEventListener("keydown", function (e) {
-    if (!editMode) {
+    if (editMode) {
       //console.log(e.keyCode);
       //console.log(gameEngine.input);
       if (e.keyCode === gameEngine.input.leftKey && gameEngine.input.leftPressed === false) {
@@ -654,38 +654,47 @@ var restartButton;
 var optionsButton;
 var quitButton;
 
-GameEngine.prototype.pauseFill = function (ctx) {
-  ctx.beginPath();
-  ctx.fillStyle = "blue";
-  ctx.fillRect(25, 30, 300, 100);
-  ctx.stroke();
-  ctx.fillStyle = "white";
-  ctx.font = "40px Arial";
-  ctx.fillText("Resume", 100, 100);
+GameEngine.prototype.pauseFill = function(ctx) {
+    var button_height = (ctx4.canvas.height - 125) / 4;
+    var button_width = ctx4.canvas.width * 0.6;
+    var button_x = ctx4.canvas.width / 5;
+    var button_y = ctx4.canvas.height / 21;
 
-  ctx.beginPath();
-  ctx.fillStyle = "blue";
-  ctx.fillRect(25, 150, 300, 100);
-  ctx.stroke();
-  ctx.fillStyle = "white";
-  ctx.font = "40px Arial";
-  ctx.fillText("Restart", 110, 210);
+	resumeButton = new Button("Resume",button_x,button_width,button_y,button_height);
+	ctx.beginPath();
+    ctx.fillStyle="blue";
+    ctx.fillRect(button_x,button_y,button_width,button_height);
+    ctx.stroke();
+	ctx.fillStyle="white";
+	ctx.font =  "40px Arial";
+    ctx.fillText("Resume",100,100);
 
-  ctx.beginPath();
-  ctx.fillStyle = "blue";
-  ctx.fillRect(25, 270, 300, 100);
-  ctx.stroke();
-  ctx.fillStyle = "white";
-  ctx.font = "40px Arial";
-  ctx.fillText("Options", 110, 335);
+	restartButton = new Button("Restart",button_x,button_width,button_y * 6,button_height);
+	ctx.beginPath();
+    ctx.fillStyle="blue";
+    ctx.fillRect(button_x,button_y * 6,button_width,button_height);
+    ctx.stroke();
+	ctx.fillStyle="white";
+	ctx.font =  "40px Arial";
+    ctx.fillText("Restart",110,210);
 
-  ctx.beginPath();
-  ctx.fillStyle = "blue";
-  ctx.fillRect(25, 390, 300, 100);
-  ctx.stroke();
-  ctx.fillStyle = "white";
-  ctx.font = "40px Arial";
-  ctx.fillText("Quit", 135, 450);
+	optionsButton = new Button("Options",button_x,button_width,button_y * 11,button_height);
+	ctx.beginPath();
+    ctx.fillStyle="blue";
+    ctx.fillRect(button_x,button_y * 11,button_width,button_height);
+    ctx.stroke();
+	ctx.fillStyle="white";
+	ctx.font =  "40px Arial";
+    ctx.fillText("Options",110,335);
+
+	quitButton = new Button("Quit",button_x,button_width,button_y * 16,button_height);
+	ctx.beginPath();
+    ctx.fillStyle="blue";
+    ctx.fillRect(button_x,button_y * 16,button_width,button_height);
+    ctx.stroke();
+	ctx.fillStyle="white";
+	ctx.font =  "40px Arial";
+    ctx.fillText("Quit",135,450);
 }
 
 var returnButton = new Button("Return", 475, 825, 125, 215);
@@ -793,40 +802,30 @@ GameEngine.prototype.remapFill = function (ctx) {
 }
 
 //Button objects
-function Button(name, xL, xR, yT, yB, item, mX, mY, j) {
-  this.name = name;
-  this.x = this.ix = parseInt(xL);
-  this.w = this.iw = parseInt(xR);
-  this.y = this.iy = parseInt(yT);
-  this.h = this.ih = parseInt(yB);
-  this.mX = mX;
-  this.mY = mY;
-  this.item = item;
-  this.scale = function (e, i) {
-    return (e - parseInt(i)) * (canvas.width / initWidth) * initScale;
-    +25 * (j);
-  };
-  if (item)
-    this.updatePosition();
-  //    return {x:this.ix, y: this.iy, width: this.iw, height: this.ih};
+function Button (name,x,w,y,h) {
+	this.name = name;
+	this.x = parseInt(x);
+	this.w = parseInt(w);
+	this.y = parseInt(y);
+	this.h = parseInt(h);
+	console.log("Initialized. Name: " + this.name + ", X: " + this.x +", Y: " + this.y + ", W: " + this.w + ", H: " + this.h);
 }
 
-Button.prototype.updatePosition = function () {
+Button.prototype.checkClicked = function() {
+        console.log(mouseX, mouseY);
 
-  this.x = this.scale(this.ix, this.item.x) + this.mX();
-  this.y = this.scale(this.iy, this.item.y) + this.mY();
+	var left = this.x;
+	var right = this.x + this.w;
+	var top = this.y;
+	var bottom = this.y + this.h;
 
-}
-
-Button.prototype.checkClicked = function () {
-  console.log(mouseX, mouseY);
-  if (mouseX < this.x + this.w && mouseX > this.x && mouseY < this.y + this.h && mouseY > this.y) {
-    return true;
-  }
-  else {
-    console.log("xL: " + this.x + ", xR: " + (this.x + this.w) + ", yT: " + this.y + ", yB: " + (this.y + this.h));
-    return false;
-  }
+	if (mouseX < this.x + this.w && mouseX > this.x && mouseY < this.y + this.h && mouseY > this.y) {
+		return true;
+	}
+	else {
+		console.log("xL: " + this.x + ", xR: " + (this.x + this.w )+ ", yT: " + this.y + ", yB: " + (this.y + this.h ));
+		return false;
+	}
 };
 
 
@@ -1074,10 +1073,6 @@ ASSET_MANAGER.downloadAll(function () {
   };
   var item = { x: ctx4.canvas.style.left, y: ctx4.canvas.style.top };
   console.log(item);
-  resumeButton = new Button("Resume", 500, 300, 155, 100, item, pX, pY, 1);
-  restartButton = new Button("Restart", 500, 300, 275, 100, item, pX, pY, 2);
-  optionsButton = new Button("Options", 500, 300, 395, 100, item, pX, pY, 3);
-  quitButton = new Button("Quit", 500, 300, 515, 100, item, pX, pY, 4);
 
 
   (ctx2.canvas.style.left = parseInt(ctx.canvas.width) - guiPadding - ctx2.canvas.width);
