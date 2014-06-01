@@ -40,60 +40,6 @@ performance.now = (function () {
 
 
 
-//CONSTANTS
-var HALF_PI = Math.PI / 2.0;   // AKA 90 DEGREES IN RADIANS
-var HALF_PI_NEG = -Math.PI / 2.0;   // AKA 90 DEGREES IN RADIANS
-
-var TIME_EPSILON = 0.00000001;
-var TIME_EPSILON_SQ = TIME_EPSILON * TIME_EPSILON;
-var COLLISION_EPSILON_SQ = 0.0000; // fuck the police
-var ANGLE_EPSILON = 0.000001;
-//var ARC_RADIUS_PADDING = 0.001;
-
-
-//DEFAULT PHYSICS VALS, TWEAK HERE
-// WIDTH  = 1920 UNITS
-// HEIGHT = 1080 UNITS
-var DFLT_gravity = 00;        // FORCE EXERTED BY GRAVITY IS 400 ADDITIONAL UNITS OF VELOCITY DOWNWARD PER SECOND. 
-
-var DFLT_lockThreshold = 1000;
-var DFLT_autoLockThreshold = 700;
-
-var DFLT_pointLockRoundMinAngle = -(45                 / 180) * Math.PI + Math.PI;            //TODO add to shit
-
-
-//angle between surfaces at which the player continues onto the next surface whether locked or not.
-var DFLT_surfaceSnapAngle = -(45               / 180) * Math.PI + Math.PI;
-
-var DFLT_JUMP_HOLD_TIME = 0.15; // To jump full height, jump must be held for this long. Anything less creates a fraction of the jump height based on the fraction of the full time the button was held. TODO implement.
-
-// CONST ACCEL INPUTS
-var DFLT_gLRaccel = 800;
-var DFLT_aLRaccel = 600;
-var DFLT_aUaccel = 300;
-var DFLT_aDaccel = 300;
-var DFLT_gUaccel = 300;
-var DFLT_gDaccel = 300;
-var DFLT_gBoostLRvel = 1500;
-var DFLT_aBoostLRvel = 1500;
-var DFLT_aBoostDownVel = 1500;
-
-// CONST PULSE INPUTS
-var DFLT_jumpVelNormPulse = 600;
-var DFLT_doubleJumpVelYPulse = 600;
-var DFLT_doubleJumpVelYMin = 600;
-
-// OTHER CHAR DEFAULTS
-var DFLT_numAirCharges = 1;
-var DFLT_radius = 1920 / 32;
-
-// CONST RATIOS
-var DFLT_jumpSurfaceSpeedLossRatio = 0.7;   // When jumping from the ground, the characters velocity vector is decreased by this ratio before jump pulse is added. 
-var DFLT_bounceSpeedLossRatio = 0.9;
-var DFLT_reverseAirJumpSpeed = 300;
-
-
-
 /*
  * The fraction of player radius that our max movement distance will be.
 */
@@ -504,22 +450,8 @@ function PlayerModel(controlParams, physParams, time, radius, pos, vel, accel, s
 
     var surface = this.surface;
     var baseForceNormalized = baseForceVec.normalize();
-    //console.log("");
-    //console.log("");
-    //console.log("in updateVecsGround(),  surface: ", surface);
-    //console.log("surface.getNormalAt(this.pos, this.radius), ", surface.getNormalAt(this.pos, this.radius));
-    //console.log("baseForceVec.lengthsq(), ", baseForceVec.lengthsq());
     var angleToNormal = Math.acos(surface.getNormalAt(this.pos, this.radius).dot(baseForceNormalized));
 
-    //if (angleToNormal > HALF_PI) {
-    //  console.log("GREATER angleToNormal, ", angleToNormal)
-    //} else if (angleToNormal < -HALF_PI) {
-    //  console.log("LESSER  angleToNormal, ", angleToNormal)
-
-    //} else {
-    //  console.log("BETWEEN angleToNormal, ", angleToNormal)
-
-    //}
 
 
     if (baseForceVec.lengthsq() === 0) {
@@ -534,14 +466,14 @@ function PlayerModel(controlParams, physParams, time, radius, pos, vel, accel, s
       
     } else if (angleToNormal >= HALF_PI || angleToNormal <= -HALF_PI) {          // If the baseForceVec is pushing us towards the surface we're on:
       //console.log("   we are being pushed TOWARDS the surface we are on.");
+
       // WE ASSUME PLAYER'S VELOCITY VECTOR IS ALREADY ALIGNED WITH THE SURFACE.
       // ___+____+____+___ magnitude acceleration along a sloped surface = magnitude of force * sin(angle between force and surface normal)
       var surfaceDir = surface.getSurfaceAt(this.pos, this.radius);
-      //console.log("surfaceDir: ", surfaceDir);
+
       this.accel = projectVec2(baseForceVec, surfaceDir);
       this.predictedDirty = true;
-      //console.log("this.accel: ", this.accel);
-      //var angleToSurface = Math.acos(surfaceVec.normalize().dot(baseForceNormalized));
+
     } else  {  // we are being pushed away from the surface we are on. Updating states to have left the ground, and then calling updateAirStates.
       //console.log("   we are being pushed AWAY from the surface we are on. Simply calling updateAirStates.");
       this.doNotCheckStepSurfaces.push(this.surface);
@@ -941,7 +873,7 @@ function PhysEng(gameEngine, playerModel) {
 
   // The level terrainManager.
   this.tm = currentLevel;
-  //this.player.pos = this.tm.playerStartPos;    //sets player position to the level starting position.
+  this.player.pos = this.tm.startPoint;    //sets player position to the level starting position.
 
   this.timeMgr = new TimeManager(0.0, 0.0, 0.0, 1); // TODO DO THE THING
 
@@ -965,7 +897,8 @@ function PhysEng(gameEngine, playerModel) {
   //  return e1.time == e2.time ? 0 : e1.time < e2.time ? -1 : 1;
   //});
 	
-	
+
+
 }
 
 
@@ -1248,14 +1181,14 @@ PhysEng.prototype.attemptAngularStep = function (goalGameTime) {
     normalState = convertAngularToNormalState(tempState);
 
 
-    collisionList = getCollisionsInList(normalState, this.tm.terrainList, doNotCheck);    //TODO MINIMIZE THIS LIST SIZE, THIS IS IDIOTIC
+    collisionList = this.tm.getTerrainCollisions(normalState, doNotCheck);
 
     //console.log("      tweenStepping, i: ", i, " tweenTime: ", tweenTime);
   }
 
   var events = [];
   if (collisionList.length > 0) {   // WE COLLIDED WITH STUFF AND EXITED THE LOOP EARLY, handle.
-    throw "collided in angular step";
+    throw "collided in angular step, no handler yet. Dont build levels like this for now.";
     events = this.findEventsAndTimesFromCollisions(collisionList);         // a bunch of TerrainCollisionEvent's hopefully?
     tempState = events[0].state;
     //this.resetPredicted();
@@ -1273,12 +1206,11 @@ PhysEng.prototype.attemptAngularStep = function (goalGameTime) {
     tempState = stepAngularStateToTime(this.player, tweenTime);
 
     normalState = convertAngularToNormalState(tempState);
-    
-    collisionList = getCollisionsInList(normalState, this.tm.terrainList, doNotCheck);    //TODO MINIMIZE THIS LIST SIZE, THIS IS IDIOTIC
-    //console.log(this.tm.terrainList);
-    //console.log(this.tm);
+
+    collisionList = this.tm.getTerrainCollisions(normalState, doNotCheck);
+
     if (collisionList.length > 0) {   // WE COLLIDED WITH STUFF ON FINAL STEP.
-      throw "collided in angular step";
+      throw "collided in angular step, no handler yet. Dont build levels like this for now.";
       events = this.findEventsAndTimesFromCollisions(collisionList);
       tempState = events[0].state;
       //this.resetPredicted();
@@ -1290,7 +1222,7 @@ PhysEng.prototype.attemptAngularStep = function (goalGameTime) {
   }
 
 
-  var results = new StepResult(tempState, events);
+  var results = new StepResult(tempState, events);                                                                                                        // INSTEAD SET RESULTS FIELDS IN PHYSENG, ONE FOR EACH TYPE.
   //console.log("  End attemptAngularStep, results", results);
   return results;
 }
@@ -1336,7 +1268,7 @@ PhysEng.prototype.attemptNormalStep = function (goalGameTime) {
     tweenTime = startGameTime + stepFraction * deltaTime;
 
     tempState = stepStateToTime(this.player, tweenTime);
-    collisionList = getCollisionsInList(tempState, this.tm.terrainList, doNotCheck);    //TODO MINIMIZE THIS LIST SIZE, THIS IS IDIOTIC
+    collisionList = this.tm.getTerrainCollisions(tempState, doNotCheck);
 
     //console.log("      tweenStepping, i: ", i, " tweenTime: ", tweenTime);
   }
@@ -1358,8 +1290,8 @@ PhysEng.prototype.attemptNormalStep = function (goalGameTime) {
     tweenTime = goalGameTime;
     //console.log("  finalStepping, i: ", stepCount, " tweenTime: ", tweenTime);
     tempState = stepStateToTime(this.player, tweenTime);
-    collisionList = getCollisionsInList(tempState, this.tm.terrainList, doNotCheck);    //TODO MINIMIZE THIS LIST SIZE, THIS IS IDIOTIC
-    //console.log(this.tm.terrainList);
+    collisionList = this.tm.getTerrainCollisions(tempState, doNotCheck);
+
     //console.log(this.tm);
     if (collisionList.length > 0) {   // WE COLLIDED WITH STUFF ON FINAL STEP.
       events = this.findEventsAndTimesFromCollisions(collisionList);
@@ -2198,6 +2130,7 @@ PhysEng.prototype.drawDebug = function (ctx) {
     ctx.miterLimit = 3;
 
     if (this.player.onSurface) {
+      //surface
       ctx.strokeStyle = "maroon";
       ctx.lineWidth = 6;
       ctx.beginPath();
@@ -2205,6 +2138,26 @@ PhysEng.prototype.drawDebug = function (ctx) {
       ctx.moveTo(surface.p0.x, surface.p0.y);
       ctx.lineTo(surface.p1.x, surface.p1.y)
       ctx.stroke();
+
+
+      //adj0
+      ctx.strokeStyle = "white";
+      ctx.lineWidth = 6;
+      ctx.beginPath();
+      var surface = this.player.surface.adjacent0;
+      ctx.moveTo(surface.p0.x, surface.p0.y);
+      ctx.lineTo(surface.p1.x, surface.p1.y)
+      ctx.stroke();
+
+      //adj1
+      ctx.strokeStyle = "gray";
+      ctx.lineWidth = 6;
+      ctx.beginPath();
+      var surface = this.player.surface.adjacent1;
+      ctx.moveTo(surface.p0.x, surface.p0.y);
+      ctx.lineTo(surface.p1.x, surface.p1.y)
+      ctx.stroke();
+
     }
 
     ctx.strokeStyle = "pink";
@@ -2320,22 +2273,26 @@ function getNewPrimaryHeap() {
 // Checks to see if array a contains Object obj.
 function contains(a, obj) {
   //if (!(obj.id) || a.length === 0 || !a) {
-  if (!(obj.id)) {
+
+  if (obj && !(obj.id)) {
     console.log("obj w/ no ID: ", obj);
     console.log("array: ", a);
     throw "!obj.id, ^";
   }
-  var i = a.length;
-  while (i--) {
-    //console.log("obj contained: ", obj);
-    //console.log("array: ", a);
-    if (a[i].id === obj.id) {
-      return true;
-    } else {
 
+  if (obj) {
+    var i = a.length;
+    while (i--) {
+      //console.log("obj contained: ", obj);
+      //console.log("array: ", a);
+      if (a[i].id === obj.id) {
+        return true;
+      } else {
+
+      }
     }
+    return null;
   }
-  return null;
 }
 
 
@@ -2343,7 +2300,13 @@ function contains(a, obj) {
 
 function pushAllAIntoB(a, b) {
   for (var i = 0; i < a.length; i++) {
-    b.push(a[i]);
+    if (a[i]) {
+      b.push(a[i]);
+    } else {
+      console.log("a[i]", a[i]);
+      throw "bad a[i] ???";
+    }
+    
   }
 }
 
@@ -2414,11 +2377,11 @@ CHILD.prototype.method = function () {
 
 
 // how2accessNewTerrain
-//function TerrainCircular(circular, closedTerrain) {
+//function Polygon(polygon, closedTerrain) {
 //  //Entity.call();
-//  this.circular = circular;
-//  for (var item in this.circular) {
-//    this.circular[item].circularID = this.id;
+//  this.polygon = polygon;
+//  for (var item in this.polygon) {
+//    this.polygon[item].polygonID = this.id;
 //  }
 //  closedTerrain.push(this);
 //}
@@ -2587,5 +2550,4 @@ function animationUpdateAnimation(p, gameTime) {
     p.animationAngle = surfaceVec.sangle();
   }
 }
-
 

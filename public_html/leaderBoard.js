@@ -59,6 +59,9 @@ function leaderBoardUpdate(the_result) {
 			+ (my_jar_list.length -1) + "\")'>" + mySplitResult[i] + "</a></span>";
         }
     });
+
+	
+	my_stage_board.setPoint(my_g_stage_id, my_g_position_id, the_result[0]);
 }
 
 

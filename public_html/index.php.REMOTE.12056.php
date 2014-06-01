@@ -66,15 +66,15 @@
 		
         <canvas id="time" style= "display : none; position:absolute; z-index: 2;  left:1150px; top:25px; background: white" height="50px" width="100px"></canvas>
 		<canvas id="score" style="display : none; position:absolute; z-index: 2;  left:25px; top:25px; background: white" height="50px" width="100px"></canvas>
-		<canvas id="pause" style="display : none; position:absolute; z-index: 2; background: white; display: none" height="525" width="350"></canvas>
-		<canvas id="remap" style="display : none; position:absolute; z-index: 3; background: white; display: none" height="550" width="375"></canvas>
+		<canvas id="pause" style="display : none; position:absolute; z-index: 2; left:475px; top:125px; background: white; display: none" height="525" width="350"></canvas>
+		<canvas id="remap" style="display : none; position:absolute; z-index: 3; left:475px; top:125px; background: white; display: none" height="525" width="350"></canvas>
 
 	<div>
 				<script src="classie.js"></script>
 		        <canvas id="gameWorld" style="border: 0px solid brown; background: white; display : none"></canvas>
 
-            <canvas id="game_manu_board" style= "display : block; position: absolute; " width="400" height="350"></canvas>
-            <canvas id="stage_board" style= "display : none; position: absolute; " width="400" height="350"></canvas>
+            <canvas id="game_manu_board" style= "display : none; position: absolute; " width="400" height="350"></canvas>
+            <canvas id="stage_board" style= "display : block; position: absolute; " width="400" height="350"></canvas>
 	</div>
         <!--div for login-->
         <div class="outer-container" id="login_board" style= "display : none">

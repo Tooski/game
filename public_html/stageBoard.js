@@ -63,7 +63,28 @@ StageBoard.prototype.pushButton = function (the_button) {
     this.my_image_button_arr.push(the_button);
     //console.log(this.my_image_button_arr.length);
 }
+StageBoard.prototype.setPoint = function (the_world_id, the_stage_id, the_score) {
+    var k = null;
+	for (i = 0; i < this.my_image_button_arr.length; i++) {
+        if (k = this.my_image_button_arr[i].checkButton(the_world_id, the_stage_id)) {
+            break;
 
+        }
+    }
+	
+	if(k){
+		k.setPoint(the_score);
+	}
+	
+}
+
+StageBoard.prototype.reSetPoint = function () {
+    var k = null;
+	for (i = 0; i < this.my_image_button_arr.length; i++) {
+        this.my_image_button_arr[i].setPoint(0);
+
+    }
+}
 StageBoard.prototype.setActions = function () {
   //  console.log('start setting actions.');
 
@@ -154,14 +175,12 @@ StageBoard.prototype.loop = function () {
 //--------------------------------------------------
 
 //------------------------ button node------------------------
-var my_g_stage_id = null;
-var my_g_position_id = null;
-var my_g_level_id = null;
+
 
 function SBImageButton() {
     this.my_sub_stage = null;
     this.my_world_map_id = null;
-    this.my_point = 11;// need to set up by 0... later
+    this.my_point = 0;// need to set up by 0... later
 	
     this.my_left_top = { x: null, y: null };
     this.my_scales = { width: null, height: null };
@@ -170,7 +189,11 @@ function SBImageButton() {
     this.my_prev_buttons_arr = [];
     this.my_icon_path = null;
 }
-
+SBImageButton.prototype.checkButton = function (the_world_id, the_stage_id) {
+    if(this.my_world_map_id === the_world_id && this.my_sub_stage === the_stage_id){
+		return this;
+	}
+}
 // setting the point
 SBImageButton.prototype.setPoint = function (the_point) {
     this.my_point = the_point;
@@ -477,7 +500,12 @@ SBImageButton.prototype.startGame = function () {
 
 // setting up step up point.
 // if the current point > this, will can paly next level.
-var STEP_UP_POINT = 10;
+var STEP_UP_POINT = 1;
+var my_g_stage_id = null;
+var my_g_position_id = null;
+var my_g_level_id = null;
+
+
 var STAGE_ASSET_MANAGER = new AssetManager();
 
 var ST_BOARD_BACK_PATH = "./img/bg_stage_board.png";
