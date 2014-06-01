@@ -52,7 +52,7 @@ function AssetManager() {
 }
 
 AssetManager.prototype.queueDownload = function (path) {
-  console.log(path.toString());
+  //console.log(path.toString());
   this.downloadQueue.push(path);
 }
 
@@ -67,7 +67,7 @@ AssetManager.prototype.downloadAll = function (callback) {
     var img = new Image();
     var that = this;
     img.addEventListener("load", function () {
-      console.log("dun: " + this.src.toString());
+    //  console.log("dun: " + this.src.toString());
       that.successCount += 1;
       if (that.isDone()) {
         callback();

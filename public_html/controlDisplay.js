@@ -10,7 +10,8 @@ function displayLogIN(){
 	MY_GAME_MANU_CANVAS.style.display = "none";
 	noneDisplayGame();
 	document.getElementById("leader_board").style.display = "none";
-	//document.getElementById("about_board").style.display = "none";
+	document.getElementById("about_board").style.display = "none";
+	document.getElementById('mapEditor').style.display = "none";
 	
 	document.getElementById("login_board").style.display = "block";
 }
@@ -21,6 +22,7 @@ function displayMainMenu(){
 	document.getElementById("leader_board").style.display = "none";
 	document.getElementById("about_board").style.display = "none";
 	noneDisplayGame();
+	document.getElementById('mapEditor').style.display = "none";
 	
 	MY_GAME_MANU_CANVAS.style.display = "block";
 }
@@ -31,7 +33,7 @@ function displayWorldMap(){
 	document.getElementById("leader_board").style.display = "none";
 	document.getElementById("about_board").style.display = "none";
 	noneDisplayGame();
-	
+	document.getElementById('mapEditor').style.display = "none";
 	
 	my_stage_board.setWorldMapID(1);
 	MY_STAGE_CANVAS.style.display = "block";
@@ -44,10 +46,26 @@ function displayGame(id){
 	document.getElementById("login_board").style.display = "none";
 	document.getElementById("leader_board").style.display = "none";
 	document.getElementById("about_board").style.display = "none";
+	document.getElementById('mapEditor').style.display = "none";
 	
 	my_g_level_id = id;
 	//console.log(my_g_level_id);
         currentLevel.loadFromFile(id); 
+	blockDisplayGame();
+	GameCanvas[0].focus(); // focus on game canvs.
+}
+
+function displayCustomGame(){
+	MY_STAGE_CANVAS.style.display = "none";
+	MY_GAME_MANU_CANVAS.style.display = "none";
+	document.getElementById("login_board").style.display = "none";
+	document.getElementById("leader_board").style.display = "none";
+	document.getElementById("about_board").style.display = "none";
+	
+	document.getElementById('mapEditor').style.display = "block";
+	//--- this should be fix later... just showing 
+	currentLevel.loadFromFile(); 
+	//---------------------------------
 	blockDisplayGame();
 	GameCanvas[0].focus(); // focus on game canvs.
 }
@@ -59,6 +77,7 @@ function displayReplayGame(the_index){
 	document.getElementById("login_board").style.display = "none";
 	document.getElementById("leader_board").style.display = "none";
 	document.getElementById("about_board").style.display = "none";
+	document.getElementById('mapEditor').style.display = "none";
 	//console.log(my_jar_list[the_index]);
 	//console.log(the_index);
 	 //my_g_level_id= id;
@@ -75,6 +94,7 @@ function displayLeaderBoard(the_game_result){
 	noneDisplayGame();
 	document.getElementById("login_board").style.display = "none";
 	document.getElementById("about_board").style.display = "none";
+	document.getElementById('mapEditor').style.display = "none";
 	
 	leaderBoardUpdate(the_game_result);
 	document.getElementById("leader_board").style.display = "block";
@@ -87,6 +107,7 @@ function displayAboutBoard(){
 	noneDisplayGame();
 	document.getElementById("login_board").style.display = "none";
 	document.getElementById("leader_board").style.display = "none";
+	document.getElementById('mapEditor').style.display = "none";
 	
 	document.getElementById("about_board").style.display = "block";
 }

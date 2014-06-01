@@ -14,7 +14,9 @@ function CanvasFactory(canvasItems) {
         canvas.style.top      = canvasItems.y || 0;
         canvas.style.zIndex   = canvasItems.z || 1;
         canvas.style.position = "absolute";
-        
+		//-- Min editted this line
+		canvas.style.display = "none";
+        //------
         if(canvasItems.isGUI !== false) {
             var selectedItem;
             canvas.addEventListener('mousedown', function(e) {
