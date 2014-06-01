@@ -218,18 +218,17 @@ GMImageButton.prototype.playButton = function () {
 
     switch (this.my_manu_type) {
         case 1:
-		 displayWorldMap();
             // to world map
             // un-display play game manu canvas
-       //     MY_GAME_MANU_CANVAS.style.display = "none";
+            MY_GAME_MANU_CANVAS.style.display = "none";
 			
             // dispaly the world map canvase 
-        //    MY_STAGE_CANVAS.style.display = "block";
+            MY_STAGE_CANVAS.style.display = "block";
             //.... just incase dislay = "non for any other screen for gaming later...."
-		//	noneDisplayGame();
+			noneDisplayGame();
 			//canvas.style.display = "none";
 			
-		//	my_stage_board.setWorldMapID(1);
+			my_stage_board.setWorldMapID(1);
             break;
         case 2: // open up costom game.
 			
@@ -238,11 +237,9 @@ GMImageButton.prototype.playButton = function () {
             // to custom game manu. open up canvas for custom game...
             break;
         case 3:
-		
             // to about...
             break;
         case 4:
-			displayLogIN();
             // log out...
             break;
     }
