@@ -222,20 +222,13 @@ GMImageButton.prototype.playButton = function () {
 			displayWorldMap();
             break;
         case 2: // open up costom game.
-		
-			// right now... for testing... leader board...
-			// latter it should be show up custom game.
-			//displayLeaderBoard();
-
-            // to custom game manu. open up canvas for custom game...
+			displayCustomGame();
             break;
         case 3: // show about board.
 			displayAboutBoard();
-          
             break;
         case 4:  // log out.. so show log in....
 			displayLogIN();
-
             break;
     }
 
