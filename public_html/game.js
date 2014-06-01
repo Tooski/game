@@ -1101,8 +1101,8 @@ ASSET_MANAGER.downloadAll(function () {
 
   canvas3 = document.getElementById('score');
   ctx3 = canvas3.getContext('2d');
-  (ctx3.canvas.style.left = guiPadding);
-  (ctx3.canvas.style.top = guiPadding);
+  //(ctx3.canvas.style.left = guiPadding);
+  //(ctx3.canvas.style.top = guiPadding);
   canvas4 = document.getElementById('pause');
   ctx4 = canvas4.getContext('2d');
   ctx4.canvas.addEventListener('click', pauseClicked, false);
@@ -1139,6 +1139,8 @@ ASSET_MANAGER.downloadAll(function () {
 
   (ctx2.canvas.style.left = parseInt(ctx.canvas.width) - guiPadding - ctx2.canvas.width);
   (ctx2.canvas.style.top = guiPadding);
+  (ctx3.canvas.style.left = parseInt(ctx.canvas.width) - guiPadding - ctx3.canvas.width);
+  (ctx3.canvas.style.top = guiPadding + 70);
   (ctx4.canvas.style.left = (canvas.width / 2 - ctx4.canvas.width / 2));
   (ctx4.canvas.style.top = (canvas.height / 2 - ctx4.canvas.height / 2));
   (ctx5.canvas.style.left = (canvas.width / 2 - ctx4.canvas.width / 2));
