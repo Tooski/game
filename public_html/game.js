@@ -1143,8 +1143,8 @@ ASSET_MANAGER.downloadAll(function () {
   (ctx3.canvas.style.top = guiPadding + 70);
   (ctx4.canvas.style.left = (canvas.width / 2 - ctx4.canvas.width / 2));
   (ctx4.canvas.style.top = (canvas.height / 2 - ctx4.canvas.height / 2));
-  (ctx5.canvas.style.left = (canvas.width / 2 - ctx4.canvas.width / 2));
-  (ctx5.canvas.style.top = (canvas.height / 2 - ctx4.canvas.height / 2));
+  (ctx5.canvas.style.left = (canvas.width / 2 - ctx5.canvas.width / 2));
+  (ctx5.canvas.style.top = (canvas.height / 2 - ctx5.canvas.height / 2));
   (stage.canvas.style.left = (canvas.width / 2 - stage.canvas.width / 2));
   (stage.canvas.style.top = (canvas.height / 2 - stage.canvas.height / 2));
   (main.canvas.style.left = (canvas.width / 2 - main.canvas.width / 2));
