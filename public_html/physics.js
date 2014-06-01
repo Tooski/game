@@ -873,7 +873,7 @@ function PhysEng(gameEngine, playerModel) {
 
   // The level terrainManager.
   this.tm = currentLevel;
-  //this.player.pos = this.tm.playerStartPos;    //sets player position to the level starting position.
+  this.player.pos = this.tm.startPoint;    //sets player position to the level starting position.
 
   this.timeMgr = new TimeManager(0.0, 0.0, 0.0, 1); // TODO DO THE THING
 
@@ -897,7 +897,8 @@ function PhysEng(gameEngine, playerModel) {
   //  return e1.time == e2.time ? 0 : e1.time < e2.time ? -1 : 1;
   //});
 	
-	
+
+
 }
 
 
@@ -2123,6 +2124,7 @@ PhysEng.prototype.drawDebug = function (ctx) {
     ctx.miterLimit = 3;
 
     if (this.player.onSurface) {
+      //surface
       ctx.strokeStyle = "maroon";
       ctx.lineWidth = 6;
       ctx.beginPath();
@@ -2130,6 +2132,26 @@ PhysEng.prototype.drawDebug = function (ctx) {
       ctx.moveTo(surface.p0.x, surface.p0.y);
       ctx.lineTo(surface.p1.x, surface.p1.y)
       ctx.stroke();
+
+
+      //adj0
+      ctx.strokeStyle = "white";
+      ctx.lineWidth = 6;
+      ctx.beginPath();
+      var surface = this.player.surface.adjacent0;
+      ctx.moveTo(surface.p0.x, surface.p0.y);
+      ctx.lineTo(surface.p1.x, surface.p1.y)
+      ctx.stroke();
+
+      //adj1
+      ctx.strokeStyle = "gray";
+      ctx.lineWidth = 6;
+      ctx.beginPath();
+      var surface = this.player.surface.adjacent1;
+      ctx.moveTo(surface.p0.x, surface.p0.y);
+      ctx.lineTo(surface.p1.x, surface.p1.y)
+      ctx.stroke();
+
     }
 
     ctx.strokeStyle = "pink";
@@ -2522,5 +2544,4 @@ function animationUpdateAnimation(p, gameTime) {
     p.animationAngle = surfaceVec.sangle();
   }
 }
-
 

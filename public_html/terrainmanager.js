@@ -326,6 +326,16 @@ TerrainManager.prototype.addCollectible = function (point) {
 TerrainManager.prototype.addTerrain = function (editorLineArray) {
   var lines = editorLineArray;
 
+  for (var i = 0; i < editorLineArray.length; i++) { 
+    console.log("line " + i + "  id " + editorLineArray[i].id + "  adjacent0 id " + editorLineArray[i].adjacent0.id + "  adjacent1 id " + editorLineArray[i].adjacent1.id);
+
+  }
+
+
+
+
+
+
   var first = new TerrainLine(this.getNextTerrainLineNumber(), this.getNextPolygonNumber(), this.toLinePoint(lines[0].p0), this.toLinePoint(lines[0].p1), null, null, lines[0].normal);
   if (this.terrainLines[first.id]) {
     throw "what the hell, a TerrainLine already exists with this ID. Fix yo shit";
@@ -346,7 +356,19 @@ TerrainManager.prototype.addTerrain = function (editorLineArray) {
   first.adjacent0 = prev;
   prev.adjacent1 = first;
   this.modified = true;
-  console.log(this.terrainLines);
+  //console.log(this.terrainLines);
+  
+  for (var i = 0; i < this.terrainLines.length; i++) {
+    if (this.terrainLines[i]) {
+      console.log("TerrainLine " + i + "  id " + this.terrainLines[i].id + "  adjacent0 id " + this.terrainLines[i].adjacent0.id + "  adjacent1 id " + this.terrainLines[i].adjacent1.id);
+    }
+  }
+  for (var i = 0; i < this.terrainLines.length; i++) {
+    if (this.terrainLines[i]) {
+      //console.log("     points " + i + "  id " + this.terrainLines[i].id + "  p0 " + this.terrainLines[i].p0.x + ", " + this.terrainLines[i].p0.y + "  p1 " + this.terrainLines[i].p1.x + ", " + this.terrainLines[i].p1.y);
+      console.log("     points " + i + "  id " + this.terrainLines[i].id + "  p0 " + this.terrainLines[i].p0.id + "  p1 " + this.terrainLines[i].p1.id);
+    }
+  }
 }
 
 
@@ -481,7 +503,7 @@ TerrainManager.prototype.addKillZone = function (editorLineArray) {
 
 
 var POINT_COLOR = "#FFFFFF";
-var POINT_SIZE = 6;
+var POINT_SIZE = 8;
 var DRAW_POINTS = true;
 
 var LINE_WIDTH = 6;
@@ -509,10 +531,10 @@ TerrainManager.prototype.draw = function (ctx) {
   drawLineArray(ctx, this.tempLines, "#222222", LINE_WIDTH, LINE_JOIN, LINE_CAP);
 
 
-  drawLineArray(ctx, this.terrainLines, TERRAIN_LINE_COLOR, LINE_WIDTH, LINE_JOIN, LINE_CAP);
-  drawLineArray(ctx, this.goalLines, GOAL_LINE_COLOR, LINE_WIDTH, LINE_JOIN, LINE_CAP);
-  drawLineArray(ctx, this.killLines, KILL_LINE_COLOR, LINE_WIDTH, LINE_JOIN, LINE_CAP);
-  drawLineArray(ctx, this.checkpointLines, CHECKPOINT_LINE_COLOR, LINE_WIDTH, LINE_JOIN, LINE_CAP);
+  drawLineArray(ctx, this.terrainLines,     TERRAIN_LINE_COLOR,     LINE_WIDTH, LINE_JOIN, LINE_CAP);
+  drawLineArray(ctx, this.goalLines,        GOAL_LINE_COLOR,        LINE_WIDTH, LINE_JOIN, LINE_CAP);
+  drawLineArray(ctx, this.killLines,        KILL_LINE_COLOR,        LINE_WIDTH, LINE_JOIN, LINE_CAP);
+  drawLineArray(ctx, this.checkpointLines,  CHECKPOINT_LINE_COLOR,  LINE_WIDTH, LINE_JOIN, LINE_CAP);
 
   drawPointArray(ctx, this.points, POINT_COLOR, POINT_SIZE);
 
@@ -649,32 +671,34 @@ function drawLineArray(ctx, lineArray, color, lineWidth, lineJoin, lineCap) {
     ctx.moveTo(line.p0.x, line.p0.y);
     ctx.lineTo(line.p1.x, line.p1.y);
 
-    //// CODE BELOW ONLY SHOWS IF EDIT MODE IS ENABLED FOR MAP EDITOR!
+    //// CODE BELOW ONLY SHOWS IF EDIT MODE IS ENABLED FOR MAP EDITOR!      
+
+    if (line.normal) {
+      var midPoint = line.p0.add(line.p1).divf(2.0);
+
+      var pNormalPosEnd = midPoint.add(line.normal.multf(20));
+
+      //line.normalPosCol.x = pNormalPosEnd.x - line.normalPosCol.w / 2;
+      //line.normalPosCol.y = pNormalPosEnd.y - line.normalPosCol.h / 2;
+
+      //line.p0edit.x = line.p0.x;
+      //line.p0edit.y = line.p0.y;
+
+      //line.p1edit.x = line.p1.x;
+      //line.p1edit.y = line.p1.y;
+
+      ctx.moveTo(midPoint.x, midPoint.y);
+      ctx.lineTo(pNormalPosEnd.x, pNormalPosEnd.y);
+
+
+      //line.p0edit.x = line.p0.x;
+      //line.p0edit.y = line.p0.y;
+
+      //line.p1edit.x = line.p1.x;
+      //line.p1edit.y = line.p1.y;
+    }
     if (editMode) {
-      if (line.normal) {
-        var midPoint = line.p0.add(line.p1).divf(2.0);
 
-        var pNormalPosEnd = midPoint.add(line.normal.multf(20));
-
-        //line.normalPosCol.x = pNormalPosEnd.x - line.normalPosCol.w / 2;
-        //line.normalPosCol.y = pNormalPosEnd.y - line.normalPosCol.h / 2;
-
-        //line.p0edit.x = line.p0.x;
-        //line.p0edit.y = line.p0.y;
-
-        //line.p1edit.x = line.p1.x;
-        //line.p1edit.y = line.p1.y;
-
-        ctx.moveTo(midPoint.x, midPoint.y);
-        ctx.lineTo(pNormalPosEnd.x, pNormalPosEnd.y);
-
-
-        //line.p0edit.x = line.p0.x;
-        //line.p0edit.y = line.p0.y;
-
-        //line.p1edit.x = line.p1.x;
-        //line.p1edit.y = line.p1.y;
-      }
     }
   });
 
@@ -806,6 +830,7 @@ TerrainManager.prototype.loadOldLevelFromJSON = function (obj) {
 TerrainManager.prototype.loadFromJSON = function (obj) {
   this.reset();
 
+  
 
   //var jsonPretty = JSON.stringify(this, null, 2);
   //document.getElementById("eklipzConsole").innerHTML = jsonPretty;
