@@ -243,7 +243,7 @@ GameEngine.prototype.startInput = function () {
   }, false);
 
   this.ctx.canvas.addEventListener("keydown", function (e) {
-    if (editMode) {
+    if (!editMode) {
       //console.log(e.keyCode);
       //console.log(gameEngine.input);
       if (e.keyCode === gameEngine.input.leftKey && gameEngine.input.leftPressed === false) {
@@ -409,12 +409,12 @@ GameEngine.prototype.changeKey = function (keyType) {
 
 //When called resets defaults control settings
 GameEngine.prototype.resetDefaults = function () {
-  this.jumpString = 'Space';
-  this.boostString = 'F';
-  this.lockString = 'D';
-  this.pauseString = 'Esc';
-  this.leftString = '<-';
-  this.rightString = '->';
+  this.input.jumpString = 'Space';
+  this.input.boostString = 'F';
+  this.input.lockString = 'D';
+  this.input.pauseString = 'Esc';
+  this.input.leftString = '<-';
+  this.input.rightString = '->';
   this.input.jumpKey = 32;
   this.input.boostKey = 70;
   this.input.leftKey = 37;
