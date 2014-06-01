@@ -608,30 +608,17 @@ MapEditor.prototype.createCheckpointLineButton = function (ctx) {
     }
 
     if (this.completed) {
-      placeNormals(e, this.prev);
+      placeTempCircle(e);
     }
 
   };
 
-  function placeNormals(e, prev) {
+  function placeTempCircle(e) {
     //prev = prev.adjacent1;
-    var itr = prev;
-    itr.normal = findNormalByMouse(e, prev);
+    var point = getMousePos(e);
 
-    while (itr.adjacent1 !== prev) {
-      var selected = itr;
-      var selectedVec = selected.p0.subtract(selected.p1).normalize();
-      itr = itr.adjacent1;
-      var nextVec = selected.adjacent1.p1.subtract(selected.adjacent1.p0).normalize();
-      var potentialNormal = nextVec.perp();
-      var negPotentialNormal = potentialNormal.negate();
-      var h = Math.acos(selectedVec.dot(nextVec));
-      if (h > HALF_PI) {
-        itr.normal = (selected.normal.dot(potentialNormal) < selected.normal.dot(negPotentialNormal) ? negPotentialNormal : potentialNormal);
-      } else {
-        itr.normal = (selected.normal.dot(potentialNormal) < selected.normal.dot(negPotentialNormal) ? potentialNormal : negPotentialNormal);
-      }
-    }
+    this.level.tempCirclePos = new vec2(point.x, point.y);
+    this.level.tempCircleRad = DFLT_radius;
   }
 
 
