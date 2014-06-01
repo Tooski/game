@@ -156,11 +156,11 @@ function TerrainLine(id, polyID, point0, point1, adjacent0, adjacent1, normal) {
    */
   this.getAdj1Angle = function () {
     if (this.adjacent1) {
-      var thisVec = this.adjacent1.p1.subtract(this.adjacent1.p0).normalize();
-      var adjVec = this.p0.subtract(this.p1).normalize();
+      var sv1 = this.adjacent1.p1.subtract(this.adjacent1.p0).normalize();
+      var sv2 = this.p0.subtract(this.p1).normalize();
       //var angleNorm = getSignedAngleFromAToB(this.adjacent0.normal, thisVec);
       var surfaceNormAng = Math.acos(sv2.dot(this.normal));
-      var angle = Math.acos(thisVec.dot(sv2));
+      var angle = Math.acos(sv1.dot(sv2));
 
       //connection to adj0 is concave when the angle between this.normal and next surface is < HALF_PI, or 90 degrees. 
 
