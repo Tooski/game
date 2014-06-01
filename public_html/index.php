@@ -66,7 +66,7 @@
         <canvas id="pause" style="display : none; position:absolute; z-index: 2; left:475px; top:125px; background: white; display: none" height="525" width="350"></canvas>
         <canvas id="remap" style="display : none; position:absolute; z-index: 3; left:475px; top:125px; background: white; display: none" height="525" width="350"></canvas>
 
-      <div>
+        <div>
             <script src="classie.js"></script>
             <canvas id="gameWorld" style="border: 0px solid brown; background: white; display : none"></canvas>
 
@@ -75,7 +75,7 @@
         </div>
 
         <!--div for login-->
-         <div class="outer-container" id="login_board" style= "display : none">
+        <div class="outer-container" id="login_board" style= "display : none">
             <form name="input" action="settings.php" method="post">
                 <div class="inner-top">
                     <label for="username">Name</label>
@@ -90,9 +90,19 @@
             </form>  
         </div> 		
         <!--end of div for login-->
-        
+
         <!--div for leader board-->
         <div class="outer-leaderboard-container" id="leader_board">
+            <div class="header">Good Job Carl!!</div>
+            <div class="results">
+
+                <div class="level-completed" id="level-completed"></div>
+                <div class="level-score" id="level-score"></div>
+                <div class="level-time" id="level-time"></div>
+                <div class="level-collectables" id="level-collectables"></div>
+                <div class ="level-deaths" id="level-deaths"></div>
+
+            </div>
             <div class="title-container" id="title_container">
             </div>
             <div class="sub-title-container" id="sub-title-container">
