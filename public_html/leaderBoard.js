@@ -7,13 +7,19 @@ function leaderBoardButtonAction() {
 
 }
 
+var my_jar_list = null;
 
-var my_jar_list= null;
-function leaderBoardUpdate() {
-	my_jar_list = [];
+function leaderBoardUpdate(the_result) {
+    my_jar_list = [];
     var title = document.getElementById('title_container');
     var left = document.getElementById('left-sub-title');
     var right = document.getElementById('right-sub-title');
+
+   document.getElementById('level-completed').innerHTML = "Level completed: "+my_g_stage_id;
+   document.getElementById('level-score').innerHTML = "Level score: "+the_result[0];
+   document.getElementById('level-time').innerHTML = "Level time: "+the_result[1];
+   document.getElementById('level-collectables').innerHTML = "Level collectables: "+the_result[2];
+   document.getElementById('level-deaths').innerHTML = "Level deaths: "+the_result[3];
 
     title.innerHTML = "World " + my_g_stage_id + ", Top Times and Scores!!!";
 
@@ -31,8 +37,7 @@ function leaderBoardUpdate() {
 
         var div = document.getElementById('left-box');
         for (var i = 0; i < mySplitResult.length - 1; i += 2) {
-			
-			my_jar_list.push( mySplitResult[i + 1]);
+            my_jar_list.push( mySplitResult[i + 1]);
             div.innerHTML = div.innerHTML + "<span><a onClick= 'displayReplayGame(\"" 
 			+(my_jar_list.length -1) + "\")'>" + mySplitResult[i] + "</a></span>";
         }
