@@ -605,7 +605,9 @@ GameEngine.prototype.update = function() {
       //console.log("we have events");
     }
     
-    this.physEng.update(thisFrameTime / 1000, this.eventsSinceLastFrame);
+
+      //results = { 
+    var results = this.physEng.update(thisFrameTime / 1000, this.eventsSinceLastFrame);
 
     //console.log("Time = " + this.physEng.getTime());
 	//console.log(this.physEng.timeMgr.time);
