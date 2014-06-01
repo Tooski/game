@@ -12,7 +12,7 @@ var buttonSize = 100;
 
 var button;
 var buttonList = [];
-var editMode = true;
+var editMode = false;
 var editMovementSpeed = 10;
 
 
@@ -116,10 +116,12 @@ MapEditorButton.prototype.draw = function (ctx) {
 
 
 
-function MapEditor(level, editMode) {
+function MapEditor(level) {
+    
   if (!level) {
     throw "no level";
   }
+  editMode = true;
   this.level = level;
   var c = new CanvasFactory({ id: "mapEditor" });
   this.ctx = c.getContext('2d');
@@ -132,7 +134,7 @@ function MapEditor(level, editMode) {
 
   this.ctx.initScale = 1 / (initWidth / c.width) * initScale;
   this.ctx.scale(this.ctx.initScale, this.ctx.initScale);
-  this.editMode = editMode || true;
+//  this.editMode = editMode || true;
   this.createEditModeButton();
   this.createLineButton(this.ctx);
   this.createGoalLineButton(this.ctx);

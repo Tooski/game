@@ -530,7 +530,7 @@ GameEngine.prototype.draw = function (drawCallback) {
     if (!editMode) {
       // Adjusts the canvas' move position as well as the post scaling.
 
-      this.editPos = this.player.model.pos;
+      this.editPos = new vec2(currentLevel.startPoint.x,currentLevel.startPoint.y );
       this.ctx.translate(
       (initWidth / this.ctx.canvas.width) * this.ctx.canvas.width / initScale / 2 - this.player.model.pos.x,
       (initWidth / this.ctx.canvas.width) * this.ctx.canvas.height / initScale / 2 - this.player.model.pos.y);
