@@ -618,8 +618,8 @@ MapEditor.prototype.createCheckpointLineButton = function (ctx) {
     //prev = prev.adjacent1;
     var point = getMousePos(e);
 
-    that.level.tempCirclePos = new vec2(point.x, point.y);
-    that.level.tempCircleRad = DFLT_radius;
+    this.level.tempCirclePos = new vec2(point.x, point.y);
+    this.level.tempCircleRad = DFLT_radius;
   }
 
 

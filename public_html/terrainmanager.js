@@ -128,6 +128,8 @@ function TerrainManager() {
   //SEE RESET FUNCTION BELOW FOR DOCUMENTATION OF FIELDS
 
   this.tempLines = [];
+  this.tempCirclePos = null;
+  this.tempCircleRad = null;
 
   this.nextCollectibleNo;
   this.collectibles;
@@ -294,6 +296,17 @@ TerrainManager.prototype.reset = function () {
   this.isReset = true;
 }
 
+
+
+
+
+TerrainManager.prototype.eraseByPosition = function (position, distance) {
+  var hackeyState = new State(0.0, distance, position, new vec2(0, 0), new vec2(0, 0));
+  var terrain = this.getTerrainCollisions(hackeyState, []);
+  var goals = this.getGoalCollisions(hackeyState, []);
+  var killZones = this.getKillZoneCollisions(hackeyState, []);
+  var checkpoints = this.getCheckpointCollisions(hackeyState, []);
+};
 
 
 
@@ -529,6 +542,7 @@ TerrainManager.prototype.draw = function (ctx) {
   }
 
   drawLineArray(ctx, this.tempLines, "#222222", LINE_WIDTH, LINE_JOIN, LINE_CAP);
+  this.drawTempCircle(ctx);
 
 
   drawLineArray(ctx, this.terrainLines,     TERRAIN_LINE_COLOR,     LINE_WIDTH, LINE_JOIN, LINE_CAP);
@@ -734,6 +748,19 @@ TerrainManager.prototype.drawStart = function (ctx) {
   ctx.fill();
   ctx.strokeStyle = START_COLOR_INNER_LINE;
   ctx.stroke();
+}
+
+
+
+//Draws a circle denoting the tempCircle if there is one.
+TerrainManager.prototype.drawTempCircle = function (ctx) {
+  if (this.tempCirclePos) {
+    ctx.lineWidth = 6;
+    ctx.beginPath();
+    ctx.arc(this.tempCirclePos.x, this.tempCirclePos.y, this.tempCircleRad, 0, TWO_PI, false);
+    ctx.strokeStyle = "#222222";
+    ctx.stroke();
+  }
 }
 
 
