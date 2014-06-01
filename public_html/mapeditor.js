@@ -121,7 +121,8 @@ function MapEditor(level) {
   if (!level) {
     throw "no level";
   }
-  editMode = true;
+  // editMode = true;        //DO NOT ENABLE THIS. A MAP EDITOR IS CREATED EVEN WHEN EDIT MODE IS OFF, CURRENTLY. 
+  // MINS CODE NEEDS TO SET editMode TO TRUE.
   this.level = level;
   var c = new CanvasFactory({ id: "mapEditor" });
   this.ctx = c.getContext('2d');
