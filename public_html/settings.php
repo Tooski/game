@@ -2,9 +2,8 @@
 
 include 'database.php';
 //constants
-  
 $db = Database::getConnection();
-  
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $_POST = sanitize($db, $_POST);
     switch ($_POST["command"]) {
@@ -29,8 +28,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             echo $result;
             break;
         case "insertScore":
-            $stmt = mysqli_prepare($db, "INSERT INTO Scores VALUES(null, ?,?, ?, ?);");
-            mysqli_stmt_bind_param($stmt, "iiii", $_POST["data"]["userID"], $_POST["data"]["levelID"], $_POST["data"]["score"], $_POST["data"]["completetime"]);
+            $stmt = mysqli_prepare($db, "INSERT INTO Scores VALUES(null, ?,?, ?, ?,?);");
+            mysqli_stmt_bind_param($stmt, "iiii", $_POST["data"]["userID"], $_POST["data"]["levelID"], $_POST["data"]["score"], $_POST["data"]["completetime"], $_POST["data"]["replay"]);
             //boolean result
             $result = mysqli_stmt_execute($stmt);
             echo $result;
@@ -45,7 +44,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 } else if ($_SERVER['REQUEST_METHOD'] === 'GET') {
     $_GET = sanitize($db, $_GET);
-    
 
     switch ($_GET["command"]) {
 
@@ -61,13 +59,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             mysqli_stmt_execute($stmt);
 
             mysqli_stmt_bind_result($stmt, $str);
-            
-      
             while ($stmt->fetch()) {
-
                 echo json_encode(stripslashes($str));
             }
-       
             break;
         case "login":
             $stmt = mysqli_prepare($db, "SELECT EXISTS(select * from Users where username = ? and password = ?);");
@@ -101,55 +95,55 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
             break;
         case "highScore":
-            $stmt = mysqli_prepare($db, "SELECT Users.username, MAX(Scores.score) FROM Users INNER JOIN Scores ON Users.userID = Scores.userID WHERE Scores.levelID = ?; ");
+            $stmt = mysqli_prepare($db, "SELECT Users.username, MAX(Scores.score),Scores.replay FROM Users INNER JOIN Scores ON Users.userID = Scores.userID WHERE Scores.levelID = ?; ");
             mysqli_stmt_bind_param($stmt, "i", $_GET["data"]["levelID"]);
             mysqli_stmt_execute($stmt);
 
             /* bind variables to prepared statement */
-            $stmt->bind_result($col1, $col2);
+            $stmt->bind_result($col1, $col2, $col3);
 
             /* fetch values */
             while ($stmt->fetch()) {
-                printf("%s %s\n", $col1, $col2);
+                printf("%s %s\n", $col1, $col2, $col3);
             }
             break;
         case "bestTime":
-            $stmt = mysqli_prepare($db, "SELECT Users.username, MIN(Scores.completetime) FROM Users INNER JOIN Scores on Users.userID = Scores.userID where Scores.levelID = ?; ");
+            $stmt = mysqli_prepare($db, "SELECT Users.username, MIN(Scores.completetime), Scores.replay FROM Users INNER JOIN Scores on Users.userID = Scores.userID where Scores.levelID = ?; ");
             mysqli_stmt_bind_param($stmt, "i", $_GET["data"]["levelID"]);
             mysqli_stmt_execute($stmt);
 
             /* bind variables to prepared statement */
-            $stmt->bind_result($col1, $col2);
+            $stmt->bind_result($col1, $col2, $col3);
 
             /* fetch values */
             while ($stmt->fetch()) {
-                printf("%s %s\n", $col1, $col2);
+                printf("%s %s\n", $col1, $col2, $col3);
             }
 
         case "topTenTime":
-            $stmt = mysqli_prepare($db, "SELECT Users.username, Scores.completetime FROM Users INNER JOIN Scores ON Users.userID = Scores.userID WHERE Scores.levelID = ? ORDER BY Scores.completetime LIMIT 10;");
+            $stmt = mysqli_prepare($db, "SELECT Users.username, Scores.completetime, Scores.replay FROM Users INNER JOIN Scores ON Users.userID = Scores.userID WHERE Scores.levelID = ? ORDER BY Scores.completetime LIMIT 10;");
             mysqli_stmt_bind_param($stmt, "i", $_GET["data"]["levelID"]);
             mysqli_stmt_execute($stmt);
 
             /* bind variables to prepared statement */
-            $stmt->bind_result($col1, $col2);
+            $stmt->bind_result($col1, $col2, $col3);
 
             /* fetch values */
             while ($stmt->fetch()) {
-                printf("%s %s\n", $col1, $col2);
+                printf("%s&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;%s- %s-", $col1, $col2, $col3);
             }
             break;
         case "topTenHighScore":
-            $stmt = mysqli_prepare($db, "SELECT Users.username, Scores.score FROM Users INNER JOIN Scores ON Users.userID = Scores.userID WHERE Scores.levelID = ? ORDER BY Scores.score DESC LIMIT 10;");
+            $stmt = mysqli_prepare($db, "SELECT Users.username, Scores.score ,Scores.replay FROM Users INNER JOIN Scores ON Users.userID = Scores.userID WHERE Scores.levelID = ? ORDER BY Scores.score DESC LIMIT 10;");
             mysqli_stmt_bind_param($stmt, "i", $_GET["data"]["levelID"]);
             mysqli_stmt_execute($stmt);
 
             /* bind variables to prepared statement */
-            $stmt->bind_result($col1, $col2);
+            $stmt->bind_result($col1, $col2, $col3);
 
             /* fetch values */
             while ($stmt->fetch()) {
-                printf("%s %s\n", $col1, $col2);
+                printf("%s&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;%s- %s-", $col1, $col2, $col3);
             }
             break;
         case "getStageLevels":

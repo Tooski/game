@@ -8,7 +8,9 @@
 #eklipzConsole { 			margin-left: 200px;
 			z-index: 9999; }
 </style>
-
+        <link rel="stylesheet" type="text/css" href="css/login.css">
+        <link rel="stylesheet" type="text/css" href="css/leaderboard.css">
+        <link rel="stylesheet" type="text/css" href="css/about.css">
     <meta charset="utf-8" />
     <title>Game Project Shell</title>
     <script type="text/javascript" src="./canvasinput.min.js"></script>
@@ -39,7 +41,9 @@
     <script type="text/javascript" src="./game.js"></script>
 	<script type="text/javascript" src="./stageBoard.js"></script>
     <script type="text/javascript" src="./gameMainManu.js"></script>
-
+        <script type="text/javascript" src="./controlDisplay.js"></script>
+        <script type="text/javascript" src="./logInBoard.js"></script>
+        <script type="text/javascript" src="./leaderBoard.js"></script>
 </head>
 <body>
 <!--       <div>
@@ -60,7 +64,7 @@
 		<!--<canvas id="time" style="z-index: 2; background: red"></canvas> -->
 		
 		
-	<canvas id="time" style= "display : block; position:absolute; z-index: 2;  left:1150px; top:25px; background: white" height="50px" width="100px"></canvas>
+        <canvas id="time" style= "display : none; position:absolute; z-index: 2;  left:1150px; top:25px; background: white" height="50px" width="100px"></canvas>
 		<canvas id="score" style="display : none; position:absolute; z-index: 2;  left:25px; top:25px; background: white" height="50px" width="100px"></canvas>
 		<canvas id="pause" style="display : none; position:absolute; z-index: 2; left:475px; top:125px; background: white; display: none" height="525" width="350"></canvas>
 		<canvas id="remap" style="display : none; position:absolute; z-index: 3; left:475px; top:125px; background: white; display: none" height="525" width="350"></canvas>
@@ -69,8 +73,59 @@
 				<script src="classie.js"></script>
 		        <canvas id="gameWorld" style="border: 0px solid brown; background: white; display : none"></canvas>
 
-		<canvas id="game_manu_board" style= "display : block; position: absolute; " width="400" height="350"></canvas>
-		<canvas id="stage_board" style= "display : none; position: absolute; " width="400" height="350"></canvas>
+            <canvas id="game_manu_board" style= "display : none; position: absolute; " width="400" height="350"></canvas>
+            <canvas id="stage_board" style= "display : block; position: absolute; " width="400" height="350"></canvas>
 	</div>
+        <!--div for login-->
+        <div class="outer-container" id="login_board" style= "display : none">
+                    <input type="text" name="username" id="username" value="donkey"><br>
+                    <input type="password" name="password" id="password" value="ferter"><br>
+                    <input type="button" id="login_button" onClick= "logInButtonAction()" >
+                </div>
+            </form>  
+        </div> 		
+        <!--end of div for login-->
+        <!--div for leader board-->
+        <div class="outer-leaderboard-container" id="leader_board">
+            <div class="header">Good Job Carl!!</div>
+            <div class="results">
+                <div class="level-completed" id="level-completed"></div>
+                <div class="level-score" id="level-score"></div>
+                <div class="level-time" id="level-time"></div>
+                <div class="level-collectables" id="level-collectables"></div>
+                <div class ="level-deaths" id="level-deaths"></div>
+            </div>
+            <div class="title-container" id="title_container">
+            </div>
+            <div class="sub-title-container" id="sub-title-container">
+                <div class ="left-sub-title" id="left-sub-title">
+                </div>
+                <div class ="right-sub-title" id="right-sub-title">
+                </div>
+            </div>
+            <div class="body-container">
+                <div class="left-box" id="left-box">
+                </div>
+                <div class="right-box" id="right-box">
+                </div>
+            </div>
+            <div class="footer-container">
+                <button type="button" id="exit_button" onClick= "leaderBoardButtonAction()" ></button>             
+            </div>
+        </div>
+        <!--end of div for leader board-->
+        <!--div for about page-->
+        <div class="outer-about-container" id="about_board"  style= "display : none">
+            <div class="inner-about-title">
+                About Hamster Storm
+            </div>
+            <div class ="inner-about-container">
+
+            </div>
+            <div class="inner-about-footer">
+                <button type="button" id="exit_about_button" onClick= "displayMainMenu()"></button>
+            </div>
+        </div>
+        <!--end of div for about page-->
 </body>
 </html>

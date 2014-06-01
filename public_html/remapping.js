@@ -70,20 +70,20 @@ KeyRemapping.constructor = KeyRemapping;
 
 KeyRemapping.prototype.defaultButton = function (gameEngine) {
   var reset = new RemappingButton("Reset", 100, (buttonSize + 5) , buttonSize, buttonSize);
-  reset.onRelease = function(e) {
+  reset.onRelease() = function(e) {
     gameEngine.resetDeafults();
   }
 }
 
 KeyRemapping.prototype.leftButton = function (gameEngine) {
   var left = new RemappingButton("Left", 100, (buttonSize + 5) * 2, buttonSize, buttonSize);
-  left.onRelease = function(e) {
+  left.onRelease() = function(e) {
     gameEngine.changeKey("LEFT");
   }
 }
 KeyRemapping.prototype.rightButton = function (gameEngine) {
   var right = new RemappingButton("Right", 100, (buttonSize + 5) * 3, buttonSize, buttonSize);
-  right.onRelease = function(e) {
+  right.onRelease() = function(e) {
     gameEngine.changeKey("RIGHT");
   }
 }

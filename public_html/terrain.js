@@ -5,6 +5,7 @@
  * Skeleton by Travis Drake
  */
 var DEBUG_TERRAIN = false;
+var editMode = true;
 
 
 
@@ -319,7 +320,7 @@ function CheckpointLine(id, checkpointID, point0, point1, adjacent0, adjacent1) 
 
   /**
    * Tests a point to see if it lies within the rays passing through each point at either end of the line segment that are perpendicular to the line segment.
-   */
+      */
   this.isPointWithinPerpBounds = function (point) {
     return isPointWithinLineSegmentPerp(this, point);
   }
@@ -342,7 +343,7 @@ function CheckpointLine(id, checkpointID, point0, point1, adjacent0, adjacent1) 
 function KillLine(id, killZoneID, point0, point1, adjacent0, adjacent1) {
   if (!id.toFixed || !killZoneID.toFixed) { //id.toFixed is ducktyping to check if id is a number.
     throw "All level objects must have a sequentially incremented numerical id.";
-  }
+    }
   this.p0 = point0;
   this.p1 = point1;
   this.adjacent0 = adjacent0;

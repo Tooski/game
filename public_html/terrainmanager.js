@@ -624,7 +624,7 @@ function drawPolygons(ctx, polygons, color, lineWidth, lineJoin, lineCap) {
     while (line.adjacent1 !== original) {
       ctx.lineTo(line.p1.x, line.p1.y);
       line = line.adjacent1;
-    }
+  }
     ctx.closePath();
 
     var first;
@@ -794,7 +794,6 @@ TerrainManager.prototype.loadFromFile = function (id, init, callback) {
 
 
       gameEngine.initializePhysEng(that);
-    }
   );
 
 

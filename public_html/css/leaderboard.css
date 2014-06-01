@@ -1,0 +1,129 @@
+.outer-leaderboard-container{
+    border: 1px blue solid;
+    min-width:425px;
+    display: block;
+    position:absolute;
+    z-index:15;
+    top:50%;
+    left:50%;
+    margin:-250px 0 0 -200px;
+    overflow: hidden;
+    padding-right: 10px;
+    padding-left: 10px;
+    padding-top: 40px;
+    padding-bottom: 10px;
+    border-radius: 5px;
+    overflow: hidden;
+    display: none;
+}
+.title-container{
+    border: 1px blue solid;
+    text-align: center;
+    font-size: 2em;
+    padding: 5px;
+}
+.sub-title-container{
+    overflow: hidden;
+}
+.left-sub-title{
+    float: left;
+    width:200px;
+    border: 1px red solid; 
+    padding: 5px;
+    font-size: 1.25em;
+    text-align: center;  
+}
+
+.right-sub-title{
+    float: right;
+    width:200px;
+    border: 1px green solid; 
+    padding: 5px;
+    font-size: 1.25em;
+    text-align: center;
+}
+.body-container{
+    overflow: hidden;
+}
+.left-box{
+    float: left;
+    width:200px;
+    max-height: 300px;
+    border: 1px red solid; 
+    overflow: scroll;
+    padding: 5px;
+    text-align: center;
+}
+.left-box span{
+    width:100%;
+    display:inline-block; 
+    cursor: pointer;
+    padding: 2px;
+    overflow: hidden;
+}
+.left-box a:hover{
+    background-color: #bde0f6;
+}
+.left-box a:active{
+    background-color: #8ac6ed;
+}
+.left-box a:link{
+    background-color: #3498db;
+}
+
+.right-box{
+    float: right;
+    width:200px;
+    max-height: 300px;
+    border: 1px green solid; 
+    overflow: scroll;
+    padding: 5px;
+    text-align: center;
+}
+
+.right-box span{
+    width:100%;
+    display:inline-block;  
+    cursor: pointer;
+    padding: 2px;
+    overflow: hidden;
+}
+.right-box a:hover{
+    background-color: #bde0f6;
+}
+.right-box a:active{
+    background-color: #8ac6ed;
+}
+.right-box a:link{
+    background-color: #3498db;
+}
+.footer-container{
+    border: 1px blue solid;
+    height: 30px;
+    text-align: center;
+    padding: 20px;
+    overflow: hidden;
+    margin-bottom: 40px;
+}
+#exit_button{
+    width: 95px;
+    height: 36px;
+    background: url(../img/close1.png) no-repeat;
+    background-size: contain;
+    outline:0;
+}
+
+#exit_button:hover{
+    width: 96px;
+    height: 36px;
+    background: url(../img/close2.png) no-repeat;
+    background-size: contain;
+
+}
+#exit_button:active{
+    width: 96px;
+    height: 36px;
+    background: url(../img/close3.png) no-repeat;
+    background-size: contain;
+
+}
