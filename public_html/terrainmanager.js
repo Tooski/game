@@ -326,6 +326,16 @@ TerrainManager.prototype.addCollectible = function (point) {
 TerrainManager.prototype.addTerrain = function (editorLineArray) {
   var lines = editorLineArray;
 
+  for (var i = 0; i < editorLineArray.length; i++) { 
+    console.log("line " + i + "  id " + editorLineArray[i].id + "  adjacent0 id " + editorLineArray[i].adjacent0.id + "  adjacent1 id " + editorLineArray[i].adjacent1.id);
+
+  }
+
+
+
+
+
+
   var first = new TerrainLine(this.getNextTerrainLineNumber(), this.getNextPolygonNumber(), this.toLinePoint(lines[0].p0), this.toLinePoint(lines[0].p1), null, null, lines[0].normal);
   if (this.terrainLines[first.id]) {
     throw "what the hell, a TerrainLine already exists with this ID. Fix yo shit";
@@ -335,7 +345,7 @@ TerrainManager.prototype.addTerrain = function (editorLineArray) {
   var prev = first;
   for (var i = 1; i < lines.length; i++) {
     var converted = new TerrainLine(this.getNextTerrainLineNumber(), first.polyID, this.toLinePoint(lines[i].p0), this.toLinePoint(lines[i].p1), prev, null, lines[i].normal);
-    prev.adjacent1 = converted;
+    prev.adjacent0 = converted;
     if (this.terrainLines[converted.id]) {
       throw "what the hell, a TerrainLine already exists with this ID. Fix yo shit";
     }
@@ -346,7 +356,19 @@ TerrainManager.prototype.addTerrain = function (editorLineArray) {
   first.adjacent0 = prev;
   prev.adjacent1 = first;
   this.modified = true;
-  console.log(this.terrainLines);
+  //console.log(this.terrainLines);
+  
+  for (var i = 0; i < this.terrainLines.length; i++) {
+    if (this.terrainLines[i]) {
+      console.log("TerrainLine " + i + "  id " + this.terrainLines[i].id + "  adjacent0 id " + this.terrainLines[i].adjacent0.id + "  adjacent1 id " + this.terrainLines[i].adjacent1.id);
+    }
+  }
+  for (var i = 0; i < this.terrainLines.length; i++) {
+    if (this.terrainLines[i]) {
+      //console.log("     points " + i + "  id " + this.terrainLines[i].id + "  p0 " + this.terrainLines[i].p0.x + ", " + this.terrainLines[i].p0.y + "  p1 " + this.terrainLines[i].p1.x + ", " + this.terrainLines[i].p1.y);
+      console.log("     points " + i + "  id " + this.terrainLines[i].id + "  p0 " + this.terrainLines[i].p0.id + "  p1 " + this.terrainLines[i].p1.id);
+    }
+  }
 }
 
 
