@@ -810,7 +810,8 @@ function pauseClicked (e) {
 		console.log("Restart!");
 	} else if (quitButton.checkClicked()) {
 		// written by Min -----
-		displayLeaderBoard();
+                var array = [1234, 5.34,12,3];
+		displayLeaderBoard(array);
 		canvas3.style.display = "none";
 		canvas4.style.display = "none";
 		//---------------
