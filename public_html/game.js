@@ -517,8 +517,8 @@ GameEngine.prototype.draw = function (drawCallback) {
     (initWidth / this.ctx.canvas.width) * this.ctx.canvas.width / initScale / 2 - this.player.model.pos.x,
     (initWidth / this.ctx.canvas.width) * this.ctx.canvas.height / initScale / 2 - this.player.model.pos.y);
 
-                    (initWidth/this.ctx.canvas.width) * this.ctx.canvas.width / initScale / 2 -  this.editPos.x, 
-                    (initWidth/this.ctx.canvas.width) * this.ctx.canvas.height / initScale / 2 - this.editPos.y);
+                    //(initWidth/this.ctx.canvas.width) * this.ctx.canvas.width / initScale / 2 -  this.editPos.x, 
+                    //(initWidth/this.ctx.canvas.width) * this.ctx.canvas.height / initScale / 2 - this.editPos.y);
   }
 
 
