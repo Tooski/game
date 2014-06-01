@@ -608,7 +608,8 @@ MapEditor.prototype.createCheckpointLineButton = function (ctx) {
     }
 
     if (this.completed) {
-      placeNormals(e, this.prev);
+      that.level.tempCirclePos = getMousePos(e);
+      that.level.tempCircleRad = DFLT_radius;
     }
 
   };
@@ -818,32 +819,11 @@ MapEditor.prototype.createSaveButton = function (ctx) {
 
 
 
-MapEditor.prototype.eraseFromArrayByClick = function (items, position) {
-    var array = items.terrainLines;
-    var points = items.points;
-    
-    for (var i = 0; i < array.length; i++) {
-    if(array[i]) {
-        if (array[i] && array[i].collidesWith(position, 10)) {
-            var start, itr, first;
-            start = itr = array[i];
-            while(!first || itr !== start) {
-                delete array[itr.id];
-                delete points[itr.id];
-                first = true;
-                itr = itr.adjacent1;
-            }        
-            break;
-            }
-        }
-    }
-};
-
-
-
-
 MapEditor.prototype.resetCurrent = function () {
   this.level.tempLines = [];
+  this.level.tempCirclePos = null;
+  this.level.tempCircleRad = null;
+
 };
 
 
@@ -1017,33 +997,33 @@ MapEditor.prototype.attemptSnap = function (line) {
 
 
 
-MapEditor.prototype.removeFrom = function (terrain) {
+//MapEditor.prototype.removeFrom = function (terrain) {
 
-  if (terrain.adjacent0) {
-    if (terrain.adjacent0.adjacent0 === terrain) {
-      terrain.adjacent0.adjacent0 = terrain.adjacent0 = null;
-    } else if (terrain.adjacent0.adjacent1 === terrain) {
-      terrain.adjacent0.adjacent1 = terrain.adjacent0 = null;
-    }
-  }
-
-
-
-  if (terrain.adjacent1) {
-    if (terrain.adjacent1.adjacent0 === terrain) {
-      terrain.adjacent1.adjacent0 = terrain.adjacent1 = null;
-    } else if (terrain.adjacent1.adjacent1 === terrain) {
-      terrain.adjacent1.adjacent1 = terrain.adjacent1 = null;
-    }
-  }
+//  if (terrain.adjacent0) {
+//    if (terrain.adjacent0.adjacent0 === terrain) {
+//      terrain.adjacent0.adjacent0 = terrain.adjacent0 = null;
+//    } else if (terrain.adjacent0.adjacent1 === terrain) {
+//      terrain.adjacent0.adjacent1 = terrain.adjacent0 = null;
+//    }
+//  }
 
 
 
-  if (terrain.p0edit) removeMouseCollideable(terrain.p0edit);
-  if (terrain.p1edit) removeMouseCollideable(terrain.p1edit);
+//  if (terrain.adjacent1) {
+//    if (terrain.adjacent1.adjacent0 === terrain) {
+//      terrain.adjacent1.adjacent0 = terrain.adjacent1 = null;
+//    } else if (terrain.adjacent1.adjacent1 === terrain) {
+//      terrain.adjacent1.adjacent1 = terrain.adjacent1 = null;
+//    }
+//  }
 
-  return true;
-}
+
+
+//  if (terrain.p0edit) removeMouseCollideable(terrain.p0edit);
+//  if (terrain.p1edit) removeMouseCollideable(terrain.p1edit);
+
+//  return true;
+//}
 
 
 
