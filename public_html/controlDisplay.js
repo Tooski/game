@@ -61,7 +61,7 @@ function displayReplayGame(str){
 	console.log(str);
 	 //my_g_level_id= id;
 	currentLevel.loadFromFile(my_g_level_id);
-	//physEng.loadReplay(str);
+	gameEngine.physEng.loadReplay(str);
 	blockDisplayGame();
 	//GameCanvas[0].focus(); // focus on game canvs.
 }
