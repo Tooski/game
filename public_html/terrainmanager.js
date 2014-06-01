@@ -752,6 +752,7 @@ TerrainManager.prototype.drawCheckpointArray = function (ctx) {
   ctx.beginPath();
   for (var i = 0; i < this.checkpoints.length; i++) {
     if (this.checkpoints[i]) {
+      ctx.moveTo(this.checkpoints[i].x + CHECKPOINT_RADIUS, this.checkpoints[i].y)
       ctx.arc(this.checkpoints[i].x, this.checkpoints[i].y, CHECKPOINT_RADIUS, 0, TWO_PI, false);
     }
   }
@@ -765,6 +766,8 @@ TerrainManager.prototype.drawCheckpointArray = function (ctx) {
   ctx.beginPath();
   for (var i = 0; i < this.checkpoints.length; i++) {
     if (this.checkpoints[i]) {
+      var checkpoint = this.checkpoints[i];
+      ctx.moveTo(this.checkpoints[i].x + CHECKPOINT_RADIUS / 2, this.checkpoints[i].y)
       ctx.arc(checkpoint.x, checkpoint.y, CHECKPOINT_RADIUS / 2, 0, TWO_PI, false);
     }
   }

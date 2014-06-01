@@ -481,26 +481,26 @@ MapEditor.prototype.snapTo = function (terrain) {
   for (var i = 0; i < list.length; i++) {
     if (terrain !== list[i]) {
       if (!list[i].adjacent0 && checkBounds(terrain.p0, list[i].p0)) {
-        terrain.p0.x = list[i].p0.x = (terrain.p0.x + list[i].p0.x) / 2;
-        terrain.p0.y = list[i].p0.y = (terrain.p0.y + list[i].p0.y) / 2;
+        terrain.p0.x = list[i].p0.x = list[i].p0.x;
+        terrain.p0.y = list[i].p0.y = list[i].p0.y;
         list[i].adjacent0 = terrain;
         terrain.adjacent0 = list[i];
         break;
       } else if (!list[i].adjacent1 && checkBounds(terrain.p0, list[i].p1)) {
-        terrain.p0.x = list[i].p1.x = (terrain.p0.x + list[i].p1.x) / 2;
-        terrain.p0.y = list[i].p1.y = (terrain.p0.y + list[i].p1.y) / 2;
+        terrain.p0.x = list[i].p1.x = list[i].p1.x;
+        terrain.p0.y = list[i].p1.y = list[i].p1.y;
         list[i].adjacent1 = terrain;
         terrain.adjacent0 = list[i];
         break;
       } else if (!list[i].adjacent0 && checkBounds(terrain.p1, list[i].p0)) {
-        terrain.p1.x = list[i].p0.x = (terrain.p1.x + list[i].p0.x) / 2;
-        terrain.p1.y = list[i].p0.y = (terrain.p1.y + list[i].p0.y) / 2;
+        terrain.p1.x = list[i].p0.x = list[i].p0.x;
+        terrain.p1.y = list[i].p0.y = list[i].p0.y;
         list[i].adjacent0 = terrain;
         terrain.adjacent1 = list[i];
         break;
       } else if (!list[i].adjacent1 && checkBounds(terrain.p1, list[i].p1)) {
-        terrain.p1.x = list[i].p1.x = (terrain.p1.x + list[i].p1.x) / 2;
-        terrain.p1.y = list[i].p1.y = (terrain.p1.y + list[i].p1.y) / 2;
+        terrain.p1.x = list[i].p1.x = list[i].p1.x;
+        terrain.p1.y = list[i].p1.y = list[i].p1.y;
         list[i].adjacent1 = terrain;
         terrain.adjacent1 = list[i];
         break;
@@ -512,96 +512,132 @@ MapEditor.prototype.snapTo = function (terrain) {
 
 
 MapEditor.prototype.createCheckpointLineButton = function (ctx) {
-  var checkpoint = new MapEditorButton("Add Checkpoint", 0, (buttonSize + 5) * 3, buttonSize * 2, buttonSize);
+  var checkpointButton = new MapEditorButton("Add Checkpoint", 0, (buttonSize + 5) * 3, buttonSize * 2, buttonSize);
   var that = this;
 
-  checkpoint.onClick = function (e) {
+  checkpointButton.onClick = function (e) {
+    console.log(this.completed);
+    console.log(that.level.tempLines);
+    if (this.completed) {                                     // DO SOMETHING AFTER CLICK AFTER POLYGON EXISTS
+      var click = getMousePos(e);
+      this.locked = this.prev = null;
+      this.completed = false;
 
-    if (this.line) {
+      console.log("completed and selected point for checkl.");
+      that.level.addCheckpoint(click, that.level.tempLines);
+      that.resetCurrent();
+    } else {
 
-
-      if (this.line && this.line.p1.x !== this.line.p0.x && this.line.p1.y !== this.line.p0.y) {
-
-        //that.snapTo(this.line);
-        this.locked = this.prev = this.line;
-
-
-
-        if (!this.prev.polygonID) {
-
-          var xposition = localToWorld(e.offsetX, "x");
-          var yposition = localToWorld(e.offsetY, "y");
-
-          if (!checkBounds(this.line.p0, new vec2(xposition, yposition))) {
+      if (this.line) {
 
 
+        if (this.line && this.line.p1.x !== this.line.p0.x && this.line.p1.y !== this.line.p0.y) {
 
-            this.line = new EditorLine(new vec2(this.prev.p1.x, this.prev.p1.y), new vec2(xposition, yposition));
-
-            if (this.attemptSnap(this.line)) {         //true if we completed our polygon.
-              that.level.tempLines.push(line);
-            } else {
-              that.level.tempLines.push(line);
-            }
+          that.snapTo(this.line);
+          this.polygon = that.attemptSnap(this.line);
+          this.locked = this.prev = this.line;
+          if (this.polygon) {                                       // polygon was in fact created
+            this.prev.polygonID = this.polygon.polyID;
           }
-        } else {
 
 
-          this.setNormals = this.line.adjacent1;
-          this.line = null;
-
-        }
 
 
-      }
-    } else {      // create initial line point. DEBUG WAIT REALLY IS THAT WHAT THIS DOES? 
-      var left = parseInt(that.ctx.canvas.style.left);
-      var top = parseInt(that.ctx.canvas.style.top);
-      if (e.offsetX > that.ctx.canvas.width + left || e.offsetX < left ||
-         e.offsetY > that.ctx.canvas.height + top || e.offsetX < top) {
-        if (!this.line) {
-          if (!this.prev || (this.prev && !this.prev.polygonID)) {
+          if (!this.prev.polygonID) {
+
             var xposition = localToWorld(e.offsetX, "x");
             var yposition = localToWorld(e.offsetY, "y");
 
-            this.locked = this.line = new EditorLine(new vec2(xposition, yposition), new vec2(xposition, yposition));
-            that.level.tempLines.push(this.line);
+            if (!checkBounds(this.line.p0, new vec2(xposition, yposition))) {
 
-            button.isSelected = false;
+
+
+              this.line = new EditorLine(new vec2(this.prev.p1.x, this.prev.p1.y), new vec2(xposition, yposition));
+              this.line.adjacent0 = this.prev;
+              this.prev.adjacent1 = this.line;
+
+              that.level.tempLines.push(this.line);
+            }
+          } else {
+            console.log("FUUUUDFUJSDHIUSDHBFUIHBDSF");
+            if (this.line.adjacent1) this.completed = true;
+            this.line = null;
+
+          }
+
+
+        }
+      } else {      // create initial line point. DEBUG WAIT REALLY IS THAT WHAT THIS DOES? 
+        var left = parseInt(that.ctx.canvas.style.left);
+        var top = parseInt(that.ctx.canvas.style.top);
+        if (e.offsetX > that.ctx.canvas.width + left || e.offsetX < left ||
+           e.offsetY > that.ctx.canvas.height + top || e.offsetX < top) {
+          if (!this.line) {
+            if (!this.prev || (this.prev && !this.prev.polygonID)) {
+              var xposition = localToWorld(e.offsetX, "x");
+              var yposition = localToWorld(e.offsetY, "y");
+
+              this.locked = this.line = new EditorLine(new vec2(xposition, yposition), new vec2(xposition, yposition));
+              that.level.tempLines.push(this.line);
+
+              button.isSelected = false;
+            }
           }
         }
       }
-    }
 
-    if (completed) {
-      console.log("completed and selected normals for terrainLine polygon.");
-      that.level.addCheckpoint(that.level.tempLines);
-      that.resetCurrent();
-      that.level.modified = true;
+
     }
   };
 
 
 
-  checkpoint.onDrag = function (e) {
+  checkpointButton.onDrag = function (e) {
+
     if (this.line) {
       var mousePos = getMousePos(e);
-      this.line.p1edit.x = (this.line.p1.x = mousePos.x) - this.line.p1edit.w / 2;
-      this.line.p1edit.y = (this.line.p1.y = mousePos.y) - this.line.p1edit.h / 2;
+      //this.line.p1edit.x = (this.line.p1.x = mousePos.x) - this.line.p1edit.w / 2;
+      //this.line.p1edit.y = (this.line.p1.y = mousePos.y) - this.line.p1edit.h / 2;
+
+      this.line.p1.x = mousePos.x;
+      this.line.p1.y = mousePos.y;
+
       //console.log(this.line.p1edit);
+
     }
+
+    if (this.completed) {
+      placeNormals(e, this.prev);
+    }
+
   };
 
+  function placeNormals(e, prev) {
+    //prev = prev.adjacent1;
+    var itr = prev;
+    itr.normal = findNormalByMouse(e, prev);
 
-
-  checkpoint.onRelease = function (e) {
-    if (this.line && this.line.p1.x !== this.line.p0.x && this.line.p1.y !== this.line.p0.y) {
-      that.level.snapTo(this.line);
-      this.locked = this.prev = this.line;
-      this.setNormals = this.line.adjacent1;
-      this.line = null;
+    while (itr.adjacent1 !== prev) {
+      var selected = itr;
+      var selectedVec = selected.p0.subtract(selected.p1).normalize();
+      itr = itr.adjacent1;
+      var nextVec = selected.adjacent1.p1.subtract(selected.adjacent1.p0).normalize();
+      var potentialNormal = nextVec.perp();
+      var negPotentialNormal = potentialNormal.negate();
+      var h = Math.acos(selectedVec.dot(nextVec));
+      if (h > HALF_PI) {
+        itr.normal = (selected.normal.dot(potentialNormal) < selected.normal.dot(negPotentialNormal) ? negPotentialNormal : potentialNormal);
+      } else {
+        itr.normal = (selected.normal.dot(potentialNormal) < selected.normal.dot(negPotentialNormal) ? potentialNormal : negPotentialNormal);
+      }
     }
-  };
+  }
+
+
+  checkpointButton.onRelease = function (e) {
+
+
+  }
 
 };
 

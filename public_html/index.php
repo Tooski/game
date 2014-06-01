@@ -2,11 +2,10 @@
 <head>
 <style> 
 /*           */
- * { margin:0; padding:0;   overflow: hidden; } /* to remove the top and left whitespace */ 
- html, body { width:100%; height:100%; } /* just to be sure these are full screen*/ 
- canvas { display:block; } /* To remove the scrollbars */ 
-#eklipzConsole { 			margin-left: 200px;
-			z-index: 9999; }
+	* { margin:0; padding:0;   overflow: hidden; } /* to remove the top and left whitespace */ 
+	html, body { width:100%; height:100%; } /* just to be sure these are full screen*/ 
+	canvas { display:block; } /* To remove the scrollbars */ 
+	#eklipzConsole { margin-left: 200px; z-index: 9999; }
 </style>
         <link rel="stylesheet" type="text/css" href="css/login.css">
         <link rel="stylesheet" type="text/css" href="css/leaderboard.css">
