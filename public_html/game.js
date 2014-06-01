@@ -169,8 +169,7 @@ GameEngine.prototype.initializePhysEng = function () {
 
  
   this.player.model = this.playerModel;              // backwards add a playerModel to player.
-    this.player.model.pos = currentLevel.startPoint;
-
+  this.player.model.pos = currentLevel.startPoint;
   this.eventsSinceLastFrame = [];
 
   this.start();
