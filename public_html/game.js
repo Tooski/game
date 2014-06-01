@@ -578,7 +578,10 @@ GameEngine.prototype.update = function() {
       //console.log("we have events");
     }
     
-    this.physEng.update(thisFrameTime / 1000, this.eventsSinceLastFrame);
+      //results = { finished: true or false, timeFinished: timeFinished, numCollectibles: number of collectibles collected, score: points acquired, numDeaths: number of respawns from checkpoints, replay: replay JSON string }
+    var results = this.physEng.update(thisFrameTime / 1000, this.eventsSinceLastFrame);
+    // IF GAME OVER, CALL gameOver(the_score, the_time, the_jason, the_collect, the_num_death)
+
 
     //console.log("Time = " + this.physEng.getTime());
 	//console.log(this.physEng.timeMgr.time);

@@ -992,6 +992,10 @@ PhysEng.prototype.update = function (time, newEvents) {
       this.debugInputs.push(newEvents[i]);
     }
   }
+  //results = { finished: true or false, timeFinished: timeFinished, numCollectibles: number of collectibles collected, score: points acquired, numDeaths: number of respawns from checkpoints, replay: replay JSON string }
+  var fakeCompletion = { finished: (this.player.time > 5 ? true : false), timeFinished: 5, numCollectibles: 2, score: 150, numDeaths: 3, replayJSON: "Will be replay JSON data later on." };
+  this.completionState = fakeCompletion;
+  return this.completionState;
 }
 
 
