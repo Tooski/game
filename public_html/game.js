@@ -243,7 +243,7 @@ GameEngine.prototype.startInput = function () {
   }, false);
 
   this.ctx.canvas.addEventListener("keydown", function (e) {
-    if (editMode) {
+    if (!editMode) {
       //console.log(e.keyCode);
       //console.log(gameEngine.input);
       if (e.keyCode === gameEngine.input.leftKey && gameEngine.input.leftPressed === false) {
