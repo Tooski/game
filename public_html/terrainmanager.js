@@ -794,7 +794,7 @@ TerrainManager.prototype.loadFromFile = function (id, init, callback) {
 
 
       gameEngine.initializePhysEng(that);
-  );
+    });
 
 
   //    gameEngine.initializePhysEng();
