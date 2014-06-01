@@ -95,13 +95,11 @@
         <div class="outer-leaderboard-container" id="leader_board">
             <div class="header">Good Job Carl!!</div>
             <div class="results">
-
                 <div class="level-completed" id="level-completed"></div>
                 <div class="level-score" id="level-score"></div>
                 <div class="level-time" id="level-time"></div>
                 <div class="level-collectables" id="level-collectables"></div>
                 <div class ="level-deaths" id="level-deaths"></div>
-
             </div>
             <div class="title-container" id="title_container">
             </div>
