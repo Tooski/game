@@ -65,17 +65,30 @@
 		
 		
         <canvas id="time" style= "display : none; position:absolute; z-index: 2;  left:1150px; top:25px; background: white" height="50px" width="100px"></canvas>
+<<<<<<< HEAD
+        <canvas id="score" style="display : none; position:absolute; z-index: 2;  left:25px; top:25px; background: white" height="50px" width="100px"></canvas>
+        <canvas id="pause" style="display : none; position:absolute; z-index: 2; background: white; display: none" height="525" width="350"></canvas>
+        <canvas id="remap" style="display : none; position:absolute; z-index: 3; left:475px; top:125px; background: white; display: none" height="525" width="350"></canvas>
+=======
 		<canvas id="score" style="display : none; position:absolute; z-index: 2;  left:25px; top:25px; background: white" height="50px" width="100px"></canvas>
 		<canvas id="pause" style="display : none; position:absolute; z-index: 2; left:475px; top:125px; background: white; display: none" height="525" width="350"></canvas>
 		<canvas id="remap" style="display : none; position:absolute; z-index: 3; left:475px; top:125px; background: white; display: none" height="525" width="350"></canvas>
+>>>>>>> origin/editor-overhaul
 
 	<div>
 				<script src="classie.js"></script>
 		        <canvas id="gameWorld" style="border: 0px solid brown; background: white; display : none"></canvas>
 
+<<<<<<< HEAD
             <canvas id="game_manu_board" style= "display : block; position: absolute; " width="400" height="350"></canvas>
             <canvas id="stage_board" style= "display : none; position: absolute; " width="400" height="350"></canvas>
+        </div>
+
+=======
+            <canvas id="game_manu_board" style= "display : none; position: absolute; " width="400" height="350"></canvas>
+            <canvas id="stage_board" style= "display : block; position: absolute; " width="400" height="350"></canvas>
 	</div>
+>>>>>>> origin/editor-overhaul
         <!--div for login-->
         <div class="outer-container" id="login_board" style= "display : none">
                     <input type="text" name="username" id="username" value="donkey"><br>

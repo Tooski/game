@@ -56,15 +56,9 @@ var E_GOAL_MASK = E_NEXT_BIT;
 E_NEXT_BIT *= 2;
 
 
-//var p = new InputEventRight(1.0);         //masking test. Fuck javascript, seriously.
-//console.log(p);
-//if ((p.mask & E_RENDER_MASK) > 0) {
-//  throw "failed";
-//} else if ((p.mask & E_INPUT_MASK) > 0) {
-//  throw "worked!";
-//} else {
-//  throw "failed to work at all";
-//}
+
+
+
 
 
 // Event class. All events interpreted by the physics engine must extend this, as seen below. 
