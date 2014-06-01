@@ -1053,6 +1053,7 @@ MapEditor.prototype.createEditModeButton = function (ctx) {
       that.ctx.canvas.setWidth = buttonSize * 2;
       that.ctx.canvas.setHeight = buttonSize;
       editMode = false;
+      gameEngine.initializePhysEng();
     } else {
       that.ctx.canvas.setWidth = buttonListEnd.x;
       that.ctx.canvas.setHeight = buttonListEnd.y;
@@ -1071,7 +1072,7 @@ MapEditor.prototype.createEditModeButton = function (ctx) {
 
 
 function checkBounds(p1, p2) {
-  var gs = graceSize / (editMode ? scaleSize : 1);
+  var gs = graceSize / ((editMode || scaleSize > 1) ? scaleSize : 1);
   return (p1.x <= p2.x + gs &&
          p1.x >= p2.x - gs &&
          p1.y <= p2.y + gs &&
