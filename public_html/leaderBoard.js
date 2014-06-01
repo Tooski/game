@@ -33,8 +33,9 @@ function leaderBoardUpdate() {
 
         var div = document.getElementById('left-box');
         for (var i = 0; i < mySplitResult.length - 1; i += 2) {
+           
 
-            div.innerHTML = div.innerHTML + "<span><a onClick= 'displayReplayGame(\"" + mySplitResult[i + 1] + "\")'>" + mySplitResult[i] + "</a></span>";
+            div.innerHTML = div.innerHTML + "<span><a onClick= 'displayReplayGame(\"" + a + "\")'>" + mySplitResult[i] + "</a></span>";
         }
 
     });
