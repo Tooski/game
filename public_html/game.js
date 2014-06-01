@@ -31,7 +31,7 @@ var DFLT_jumpSurfaceSpeedLossRatio = 0.7;   // When jumping from the ground, the
 
 var DEBUG_KEY = 191; //BACKSPACE DEBUGSTEP
 
-
+var editMovementSpeed = 50;
 
 window.requestAnimFrame = (function () {
   return window.requestAnimationFrame ||
@@ -52,7 +52,7 @@ function AssetManager() {
 }
 
 AssetManager.prototype.queueDownload = function (path) {
-  //console.log(path.toString());
+  console.log(path.toString());
   this.downloadQueue.push(path);
 }
 
@@ -67,7 +67,7 @@ AssetManager.prototype.downloadAll = function (callback) {
     var img = new Image();
     var that = this;
     img.addEventListener("load", function () {
-    //  console.log("dun: " + this.src.toString());
+      console.log("dun: " + this.src.toString());
       that.successCount += 1;
       if (that.isDone()) {
         callback();
@@ -144,6 +144,7 @@ function GameEngine(player) {
   this.player = player;
   this.input = new InputObject;
   this.player.inputs = this.input;
+  this.editPos = new vec2(0, 0);
 
 
   //this.physParams = new PhysParams(DFLT_gravity);
@@ -165,11 +166,12 @@ GameEngine.prototype.initializePhysEng = function () {
   this.physEng = new PhysEng(this, this.playerModel);
 
 
- 
 
- 
+
+
   this.player.model = this.playerModel;              // backwards add a playerModel to player.
   this.player.model.pos = currentLevel.startPoint;
+
   this.eventsSinceLastFrame = [];
 
   this.start();
@@ -241,32 +243,48 @@ GameEngine.prototype.startInput = function () {
   }, false);
 
   this.ctx.canvas.addEventListener("keydown", function (e) {
-    //console.log(e.keyCode);
-    //console.log(gameEngine.input);
-    if (e.keyCode === gameEngine.input.leftKey && gameEngine.input.leftPressed === false) {
-      gameEngine.setLeft(true, performance.now());
-      //console.log("Left pressed");
-    } else if (e.keyCode === gameEngine.input.upKey && gameEngine.input.upPressed === false) {
-      gameEngine.setUp(true, performance.now());
-      //console.log("Up pressed");
-    } else if (e.keyCode === gameEngine.input.rightKey && gameEngine.input.rightPressed === false) {
-      gameEngine.setRight(true, performance.now());
-      //console.log("Right pressed");
-    } else if (e.keyCode === gameEngine.input.downKey && gameEngine.input.downPressed === false) {
-      gameEngine.setDown(true, performance.now());
-      //console.log("Down pressed");
-    } else if (e.keyCode === gameEngine.input.jumpKey && gameEngine.input.jumpPressed === false) {
-      gameEngine.setJump(true, performance.now());
-      //console.log("Jump pressed");
-    } else if (e.keyCode === gameEngine.input.boostKey && gameEngine.input.boostPressed === false) {
-      gameEngine.setBoost(true, performance.now());
-      //console.log("Boost pressed");
-    } else if (e.keyCode === gameEngine.input.lockKey && gameEngine.input.lockPressed === false) {
-      gameEngine.setLock(true, performance.now());
-      //console.log("Lock pressed");
-    } else if (e.keyCode === gameEngine.input.pauseKey && gameEngine.input.pausePressed === false) {
-      gameEngine.setPause(true, performance.now());
-      //console.log("Pause pressed");
+    if (!editMode) {
+      //console.log(e.keyCode);
+      //console.log(gameEngine.input);
+      if (e.keyCode === gameEngine.input.leftKey && gameEngine.input.leftPressed === false) {
+        gameEngine.setLeft(true, performance.now());
+        //console.log("Left pressed");
+      } else if (e.keyCode === gameEngine.input.upKey && gameEngine.input.upPressed === false) {
+        gameEngine.setUp(true, performance.now());
+        //console.log("Up pressed");
+      } else if (e.keyCode === gameEngine.input.rightKey && gameEngine.input.rightPressed === false) {
+        gameEngine.setRight(true, performance.now());
+        //console.log("Right pressed");
+      } else if (e.keyCode === gameEngine.input.downKey && gameEngine.input.downPressed === false) {
+        gameEngine.setDown(true, performance.now());
+        //console.log("Down pressed");
+      } else if (e.keyCode === gameEngine.input.jumpKey && gameEngine.input.jumpPressed === false) {
+        gameEngine.setJump(true, performance.now());
+        //console.log("Jump pressed");
+      } else if (e.keyCode === gameEngine.input.boostKey && gameEngine.input.boostPressed === false) {
+        gameEngine.setBoost(true, performance.now());
+        //console.log("Boost pressed");
+      } else if (e.keyCode === gameEngine.input.lockKey && gameEngine.input.lockPressed === false) {
+        gameEngine.setLock(true, performance.now());
+        //console.log("Lock pressed");
+      } else if (e.keyCode === gameEngine.input.pauseKey && gameEngine.input.pausePressed === false) {
+        gameEngine.setPause(true, performance.now());
+        //console.log("Pause pressed");
+      }
+    } else {
+      if (e.keyCode === gameEngine.input.leftKey) {
+        that.editPos.x -= editMovementSpeed;
+
+      } if (e.keyCode === gameEngine.input.rightKey) {
+        that.editPos.x += editMovementSpeed;
+      }
+
+      if (e.keyCode === gameEngine.input.upKey) {
+        that.editPos.y -= editMovementSpeed;
+      }
+      if (e.keyCode === gameEngine.input.downKey) {
+        that.editPos.y += editMovementSpeed;
+      }
     }
     //e.preventDefault();
   }, false);
@@ -445,15 +463,15 @@ GameEngine.prototype.addEntity = function (entity) {
  * @returns nothing.
  */
 function parallax(ctx, backgroundImage, offsetSpeed, position) {
-    var w = -position.x /(editMode ? scaleSize : 1) *offsetSpeed - backgroundImage.width ;
-    var movePositionX =  backgroundImage.width * Math.floor((w / backgroundImage.width) + 1)  - position.x /(editMode ? scaleSize : 1) ;
+  var w = -position.x / (editMode ? scaleSize : 1) * offsetSpeed - backgroundImage.width;
+  var movePositionX = backgroundImage.width * Math.floor((w / backgroundImage.width) + 1) - position.x / (editMode ? scaleSize : 1);
 
 
   var scale = canvas.width / initWidth * (initScale !== 0 ? initScale : 1);
-    for (w -= movePositionX; w < canvas.width / scale / (editMode ? scaleSize : 1) - position.x /(editMode ? scaleSize : 1) *offsetSpeed - movePositionX; w += backgroundImage.width) {
-        var h = -canvas.height * scale/2-position.y /(editMode ? scaleSize : 1) *offsetSpeed - backgroundImage.height;
-        var movePositionY =  backgroundImage.height * Math.floor((h / backgroundImage.height) + 1) -  position.y /(editMode ? scaleSize : 1) ;
-        for (h -= movePositionY; h < canvas.height / scale / (editMode ? scaleSize : 1) - position.y /(editMode ? scaleSize : 1) *offsetSpeed - movePositionY; h  += backgroundImage.height) {
+  for (w -= movePositionX; w < canvas.width / scale / (editMode ? scaleSize : 1) - position.x / (editMode ? scaleSize : 1) * offsetSpeed - movePositionX; w += backgroundImage.width) {
+    var h = -canvas.height * scale / 2 - position.y / (editMode ? scaleSize : 1) * offsetSpeed - backgroundImage.height;
+    var movePositionY = backgroundImage.height * Math.floor((h / backgroundImage.height) + 1) - position.y / (editMode ? scaleSize : 1);
+    for (h -= movePositionY; h < canvas.height / scale / (editMode ? scaleSize : 1) - position.y / (editMode ? scaleSize : 1) * offsetSpeed - movePositionY; h += backgroundImage.height) {
       ctx.drawImage(backgroundImage, w - canvas.width / scale / 2, h - canvas.height / scale / 2);
     }
   }
@@ -504,26 +522,28 @@ GameEngine.prototype.draw = function (drawCallback) {
     // initScale is the window's width / 16 / player width. this should allow everything to scale down
     // the player will be 1/16 the width of the window at all times and everything will scale with him.
 
-      
-          //  ctx.translate(   (initWidth/this.ctx.canvas.width) *this.ctx.canvas.width / 2/ initScale ,   (initWidth/this.ctx.canvas.width) * this.ctx.canvas.height / 2 / initScale );
-            ctx.scale((initScale * canvas.width / initWidth) * (editMode ? scaleSize : 1), (initScale * canvas.width / initWidth) * (editMode ? scaleSize : 1));
-            //  ctxGUI.scale(initScale * canvas.width / initWidth, initScale * canvas.width / initWidth);
-        //     ctx.translate( (initWidth/this.ctx.canvas.width) *-this.ctx.canvas.width/ initScale,  (initWidth/this.ctx.canvas.width) *-  this.ctx.canvas.height / initScale);
+    //  ctx.translate(   (initWidth/this.ctx.canvas.width) *this.ctx.canvas.width / 2/ initScale ,   (initWidth/this.ctx.canvas.width) * this.ctx.canvas.height / 2 / initScale );
+    ctx.scale((initScale * canvas.width / initWidth) * (editMode ? scaleSize : 1), (initScale * canvas.width / initWidth) * (editMode ? scaleSize : 1));
+    //  ctxGUI.scale(initScale * canvas.width / initWidth, initScale * canvas.width / initWidth);
+    //     ctx.translate( (initWidth/this.ctx.canvas.width) *-this.ctx.canvas.width/ initScale,  (initWidth/this.ctx.canvas.width) *-  this.ctx.canvas.height / initScale);
+    var pos = this.player.model.pos;
+    if (!editMode) {
+      // Adjusts the canvas' move position as well as the post scaling.
 
+      this.editPos = this.player.model.pos;
+      this.ctx.translate(
+      (initWidth / this.ctx.canvas.width) * this.ctx.canvas.width / initScale / 2 - this.player.model.pos.x,
+      (initWidth / this.ctx.canvas.width) * this.ctx.canvas.height / initScale / 2 - this.player.model.pos.y);
 
-    // Adjusts the canvas' move position as well as the post scaling.
-    this.ctx.translate(
-    (initWidth / this.ctx.canvas.width) * this.ctx.canvas.width / initScale / 2 - this.player.model.pos.x,
-    (initWidth / this.ctx.canvas.width) * this.ctx.canvas.height / initScale / 2 - this.player.model.pos.y);
-
-                    //(initWidth/this.ctx.canvas.width) * this.ctx.canvas.width / initScale / 2 -  this.editPos.x, 
-                    //(initWidth/this.ctx.canvas.width) * this.ctx.canvas.height / initScale / 2 - this.editPos.y);
+    } else {
+      pos = this.editPos;
+      this.ctx.translate(
+             (initWidth / this.ctx.canvas.width) * this.ctx.canvas.width / initScale / 2 - this.editPos.x / (editMode ? scaleSize : 1),
+             (initWidth / this.ctx.canvas.width) * this.ctx.canvas.height / initScale / 2 - this.editPos.y / (editMode ? scaleSize : 1));
+    }
+    parallax(this.ctx, ASSET_MANAGER.cache[imagePaths[0]], 1 / 4, pos);
+    parallax(this.ctx, ASSET_MANAGER.cache[imagePaths[1]], 1 / 2, pos);
   }
-
-
-
-  parallax(this.ctx, ASSET_MANAGER.cache[imagePaths[0]], 1 / 4, this.player.model.pos);
-  parallax(this.ctx, ASSET_MANAGER.cache[imagePaths[1]], 1 / 2, this.player.model.pos);
   for (var i = 0; i < this.entities.length; i++) {
     this.entities[i].draw(this.ctx);
   }
@@ -634,47 +654,38 @@ var restartButton;
 var optionsButton;
 var quitButton;
 
-GameEngine.prototype.pauseFill = function(ctx) {
-    var button_height = (ctx4.canvas.height - 125) / 4;
-    var button_width = ctx4.canvas.width * 0.6;
-    var button_x = ctx4.canvas.width / 5;
-    var button_y = ctx4.canvas.height / 21;
+GameEngine.prototype.pauseFill = function (ctx) {
+  ctx.beginPath();
+  ctx.fillStyle = "blue";
+  ctx.fillRect(25, 30, 300, 100);
+  ctx.stroke();
+  ctx.fillStyle = "white";
+  ctx.font = "40px Arial";
+  ctx.fillText("Resume", 100, 100);
 
-	resumeButton = new Button("Resume",button_x,button_width,button_y,button_height);
-	ctx.beginPath();
-    ctx.fillStyle="blue";
-    ctx.fillRect(button_x,button_y,button_width,button_height);
-    ctx.stroke();
-	ctx.fillStyle="white";
-	ctx.font =  "40px Arial";
-    ctx.fillText("Resume",100,100);
+  ctx.beginPath();
+  ctx.fillStyle = "blue";
+  ctx.fillRect(25, 150, 300, 100);
+  ctx.stroke();
+  ctx.fillStyle = "white";
+  ctx.font = "40px Arial";
+  ctx.fillText("Restart", 110, 210);
 
-	restartButton = new Button("Restart",button_x,button_width,button_y * 6,button_height);
-	ctx.beginPath();
-    ctx.fillStyle="blue";
-    ctx.fillRect(button_x,button_y * 6,button_width,button_height);
-    ctx.stroke();
-	ctx.fillStyle="white";
-	ctx.font =  "40px Arial";
-    ctx.fillText("Restart",110,210);
+  ctx.beginPath();
+  ctx.fillStyle = "blue";
+  ctx.fillRect(25, 270, 300, 100);
+  ctx.stroke();
+  ctx.fillStyle = "white";
+  ctx.font = "40px Arial";
+  ctx.fillText("Options", 110, 335);
 
-	optionsButton = new Button("Options",button_x,button_width,button_y * 11,button_height);
-	ctx.beginPath();
-    ctx.fillStyle="blue";
-    ctx.fillRect(button_x,button_y * 11,button_width,button_height);
-    ctx.stroke();
-	ctx.fillStyle="white";
-	ctx.font =  "40px Arial";
-    ctx.fillText("Options",110,335);
-
-	quitButton = new Button("Quit",button_x,button_width,button_y * 16,button_height);
-	ctx.beginPath();
-    ctx.fillStyle="blue";
-    ctx.fillRect(button_x,button_y * 16,button_width,button_height);
-    ctx.stroke();
-	ctx.fillStyle="white";
-	ctx.font =  "40px Arial";
-    ctx.fillText("Quit",135,450);
+  ctx.beginPath();
+  ctx.fillStyle = "blue";
+  ctx.fillRect(25, 390, 300, 100);
+  ctx.stroke();
+  ctx.fillStyle = "white";
+  ctx.font = "40px Arial";
+  ctx.fillText("Quit", 135, 450);
 }
 
 var returnButton = new Button("Return", 475, 825, 125, 215);
@@ -758,36 +769,46 @@ GameEngine.prototype.remapFill = function (ctx) {
 }
 
 //Button objects
-function Button (name,x,w,y,h) {
-	this.name = name;
-	this.x = parseInt(x);
-	this.w = parseInt(w);
-	this.y = parseInt(y);
-	this.h = parseInt(h);
-	console.log("Initialized. Name: " + this.name + ", X: " + this.x +", Y: " + this.y + ", W: " + this.w + ", H: " + this.h);
+function Button(name, xL, xR, yT, yB, item, mX, mY, j) {
+  this.name = name;
+  this.x = this.ix = parseInt(xL);
+  this.w = this.iw = parseInt(xR);
+  this.y = this.iy = parseInt(yT);
+  this.h = this.ih = parseInt(yB);
+  this.mX = mX;
+  this.mY = mY;
+  this.item = item;
+  this.scale = function (e, i) {
+    return (e - parseInt(i)) * (canvas.width / initWidth) * initScale;
+    +25 * (j);
+  };
+  if (item)
+    this.updatePosition();
+  //    return {x:this.ix, y: this.iy, width: this.iw, height: this.ih};
 }
 
-Button.prototype.checkClicked = function() {
-        console.log(mouseX, mouseY);
+Button.prototype.updatePosition = function () {
 
-	var left = this.x;
-	var right = this.x + this.w;
-	var top = this.y;
-	var bottom = this.y + this.h;
+  this.x = this.scale(this.ix, this.item.x) + this.mX();
+  this.y = this.scale(this.iy, this.item.y) + this.mY();
 
-	if (mouseX < this.x + this.w && mouseX > this.x && mouseY < this.y + this.h && mouseY > this.y) {
-		return true;
-	}
-	else {
-		console.log("xL: " + this.x + ", xR: " + (this.x + this.w )+ ", yT: " + this.y + ", yB: " + (this.y + this.h ));
-		return false;
-	}
+}
+
+Button.prototype.checkClicked = function () {
+  console.log(mouseX, mouseY);
+  if (mouseX < this.x + this.w && mouseX > this.x && mouseY < this.y + this.h && mouseY > this.y) {
+    return true;
+  }
+  else {
+    console.log("xL: " + this.x + ", xR: " + (this.x + this.w) + ", yT: " + this.y + ", yB: " + (this.y + this.h));
+    return false;
+  }
 };
 
 
 function pauseClicked(e) {
-  mouseX = e.clientX - ctx4.canvas.getBoundingClientRect().left;
-  mouseY = e.clientY - ctx4.canvas.getBoundingClientRect().top;
+  mouseX = e.pageX;
+  mouseY = e.pageY;
   console.log("X: " + mouseX + ", Y: " + mouseY + ", Result: " + optionsButton.checkClicked());
   //If statements to test for the different buttons
   if (optionsButton.checkClicked()) {
@@ -1029,6 +1050,10 @@ ASSET_MANAGER.downloadAll(function () {
   };
   var item = { x: ctx4.canvas.style.left, y: ctx4.canvas.style.top };
   console.log(item);
+  resumeButton = new Button("Resume", 500, 300, 155, 100, item, pX, pY, 1);
+  restartButton = new Button("Restart", 500, 300, 275, 100, item, pX, pY, 2);
+  optionsButton = new Button("Options", 500, 300, 395, 100, item, pX, pY, 3);
+  quitButton = new Button("Quit", 500, 300, 515, 100, item, pX, pY, 4);
 
 
   (ctx2.canvas.style.left = parseInt(ctx.canvas.width) - guiPadding - ctx2.canvas.width);
@@ -1099,27 +1124,27 @@ ASSET_MANAGER.downloadAll(function () {
       }
       selectedItem = null;
     }, false);
-    
-    $(canvas).bind('mousewheel', function(event) {
-        if(editMode) {
-            if (event.originalEvent.wheelDelta >= 0) {
-                scaleSize += 0.1;
-                
-                
-            }
-            else {
-              
-                scaleSize -= 0.1;
-                
-                 if(scaleSize <= 0.25) scaleSize = 0.25;
-               
-            }
+
+    $(canvas).bind('mousewheel', function (event) {
+      if (editMode) {
+        if (event.originalEvent.wheelDelta >= 0) {
+          scaleSize += 0.1;
+
 
         }
-  });
+        else {
 
-    
-});
+          scaleSize -= 0.1;
+
+          if (scaleSize <= 0.25) scaleSize = 0.25;
+
+        }
+
+      }
+    });
+
+
+  });
 });
 var scaleSize = 1;
 
@@ -1138,12 +1163,13 @@ window.onresize = function () {
 function localToWorld(value, dimension) {
 
 
+
   if (dimension === "x")
-        return (value / initScale/ (editMode ? scaleSize : 1) - (initWidth/ctx.canvas.width) * 
-            ctx.canvas.width / initScale / 2  + gameEngine.editPos.x/ (editMode ? scaleSize : 1));
+    return (value / initScale / (editMode ? scaleSize : 1) - (initWidth / ctx.canvas.width) *
+        ctx.canvas.width / initScale / 2 + gameEngine.editPos.x / (editMode ? scaleSize : 1));
   else if (dimension === "y") {
-        return (value / initScale/ (editMode ? scaleSize : 1) - (initWidth/ctx.canvas.width) * 
-            ctx.canvas.height / initScale / 2  + gameEngine.editPos.y/ (editMode ? scaleSize : 1)) ;
+    return (value / initScale / (editMode ? scaleSize : 1) - (initWidth / ctx.canvas.width) *
+        ctx.canvas.height / initScale / 2 + gameEngine.editPos.y / (editMode ? scaleSize : 1));
   }
 }
 

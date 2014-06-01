@@ -1045,6 +1045,7 @@ MapEditor.prototype.createEditModeButton = function (ctx) {
       that.ctx.canvas.setHeight = buttonSize;
       editMode = false;
       gameEngine.initializePhysEng();
+      GameCanvas[0].focus(); // focus on game canvs.
     } else {
       that.ctx.canvas.setWidth = buttonListEnd.x;
       that.ctx.canvas.setHeight = buttonListEnd.y;
@@ -1054,6 +1055,7 @@ MapEditor.prototype.createEditModeButton = function (ctx) {
       that.draw(that.ctx);
       that.editMode = !that.editMode;
       that.isSelected = button = null;
+      GameCanvas[0].focus(); // focus on game canvs.
     }
   };
 };

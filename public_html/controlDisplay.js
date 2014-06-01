@@ -39,7 +39,7 @@ function displayWorldMap(){
 	document.getElementById("leader_board").style.display = "none";
 	document.getElementById("about_board").style.display = "none";
 	noneDisplayGame();
-	document.getElementById('mapEditor').style.display = "none";
+	//document.getElementById('mapEditor').style.display = "none";
 	if(my_g_stage_id){
 		my_stage_board.setWorldMapID(my_g_stage_id);
 	} else {
