@@ -125,7 +125,7 @@ function TerrainLine(point0, point1, player, adjacent0, adjacent1, normal) {
       //console.log("Within perpendicular line bounds.");
       collision = true;
     } else if (vAC.lengthsq() < radiussq || vBC.lengthsq() < radiussq) {
-    //} else if (vAC.lengthsq() < radiussq - COLLISION_EPSILON_SQ || vBC.lengthsq() < radiussq - COLLISION_EPSILON_SQ) {
+      //} else if (vAC.lengthsq() < radiussq - COLLISION_EPSILON_SQ || vBC.lengthsq() < radiussq - COLLISION_EPSILON_SQ) {
       // WE ARE OFF THE SIDES OF THE PERPENDICULAR BOUNDING BOX, BUT WE STILL COLLIDED WITH THE LINES ENDPOINT.
       //console.log("Outside line bounds, hit endpoint");
       collision = true;
@@ -209,7 +209,7 @@ function TerrainLine(point0, point1, player, adjacent0, adjacent1, normal) {
     if (this.adjacent0) {
       var thisVec = this.p1.subtract(this.p0).normalize();
       var adjVec = this.adjacent0.p0.subtract(this.adjacent0.p1).normalize();
-      var angleNorm = getSignedAngleFromAToB( this.adjacent0.normal, this.normal);
+      var angleNorm = getSignedAngleFromAToB(this.adjacent0.normal, this.normal);
       var angle = Math.acos(thisVec.dot(adjVec));
 
       //connection to adj0 is concave when the angle between this.normal and next surface is < HALF_PI, or 90 degrees. 
@@ -512,49 +512,49 @@ function GoalLine(point0, point1, player, adjacent0, adjacent1, normal) {
       //DEBUG_DRAW_BLUE.push(new DebugCircle(point, radius, 5));
     }
 
- /**
-   * Returns a result object detailing whether or not this adjacent is concave, and the angle between this surface and adj0.
-   * return { concave: true or false, angle } angle is in radians, the closer to Math.PI the less the angle of change between surfaces.
-   */
-  this.getAdj0Angle = function () {
-    if (this.adjacent0) {
-      var thisVec = this.p1.subtract(this.p0).normalize();
-      var adjVec = this.adjacent0.p0.subtract(this.adjacent0.p1).normalize();
-      var angleNorm = this.normal.dot(adjVec);
-      var angle = Math.acos(thisVec.dot(adjVec));
-      //connection to adj0 is concave when the angle between this.normal and next surface is < HALF_PI, or 90 degrees. 
+    /**
+      * Returns a result object detailing whether or not this adjacent is concave, and the angle between this surface and adj0.
+      * return { concave: true or false, angle } angle is in radians, the closer to Math.PI the less the angle of change between surfaces.
+      */
+    this.getAdj0Angle = function () {
+      if (this.adjacent0) {
+        var thisVec = this.p1.subtract(this.p0).normalize();
+        var adjVec = this.adjacent0.p0.subtract(this.adjacent0.p1).normalize();
+        var angleNorm = this.normal.dot(adjVec);
+        var angle = Math.acos(thisVec.dot(adjVec));
+        //connection to adj0 is concave when the angle between this.normal and next surface is < HALF_PI, or 90 degrees. 
 
-      var result = { concave: (angleNorm <= HALF_PI), angle: angle };
-      return result;
+        var result = { concave: (angleNorm <= HALF_PI), angle: angle };
+        return result;
 
-    } else {
-      return null;
+      } else {
+        return null;
+      }
     }
-  }
 
 
 
 
-  /**
-   * Returns a result object detailing whether or not this adjacent is concave, and the angle between this surface and adj1.
-   * return { concave: true or false, angle } angle is in radians, the closer to Math.PI the less the angle of change between surfaces.
-   */
-  this.getAdj1Angle = function () {
-    if (this.adjacent1) {
-      var thisVec = this.p0.subtract(this.p1).normalize();
-      var adjVec = this.adjacent1.p1.subtract(this.adjacent1.p0).normalize();
-      var angleNorm = this.normal.dot(adjVec);
-      var angle = Math.acos(thisVec.dot(adjVec));
+    /**
+     * Returns a result object detailing whether or not this adjacent is concave, and the angle between this surface and adj1.
+     * return { concave: true or false, angle } angle is in radians, the closer to Math.PI the less the angle of change between surfaces.
+     */
+    this.getAdj1Angle = function () {
+      if (this.adjacent1) {
+        var thisVec = this.p0.subtract(this.p1).normalize();
+        var adjVec = this.adjacent1.p1.subtract(this.adjacent1.p0).normalize();
+        var angleNorm = this.normal.dot(adjVec);
+        var angle = Math.acos(thisVec.dot(adjVec));
 
-      //connection to adj0 is concave when the angle between this.normal and next surface is < HALF_PI, or 90 degrees. 
+        //connection to adj0 is concave when the angle between this.normal and next surface is < HALF_PI, or 90 degrees. 
 
-      var result = { concave: (angleNorm <= HALF_PI), angle: angle };
-      return result;
+        var result = { concave: (angleNorm <= HALF_PI), angle: angle };
+        return result;
 
-    } else {
-      return null;
+      } else {
+        return null;
+      }
     }
-  }
 
 
 
@@ -872,49 +872,49 @@ function CheckpointLines(point0, point1, player, adjacent0, adjacent1, normal) {
       //DEBUG_DRAW_BLUE.push(new DebugCircle(point, radius, 5));
     }
 
- /**
-   * Returns a result object detailing whether or not this adjacent is concave, and the angle between this surface and adj0.
-   * return { concave: true or false, angle } angle is in radians, the closer to Math.PI the less the angle of change between surfaces.
-   */
-  this.getAdj0Angle = function () {
-    if (this.adjacent0) {
-      var thisVec = this.p1.subtract(this.p0).normalize();
-      var adjVec = this.adjacent0.p0.subtract(this.adjacent0.p1).normalize();
-      var angleNorm = this.normal.dot(adjVec);
-      var angle = Math.acos(thisVec.dot(adjVec));
-      //connection to adj0 is concave when the angle between this.normal and next surface is < HALF_PI, or 90 degrees. 
+    /**
+      * Returns a result object detailing whether or not this adjacent is concave, and the angle between this surface and adj0.
+      * return { concave: true or false, angle } angle is in radians, the closer to Math.PI the less the angle of change between surfaces.
+      */
+    this.getAdj0Angle = function () {
+      if (this.adjacent0) {
+        var thisVec = this.p1.subtract(this.p0).normalize();
+        var adjVec = this.adjacent0.p0.subtract(this.adjacent0.p1).normalize();
+        var angleNorm = this.normal.dot(adjVec);
+        var angle = Math.acos(thisVec.dot(adjVec));
+        //connection to adj0 is concave when the angle between this.normal and next surface is < HALF_PI, or 90 degrees. 
 
-      var result = { concave: (angleNorm <= HALF_PI), angle: angle };
-      return result;
+        var result = { concave: (angleNorm <= HALF_PI), angle: angle };
+        return result;
 
-    } else {
-      return null;
+      } else {
+        return null;
+      }
     }
-  }
 
 
 
 
-  /**
-   * Returns a result object detailing whether or not this adjacent is concave, and the angle between this surface and adj1.
-   * return { concave: true or false, angle } angle is in radians, the closer to Math.PI the less the angle of change between surfaces.
-   */
-  this.getAdj1Angle = function () {
-    if (this.adjacent1) {
-      var thisVec = this.p0.subtract(this.p1).normalize();
-      var adjVec = this.adjacent1.p1.subtract(this.adjacent1.p0).normalize();
-      var angleNorm = this.normal.dot(adjVec);
-      var angle = Math.acos(thisVec.dot(adjVec));
+    /**
+     * Returns a result object detailing whether or not this adjacent is concave, and the angle between this surface and adj1.
+     * return { concave: true or false, angle } angle is in radians, the closer to Math.PI the less the angle of change between surfaces.
+     */
+    this.getAdj1Angle = function () {
+      if (this.adjacent1) {
+        var thisVec = this.p0.subtract(this.p1).normalize();
+        var adjVec = this.adjacent1.p1.subtract(this.adjacent1.p0).normalize();
+        var angleNorm = this.normal.dot(adjVec);
+        var angle = Math.acos(thisVec.dot(adjVec));
 
-      //connection to adj0 is concave when the angle between this.normal and next surface is < HALF_PI, or 90 degrees. 
+        //connection to adj0 is concave when the angle between this.normal and next surface is < HALF_PI, or 90 degrees. 
 
-      var result = { concave: (angleNorm <= HALF_PI), angle: angle };
-      return result;
+        var result = { concave: (angleNorm <= HALF_PI), angle: angle };
+        return result;
 
-    } else {
-      return null;
+      } else {
+        return null;
+      }
     }
-  }
 
 
 
