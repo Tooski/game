@@ -53,12 +53,14 @@ function displayGame(id){
 }
 
 function displayReplayGame(the_index){
+	
 	MY_STAGE_CANVAS.style.display = "none";
 	MY_GAME_MANU_CANVAS.style.display = "none";
 	document.getElementById("login_board").style.display = "none";
 	document.getElementById("leader_board").style.display = "none";
 	document.getElementById("about_board").style.display = "none";
 	//console.log(my_jar_list[the_index]);
+	//console.log(the_index);
 	 //my_g_level_id= id;
 	currentLevel.loadFromFile(my_g_level_id);
 	gameEngine.physEng.loadReplay(my_jar_list[the_index]);
