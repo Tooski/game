@@ -635,11 +635,11 @@ GameEngine.prototype.update = function () {
   //timeTest(ctx2);
   ctx2.font = "20px Arial";
   var time = this.physEng.timeMgr.time;
-  var display = time.toFixed(2);
+  //var display = time.toFixed(2);
   var convertMinute = time / 60;
   var min = Math.floor(convertMinute);
   var sec = Math.floor(time) - (60 * min);
-  var convertMilli = time - sec;
+  var convertMilli = time - Math.floor(time);
   var milli = convertMilli.toFixed(2);
   var milli = milli.substring(2,4);
   var add = "";
@@ -651,10 +651,11 @@ GameEngine.prototype.update = function () {
   {
     add = "";
   }
-  console.log(min + ":" + add + sec + ":" + milli);
+  //console.log(min + ":" + add + sec + ":" + milli);
+  var format = min + ":" + add + sec + ":" + milli;
   //ctx.fillText(min + ":" + add + sec,30,35);
   ctx2.textAlign = 'center';
-  ctx2.fillText(display, x, y);
+  ctx2.fillText(format, x, y);
 
   x = canvas3.width / 2;
   y = (canvas3.height / 2) + 7;
