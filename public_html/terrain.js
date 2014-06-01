@@ -130,15 +130,16 @@ function TerrainLine(id, polyID, point0, point1, adjacent0, adjacent1, normal) {
     */
   this.getAdj0Angle = function () {
     if (this.adjacent0) {
-      var thisVec = this.p1.subtract(this.p0).normalize();
-      var adjVec = this.adjacent0.p0.subtract(this.adjacent0.p1).normalize();
-      var angleNorm = Math.acos(this.adjacent0.normal.dot(this.normal));
-      var angle = Math.acos(thisVec.dot(adjVec));
+      var sv1 = this.p1.subtract(this.p0).normalize();
+      var sv2 = this.adjacent0.p0.subtract(this.adjacent0.p1).normalize();
+      //var angleNorm = getSignedAngleFromAToB(this.adjacent0.normal, thisVec);
+      var surfaceNormAng = Math.acos(sv2.dot(this.normal));
+      var angle = Math.acos(sv1.dot(sv2));
 
       //connection to adj0 is concave when the angle between this.normal and next surface is < HALF_PI, or 90 degrees. 
 
-      //console.log("angleNorm0: ", angleNorm);
-      var result = { concave: (angleNorm < 0), angle: angle };
+      console.log("angle0: ", angle);
+      var result = { concave: (angle < 0), angle: angle };
       return result;
 
     } else {
@@ -155,15 +156,16 @@ function TerrainLine(id, polyID, point0, point1, adjacent0, adjacent1, normal) {
    */
   this.getAdj1Angle = function () {
     if (this.adjacent1) {
-      var thisVec = this.p0.subtract(this.p1).normalize();
-      var adjVec = this.adjacent1.p1.subtract(this.adjacent1.p0).normalize();
-      var angleNorm = getSignedAngleFromAToB(this.normal, this.adjacent1.normal);
-      var angle = Math.acos(thisVec.dot(adjVec));
+      var thisVec = this.adjacent1.p1.subtract(this.adjacent1.p0).normalize();
+      var adjVec = this.p0.subtract(this.p1).normalize();
+      //var angleNorm = getSignedAngleFromAToB(this.adjacent0.normal, thisVec);
+      var surfaceNormAng = Math.acos(sv2.dot(this.normal));
+      var angle = Math.acos(thisVec.dot(sv2));
 
       //connection to adj0 is concave when the angle between this.normal and next surface is < HALF_PI, or 90 degrees. 
 
-      //console.log("angleNorm1: ", angleNorm);
-      var result = { concave: (angleNorm < 0), angle: angle };
+      console.log("angle1: ", angle);
+      var result = { concave: (angle < 0), angle: angle };
       return result;
 
     } else {
