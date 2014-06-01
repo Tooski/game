@@ -830,8 +830,8 @@ Button.prototype.checkClicked = function() {
 
 
 function pauseClicked(e) {
-  mouseX = e.pageX;
-  mouseY = e.pageY;
+  mouseX = e.clientX - ctx4.canvas.getBoundingClientRect().left;
+  mouseY = e.clientY - ctx4.canvas.getBoundingClientRect().top;
   console.log("X: " + mouseX + ", Y: " + mouseY + ", Result: " + optionsButton.checkClicked());
   //If statements to test for the different buttons
   if (optionsButton.checkClicked()) {
