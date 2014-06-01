@@ -71,11 +71,11 @@
             <canvas id="gameWorld" style="border: 0px solid brown; background: white; display : none"></canvas>
 
             <canvas id="game_manu_board" style= "display : none; position: absolute; " width="400" height="350"></canvas>
-            <canvas id="stage_board" style= "display : none; position: absolute; " width="400" height="350"></canvas>
+            <canvas id="stage_board" style= "display : block; position: absolute; " width="400" height="350"></canvas>
         </div>
 
         <!--div for login-->
-         <div class="outer-container" id="login_board" style= "display : block">
+         <div class="outer-container" id="login_board" style= "display : none">
             <form name="input" action="settings.php" method="post">
                 <div class="inner-top">
                     <label for="username">Name</label>
