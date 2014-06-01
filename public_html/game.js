@@ -640,8 +640,8 @@ GameEngine.prototype.update = function () {
   var min = Math.floor(convertMinute);
   var sec = Math.floor(time) - (60 * min);
   var convertMilli = time - Math.floor(time);
-  var milli = convertMilli.toFixed(2);
-  var milli = milli.substring(2,4);
+  var milli = convertMilli.toFixed(3);
+  var milli = milli.substring(2,5);
   var add = "";
   if (sec < 10)
   {
