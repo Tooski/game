@@ -317,7 +317,7 @@ function getMousePos(evt) {
 
 
 MapEditor.prototype.createLineButton = function (ctx) {
-  var terrainButton = new MapEditorButton("Add Terrain", 0, (buttonSize + 5), buttonSize * 2, buttonSize);
+  var terrainButton = new MapEditorButton("Add Terrain", 0, (buttonSize + 5), buttonSize * 2.5, buttonSize);
   var that = this;
   var clicked = true;
 
@@ -455,7 +455,7 @@ MapEditor.prototype.createLineButton = function (ctx) {
  * Selects the players starting position.
  */
 MapEditor.prototype.createStartPointButton = function (ctx) {
-  var start = new MapEditorButton("Move Start Pos", 0, (buttonSize + 5) * 2, buttonSize * 2, buttonSize);
+  var start = new MapEditorButton("Move Start Pos", 0, (buttonSize + 5) * 2, buttonSize * 2.5, buttonSize);
   var that = this;
 
   start.onClick = function (e) {
@@ -513,7 +513,7 @@ MapEditor.prototype.snapTo = function (terrain) {
 
 
 MapEditor.prototype.createCheckpointLineButton = function (ctx) {
-  var checkpointButton = new MapEditorButton("Add Checkpoint", 0, (buttonSize + 5) * 3, buttonSize * 2, buttonSize);
+  var checkpointButton = new MapEditorButton("Add Checkpoint", 0, (buttonSize + 5) * 3, buttonSize * 2.5, buttonSize);
   var that = this;
 
   checkpointButton.onClick = function (e) {
@@ -633,7 +633,7 @@ MapEditor.prototype.createCheckpointLineButton = function (ctx) {
 
 
 MapEditor.prototype.createGoalLineButton = function (ctx) {
-  var line = new MapEditorButton("Add Goal", 0, (buttonSize + 5) * 4, buttonSize * 2, buttonSize);
+  var line = new MapEditorButton("Add Goal", 0, (buttonSize + 5) * 4, buttonSize * 2.5, buttonSize);
   var that = this;
 
   line.onClick = function (e) {
@@ -728,7 +728,7 @@ MapEditor.prototype.createGoalLineButton = function (ctx) {
 
 
 MapEditor.prototype.createCollectibleButton = function (ctx) {
-  var collect = new MapEditorButton("Collectibles", 0, (buttonSize + 5) * 5, buttonSize * 2, buttonSize);
+  var collect = new MapEditorButton("Collectibles", 0, (buttonSize + 5) * 5, buttonSize * 2.5, buttonSize);
   var that = this;
 
   collect.onClick = function (e) {
@@ -750,12 +750,12 @@ MapEditor.prototype.createCollectibleButton = function (ctx) {
 
 
 MapEditor.prototype.createEraseButton = function () {
-  var erase = new MapEditorButton("Erase Lines", 0, (buttonSize + 5) * 6, buttonSize * 2, buttonSize);
+  var erase = new MapEditorButton("Erase Lines", 0, (buttonSize + 5) * 6, buttonSize * 2.5, buttonSize);
   var that = this;
 
   erase.onClick = function (e) {
     var position = new vec2(localToWorld(e.offsetX, "x"), localToWorld(e.offsetY, "y"));
-    that.eraseFromArrayByClick(that.level, position);
+    that.level.eraseByPosition(position, graceSize);
   };
 
 };
@@ -764,7 +764,7 @@ MapEditor.prototype.createEraseButton = function () {
 
 
 MapEditor.prototype.createLoadButton = function (ctx) {
-  var erase = new MapEditorButton("Load Level", 0, (buttonSize + 5) * 7, buttonSize * 2, buttonSize);
+  var erase = new MapEditorButton("Load Level", 0, (buttonSize + 5) * 7, buttonSize * 2.5, buttonSize);
   var that = this;
   erase.onRelease = function (e) {
     //that.level.loadFromFile();
@@ -786,7 +786,7 @@ MapEditor.prototype.createLoadButton = function (ctx) {
 MapEditor.prototype.createSaveButton = function (ctx) {
 
 
-  var save = new MapEditorButton("Save Level", 0, (buttonSize + 5) * 8, buttonSize * 2, buttonSize);
+  var save = new MapEditorButton("Save Level", 0, (buttonSize + 5) * 8, buttonSize * 2.5, buttonSize);
   var that = this;
   save.onRelease = function (e) {
     console.log(e);
@@ -1016,7 +1016,7 @@ MapEditor.prototype.attemptSnap = function (line) {
 
 
 MapEditor.prototype.createIncreaseSpeedButton = function () {
-  var inc = new MapEditorButton("Camera speed up", 0, (buttonSize + 5) * 9, buttonSize * 2, buttonSize);
+  var inc = new MapEditorButton("Camera speed up", 0, (buttonSize + 5) * 9, buttonSize * 2.5, buttonSize);
   inc.onRelease = function (e) {
     editMovementSpeed += 10;
   };
@@ -1026,7 +1026,7 @@ MapEditor.prototype.createIncreaseSpeedButton = function () {
 
 
 MapEditor.prototype.createDecreaseSpeedButton = function () {
-  var inc = new MapEditorButton("Camera speed down", 0, (buttonSize + 5) * 10, buttonSize * 2, buttonSize);
+  var inc = new MapEditorButton("Camera speed down", 0, (buttonSize + 5) * 10, buttonSize * 2.5, buttonSize);
   inc.onRelease = function (e) {
 
     editMovementSpeed -= 10;
@@ -1038,13 +1038,13 @@ MapEditor.prototype.createDecreaseSpeedButton = function () {
 
 
 MapEditor.prototype.createEditModeButton = function (ctx) {
-  var editmode = new MapEditorButton("Test level", 0, 0, buttonSize * 2, buttonSize);
+  var editmode = new MapEditorButton("Test level", 0, 0, buttonSize * 2.5, buttonSize);
   editmode.collider.onEditMode = false;
   var that = this;
   editmode.onRelease = function (e) {
     // Hides the remaining buttons if pressed.
     if (that.ctx.canvas.setHeight !== buttonSize) {
-      that.ctx.canvas.setWidth = buttonSize * 2;
+      that.ctx.canvas.setWidth = buttonSize * 2.5;
       that.ctx.canvas.setHeight = buttonSize;
       editMode = false;
     
