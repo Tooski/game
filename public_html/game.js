@@ -697,75 +697,99 @@ var leftButton = new Button("Left", 500, 650, 515, 565);
 var rightButton = new Button("Right", 500, 650, 590, 640);
 
 GameEngine.prototype.remapFill = function (ctx) {
+    var button_height = ctx5.canvas.height / 11;
+    var button_width = (ctx5.canvas.width - 75) /2;
+    var button_x = ctx5.canvas.width / 15;
+    var button_y = ctx5.canvas.height / 22;
+
+	console.log("Check val: " + button_width + ", " + button_x + ", " + button_height + ", " + button_y);
+/*
   ctx.fillStyle = "blue";
   ctx.font = "40px Arial";
-  ctx.fillText("Remap Keys", 60, 60);
+  ctx.fillText("Remap Keys", 60, 60);*/
 
   ctx.beginPath();
   ctx.fillStyle = "blue";
-  ctx.fillRect(25, 90, 150, 50);
+  ctx.fillRect(button_x, button_y, button_width, button_height);
   ctx.stroke();
   ctx.fillStyle = "white";
   ctx.font = "30px Arial";
-  ctx.fillText("Jump", 60, 125);
-  ctx.fillStyle = "blue";
-  ctx.font = "30px Arial";
-  ctx.fillText(gameEngine.input.jumpString, 200, 125);
+  ctx.fillText("Back", 65, 60);
 
   ctx.beginPath();
   ctx.fillStyle = "blue";
-  ctx.fillRect(25, 165, 150, 50);
+  ctx.fillRect(button_x * 8, button_y, button_width, button_height);
   ctx.stroke();
   ctx.fillStyle = "white";
   ctx.font = "30px Arial";
-  ctx.fillText("Boost", 60, 200);
-  ctx.fillStyle = "blue";
-  ctx.font = "30px Arial";
-  ctx.fillText(gameEngine.input.boostString, 200, 200);
+  ctx.fillText("Reset", 235, 60);
+
 
   ctx.beginPath();
   ctx.fillStyle = "blue";
-  ctx.fillRect(25, 240, 150, 50);
+  ctx.fillRect(button_x, button_y * 4, button_width, button_height);
   ctx.stroke();
   ctx.fillStyle = "white";
   ctx.font = "30px Arial";
-  ctx.fillText("Lock", 60, 275);
+  ctx.fillText("Jump", 60, 135);
   ctx.fillStyle = "blue";
   ctx.font = "30px Arial";
-  ctx.fillText(gameEngine.input.lockString, 200, 275);
+  ctx.fillText(gameEngine.input.jumpString, 200, 135);
 
   ctx.beginPath();
   ctx.fillStyle = "blue";
-  ctx.fillRect(25, 315, 150, 50);
+  ctx.fillRect(button_x, button_y * 7, button_width, button_height);
   ctx.stroke();
   ctx.fillStyle = "white";
   ctx.font = "30px Arial";
-  ctx.fillText("Pause", 60, 350);
+  ctx.fillText("Boost", 60, 210);
   ctx.fillStyle = "blue";
   ctx.font = "30px Arial";
-  ctx.fillText(gameEngine.input.pauseString, 200, 350);
+  ctx.fillText(gameEngine.input.boostString, 200, 210);
 
   ctx.beginPath();
   ctx.fillStyle = "blue";
-  ctx.fillRect(25, 390, 150, 50);
+  ctx.fillRect(button_x, button_y * 10, button_width, button_height);
   ctx.stroke();
   ctx.fillStyle = "white";
   ctx.font = "30px Arial";
-  ctx.fillText("Left", 60, 425);
+  ctx.fillText("Lock", 60, 285);
   ctx.fillStyle = "blue";
   ctx.font = "30px Arial";
-  ctx.fillText(gameEngine.input.leftString, 200, 425);
+  ctx.fillText(gameEngine.input.lockString, 200, 285);
 
   ctx.beginPath();
   ctx.fillStyle = "blue";
-  ctx.fillRect(25, 465, 150, 50);
+  ctx.fillRect(button_x, button_y * 13, button_width, button_height);
   ctx.stroke();
   ctx.fillStyle = "white";
   ctx.font = "30px Arial";
-  ctx.fillText("Right", 60, 500);
+  ctx.fillText("Pause", 60, 360);
   ctx.fillStyle = "blue";
   ctx.font = "30px Arial";
-  ctx.fillText(gameEngine.input.rightString, 200, 500);
+  ctx.fillText(gameEngine.input.pauseString, 200, 360);
+
+  ctx.beginPath();
+  ctx.fillStyle = "blue";
+  ctx.fillRect(button_x, button_y * 16, button_width, button_height);
+  ctx.stroke();
+  ctx.fillStyle = "white";
+  ctx.font = "30px Arial";
+  ctx.fillText("Left", 60, 435);
+  ctx.fillStyle = "blue";
+  ctx.font = "30px Arial";
+  ctx.fillText(gameEngine.input.leftString, 200, 435);
+
+  ctx.beginPath();
+  ctx.fillStyle = "blue";
+  ctx.fillRect(button_x, button_y * 19, button_width, button_height);
+  ctx.stroke();
+  ctx.fillStyle = "white";
+  ctx.font = "30px Arial";
+  ctx.fillText("Right", 60, 510);
+  ctx.fillStyle = "blue";
+  ctx.font = "30px Arial";
+  ctx.fillText(gameEngine.input.rightString, 200, 510);
 }
 
 //Button objects
@@ -1060,6 +1084,8 @@ ASSET_MANAGER.downloadAll(function () {
   (ctx2.canvas.style.top = guiPadding);
   (ctx4.canvas.style.left = (canvas.width / 2 - ctx4.canvas.width / 2));
   (ctx4.canvas.style.top = (canvas.height / 2 - ctx4.canvas.height / 2));
+  (ctx5.canvas.style.left = (canvas.width / 2 - ctx4.canvas.width / 2));
+  (ctx5.canvas.style.top = (canvas.height / 2 - ctx4.canvas.height / 2));
   (stage.canvas.style.left = (canvas.width / 2 - stage.canvas.width / 2));
   (stage.canvas.style.top = (canvas.height / 2 - stage.canvas.height / 2));
   (main.canvas.style.left = (canvas.width / 2 - main.canvas.width / 2));
@@ -1156,6 +1182,8 @@ window.onresize = function () {
   console.log("test");
   (stage.canvas.style.left = (window.innerWidth / 2 - stage.canvas.width / 2));
   (stage.canvas.style.top = (window.innerHeight / 2 - stage.canvas.height / 2));
+  (ctx5.canvas.style.left = (window.innerWidth / 2 - stage.canvas.width / 2));
+  (ctx5.canvas.style.top = (window.innerHeight / 2 - stage.canvas.height / 2));
   (main.canvas.style.left = (window.innerWidth / 2 - main.canvas.width / 2));
   (main.canvas.style.top = (window.innerHeight / 2 - main.canvas.height / 2));
 }
