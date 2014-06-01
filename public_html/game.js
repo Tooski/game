@@ -628,13 +628,42 @@ GameEngine.prototype.update = function () {
       }
     }
   }
+
+  var x = canvas2.width / 2;
+  var y = (canvas2.height / 2) + 7;
   ctx2.clearRect(0, 0, canvas2.width, canvas2.height);
   //timeTest(ctx2);
   ctx2.font = "20px Arial";
   var time = this.physEng.timeMgr.time;
   var display = time.toFixed(2);
+  var convertMinute = time / 60;
+  var min = Math.floor(convertMinute);
+  var sec = Math.floor(time) - (60 * min);
+  var convertMilli = time - sec;
+  var milli = convertMilli.toFixed(2);
+  var milli = milli.substring(2,4);
+  var add = "";
+  if (sec < 10)
+  {
+    add = "0"
+  } 
+  else
+  {
+    add = "";
+  }
+  console.log(min + ":" + add + sec + ":" + milli);
   //ctx.fillText(min + ":" + add + sec,30,35);
-  ctx2.fillText(display, 30, 35);
+  ctx2.textAlign = 'center';
+  ctx2.fillText(display, x, y);
+
+  x = canvas3.width / 2;
+  y = (canvas3.height / 2) + 7;
+  ctx3.clearRect(0, 0, canvas3.width, canvas3.height);
+  ctx3.font = "20px Arial";
+  var scoreDisplay = results.score;
+  ctx3.textAlign = 'center';
+  ctx3.fillText(scoreDisplay, x, y);
+
   
   if (!editMode) {
     var score = document.getElementById('score');
@@ -1119,7 +1148,7 @@ ASSET_MANAGER.downloadAll(function () {
   (main.canvas.style.top = (canvas.height / 2 - main.canvas.height / 2));
 
   loadingScreen(ctx);
-  scoreTest(ctx3);
+  //scoreTest(ctx3);
 
   game.settings.query(function () { // if callback is returned, run the application.
 
