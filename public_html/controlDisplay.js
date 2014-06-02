@@ -12,6 +12,7 @@ function displayLogIN(){
 	document.getElementById("leader_board").style.display = "none";
 	document.getElementById("about_board").style.display = "none";
 	document.getElementById('mapEditor').style.display = "none";
+        document.getElementById("sing-up-board").style.display = "none";
 	my_stage_board.reSetPoint();
 	document.getElementById("login_board").style.display = "block";
 }
@@ -32,6 +33,7 @@ function displayMainMenu(){
 	document.getElementById("login_board").style.display = "none";
 	document.getElementById("leader_board").style.display = "none";
 	document.getElementById("about_board").style.display = "none";
+        document.getElementById("sing-up-board").style.display = "none";
 	noneDisplayGame();
 	document.getElementById('mapEditor').style.display = "none";
 	
@@ -49,6 +51,7 @@ function displayWorldMap(){
 	document.getElementById("login_board").style.display = "none";
 	document.getElementById("leader_board").style.display = "none";
 	document.getElementById("about_board").style.display = "none";
+        document.getElementById("sing-up-board").style.display = "none";
 	noneDisplayGame();
 	//document.getElementById('mapEditor').style.display = "none";
 	if(my_g_stage_id){
@@ -71,6 +74,7 @@ function displayGame(id){
 	document.getElementById("leader_board").style.display = "none";
 	document.getElementById("about_board").style.display = "none";
 	document.getElementById('mapEditor').style.display = "none";
+        document.getElementById("sing-up-board").style.display = "none";
 	
 	my_g_level_id = id;
 	//console.log(my_g_level_id);
@@ -85,6 +89,7 @@ function displayCustomGame(){
 	document.getElementById("login_board").style.display = "none";
 	document.getElementById("leader_board").style.display = "none";
 	document.getElementById("about_board").style.display = "none";
+        document.getElementById("sing-up-board").style.display = "none";
 	
 	document.getElementById('mapEditor').style.display = "block";
 	//--- this should be fix later... just showing 
@@ -103,6 +108,7 @@ function displayReplayGame(the_index){
 	document.getElementById("leader_board").style.display = "none";
 	document.getElementById("about_board").style.display = "none";
 	document.getElementById('mapEditor').style.display = "none";
+        document.getElementById("sing-up-board").style.display = "none";
 	//console.log(my_jar_list[the_index]);
 	//console.log(the_index);
 	 //my_g_level_id= id;
@@ -120,6 +126,7 @@ function displayLeaderBoard(the_game_result){
 	document.getElementById("login_board").style.display = "none";
 	document.getElementById("about_board").style.display = "none";
 	document.getElementById('mapEditor').style.display = "none";
+        document.getElementById("sing-up-board").style.display = "none";
 	
 	leaderBoardUpdate(the_game_result);
 	document.getElementById("leader_board").style.display = "block";
@@ -133,6 +140,7 @@ function displayAboutBoard(){
 	document.getElementById("login_board").style.display = "none";
 	document.getElementById("leader_board").style.display = "none";
 	document.getElementById('mapEditor').style.display = "none";
+        document.getElementById("sing-up-board").style.display = "none";
 	
 	document.getElementById("about_board").style.display = "block";
 }
