@@ -5,6 +5,8 @@
  * the controller which currently has jumping and moving.
  * Written by: Josef Nosov
  */
+var HAMSTER_BALL_COLOR = "#000000";
+
 function Player(x, y, timer) {
     Entity.call(this, null, 0, 0, 0, 0);
     this.walkingSpeed = 0.10;
@@ -134,6 +136,7 @@ Player.prototype.draw = function(ctx) {
     if (!this.ctx)
         this.ctx = ctx;
     ctx.beginPath();
+    ctx.strokeStyle = HAMSTER_BALL_COLOR;
     ctx.lineWidth = 8;
     ctx.arc(this.model.pos.x, this.model.pos.y, this.model.radius, 0, 2 * Math.PI, false);
     ctx.stroke();

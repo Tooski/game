@@ -2450,7 +2450,7 @@ CHILD.prototype.method = function () {
 
 function animationSetPlayerDoubleJumping(p, time) {
   animationReset(p);
-  p.animationFacing = (p.vel.x < 0 ? "left" : "right");
+  p.animationFacing = (p.accel.x < 0 ? "left" : "right");
   p.animationDoubleJumping = true;
   p.animationTimeInCurrentAnimation = 0.0;
   p.animationStartTime = time;
@@ -2459,7 +2459,7 @@ function animationSetPlayerDoubleJumping(p, time) {
 
 function animationSetPlayerJumping(p, time, surfaceVec) {
   animationReset(p);
-  p.animationFacing = (p.vel.x < 0 ? "left" : "right");
+  p.animationFacing = (p.accel.x < 0 ? "left" : "right");
   p.animationGroundJumping = true;
   p.animationTimeInCurrentAnimation = 0.0;
   p.animationStartTime = time;
@@ -2470,7 +2470,7 @@ function animationSetPlayerJumping(p, time, surfaceVec) {
 
 function animationSetPlayerWalking(p, time) {
   animationReset(p);
-  p.animationFacing = (p.vel.x < 0 ? "left" : "right");
+  p.animationFacing = (p.accel.x < 0 ? "left" : "right");
   p.animationWalking = true;
   p.animationTimeInCurrentAnimation = 0.0;
   p.animationStartTime = time;
@@ -2479,7 +2479,7 @@ function animationSetPlayerWalking(p, time) {
 
 function animationSetPlayerRunning(p, time) {
   animationReset(p);
-  p.animationFacing = (p.vel.x < 0 ? "left" : "right");
+  p.animationFacing = (p.accel.x < 0 ? "left" : "right");
   p.animationRunning = true;
   p.animationTimeInCurrentAnimation = 0.0;
   p.animationStartTime = time;
@@ -2488,7 +2488,7 @@ function animationSetPlayerRunning(p, time) {
 
 function animationSetPlayerBoosting(p, time) {
   animationReset(p);
-  p.animationFacing = (p.vel.x < 0 ? "left" : "right");
+  p.animationFacing = (p.accel.x < 0 ? "left" : "right");
   p.animationBoosting = true;
   p.animationTimeInCurrentAnimation = 0.0;
   p.animationStartTime = time;
@@ -2496,7 +2496,7 @@ function animationSetPlayerBoosting(p, time) {
 
 function animationSetPlayerDownBoosting(p, time) {
   animationReset(p);
-  p.animationFacing = (p.vel.x < 0 ? "left" : "right");
+  p.animationFacing = (p.accel.x < 0 ? "left" : "right");
   p.animationDownBoosting = true;
   p.animationTimeInCurrentAnimation = 0.0;
   p.animationStartTime = time;
@@ -2504,7 +2504,7 @@ function animationSetPlayerDownBoosting(p, time) {
 
 function animationSetPlayerColliding(p, time, surfaceVec) {
   animationReset(p);
-  p.animationFacing = (p.vel.x < 0 ? "left" : "right");
+  p.animationFacing = (p.accel.x < 0 ? "left" : "right");
   p.animationColliding = true;
   p.animationTimeInCurrentAnimation = 0.0;
   p.animationStartTime = time;
@@ -2514,7 +2514,7 @@ function animationSetPlayerColliding(p, time, surfaceVec) {
 
 function animationSetPlayerFreefall(p, time) {
   animationReset(p);
-  p.animationFacing = (p.vel.x < 0 ? "left" : "right");
+  p.animationFacing = (p.accel.x < 0 ? "left" : "right");
   p.animationFreefall = true;
   p.animationTimeInCurrentAnimation = 0.0;
   p.animationStartTime = time;
@@ -2560,5 +2560,8 @@ function animationUpdateAnimation(p, gameTime) {
     p.animationAngle = surfaceVec.sangle();
    
   }
+
+  p.animationFacing = (p.accel.x < 0 ? "left" : "right");
+
 }
 

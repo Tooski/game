@@ -235,7 +235,7 @@ function CheckpointLine(id, checkpointID, point0, point1, adjacent0, adjacent1) 
   this.adjacent0 = adjacent0;
   this.adjacent1 = adjacent1;
   this.id = id;
-  this.checkpointID;
+  this.checkpointID = checkpointID;
 
 
 

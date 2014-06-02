@@ -50,18 +50,22 @@ function MapEditorButton(name, x, y, w, h) {
   this.ih = this.h = h;
   this.isSelected = false;
   this.collider = new MouseCollideable(true, this.x, this.y, this.w, this.h);
+  this.gamecanvas = document.getElementById('gameWorld');
   var that = this;
   this.trigger = function (e) {
 
     if (button !== that) {
       that.isSelected = button ? !(button.isSelected = false) : true;
       button = that;
+      
     } else {
 
       that.isSelected = false;
       button = undefined;
     }
 
+    console.log("focusing canvas????");
+    that.gamecanvas.focus();
   };
 
   if (buttonListStart.x > this.x) buttonListStart.x = this.x;
@@ -76,6 +80,10 @@ function MapEditorButton(name, x, y, w, h) {
 MapEditorButton.onClick = function (e) { };
 MapEditorButton.onDrag = function (e) { };
 MapEditorButton.onRelease = function (e) { };
+MapEditorButton.prototype.reset = function () {
+  delete this.line;
+  delete this.prev;
+};
 MapEditorButton.prototype.draw = function (ctx) {
 
 
@@ -128,6 +136,7 @@ function MapEditor(level) {
   this.ctx = c.getContext('2d');
   this.ctx.canvas = c;
 
+  this.collectibleRadius = DFLT_COLLECTIBLE_RADIUS;
 
   this.level.tempLines = [];   // the lines currently being drawn.
 
@@ -155,31 +164,30 @@ function MapEditor(level) {
 
 
       if (collidedWith(buttonList[i].collider, e.offsetX, e.offsetY)) {
-
+        that.resetCurrent();
+        if (button) {
+          button.reset();
+        }
         buttonList[i].trigger();
+        for (var i = 0; i < buttonList.length; i++) {
+          buttonList[i].draw(that.ctx);
+        }
         break;
       }
     }
-    for (var i = 0; i < buttonList.length; i++) {
-      buttonList[i].draw(that.ctx);
-    }
-
     if (button && button.onClick) {
 
       button.onClick(e);
 
 
     }
-    for (var i = 0; i < buttonList.length; i++) {
-      buttonList[i].draw(that.ctx);
-    }
+
   }, false);
   c.addEventListener("mousemove", function (e) {
 
     if (button && !button.isSelected && button.onDrag) {
       button.onDrag(e);
     }
-
   }, false);
 
   c.addEventListener("mouseup", function (e) {
@@ -187,9 +195,7 @@ function MapEditor(level) {
     if (button && button.onRelease) {
       button.onRelease(e);
     }
-    for (var i = 0; i < buttonList.length; i++) {
-      buttonList[i].draw(that.ctx);
-    }
+    
   }, false);
 
 
@@ -204,7 +210,7 @@ function MapEditor(level) {
     }
   }, false);
   canvas.addEventListener("mousemove", function (e) {
-    if (button && !button.isSelected && button.onDrag) {
+    if (button && button.onDrag) {
       button.onDrag(e);
     }
   }, false);
@@ -329,16 +335,19 @@ MapEditor.prototype.createLineButton = function (ctx) {
     if (this.completed) {                                     // DO SOMETHING AFTER CLICK AFTER POLYGON EXISTS
 
       placeNormals(e, this.prev);
-      this.locked = this.prev = null;
+      this.reset();
       this.completed = false;
 
       console.log("completed and selected normals for terrainLine polygon.");
       that.level.addTerrain(that.level.tempLines);
       that.resetCurrent();
-      that.level.modified = true;
     } else {
 
       if (this.line) {
+        var mousePos = getMousePos(e);
+
+        this.line.p1.x = mousePos.x;
+        this.line.p1.y = mousePos.y;
 
 
         if (this.line && this.line.p1.x !== this.line.p0.x && this.line.p1.y !== this.line.p0.y) {
@@ -456,10 +465,10 @@ MapEditor.prototype.createLineButton = function (ctx) {
  * Selects the players starting position.
  */
 MapEditor.prototype.createStartPointButton = function (ctx) {
-  var start = new MapEditorButton("Move Start Pos", 0, (buttonSize + 5) * 2, buttonSize * 2.5, buttonSize);
+  var startButton = new MapEditorButton("Move Start Pos", 0, (buttonSize + 5) * 2, buttonSize * 2.5, buttonSize);
   var that = this;
 
-  start.onClick = function (e) {
+  startButton.onClick = function (e) {
     var left = parseInt(that.ctx.canvas.style.left);
     var top = parseInt(that.ctx.canvas.style.top);
     if (e.offsetX > that.ctx.canvas.width + left || e.offsetX < left ||
@@ -472,7 +481,20 @@ MapEditor.prototype.createStartPointButton = function (ctx) {
 
       button.isSelected = false;
     }
+  };    
+  
+  startButton.onDrag = function (e) {
+    placeTempCircle(e);
+    that.level.tempCircleRad = DFLT_radius;
   };
+
+  function placeTempCircle(e) {
+    //prev = prev.adjacent1;
+    var point = getMousePos(e);
+
+    that.level.tempCirclePos = new vec2(point.x, point.y);
+    that.level.tempCircleRad = DFLT_radius;
+  }
 };
 
 
@@ -531,6 +553,12 @@ MapEditor.prototype.createCheckpointLineButton = function (ctx) {
     } else {
 
       if (this.line) {
+        var mousePos = getMousePos(e);
+        //this.line.p1edit.x = (this.line.p1.x = mousePos.x) - this.line.p1edit.w / 2;
+        //this.line.p1edit.y = (this.line.p1.y = mousePos.y) - this.line.p1edit.h / 2;
+
+        this.line.p1.x = mousePos.x;
+        this.line.p1.y = mousePos.y;
 
 
         if (this.line && this.line.p1.x !== this.line.p0.x && this.line.p1.y !== this.line.p0.y) {
@@ -561,7 +589,6 @@ MapEditor.prototype.createCheckpointLineButton = function (ctx) {
               that.level.tempLines.push(this.line);
             }
           } else {
-            console.log("FUUUUDFUJSDHIUSDHBFUIHBDSF");
             if (this.line.adjacent1) this.completed = true;
             this.line = null;
 
@@ -601,8 +628,7 @@ MapEditor.prototype.createCheckpointLineButton = function (ctx) {
       //this.line.p1edit.x = (this.line.p1.x = mousePos.x) - this.line.p1edit.w / 2;
       //this.line.p1edit.y = (this.line.p1.y = mousePos.y) - this.line.p1edit.h / 2;
 
-      this.line.p1.x = mousePos.x;
-      this.line.p1.y = mousePos.y;
+      this.line.p1 = new vec2(mousePos.x, mousePos.y)
 
       //console.log(this.line.p1edit);
 
@@ -633,194 +659,215 @@ MapEditor.prototype.createCheckpointLineButton = function (ctx) {
 
 
 
+
+
+
+
 MapEditor.prototype.createGoalLineButton = function (ctx) {
-  var line = new MapEditorButton("Add Goal", 0, (buttonSize + 5) * 4, buttonSize * 2.5, buttonSize);
+  var goalButton = new MapEditorButton("Add Goal", 0, (buttonSize + 5) * 4, buttonSize * 2.5, buttonSize);
   var that = this;
 
-  line.onClick = function (e) {
-	if (this.completed) {                                     // DO SOMETHING AFTER CLICK AFTER POLYGON EXISTS
-      var click = getMousePos(e);
-      this.locked = this.prev = null;
-      this.completed = false;
+  goalButton.onClick = function (e) {
+    //if (this.completed) {                                     // DO SOMETHING AFTER CLICK AFTER POLYGON EXISTS
 
-      console.log("completed and selected point for checkl.");
-      that.level.addGoal(click, that.level.tempLines);
-      that.resetCurrent();
-    } else {
-	    if (this.line) {
-	
-	
-	      if (this.line && this.line.p1.x !== this.line.p0.x && this.line.p1.y !== this.line.p0.y) {
-	
-	        that.snapTo(this.line);
-	        this.locked = this.prev = this.line;
-	
-	
-	
-	        if (!this.prev.polygonID) {
-	
-	          var xposition = localToWorld(e.offsetX, "x");
-	          var yposition = localToWorld(e.offsetY, "y");
-	
-	          if (!checkBounds(this.line.p0, new vec2(xposition, yposition))) {
-	
-	
-	
-	            this.line = new EditorLine(new vec2(this.prev.p1.x, this.prev.p1.y), new vec2(xposition, yposition));
-	
-	            if (this.attemptSnap(this.line)) {         //true if we completed our polygon.
-	              that.level.tempLines.push(line);
-	            } else {
-	              that.level.tempLines.push(line);
-	            }
-	          }
-	        } else {
-	
-	
-	          this.setNormals = this.line.adjacent1;
-	          this.line = null;
-	
-	        }
-	
-	
-	      }
-	    } else {      // create initial line point. DEBUG WAIT REALLY IS THAT WHAT THIS DOES? 
-	      var left = parseInt(that.ctx.canvas.style.left);
-	      var top = parseInt(that.ctx.canvas.style.top);
-	      if (e.offsetX > that.ctx.canvas.width + left || e.offsetX < left ||
-	         e.offsetY > that.ctx.canvas.height + top || e.offsetX < top) {
-	        if (!this.line) {
-	          if (!this.prev || (this.prev && !this.prev.polygonID)) {
-	            var xposition = localToWorld(e.offsetX, "x");
-	            var yposition = localToWorld(e.offsetY, "y");
-	
-	            this.locked = this.line = new EditorLine(new vec2(xposition, yposition), new vec2(xposition, yposition));
-	            that.level.tempLines.push(this.line);
-	
-	            button.isSelected = false;
-	          }
-	        }
-	      }
-	    }
-	
-	    if (completed) {
-	      console.log("completed and selected normals for terrainLine polygon.");
-	      that.level.addGoal(that.level.tempLines);
-	      that.resetCurrent();
-	      that.level.modified = true;
-	  }
-	}
+    //  placeNormals(e, this.prev);
+    //  this.locked = this.prev = null;
+    //  this.completed = false;
+
+    //  console.log("completed and selected normals for terrainLine polygon.");
+    //  that.level.addTerrain(that.level.tempLines);
+    //  that.resetCurrent();
+    //  that.level.modified = true;
+    //} else {
+
+      if (this.line) {
+        var mousePos = getMousePos(e);
+
+        this.line.p1.x = mousePos.x;
+        this.line.p1.y = mousePos.y;
+
+
+        if (this.line && this.line.p1.x !== this.line.p0.x && this.line.p1.y !== this.line.p0.y) {
+
+          that.snapTo(this.line);
+          this.polygon = that.attemptSnap(this.line);
+          this.locked = this.prev = this.line;
+          if (this.polygon) {                                     
+            this.prev.polygonID = this.polygon.polyID;
+          }
+
+
+
+
+          if (!this.prev.polygonID) {
+
+            var xposition = localToWorld(e.offsetX, "x");
+            var yposition = localToWorld(e.offsetY, "y");
+
+            if (!checkBounds(this.line.p0, new vec2(xposition, yposition))) {
+
+
+
+              this.line = new EditorLine(new vec2(this.prev.p1.x, this.prev.p1.y), new vec2(xposition, yposition));
+              this.line.adjacent0 = this.prev;
+              this.prev.adjacent1 = this.line;
+
+              that.level.tempLines.push(this.line);
+            }
+          } else {
+            if (this.line.adjacent1) {  // do something on polygon completion.
+              that.level.addGoal(that.level.tempLines);
+              that.resetCurrent();
+              //this.completed = true;
+              this.prev = null;
+            }
+            this.line = null;
+          }
+
+
+        }
+      } else {      // create initial line point. DEBUG WAIT REALLY IS THAT WHAT THIS DOES? 
+        var left = parseInt(that.ctx.canvas.style.left);
+        var top = parseInt(that.ctx.canvas.style.top);
+        if (e.offsetX > that.ctx.canvas.width + left || e.offsetX < left ||
+           e.offsetY > that.ctx.canvas.height + top || e.offsetX < top) {
+          if (!this.line) {
+            if (!this.prev || (this.prev && !this.prev.polygonID)) {
+              var xposition = localToWorld(e.offsetX, "x");
+              var yposition = localToWorld(e.offsetY, "y");
+
+              this.locked = this.line = new EditorLine(new vec2(xposition, yposition), new vec2(xposition, yposition));
+              that.level.tempLines.push(this.line);
+
+              button.isSelected = false;
+            }
+          }
+        }
+      }
+
+
+    //}
   };
 
 
 
-  line.onDrag = function (e) {
+  goalButton.onDrag = function (e) {
     if (this.line) {
       var mousePos = getMousePos(e);
-      this.line.p1edit.x = (this.line.p1.x = mousePos.x) - this.line.p1edit.w / 2;
-      this.line.p1edit.y = (this.line.p1.y = mousePos.y) - this.line.p1edit.h / 2;
-      console.log(this.line.p1edit);
+      //this.line.p1edit.x = (this.line.p1.x = mousePos.x) - this.line.p1edit.w / 2;
+      //this.line.p1edit.y = (this.line.p1.y = mousePos.y) - this.line.p1edit.h / 2;
+
+      this.line.p1 = new vec2(mousePos.x, mousePos.y);
+
+      //console.log(this.line.p1edit);
+
     }
   };
 
 
 
-  line.onRelease = function (e) {
-    if (this.line && this.line.p1.x !== this.line.p0.x && this.line.p1.y !== this.line.p0.y) {
-      that.level.snapTo(this.line);
-      this.locked = this.prev = this.line;
-      this.setNormals = this.line.adjacent1;
-      this.line = null;
-    }
+  goalButton.onRelease = function (e) {
+
   };
 
 };
 
+
+
+
 MapEditor.prototype.createKillZoneButton = function (ctx) {
-  var killButton = new MapEditorButton("Add Killzone", 0, (buttonSize + 5) * 5, buttonSize * 2.5, buttonSize);
+  var killButton = new MapEditorButton("Add Kill Zone", 0, (buttonSize + 5) * 5, buttonSize * 2.5, buttonSize);
   var that = this;
   
-   killButton .onClick = function (e) {
-	if (this.completed) {                                     // DO SOMETHING AFTER CLICK AFTER POLYGON EXISTS
-      var click = getMousePos(e);
-      this.locked = this.prev = null;
-      this.completed = false;
+  killButton.onClick = function (e) {
+    if (this.line) {
+      var mousePos = getMousePos(e);
 
-      console.log("completed and selected point for checkl.");
-      that.level.addGoal(click, that.level.tempLines);
-      that.resetCurrent();
-    } else {
-	    if (this.line) {
-	
-	
-	      if (this.line && this.line.p1.x !== this.line.p0.x && this.line.p1.y !== this.line.p0.y) {
-	
-	        that.snapTo(this.line);
-	        this.locked = this.prev = this.line;
-	
-	
-	
-	        if (!this.prev.polygonID) {
-	
-	          var xposition = localToWorld(e.offsetX, "x");
-	          var yposition = localToWorld(e.offsetY, "y");
-	
-	          if (!checkBounds(this.line.p0, new vec2(xposition, yposition))) {
-	
-	
-	
-	            this.line = new EditorLine(new vec2(this.prev.p1.x, this.prev.p1.y), new vec2(xposition, yposition));
-	
-	            if (this.attemptSnap(this.line)) {         //true if we completed our polygon.
-	              that.level.tempLines.push(line);
-	            } else {
-	              that.level.tempLines.push(line);
-	            }
-	          }
-	        } else {
-	
-	
-	          this.setNormals = this.line.adjacent1;
-	          this.line = null;
-	
-	        }
-	
-	
-	      }
-	    } else {      // create initial line point. DEBUG WAIT REALLY IS THAT WHAT THIS DOES? 
-	      var left = parseInt(that.ctx.canvas.style.left);
-	      var top = parseInt(that.ctx.canvas.style.top);
-	      if (e.offsetX > that.ctx.canvas.width + left || e.offsetX < left ||
-	         e.offsetY > that.ctx.canvas.height + top || e.offsetX < top) {
-	        if (!this.line) {
-	          if (!this.prev || (this.prev && !this.prev.polygonID)) {
-	            var xposition = localToWorld(e.offsetX, "x");
-	            var yposition = localToWorld(e.offsetY, "y");
-	
-	            this.locked = this.line = new EditorLine(new vec2(xposition, yposition), new vec2(xposition, yposition));
-	            that.level.tempLines.push(this.line);
-	
-	            button.isSelected = false;
-	          }
-	        }
-	      }
-	    }
-	
-	    if (completed) {
-	      console.log("completed and selected normals for terrainLine polygon.");
-	      that.level.addKillZone(that.level.tempLines);
-	      that.resetCurrent();
-	      that.level.modified = true;
-	  }
-	}
+      this.line.p1.x = mousePos.x;
+      this.line.p1.y = mousePos.y;
+
+
+      if (this.line && this.line.p1.x !== this.line.p0.x && this.line.p1.y !== this.line.p0.y) {
+
+        that.snapTo(this.line);
+        this.polygon = that.attemptSnap(this.line);
+        this.locked = this.prev = this.line;
+        if (this.polygon) {
+          this.prev.polygonID = this.polygon.polyID;
+        }
+
+
+
+
+        if (!this.prev.polygonID) {
+
+          var xposition = localToWorld(e.offsetX, "x");
+          var yposition = localToWorld(e.offsetY, "y");
+
+          if (!checkBounds(this.line.p0, new vec2(xposition, yposition))) {
+
+
+
+            this.line = new EditorLine(new vec2(this.prev.p1.x, this.prev.p1.y), new vec2(xposition, yposition));
+            this.line.adjacent0 = this.prev;
+            this.prev.adjacent1 = this.line;
+
+            that.level.tempLines.push(this.line);
+          }
+        } else {
+          if (this.line.adjacent1) {  // do something on polygon completion.
+            that.level.addKillZone(that.level.tempLines);
+            that.resetCurrent();
+            //this.completed = true;
+            this.prev = null;
+          }
+          this.line = null;
+        }
+
+
+      }
+    } else {      // create initial line point. DEBUG WAIT REALLY IS THAT WHAT THIS DOES? 
+      var left = parseInt(that.ctx.canvas.style.left);
+      var top = parseInt(that.ctx.canvas.style.top);
+      if (e.offsetX > that.ctx.canvas.width + left || e.offsetX < left ||
+         e.offsetY > that.ctx.canvas.height + top || e.offsetX < top) {
+        if (!this.line) {
+          if (!this.prev || (this.prev && !this.prev.polygonID)) {
+            var xposition = localToWorld(e.offsetX, "x");
+            var yposition = localToWorld(e.offsetY, "y");
+
+            this.locked = this.line = new EditorLine(new vec2(xposition, yposition), new vec2(xposition, yposition));
+            that.level.tempLines.push(this.line);
+
+            button.isSelected = false;
+          }
+        }
+      }
+    }
   };
+
+
+
+  killButton.onDrag = function (e) {
+    if (this.line) {
+      var mousePos = getMousePos(e);
+      //this.line.p1edit.x = (this.line.p1.x = mousePos.x) - this.line.p1edit.w / 2;
+      //this.line.p1edit.y = (this.line.p1.y = mousePos.y) - this.line.p1edit.h / 2;
+
+      this.line.p1 = new vec2(mousePos.x, mousePos.y);
+
+      //console.log(this.line.p1edit);
+
+    }
+  };
+
 }
 
 MapEditor.prototype.createCollectibleButton = function (ctx) {
-  var collect = new MapEditorButton("Collectibles", 0, (buttonSize + 5) * 6, buttonSize * 2.5, buttonSize);
+  var collectibleButton = new MapEditorButton("Collectibles", 0, (buttonSize + 5) * 6, buttonSize * 2.5, buttonSize);
   var that = this;
 
-  collect.onClick = function (e) {
+  collectibleButton.onClick = function (e) {
     var left = parseInt(that.ctx.canvas.style.left);
     var top = parseInt(that.ctx.canvas.style.top);
 
@@ -829,11 +876,25 @@ MapEditor.prototype.createCollectibleButton = function (ctx) {
       var xposition = localToWorld(e.offsetX, "x");
       var yposition = localToWorld(e.offsetY, "y");
 
-      that.level.addCollectible(new vec2(xposition, yposition));
+      that.level.addCollectible(new vec2(xposition, yposition), that.collectibleRadius);
 
       button.isSelected = false;
     }
   };
+
+
+  collectibleButton.onDrag = function (e) {
+    placeTempCircle(e);
+    that.level.tempCircleRad = DFLT_radius;
+  };
+
+  function placeTempCircle(e) {
+    //prev = prev.adjacent1;
+    var point = getMousePos(e);
+
+    that.level.tempCirclePos = new vec2(point.x, point.y);
+    that.level.tempCircleRad = DFLT_radius;
+  }
 }
 
 
@@ -844,8 +905,22 @@ MapEditor.prototype.createEraseButton = function () {
   var that = this;
 
   erase.onClick = function (e) {
+    this.clicked = true;
     var position = new vec2(localToWorld(e.offsetX, "x"), localToWorld(e.offsetY, "y"));
     that.level.eraseByPosition(position, graceSize);
+  };
+
+
+  erase.onDrag = function (e) {
+    if (this.clicked) {
+      var position = new vec2(localToWorld(e.offsetX, "x"), localToWorld(e.offsetY, "y"));
+      that.level.eraseByPosition(position, graceSize);
+    }
+  };
+
+
+  erase.onRelease = function (e) {
+    this.clicked = false;
   };
 
 };
