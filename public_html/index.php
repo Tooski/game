@@ -77,98 +77,121 @@
             <canvas id="stage_board" style= "display : none; position: absolute; " width="400" height="350"></canvas>
         </div>
         <!--div for login-->
-        <div class="outer-container" id="login_board" style= "display : none">
-            <div id="error-username-password"></div>
-            <input type="text" name="username" id="username" value="donkey"><br>
-            <input type="password" name="password" id="password" value="ferter"><br>
-            <input type="button" id="login_button" onClick= "logInButtonAction()" >
-        </div>
-    </form>  
-</div> 		
-<!--end of div for login-->
+        <!--        <div class="outer-container" id="login_board" style= "display : none">
+                    <div id="error-username-password"></div>
+                    <input type="text" name="username" id="username" value="donkey"><br>
+                    <input type="password" name="password" id="password" value="ferter"><br>
+                    <input type="button" id="login_button" onClick= "logInButtonAction()" >
+                </div>
+            </form>  
+        </div> 	-->	
+        <div class="outer-signup-container" id="login_board">
+            <div class="inner-header-container">
 
-<!--div for user sign up-->
-<div class="outer-signup-container" id="sing-up-board" style= "display : none">
-    <div class="inner-header-container">
-
-    </div>
-    <div class="inner-title-container">
-        <h2>Welcome to Hamster Storm!</h2>
-    </div>
-    <form name="sign-up-form" action="settings.php" method="post">
-        <div class="inner-body-container">
-            <div id="error-fname"></div>
-            <div><span class="label"><label for="firstname">First Name:</label></span>
-                <span class="input"><input type="text" name="firstname" id="firstname" /></span>
             </div>
-            <div id="error-lname"></div>
-            <div><span class="label"><label for="lastname">Last Name:</label></span>
-                <span class="input"><input type="text" name="lastname" id="lastname" /></span>
+            <div class="inner-title-container">
+                <h2>Hamster Storm!</h2>
             </div>
-            <div id="error-username"></div>
-            <div><span class="label"><label for="username">Username:</label></span>
-                <span class="input"><input type="text" name="username" id="username" /></span>
+            <form name="sign-up-form" action="settings.php" method="post">
+                <div class="inner-body-container">
+                    <div id="error-username-password"></div>
+                    <div><span class="label"><label for="username">Username:</label></span>
+                        <span class="input"><input type="text" name="username" id="username" value="donkey"/></span>
+                    </div>
+                    <div><span class="label"><label for="password">Password:</label></span>
+                        <span class="input"><input type="password" name="password" id="password" value="ferter"/></span>
+                    </div>                      
+                </div>
+                <div class="inner-button-container">
+                    <input type="button" id="login_button" onClick= "logInButtonAction()" value=" "/>
+                </div>
+            </form>
+
+        </div>
+        <!--end of div for login-->
+
+        <!--div for user sign up-->
+        <div class="outer-signup-container" id="sing-up-board" style= "display : none">
+            <div class="inner-header-container">
+
             </div>
-            <div id="error-password"></div>
-            <div><span class="label"><label for="password">Password:</label></span>
-                <span class="input"><input type="password" name="password" id="password" /></span>
+            <div class="inner-title-container">
+                <h2>Welcome to Hamster Storm!</h2>
             </div>
-            <div id="error-email"></div>
-            <div><span class="label"><label for="email">Email:</label></span>
-                <span class="input"><input type="email" name="email" id="email" /></span>
-            </div>                       
+            <form name="sign-up-form" action="settings.php" method="post">
+                <div class="inner-body-container">
+                    <div id="error-fname"></div>
+                    <div><span class="label"><label for="firstname">First Name:</label></span>
+                        <span class="input"><input type="text" name="firstname" id="firstname" /></span>
+                    </div>
+                    <div id="error-lname"></div>
+                    <div><span class="label"><label for="lastname">Last Name:</label></span>
+                        <span class="input"><input type="text" name="lastname" id="lastname" /></span>
+                    </div>
+                    <div id="error-username"></div>
+                    <div><span class="label"><label for="username">Username:</label></span>
+                        <span class="input"><input type="text" name="username" id="username" /></span>
+                    </div>
+                    <div id="error-password"></div>
+                    <div><span class="label"><label for="password">Password:</label></span>
+                        <span class="input"><input type="password" name="password" id="password" /></span>
+                    </div>
+                    <div id="error-email"></div>
+                    <div><span class="label"><label for="email">Email:</label></span>
+                        <span class="input"><input type="email" name="email" id="email" /></span>
+                    </div>                       
+
+                </div>
+                <div class="inner-button-container">
+                    <input type="button" id="submit-user-button" value="sign up!" onClick='signInButtonAction()'/>
+                </div>
+            </form>
 
         </div>
-        <div class="inner-button-container">
-            <input type="button" id="submit-user-button" value="sign up!" onClick='signInButtonAction()'/>
-        </div>
-    </form>
-
-</div>
-<!--end of div for user sign up-->
+        <!--end of div for user sign up-->
 
 
-<!--div for leader board-->
-<div class="outer-leaderboard-container" id="leader_board">
-    <div class="header">Good Job Carl!!</div>
-    <div class="results">
-        <div class="level-completed" id="level-completed"></div>
-        <div class="level-score" id="level-score"></div>
-        <div class="level-time" id="level-time"></div>
-        <div class="level-collectables" id="level-collectables"></div>
-        <div class ="level-deaths" id="level-deaths"></div>
-    </div>
-    <div class="title-container" id="title_container">
-    </div>
-    <div class="sub-title-container" id="sub-title-container">
-        <div class ="left-sub-title" id="left-sub-title">
+        <!--div for leader board-->
+        <div class="outer-leaderboard-container" id="leader_board">
+            <div class="header">Good Job Carl!!</div>
+            <div class="results">
+                <div class="level-completed" id="level-completed"></div>
+                <div class="level-score" id="level-score"></div>
+                <div class="level-time" id="level-time"></div>
+                <div class="level-collectables" id="level-collectables"></div>
+                <div class ="level-deaths" id="level-deaths"></div>
+            </div>
+            <div class="title-container" id="title_container">
+            </div>
+            <div class="sub-title-container" id="sub-title-container">
+                <div class ="left-sub-title" id="left-sub-title">
+                </div>
+                <div class ="right-sub-title" id="right-sub-title">
+                </div>
+            </div>
+            <div class="body-container">
+                <div class="left-box" id="left-box">
+                </div>
+                <div class="right-box" id="right-box">
+                </div>
+            </div>
+            <div class="footer-container">
+                <button type="button" id="exit_button" onClick= "leaderBoardButtonAction()" ></button>             
+            </div>
         </div>
-        <div class ="right-sub-title" id="right-sub-title">
-        </div>
-    </div>
-    <div class="body-container">
-        <div class="left-box" id="left-box">
-        </div>
-        <div class="right-box" id="right-box">
-        </div>
-    </div>
-    <div class="footer-container">
-        <button type="button" id="exit_button" onClick= "leaderBoardButtonAction()" ></button>             
-    </div>
-</div>
-<!--end of div for leader board-->
-<!--div for about page-->
-<div class="outer-about-container" id="about_board"  style= "display : none">
-    <div class="inner-about-title">
-        About Hamster Storm
-    </div>
-    <div class ="inner-about-container">
+        <!--end of div for leader board-->
+        <!--div for about page-->
+        <div class="outer-about-container" id="about_board"  style= "display : none">
+            <div class="inner-about-title">
+                About Hamster Storm
+            </div>
+            <div class ="inner-about-container">
 
-    </div>
-    <div class="inner-about-footer">
-        <button type="button" id="exit_about_button" onClick= "displayMainMenu()"></button>
-    </div>
-</div>
-<!--end of div for about page-->
-</body>
+            </div>
+            <div class="inner-about-footer">
+                <button type="button" id="exit_about_button" onClick= "displayMainMenu()"></button>
+            </div>
+        </div>
+        <!--end of div for about page-->
+    </body>
 </html>

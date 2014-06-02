@@ -1,37 +1,4 @@
 
-
-.outer-container{
-    border: 1px blue solid;
-    width: 200px;
-    display: block;
-    position:absolute;
-    z-index:15;
-    top:50%;
-    left:50%;
-    margin:-80px 0 0 -100px;
-    overflow: hidden;
-    padding-right: 10px;
-    padding-left: 10px;
-    padding-top: 20px;
-    padding-bottom: 20px;
-    border-radius: 5px;
-}
-.inner-top label{
-    float: left;
-
-}
-.inner-top input{
-    float:right;
-}
-
-.inner-top{
-    overflow: hidden;
-    margin-bottom: 20px;
-}
-.inner-bottom{
-    overflow: hidden;
-    text-align: center;
-}
 #login_button{
     width: 96px;
     height: 36px;

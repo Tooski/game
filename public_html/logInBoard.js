@@ -11,11 +11,10 @@ function logInButtonAction() {
         if (callback === "1") {
             my_user_name = input_user_name;
             displayMainMenu();
-            console.log("user is in db");
         } else {
             document.getElementById('error-username-password').innerHTML = "invalid name or password";
             displayLogIN();
-            console.log("invalid name or password");
+            
 
         }
     });
