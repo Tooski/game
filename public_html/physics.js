@@ -915,7 +915,7 @@ PhysEng.prototype.update = function (time, newEvents) {
     //}
     
 
-    this.updatePhys(newEvents, !DEBUG_EVENT_AT_A_TIME);
+    var gameState = this.updatePhys(newEvents, !DEBUG_EVENT_AT_A_TIME);
 
 
   } else {                                                // USING DEBUG STEPPING, 
@@ -925,10 +925,13 @@ PhysEng.prototype.update = function (time, newEvents) {
       this.debugInputs.push(newEvents[i]);
     }
   }
+
   //results = { finished: true or false, timeFinished: timeFinished, numCollectibles: number of collectibles collected, score: points acquired, numDeaths: number of respawns from checkpoints, replay: replay JSON string }
   var fakeCompletion = { finished: (this.player.time > 5 ? true : false), timeFinished: 5, numCollectibles: 2, score: 150, numDeaths: 3, replayJSON: "Will be replay JSON data later on." };
   this.completionState = fakeCompletion;
   return this.completionState;
+
+  // return gameState;
 }
 
 
@@ -1113,6 +1116,7 @@ PhysEng.prototype.updatePhys = function (newEvents, stepToRender) {
   
   animationUpdateAnimation(this.player, this.getTime());
 
+  //results = { finished: true or false, timeFinished: timeFinished, numCollectibles: number of collectibles collected, score: points acquired, numDeaths: number of respawns from checkpoints, replay: replay JSON string }
   return this.player.completionState;
 }
 
@@ -1181,7 +1185,7 @@ PhysEng.prototype.attemptAngularStep = function (goalGameTime) {
     normalState = convertAngularToNormalState(tempState);
 
 
-    collisionList = this.tm.getTerrainCollisions(normalState, doNotCheck);
+    collisionList = this.tm.getTerrainCollisions(normalState, doNotCheck);      // DEBUG FRAME DEPENDENCYYYYYYYYY THIS IS BAD.
 
     //console.log("      tweenStepping, i: ", i, " tweenTime: ", tweenTime);
   }
@@ -1480,7 +1484,7 @@ PhysEng.prototype.getSurfaceEndEvent = function () {
   console.log("");
   console.log("");
 
-  var nextSurfaceEvent = null;  //SurfaceAdjacentEvent(predictedTime, dependencyMask, surface, nextSurface, angle, allowLock)
+  var nextSurfaceEvent = null;  //SurfaceToSurfaceEvent(predictedTime, dependencyMask, surface, nextSurface, angle, allowLock)
 
   if (adjData && (adjData.time || adjData.time === 0)) {
     if (endPointData && (endPointData.time || endPointData.time === 0)) {
@@ -1528,7 +1532,7 @@ PhysEng.prototype.getSurfaceEndEvent = function () {
           //throw "Debug, but this technically shouldnt happen where endpoint was hit before the adjacent line was.";
         }
         //handle me.
-        nextSurfaceEvent = new SurfaceAdjacentEvent(adjData.time, adjDependencyMask, this.player.surface, (adjData.adjNumber === 0 ? this.player.surface.adjacent0 : this.player.surface.adjacent1), adjData.angle, true);
+        nextSurfaceEvent = new SurfaceToSurfaceEvent(adjData.time, adjDependencyMask, this.player.surface, (adjData.adjNumber === 0 ? this.player.surface.adjacent0 : this.player.surface.adjacent1), adjData.angle, true);
         //DEBUG_DRAW_GREEN.push(new DebugCircle(adjDataState.pos, this.player.radius, 5));
       } else {
         console.log("");
@@ -1540,7 +1544,7 @@ PhysEng.prototype.getSurfaceEndEvent = function () {
         if (adjData.time < endPointData.time) {
           // use adjacent.
           console.log("-=-=-=-=-=-=-=   using adjacent");
-          nextSurfaceEvent = new SurfaceAdjacentEvent(adjData.time, adjDependencyMask, this.player.surface, (adjData.adjNumber === 0 ? this.player.surface.adjacent0 : this.player.surface.adjacent1), adjData.angle, true);
+          nextSurfaceEvent = new SurfaceToSurfaceEvent(adjData.time, adjDependencyMask, this.player.surface, (adjData.adjNumber === 0 ? this.player.surface.adjacent0 : this.player.surface.adjacent1), adjData.angle, true);
           //DEBUG_DRAW_GREEN.push(new DebugCircle(adjDataState.pos, this.player.radius, 5));
         } else {
           // use endpoint.
@@ -1588,7 +1592,7 @@ PhysEng.prototype.getSurfaceEndEvent = function () {
 
       console.log("");
 
-      nextSurfaceEvent = new SurfaceAdjacentEvent(adjData.time, adjDependencyMask, this.player.surface, (adjData.adjNumber === 0 ? this.player.surface.adjacent0 : this.player.surface.adjacent1), adjData.angle, true);
+      nextSurfaceEvent = new SurfaceToSurfaceEvent(adjData.time, adjDependencyMask, this.player.surface, (adjData.adjNumber === 0 ? this.player.surface.adjacent0 : this.player.surface.adjacent1), adjData.angle, true);
       //DEBUG_DRAW_GREEN.push(new DebugCircle(adjDataState.pos, this.player.radius, 5));
     }
   } else if (endPointData && (endPointData.time || endPointData.time === 0)) {
@@ -2326,6 +2330,11 @@ var DEF_STR_LENGTH = 6;
 rl = function (num, desiredLength) {
   if (!desiredLength || desiredLength < 3) { desiredLength = DEF_STR_LENGTH }
   var str = "" + num;
+  return rs(str, desiredLength);
+}
+
+
+rs = function (str, desiredLength) {
   if (str.length > desiredLength) {              // trim it
     var decIndex = str.indexOf(".", null);
     //console.log("decIndex: " + decIndex);
@@ -2356,7 +2365,6 @@ rl = function (num, desiredLength) {
   }
   return str;
 }
-
 
 
 /* EXAMPLE INHERITANCE
@@ -2442,7 +2450,7 @@ CHILD.prototype.method = function () {
 
 function animationSetPlayerDoubleJumping(p, time) {
   animationReset(p);
-  p.animationFacing = (p.vel.x < 0 ? "left" : "right");
+  p.animationFacing = (p.accel.x < 0 ? "left" : "right");
   p.animationDoubleJumping = true;
   p.animationTimeInCurrentAnimation = 0.0;
   p.animationStartTime = time;
@@ -2451,7 +2459,7 @@ function animationSetPlayerDoubleJumping(p, time) {
 
 function animationSetPlayerJumping(p, time, surfaceVec) {
   animationReset(p);
-  p.animationFacing = (p.vel.x < 0 ? "left" : "right");
+  p.animationFacing = (p.accel.x < 0 ? "left" : "right");
   p.animationGroundJumping = true;
   p.animationTimeInCurrentAnimation = 0.0;
   p.animationStartTime = time;
@@ -2462,7 +2470,7 @@ function animationSetPlayerJumping(p, time, surfaceVec) {
 
 function animationSetPlayerWalking(p, time) {
   animationReset(p);
-  p.animationFacing = (p.vel.x < 0 ? "left" : "right");
+  p.animationFacing = (p.accel.x < 0 ? "left" : "right");
   p.animationWalking = true;
   p.animationTimeInCurrentAnimation = 0.0;
   p.animationStartTime = time;
@@ -2471,7 +2479,7 @@ function animationSetPlayerWalking(p, time) {
 
 function animationSetPlayerRunning(p, time) {
   animationReset(p);
-  p.animationFacing = (p.vel.x < 0 ? "left" : "right");
+  p.animationFacing = (p.accel.x < 0 ? "left" : "right");
   p.animationRunning = true;
   p.animationTimeInCurrentAnimation = 0.0;
   p.animationStartTime = time;
@@ -2480,7 +2488,7 @@ function animationSetPlayerRunning(p, time) {
 
 function animationSetPlayerBoosting(p, time) {
   animationReset(p);
-  p.animationFacing = (p.vel.x < 0 ? "left" : "right");
+  p.animationFacing = (p.accel.x < 0 ? "left" : "right");
   p.animationBoosting = true;
   p.animationTimeInCurrentAnimation = 0.0;
   p.animationStartTime = time;
@@ -2488,7 +2496,7 @@ function animationSetPlayerBoosting(p, time) {
 
 function animationSetPlayerDownBoosting(p, time) {
   animationReset(p);
-  p.animationFacing = (p.vel.x < 0 ? "left" : "right");
+  p.animationFacing = (p.accel.x < 0 ? "left" : "right");
   p.animationDownBoosting = true;
   p.animationTimeInCurrentAnimation = 0.0;
   p.animationStartTime = time;
@@ -2496,7 +2504,7 @@ function animationSetPlayerDownBoosting(p, time) {
 
 function animationSetPlayerColliding(p, time, surfaceVec) {
   animationReset(p);
-  p.animationFacing = (p.vel.x < 0 ? "left" : "right");
+  p.animationFacing = (p.accel.x < 0 ? "left" : "right");
   p.animationColliding = true;
   p.animationTimeInCurrentAnimation = 0.0;
   p.animationStartTime = time;
@@ -2506,7 +2514,7 @@ function animationSetPlayerColliding(p, time, surfaceVec) {
 
 function animationSetPlayerFreefall(p, time) {
   animationReset(p);
-  p.animationFacing = (p.vel.x < 0 ? "left" : "right");
+  p.animationFacing = (p.accel.x < 0 ? "left" : "right");
   p.animationFreefall = true;
   p.animationTimeInCurrentAnimation = 0.0;
   p.animationStartTime = time;
@@ -2538,6 +2546,7 @@ function animationUpdateAnimation(p, gameTime) {
   if (p.onPoint) {
     p.animationSpeed = (p.aVel > 0 ? p.aVel : -p.aVel);
     //var surfaceAccel = p.getSurfaceVec().multf(p.aAccel);
+    console.log("player.a in updateAnimation: " + p.a);
     p.animationAngle = p.a + HALF_PI;
     if (p.animationAngle > Math.PI) {
       p.animationAngle = p.animationAngle - TWO_PI;
@@ -2547,7 +2556,12 @@ function animationUpdateAnimation(p, gameTime) {
 
     p.animationSpeed = p.vel.length();
     var surfaceVec = p.getSurfaceVec();
+    if (surfaceVec.x < 0) surfaceVec = surfaceVec.negate();
     p.animationAngle = surfaceVec.sangle();
+   
   }
+
+  p.animationFacing = (p.accel.x < 0 ? "left" : "right");
+
 }
 

@@ -69,11 +69,9 @@ function TerrainLine(id, polyID, point0, point1, adjacent0, adjacent1, normal) {
 
 
   this.toJSON = function () {
-    var formattedObj = { id: this.id };
+    var formattedObj = { id: this.id, normal: this.normal };
     console.log("this ", this);
     formatLineToJSON(this, formattedObj);
-
-    formattedObj.normal = this.normal;
     return formattedObj;
   }
 
@@ -122,56 +120,6 @@ function TerrainLine(id, polyID, point0, point1, adjacent0, adjacent1, normal) {
   };
 
 
-
-
-  /**
-    * Returns a result object detailing whether or not this adjacent is concave, and the angle between this surface and adj0.
-    * return { concave: true or false, angle } angle is in radians, the closer to Math.PI the less the angle of change between surfaces.
-    */
-  this.getAdj0Angle = function () {
-    if (this.adjacent0) {
-      var sv1 = this.p1.subtract(this.p0).normalize();
-      var sv2 = this.adjacent0.p0.subtract(this.adjacent0.p1).normalize();
-      //var angleNorm = getSignedAngleFromAToB(this.adjacent0.normal, thisVec);
-      var surfaceNormAng = Math.acos(sv2.dot(this.normal));
-      var angle = Math.acos(sv1.dot(sv2));
-
-      //connection to adj0 is concave when the angle between this.normal and next surface is < HALF_PI, or 90 degrees. 
-
-      console.log("angle0: ", angle);
-      var result = { concave: (angle < 0), angle: angle };
-      return result;
-
-    } else {
-      return null;
-    }
-  }
-
-
-
-
-  /**
-   * Returns a result object detailing whether or not this adjacent is concave, and the angle between this surface and adj1.
-   * return { concave: true or false, angle } angle is in radians, the closer to Math.PI the less the angle of change between surfaces.
-   */
-  this.getAdj1Angle = function () {
-    if (this.adjacent1) {
-      var sv1 = this.adjacent1.p1.subtract(this.adjacent1.p0).normalize();
-      var sv2 = this.p0.subtract(this.p1).normalize();
-      //var angleNorm = getSignedAngleFromAToB(this.adjacent0.normal, thisVec);
-      var surfaceNormAng = Math.acos(sv2.dot(this.normal));
-      var angle = Math.acos(sv1.dot(sv2));
-
-      //connection to adj0 is concave when the angle between this.normal and next surface is < HALF_PI, or 90 degrees. 
-
-      console.log("angle1: ", angle);
-      var result = { concave: (angle < 0), angle: angle };
-      return result;
-
-    } else {
-      return null;
-    }
-  }
 
 
 
@@ -287,7 +235,7 @@ function CheckpointLine(id, checkpointID, point0, point1, adjacent0, adjacent1) 
   this.adjacent0 = adjacent0;
   this.adjacent1 = adjacent1;
   this.id = id;
-  this.checkpointID;
+  this.checkpointID = checkpointID;
 
 
 
@@ -348,11 +296,12 @@ function KillLine(id, killZoneID, point0, point1, adjacent0, adjacent1) {
   this.adjacent0 = adjacent0;
   this.adjacent1 = adjacent1;
   this.id = id;
+  this.killZoneID = killZoneID;
 
 
 
   this.toJSON = function () {
-    var formattedObj = { id: this.id };
+    var formattedObj = { id: this.id, killZoneID: this.killZoneID };
     formattedObj = formatLineToJSON(this, formattedObj);
     return formattedObj;
   }

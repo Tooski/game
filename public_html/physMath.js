@@ -465,8 +465,8 @@ function getNextSurfaceData(state, surface) {
   var time1 = null;
 
   // concave result { concave: t / f, angle } where angle in radians from this surface to next surface surface. the closer to Math.PI the less the angle of change between surfaces.
-  var concRes0 = surface.getAdj0Angle();
-  var concRes1 = surface.getAdj1Angle();
+  var concRes0 = getLineLineConcavity(surface, surface.adjacent0, state.position);
+  var concRes1 = getLineLineConcavity(surface, surface.adjacent1, state.position);
 
   console.log("concRes0: ", concRes0);
   console.log("concRes1: ", concRes1);
@@ -732,6 +732,9 @@ function getDistFromLine(point, line) {
 
 
 
+
+
+
 /**
  * helper function that returns a bunch of bullshit. Rotates so that the targetLine is horizontal, so that distance is measureable by the y value.
  * returns relative values.
@@ -844,3 +847,261 @@ function closestPositive(value1, value2) {
   return toReturn;                          //TODO DEBUG could be totally wrong with this, may require a different test.
 }
 
+
+
+
+
+
+// CONCAVITY TESTING
+var U = 1;
+var D = -1;
+
+function L (x0, y0, x1, y1, upOrDown) {
+  this.p0 = new vec2(x0, y0);
+  this.p1 = new vec2(x1, y1);
+  this.normal = genNormal(this, upOrDown);
+}
+
+
+
+
+function pointsEqual(p0, p1) {
+  if (p0.id && p1.id) {
+    return (p0.id === p1.id);
+  } else {
+    return (p0.x === p1.x && p0.y === p1.y);
+  }
+}
+
+
+
+
+function genNormal(surface, upOrDown) {
+  var surfVec = surface.p1.subtract(surface.p0).normalize();
+  var possNorm = surfVec.perp();
+  if (possNorm.y !== 0) {     // Point up if U or down if D
+    if ((upOrDown > 0 && possNorm.y < 0) || (upOrDown < 0 && possNorm.y > 0)) {
+      possNorm = possNorm.negate();
+    }
+  } else {                    // Point left if U or right if D
+    if ((upOrDown > 0 && possNorm.x < 0) || (upOrDown < 0 && possNorm.x > 0)) {
+      possNorm = possNorm.negate();
+    }
+  }
+  return possNorm;
+}
+
+
+
+
+
+function getLineLineConcavity(line0, line1, referencePos) {
+  var vec0;
+  var vec1;
+  var intersect;
+
+  if (pointsEqual(line0.p0, line1.p1)) {
+    console.log("line0.p0 and line1.p1 shared");
+    intersect = line0.p0;
+    vec0 = line0.p1.subtract(intersect);
+    vec1 = line1.p0.subtract(intersect);
+  } else if (pointsEqual(line0.p1, line1.p0)) {
+    console.log("line0.p1 and line1.p0 shared");
+    intersect = line0.p1;
+    vec0 = line0.p0.subtract(intersect);
+    vec1 = line1.p1.subtract(intersect);
+  } else if (pointsEqual(line0.p1, line1.p1)) {   // BAD CASE
+    intersect = line0.p1;
+    vec0 = line0.p0.subtract(intersect);
+    vec1 = line1.p0.subtract(intersect);
+
+    console.log(line0, line1);
+    throw "wrong points equal????";
+
+  } else if (pointsEqual(line0.p0, line1.p0)) {   // BAD CASE
+    intersect = line0.p0;
+    vec0 = line0.p1.subtract(intersect);
+    vec1 = line1.p1.subtract(intersect);
+
+    console.log(line0, line1);
+    throw "wrong points equal????";
+
+  } else {                                                // the serious one
+    console.log("no shared points, find intersect");
+    intersect = getLineLineIntersect(line0, line1);
+    vec0 = line0.p1.subtract(intersect);
+    vec1 = line1.p0.subtract(intersect);
+    if (bisects(intersect, line0)) {
+      console.log("bisects line0, projecting pos");      
+      vec0 = projectVec2(referencePos.subtract(intersect), vec0);
+    } 
+    if (bisects(intersect, line1)) {
+      console.log("bisects line1, projecting pos");
+      vec1 = projectVec2(referencePos.subtract(intersect), vec1);
+    } 
+  }
+  console.log("intersect ", intersect);
+
+
+  console.log("vec0 ", vec0);
+  console.log("vec1 ", vec1);
+
+  var vec0n = vec0.normalize();
+  var vec1n = vec1.normalize();
+
+  console.log("vec0n ", vec0n);
+  console.log("vec1n ", vec1n);
+
+
+
+  // CREDIT TO Y2KK FOR STRATS
+  var normTestLine1 = new L(vec0n.x, vec0n.y, vec0n.x + line0.normal.x, vec0n.y + line0.normal.y);
+  var normTestLine2 = new L(vec1n.x, vec1n.y, vec1n.x + line1.normal.x, vec1n.y + line1.normal.y);
+  var normTestIntersect = getLineLineIntersect(normTestLine1, normTestLine2);
+
+  console.log("normTestIntersect ", normTestIntersect);
+
+  var intVec0 = normTestIntersect.subtract(vec0n);
+  var intVec1 = normTestIntersect.subtract(vec1n);
+  console.log("intVec0 ", intVec0);
+  console.log("intVec1 ", intVec1);
+  
+  var sameDir0 = (((intVec0.x > 0 && line0.normal.x > 0) || (intVec0.x <= 0 && line0.normal.x <= 0)) && 
+                 ((intVec0.y > 0 && line0.normal.y > 0) || (intVec0.y <= 0 && line0.normal.y <= 0)));
+  var sameDir1 = (((intVec1.x > 0 && line1.normal.x > 0) || (intVec1.x <= 0 && line1.normal.x <= 0)) && 
+                 ((intVec1.y > 0 && line1.normal.y > 0) || (intVec1.y <= 0 && line1.normal.y <= 0)));
+  console.log("sameDir0 " + sameDir0);
+  console.log("sameDir1 " + sameDir1);
+  var toReturn = {};
+
+  if (sameDir0 && sameDir1) {           // nigga we concave
+    toReturn.concave = true;
+    toReturn.convex = false;
+    toReturn.badConcavity = false;
+  } else if (!(sameDir0 || sameDir1)) { // nigga we convex
+    toReturn.concave = false;
+    toReturn.convex = true;
+    toReturn.badConcavity = false;
+  } else {                              // oh shiiiiiiiiit nigga we undefined
+    toReturn.concave = false;
+    toReturn.convex = false;
+    toReturn.badConcavity = true;
+  }
+
+  toReturn.angle = Math.acos(vec0.dot(vec1));
+  if (toReturn.convex) {
+    toReturn.angle = TWO_PI - toReturn.angle;
+  }
+  // var result = { concave: t/f, convex: t/f, badConcavity: t/f, angle: angle extending from one normal to the other, or smallest angle in case of undefined concavity }
+  return toReturn;
+}
+
+
+// assert that this point lies on the line....
+function bisects(point, line) {
+  var minX = line.p0.x > line.p1.x ? line.p1.x : line.p0.x;
+  var maxX = line.p0.x <= line.p1.x ? line.p1.x : line.p0.x;
+  var minY = line.p0.y > line.p1.y ? line.p1.y : line.p0.y;
+  var maxY = line.p0.y <= line.p1.y ? line.p1.y : line.p0.y;
+
+  if (point.x > minX && point.x < maxX && point.y > minY && point.y < maxY) {
+    return true;
+  } else {
+    return false;
+  }
+}
+
+
+
+function getLineLineIntersect(line0, line1) {
+/*
+  var v0 = line0.p0.subtract(line0.p1);
+  var m0 = v0.y / v0.x;
+  var b0 = line0.p0.y - m0 * line0.p0.x;    // y = mx + b
+
+
+  var v1 = line1.p0.subtract(line1.p1);
+  var m1 = v1.y / v1.x;
+  var b1 = line1.p0.y - m1 * line1.p0.x;    // y = mx + b
+
+
+  // m0*x + b0 = m1*x + b1      equation to find convergent x point
+
+  // (m0 - m1)*x = b1 - b0
+  var b01 = b1 - b0;                
+  var xCoef = m0 - m1;
+  
+  // x = (b1 - b0) / (m0 - m1)
+  var x = b01 / xCoef;
+  var y = m0 * x + b0;
+  return new vec2(x, y);
+
+  ^ human readable code
+  v Optimized code */
+
+  var v0 = line0.p0.subtract(line0.p1);
+  var m0 = v0.y / v0.x;
+  var b0 = line0.p0.y - m0 * line0.p0.x;    // y = mx + b
+
+
+  var v1 = line1.p0.subtract(line1.p1);
+  var m1 = v1.y / v1.x;
+  var b1 = line1.p0.y - m1 * line1.p0.x;    // y = mx + b
+
+
+  // m0*x + b0 = m1*x + b1      equation to find convergent x point
+  var x = (b1 - b0) / (m0 - m1);
+  return new vec2(x,  m0 * x + b0);
+}
+
+
+
+// bunch of bs Lines
+var lines = [];
+var i = -1;
+i++;
+var rightU = lines[i] = new L(0, 0, 100, 0, U);           // 0
+i++;
+var urightU = lines[i] = new L(0, 0, 100, -100, U);       // 1
+i++;
+var uL = lines[i] = new L(0, 0, 0, -100, U);              // 2
+i++;
+var uleftU = lines[i] = new L(0, 0, -100, -100, U);       // 3
+i++;
+var leftU = lines[i] = new L(0, 0, -100, 0, U);           // 4
+i++;
+var dleftU = lines[i] = new L(0, 0, -100, 100, U);        // 5
+i++;
+var dL = lines[i] = new L(0, 0, 0, 100, U);               // 6
+i++;
+var drightU = lines[i] = new L(0, 0, 100, 100, U);        // 7
+
+i++;
+var rightD = lines[i] = new L(0, 0, 100, 0, D);           // 8
+i++;
+var urightD = lines[i] = new L(0, 0, 100, -100, D);       // 9
+i++;
+var uR = lines[i] = new L(0, 0, 0, -100, D);              // 10
+i++;
+var uleftD = lines[i] = new L(0, 0, -100, -100, D);       // 12
+i++;
+var leftD = lines[i] = new L(0, 0, -100, 0, D);           // 13
+i++;
+var dleftD = lines[i] = new L(0, 0, -100, 100, D);        // 14
+i++;
+var dR = lines[i] = new L(0, 0, 0, 100, D);               // 15
+i++;
+var drightD = lines[i] = new L(0, 0, 100, 100, D);        // 16
+i++;
+
+
+
+/*
+
+
+
+
+
+
+
+*/

@@ -707,7 +707,7 @@ TerrainPointCollisionEvent.prototype = new CollisionEvent();
  * @param predictedTime     the gametime at which the event will occur.
  * @param dependencyMask    used to bitwise and shit for predictions that are only affected by specific things. MAY NOT USE?
  */
-function SurfaceAdjacentEvent(predictedTime, dependencyMask, surface, nextSurface, angle, allowLock) { // predictedTime should be gameTime since last frame, the time the physics engine should complete up to before rendering.
+function SurfaceToSurfaceEvent(predictedTime, dependencyMask, surface, nextSurface, angle, allowLock) { // predictedTime should be gameTime since last frame, the time the physics engine should complete up to before rendering.
   PredictedEvent.apply(this, [predictedTime, dependencyMask]);
 
   this.surface = surface;
@@ -730,11 +730,11 @@ function SurfaceAdjacentEvent(predictedTime, dependencyMask, surface, nextSurfac
     var collisionForceVecLen = collisionForceVec.length();
     var surfaceVecNorm = collisionVecNorm.perp();
 
-    console.log("          in SurfaceAdjacentEvent handler. Angle ", this.angle, " p.physParams.surfaceSnapAngle ", p.physParams.surfaceSnapAngle);
+    console.log("          in SurfaceToSurfaceEvent handler. Angle ", this.angle, " p.physParams.surfaceSnapAngle ", p.physParams.surfaceSnapAngle);
 
     if (this.allowLock && p.physParams.surfaceSnapAngle <= this.angle && (!this.upsideDown || input.lock)) {        
       // if we should snap to the surface without losing momentum.
-      console.log("            SurfaceAdjacentEvent surface snap!?!?");
+      console.log("            SurfaceToSurfaceEvent surface snap!?!?");
 
 
       //var velocityMag = ballState.vel.length();                     // DISABLED FOR REALISTIC PHYSICS
@@ -751,25 +751,25 @@ function SurfaceAdjacentEvent(predictedTime, dependencyMask, surface, nextSurfac
 
     } else if (input.lock && this.allowLock && collisionForceVecLen < p.physParams.lockThreshold) {
       // if we should lock to the surface and lose momentum.
-      console.log("            SurfaceAdjacentEvent locking!?!?");
+      console.log("            SurfaceToSurfaceEvent locking!?!?");
 
 
       p.lockTo(this.nextSurface, surfaceVecNorm);
       animationSetPlayerRunning(p, this.time);
 
     } else {
-      console.log("            SurfaceAdjacentEvent Bouncing!?!?");
+      console.log("            SurfaceToSurfaceEvent Bouncing!?!?");
       // BOUNCE. 
       p.vel = getReflectionVector(p.vel, collisionVecNorm).multf(p.physParams.bounceSpeedLossRatio); //TODO REFACTOR TO USE NEW COLLISION OBJECT
     
       p.leaveGround();
     }
-    console.log("          fin SurfaceAdjacentEvent");
+    console.log("          fin SurfaceToSurfaceEvent");
     physEng.updatePredicted();
   }
 }
-SurfaceAdjacentEvent.prototype = new PredictedEvent();
-//SurfaceAdjacentEvent.prototype.constructor = SurfaceAdjacentEvent;
+SurfaceToSurfaceEvent.prototype = new PredictedEvent();
+//SurfaceToSurfaceEvent.prototype.constructor = SurfaceToSurfaceEvent;
 
 
 
