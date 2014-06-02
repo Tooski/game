@@ -2,11 +2,10 @@
 <head>
 <style> 
 /*           */
- * { margin:0; padding:0;   overflow: hidden; } /* to remove the top and left whitespace */ 
- html, body { width:100%; height:100%; } /* just to be sure these are full screen*/ 
- canvas { display:block; } /* To remove the scrollbars */ 
-#eklipzConsole { 			margin-left: 200px;
-			z-index: 9999; }
+	* { margin:0; padding:0;   overflow: hidden; } /* to remove the top and left whitespace */ 
+	html, body { width:100%; height:100%; } /* just to be sure these are full screen*/ 
+	canvas { display:block; } /* To remove the scrollbars */ 
+	#eklipzConsole { margin-left: 200px; z-index: 9999; }
 </style>
         <link rel="stylesheet" type="text/css" href="css/login.css">
         <link rel="stylesheet" type="text/css" href="css/leaderboard.css">
@@ -65,7 +64,7 @@
 		
 		
         <canvas id="time" style= "display : none; position:absolute; z-index: 2;  left:1150px; top:25px; background: white" height="50px" width="100px"></canvas>
-		<canvas id="score" style="display : none; position:absolute; z-index: 2;  left:25px; top:25px; background: white" height="50px" width="100px"></canvas>
+		<canvas id="score" style="display : none; position:absolute; z-index: 2;  left:1150px; top:100px; background: white" height="50px" width="100px"></canvas>
 		<canvas id="pause" style="display : none; position:absolute; z-index: 2; background: white; display: none" height="525" width="350"></canvas>
 		<canvas id="remap" style="display : none; position:absolute; z-index: 3; background: white; display: none" height="550" width="375"></canvas>
 

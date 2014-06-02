@@ -243,7 +243,7 @@ GameEngine.prototype.startInput = function () {
   }, false);
 
   this.ctx.canvas.addEventListener("keydown", function (e) {
-    if (editMode) {
+    if (!editMode) {
       //console.log(e.keyCode);
       //console.log(gameEngine.input);
       if (e.keyCode === gameEngine.input.leftKey && gameEngine.input.leftPressed === false) {
@@ -409,6 +409,12 @@ GameEngine.prototype.changeKey = function (keyType) {
 
 //When called resets defaults control settings
 GameEngine.prototype.resetDefaults = function () {
+  this.input.jumpString = 'Space';
+  this.input.boostString = 'F';
+  this.input.lockString = 'D';
+  this.input.pauseString = 'Esc';
+  this.input.leftString = '<-';
+  this.input.rightString = '->';
   this.input.jumpKey = 32;
   this.input.boostKey = 70;
   this.input.leftKey = 37;
@@ -417,7 +423,6 @@ GameEngine.prototype.resetDefaults = function () {
   this.input.upKey = 38;
   this.input.lockKey = 68;
   this.input.pauseKey = 27;
-  alert("Key mappings have been reset to default");
 }
 
 //Reset control flags and time values, to be used with level restarting
@@ -497,11 +502,6 @@ GameEngine.prototype.draw = function (drawCallback) {
       (ctx4.canvas.style.top = (canvas.height / 2 - ctx4.canvas.height / 2));
       (ctx2.canvas.style.left = parseInt(ctx.canvas.width) - guiPadding - ctx2.canvas.width);
       (ctx2.canvas.style.top = guiPadding);
-
-      resumeButton.updatePosition();
-      restartButton.updatePosition();
-      optionsButton.updatePosition();
-      quitButton.updatePosition();
 
       var item = document.getElementById('mapEditor');
 
@@ -628,13 +628,52 @@ GameEngine.prototype.update = function () {
       }
     }
   }
+
+  var x = canvas2.width / 2;
+  var y = (canvas2.height / 2) + 7;
   ctx2.clearRect(0, 0, canvas2.width, canvas2.height);
   //timeTest(ctx2);
   ctx2.font = "20px Arial";
   var time = this.physEng.timeMgr.time;
-  var display = time.toFixed(2);
+  //var display = time.toFixed(2);
+  var convertMinute = time / 60;
+  var min = Math.floor(convertMinute);
+  var sec = Math.floor(time) - (60 * min);
+  var convertMilli = time - Math.floor(time);
+  var milli = convertMilli.toFixed(3);
+  var milli = milli.substring(2,5);
+  var add = "";
+  if (sec < 10)
+  {
+    add = "0"
+  } 
+  else
+  {
+    add = "";
+  }
+  //console.log(min + ":" + add + sec + ":" + milli);
+  var format = min + ":" + add + sec + ":" + milli;
   //ctx.fillText(min + ":" + add + sec,30,35);
-  ctx2.fillText(display, 30, 35);
+  ctx2.textAlign = 'center';
+  ctx2.fillText(format, x, y);
+
+  x = canvas3.width / 2;
+  y = (canvas3.height / 2) + 7;
+  ctx3.clearRect(0, 0, canvas3.width, canvas3.height);
+  ctx3.font = "20px Arial";
+  var scoreDisplay = results.score;
+  ctx3.textAlign = 'center';
+  ctx3.fillText(scoreDisplay, x, y);
+
+  
+  if (!editMode) {
+    var score = document.getElementById('score');
+    score.style.display = '';
+  }
+  else {
+	var score = document.getElementById('score');
+    score.style.display = 'none';
+  }
 };
 
 GameEngine.prototype.loop = function () {
@@ -697,6 +736,16 @@ GameEngine.prototype.pauseFill = function(ctx) {
     ctx.fillText("Quit",135,450);
 }
 
+var backButton;
+var resetButton;
+var jumpButton;
+var boostButton;
+var lockButton;
+var pauseButton;
+var leftButton;
+var rightButton;
+
+/*
 var returnButton = new Button("Return", 475, 825, 125, 215);
 var jumpButton = new Button("Jump", 500, 650, 215, 265);
 var boostButton = new Button("Boost", 500, 650, 290, 340);
@@ -704,6 +753,7 @@ var lockButton = new Button("Lock", 500, 650, 365, 415);
 var pauseButton = new Button("Pause", 500, 650, 440, 490);
 var leftButton = new Button("Left", 500, 650, 515, 565);
 var rightButton = new Button("Right", 500, 650, 590, 640);
+*/
 
 GameEngine.prototype.remapFill = function (ctx) {
     var button_height = ctx5.canvas.height / 11;
@@ -717,6 +767,7 @@ GameEngine.prototype.remapFill = function (ctx) {
   ctx.font = "40px Arial";
   ctx.fillText("Remap Keys", 60, 60);*/
 
+  backButton = new Button("Back",button_x, button_width, button_y, button_height);
   ctx.beginPath();
   ctx.fillStyle = "blue";
   ctx.fillRect(button_x, button_y, button_width, button_height);
@@ -725,6 +776,7 @@ GameEngine.prototype.remapFill = function (ctx) {
   ctx.font = "30px Arial";
   ctx.fillText("Back", 65, 60);
 
+  resetButton = new Button("Reset",button_x * 8, button_width, button_y, button_height);
   ctx.beginPath();
   ctx.fillStyle = "blue";
   ctx.fillRect(button_x * 8, button_y, button_width, button_height);
@@ -733,7 +785,7 @@ GameEngine.prototype.remapFill = function (ctx) {
   ctx.font = "30px Arial";
   ctx.fillText("Reset", 235, 60);
 
-
+  jumpButton = new Button("Jump",button_x, button_width, button_y * 4, button_height);
   ctx.beginPath();
   ctx.fillStyle = "blue";
   ctx.fillRect(button_x, button_y * 4, button_width, button_height);
@@ -745,6 +797,7 @@ GameEngine.prototype.remapFill = function (ctx) {
   ctx.font = "30px Arial";
   ctx.fillText(gameEngine.input.jumpString, 200, 135);
 
+  boostButton = new Button("Boost",button_x, button_width, button_y * 7, button_height);
   ctx.beginPath();
   ctx.fillStyle = "blue";
   ctx.fillRect(button_x, button_y * 7, button_width, button_height);
@@ -756,6 +809,7 @@ GameEngine.prototype.remapFill = function (ctx) {
   ctx.font = "30px Arial";
   ctx.fillText(gameEngine.input.boostString, 200, 210);
 
+  lockButton = new Button("Lock",button_x, button_width, button_y * 10, button_height);
   ctx.beginPath();
   ctx.fillStyle = "blue";
   ctx.fillRect(button_x, button_y * 10, button_width, button_height);
@@ -767,6 +821,7 @@ GameEngine.prototype.remapFill = function (ctx) {
   ctx.font = "30px Arial";
   ctx.fillText(gameEngine.input.lockString, 200, 285);
 
+  pauseButton = new Button("Pause",button_x, button_width, button_y * 13, button_height);
   ctx.beginPath();
   ctx.fillStyle = "blue";
   ctx.fillRect(button_x, button_y * 13, button_width, button_height);
@@ -778,6 +833,7 @@ GameEngine.prototype.remapFill = function (ctx) {
   ctx.font = "30px Arial";
   ctx.fillText(gameEngine.input.pauseString, 200, 360);
 
+  leftButton = new Button("Left",button_x, button_width, button_y * 16, button_height);
   ctx.beginPath();
   ctx.fillStyle = "blue";
   ctx.fillRect(button_x, button_y * 16, button_width, button_height);
@@ -789,6 +845,7 @@ GameEngine.prototype.remapFill = function (ctx) {
   ctx.font = "30px Arial";
   ctx.fillText(gameEngine.input.leftString, 200, 435);
 
+  rightButton = new Button("Right",button_x, button_width, button_y * 19, button_height);
   ctx.beginPath();
   ctx.fillStyle = "blue";
   ctx.fillRect(button_x, button_y * 19, button_width, button_height);
@@ -868,10 +925,10 @@ function pauseClicked(e) {
 }
 
 function remapClicked(e) {
-  mouseX = e.pageX;
-  mouseY = e.pageY;
+  mouseX = e.clientX - ctx5.canvas.getBoundingClientRect().left;
+  mouseY = e.clientY - ctx5.canvas.getBoundingClientRect().top;
   console.log("X: " + mouseX + ", Y: " + mouseY + ", Result: " + optionsButton.checkClicked());
-  if (returnButton.checkClicked()) {
+  if (backButton.checkClicked()) {
     console.log("Return!");
     var pause = document.getElementById('pause');
     pause.style.display = '';
@@ -904,6 +961,11 @@ function remapClicked(e) {
     console.log("Right!");
     gameEngine.input.editKeys = true;
     gameEngine.input.selectedKeyVal = "RIGHT";
+  } else if (resetButton.checkClicked()) {
+    gameEngine.resetDefaults();
+	ctx5.clearRect(0, 0, canvas5.width, canvas5.height);
+	gameEngine.remapFill(ctx5);
+	alert("Controls have been reset to the default mappings");
   }
 }
 
@@ -1039,8 +1101,8 @@ ASSET_MANAGER.downloadAll(function () {
 
   canvas3 = document.getElementById('score');
   ctx3 = canvas3.getContext('2d');
-  (ctx3.canvas.style.left = guiPadding);
-  (ctx3.canvas.style.top = guiPadding);
+  //(ctx3.canvas.style.left = guiPadding);
+  //(ctx3.canvas.style.top = guiPadding);
   canvas4 = document.getElementById('pause');
   ctx4 = canvas4.getContext('2d');
   ctx4.canvas.addEventListener('click', pauseClicked, false);
@@ -1077,17 +1139,19 @@ ASSET_MANAGER.downloadAll(function () {
 
   (ctx2.canvas.style.left = parseInt(ctx.canvas.width) - guiPadding - ctx2.canvas.width);
   (ctx2.canvas.style.top = guiPadding);
+  (ctx3.canvas.style.left = parseInt(ctx.canvas.width) - guiPadding - ctx3.canvas.width);
+  (ctx3.canvas.style.top = guiPadding + 70);
   (ctx4.canvas.style.left = (canvas.width / 2 - ctx4.canvas.width / 2));
   (ctx4.canvas.style.top = (canvas.height / 2 - ctx4.canvas.height / 2));
-  (ctx5.canvas.style.left = (canvas.width / 2 - ctx4.canvas.width / 2));
-  (ctx5.canvas.style.top = (canvas.height / 2 - ctx4.canvas.height / 2));
+  (ctx5.canvas.style.left = (canvas.width / 2 - ctx5.canvas.width / 2));
+  (ctx5.canvas.style.top = (canvas.height / 2 - ctx5.canvas.height / 2));
   (stage.canvas.style.left = (canvas.width / 2 - stage.canvas.width / 2));
   (stage.canvas.style.top = (canvas.height / 2 - stage.canvas.height / 2));
   (main.canvas.style.left = (canvas.width / 2 - main.canvas.width / 2));
   (main.canvas.style.top = (canvas.height / 2 - main.canvas.height / 2));
 
   loadingScreen(ctx);
-  scoreTest(ctx3);
+  //scoreTest(ctx3);
 
   game.settings.query(function () { // if callback is returned, run the application.
 
