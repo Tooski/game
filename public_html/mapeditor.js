@@ -1272,7 +1272,6 @@ function checkBounds(p1, p2) {
 
 
 function checkPolygon(nextLine, array, original, visited) {
-  console.log("fuuuuuuuuck", nextLine);
   if (!nextLine.adjacent0 || !nextLine.adjacent1) return false;
 
   if (nextLine) {
