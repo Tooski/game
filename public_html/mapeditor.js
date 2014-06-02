@@ -734,6 +734,7 @@ MapEditor.prototype.createCollectibleButton = function (ctx) {
   collect.onClick = function (e) {
     var left = parseInt(that.ctx.canvas.style.left);
     var top = parseInt(that.ctx.canvas.style.top);
+
     if (e.offsetX > that.ctx.canvas.width + left || e.offsetX < left ||
        e.offsetY > that.ctx.canvas.height + top || e.offsetX < top) {
       var xposition = localToWorld(e.offsetX, "x");
