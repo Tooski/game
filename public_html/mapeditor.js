@@ -64,7 +64,6 @@ function MapEditorButton(name, x, y, w, h) {
       button = undefined;
     }
 
-    console.log("focusing canvas????");
     that.gamecanvas.focus();
   };
 
@@ -1181,9 +1180,25 @@ MapEditor.prototype.attemptSnap = function (line) {
 
 
 MapEditor.prototype.createIncreaseSpeedButton = function () {
-  var inc = new MapEditorButton("Camera speed up", 0, (buttonSize + 5) * 9, buttonSize * 2.5, buttonSize);
-  inc.onRelease = function (e) {
-    editMovementSpeed += 10;
+  var inc = new MapEditorButton("Camera speed up", 0, (buttonSize + 5) * 10, buttonSize * 2.5, buttonSize);
+  var that = this;
+
+  inc.trigger = function (e) {
+    if (button !== this) {
+      this.isSelected = button ? !(button.isSelected = false) : true;
+      button = this;
+
+    } else {
+
+      this.isSelected = false;
+      button = undefined;
+    }
+    editMovementSpeed = editMovementSpeed * 1.5;
+  };
+
+  inc.onDrag = function (e) {
+    this.isSelected = false;
+    button = undefined;
   };
 };
 
@@ -1191,11 +1206,26 @@ MapEditor.prototype.createIncreaseSpeedButton = function () {
 
 
 MapEditor.prototype.createDecreaseSpeedButton = function () {
-  var inc = new MapEditorButton("Camera speed down", 0, (buttonSize + 5) * 10, buttonSize * 2.5, buttonSize);
-  inc.onRelease = function (e) {
+  var inc = new MapEditorButton("Camera speed down", 0, (buttonSize + 5) * 11, buttonSize * 2.5, buttonSize);
+  var that = this;
 
-    editMovementSpeed -= 10;
-    if (editMovementSpeed <= 0) editMovementSpeed = 1;
+  inc.trigger = function (e) {
+    if (button !== this) {
+      this.isSelected = button ? !(button.isSelected = false) : true;
+      button = this;
+
+    } else {
+
+      this.isSelected = false;
+      button = undefined;
+    }
+
+    editMovementSpeed = editMovementSpeed * 0.7;
+  };
+
+  inc.onDrag = function (e) {
+    this.isSelected = false;
+    button = undefined;
   };
 };
 

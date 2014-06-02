@@ -661,19 +661,22 @@ GameEngine.prototype.update = function () {
   y = (canvas3.height / 2) + 7;
   ctx3.clearRect(0, 0, canvas3.width, canvas3.height);
   ctx3.font = "20px Arial";
-  var scoreDisplay = results.score;
-  ctx3.textAlign = 'center';
-  ctx3.fillText(scoreDisplay, x, y);
+  if (results) {
+    var scoreDisplay = results.score;
+    ctx3.textAlign = 'center';
+    ctx3.fillText(scoreDisplay, x, y);
 
-  
-  if (!editMode) {
-    var score = document.getElementById('score');
-    score.style.display = '';
+
+    if (!editMode) {
+      var score = document.getElementById('score');
+      score.style.display = '';
+    }
+    else {
+      var score = document.getElementById('score');
+      score.style.display = 'none';
+    }
   }
-  else {
-	var score = document.getElementById('score');
-    score.style.display = 'none';
-  }
+
 };
 
 GameEngine.prototype.loop = function () {
