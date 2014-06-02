@@ -13,10 +13,10 @@ var buttonSize = 100;
 var button;
 var buttonList = [];
 var editMode = false;
-var editMovementSpeed = 10;
+var editMovementSpeed = 20;
 
 
-var graceSize = 10;
+var graceSize = 15;
 
 
 
@@ -95,7 +95,7 @@ MapEditorButton.prototype.draw = function (ctx) {
   this.collider.y = (this.y = this.iy) * v;
 
   ctx.beginPath();
-  ctx.fillStyle = this.isSelected ? "#00FF00" : "#FF0000";
+  ctx.fillStyle = this.isSelected ? "#22FF22" : "#77FFCC";
   ctx.fillRect(this.x, this.y, this.w, this.h);
 
   ctx.stroke();

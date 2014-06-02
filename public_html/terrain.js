@@ -69,11 +69,9 @@ function TerrainLine(id, polyID, point0, point1, adjacent0, adjacent1, normal) {
 
 
   this.toJSON = function () {
-    var formattedObj = { id: this.id };
+    var formattedObj = { id: this.id, normal: this.normal };
     console.log("this ", this);
     formatLineToJSON(this, formattedObj);
-
-    formattedObj.normal = this.normal;
     return formattedObj;
   }
 
@@ -298,11 +296,12 @@ function KillLine(id, killZoneID, point0, point1, adjacent0, adjacent1) {
   this.adjacent0 = adjacent0;
   this.adjacent1 = adjacent1;
   this.id = id;
+  this.killZoneID = killZoneID;
 
 
 
   this.toJSON = function () {
-    var formattedObj = { id: this.id };
+    var formattedObj = { id: this.id, killZoneID: this.killZoneID };
     formattedObj = formatLineToJSON(this, formattedObj);
     return formattedObj;
   }

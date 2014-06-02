@@ -299,15 +299,81 @@ TerrainManager.prototype.reset = function () {
 
 
 
-
+/**
+ * The public erase interface for the erase button.
+ */
 TerrainManager.prototype.eraseByPosition = function (position, distance) {
   var hackeyState = new State(0.0, distance, position, new vec2(0, 0), new vec2(0, 0));
   var terrain = this.getTerrainCollisions(hackeyState, []);
   var goals = this.getGoalCollisions(hackeyState, []);
   var killZones = this.getKillZoneCollisions(hackeyState, []);
   var checkpoints = this.getCheckpointCollisions(hackeyState, []);
+
+  this.removeFromTerrain(terrain);
+  this.removeFromGoals(goals);
+  this.removeFromKillZones(killZones);
+  this.removeFromCheckpoints(checkpoints);
 };
 
+
+
+//no touchy
+TerrainManager.prototype.removeFromTerrain = function (terrainLinesToRemove) {
+  for (var i = 0; i < terrainLinesToRemove.length; i++) {
+    var itr = terrainLinesToRemove[i];
+    var start = itr;
+    do {
+      delete this.terrainLines[itr.id];
+      itr = itr.adjacent0;
+    } while (itr !== start);
+    delete this.polygons[start.polyID];
+  }
+}
+
+
+
+//no touchy
+TerrainManager.prototype.removeFromGoals = function (goalLinesToRemove) {
+  for (var i = 0; i < goalLinesToRemove.length; i++) {
+    var itr = goalLinesToRemove[i];
+    var start = itr;
+    do {
+      delete this.goalLines[itr.id];
+      itr = itr.adjacent0;
+    } while (itr !== start);
+    delete this.goals[start.goalID];
+  }
+}
+
+
+
+//no touchy
+TerrainManager.prototype.removeFromCheckpoints = function (checkpointLinesToRemove) {
+  for (var i = 0; i < checkpointLinesToRemove.length; i++) {
+    var itr = checkpointLinesToRemove[i];
+    var start = itr;
+    do {
+      delete this.checkpointLines[itr.id];
+      itr = itr.adjacent0;
+    } while (itr !== start);
+    delete this.checkpoints[start.checkpointID];
+  }
+}
+
+
+
+//no touchy
+TerrainManager.prototype.removeFromKillZones = function (killZonesToRemove) {
+  for (var i = 0; i < killZonesToRemove.length; i++) {
+    var itr = killZonesToRemove[i];
+    var start = itr;
+    do {
+      delete this.killLines[itr.id];
+      itr = itr.adjacent0;
+    } while (itr !== start);
+    delete this.killZones[start.killZoneID];
+  }
+}
 
 
 
@@ -530,6 +596,7 @@ var CHECKPOINT_LINE_COLOR = "#2222DD";
 
 var CURRENT_LINE_COLOR = "#888800";
 
+var TEMP_COLOR = "#222222";
 
 TerrainManager.prototype.draw = function (ctx) {
 
@@ -541,8 +608,8 @@ TerrainManager.prototype.draw = function (ctx) {
     drawLineArray(ctx, this.terrainList, TERRAIN_LINE_COLOR, LINE_WIDTH, LINE_JOIN, LINE_CAP);
   }
 
-  drawLineArray(ctx, this.tempLines, "#222222", LINE_WIDTH, LINE_JOIN, LINE_CAP);
-  this.drawTempCircle(ctx);
+  drawLineArray(ctx, this.tempLines, TEMP_COLOR, LINE_WIDTH, LINE_JOIN, LINE_CAP);
+  this.drawTempCircle(ctx, TEMP_COLOR);
 
 
   drawLineArray(ctx, this.terrainLines,     TERRAIN_LINE_COLOR,     LINE_WIDTH, LINE_JOIN, LINE_CAP);
@@ -753,12 +820,12 @@ TerrainManager.prototype.drawStart = function (ctx) {
 
 
 //Draws a circle denoting the tempCircle if there is one.
-TerrainManager.prototype.drawTempCircle = function (ctx) {
+TerrainManager.prototype.drawTempCircle = function (ctx, color) {
   if (this.tempCirclePos) {
     ctx.lineWidth = 6;
     ctx.beginPath();
     ctx.arc(this.tempCirclePos.x, this.tempCirclePos.y, this.tempCircleRad, 0, TWO_PI, false);
-    ctx.strokeStyle = "#222222";
+    ctx.strokeStyle = color;
     ctx.stroke();
   }
 }

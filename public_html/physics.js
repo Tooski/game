@@ -2556,7 +2556,9 @@ function animationUpdateAnimation(p, gameTime) {
 
     p.animationSpeed = p.vel.length();
     var surfaceVec = p.getSurfaceVec();
+    if (surfaceVec.x < 0) surfaceVec = surfaceVec.negate();
     p.animationAngle = surfaceVec.sangle();
+   
   }
 }
 
