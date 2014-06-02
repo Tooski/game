@@ -81,6 +81,7 @@ function displayCustomGame(){
 	//---------------------------------
 	blockDisplayGame();
 	GameCanvas[0].focus(); // focus on game canvs.
+        editMode = true;
 }
 
 function displayReplayGame(the_index){
