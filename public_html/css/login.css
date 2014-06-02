@@ -54,3 +54,7 @@
     background-size: contain;
 
 }
+#error-username-password{
+    color:red;
+    text-align: center;
+}

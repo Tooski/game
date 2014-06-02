@@ -15,6 +15,17 @@ function displayLogIN(){
 	my_stage_board.reSetPoint();
 	document.getElementById("login_board").style.display = "block";
 }
+function displaySignUp(){
+	MY_STAGE_CANVAS.style.display = "none";
+	MY_GAME_MANU_CANVAS.style.display = "none";
+	noneDisplayGame();
+	document.getElementById("leader_board").style.display = "none";
+	document.getElementById("about_board").style.display = "none";
+	document.getElementById('mapEditor').style.display = "none";
+        //resetPoint() or nonDesplayGame?
+	my_stage_board.reSetPoint();
+	document.getElementById("sing-up-board").style.display = "block";
+}
 
 function displayMainMenu(){
 	MY_STAGE_CANVAS.style.display = "none";

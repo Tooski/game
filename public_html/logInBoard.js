@@ -13,7 +13,9 @@ function logInButtonAction() {
             displayMainMenu();
             console.log("user is in db");
         } else {
-            console.log("invalid name");
+            document.getElementById('error-username-password').innerHTML = "invalid name or password";
+            displayLogIN();
+            console.log("invalid name or password");
 
         }
     });
