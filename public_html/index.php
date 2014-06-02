@@ -76,16 +76,8 @@
             <canvas id="game_manu_board" style= "display : block; position: absolute; " width="400" height="350"></canvas>
             <canvas id="stage_board" style= "display : none; position: absolute; " width="400" height="350"></canvas>
         </div>
-        <!--div for login-->
-        <!--        <div class="outer-container" id="login_board" style= "display : none">
-                    <div id="error-username-password"></div>
-                    <input type="text" name="username" id="username" value="donkey"><br>
-                    <input type="password" name="password" id="password" value="ferter"><br>
-                    <input type="button" id="login_button" onClick= "logInButtonAction()" >
-                </div>
-            </form>  
-        </div> 	-->	
-        <div class="outer-signup-container" id="login_board">
+        <!--div for login-->	
+        <div class="outer-signup-container" id="login_board" style= "display : none">
             <div class="inner-header-container">
 
             </div>
