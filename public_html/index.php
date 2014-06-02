@@ -104,7 +104,7 @@
         <!--end of div for login-->
 
         <!--div for user sign up-->
-        <div class="outer-signup-container" id="sing-up-board" style= "display : none">
+        <div class="outer-signup-container" id="sing-up-board" style= "display : block">
             <div class="inner-header-container">
 
             </div>
