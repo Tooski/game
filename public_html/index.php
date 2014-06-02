@@ -10,6 +10,7 @@
         <link rel="stylesheet" type="text/css" href="css/login.css">
         <link rel="stylesheet" type="text/css" href="css/leaderboard.css">
         <link rel="stylesheet" type="text/css" href="css/about.css">
+        <link rel="stylesheet" type="text/css" href="css/signup.css">
     <meta charset="utf-8" />
     <title>Game Project Shell</title>
     <script type="text/javascript" src="./canvasinput.min.js"></script>
@@ -84,6 +85,48 @@
             </form>  
         </div> 		
         <!--end of div for login-->
+        
+        <!--div for user sign up-->
+        <div class="outer-signup-container" id="sing-up-board" style= "display : none">
+            <div class="inner-header-container">
+
+            </div>
+            <div class="inner-title-container">
+                <h2>Welcome to Hamster Storm!</h2>
+            </div>
+            <form name="sign-up-form" action="settings.php" method="post">
+                <div class="inner-body-container">
+                    <div id="error-fname"></div>
+                    <div><span class="label"><label for="firstname">First Name:</label></span>
+                        <span class="input"><input type="text" name="firstname" id="firstname" /></span>
+                    </div>
+                    <div id="error-lname"></div>
+                    <div><span class="label"><label for="lastname">Last Name:</label></span>
+                        <span class="input"><input type="text" name="lastname" id="lastname" /></span>
+                    </div>
+                    <div id="error-username"></div>
+                    <div><span class="label"><label for="username">Username:</label></span>
+                        <span class="input"><input type="text" name="username" id="username" /></span>
+                    </div>
+                    <div id="error-password"></div>
+                    <div><span class="label"><label for="password">Password:</label></span>
+                        <span class="input"><input type="password" name="password" id="password" /></span>
+                    </div>
+                    <div id="error-email"></div>
+                    <div><span class="label"><label for="email">Email:</label></span>
+                        <span class="input"><input type="email" name="email" id="email" /></span>
+                    </div>                       
+
+                </div>
+                <div class="inner-button-container">
+                    <input type="button" id="submit-user-button" value="sign up!" onClick='signInButtonAction()'/>
+                </div>
+            </form>
+
+        </div>
+        <!--end of div for user sign up-->
+        
+        
         <!--div for leader board-->
         <div class="outer-leaderboard-container" id="leader_board">
             <div class="header">Good Job Carl!!</div>
