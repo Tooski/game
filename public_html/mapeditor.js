@@ -139,6 +139,7 @@ function MapEditor(level) {
   this.createEditModeButton();
   this.createLineButton(this.ctx);
   this.createGoalLineButton(this.ctx);
+  this.createKillZoneButton(this.ctx);
   this.createEraseButton();
   this.createLoadButton(this.ctx);
   this.createSaveButton(this.ctx);
@@ -637,68 +638,78 @@ MapEditor.prototype.createGoalLineButton = function (ctx) {
   var that = this;
 
   line.onClick = function (e) {
-    if (this.line) {
+	if (this.completed) {                                     // DO SOMETHING AFTER CLICK AFTER POLYGON EXISTS
+      var click = getMousePos(e);
+      this.locked = this.prev = null;
+      this.completed = false;
 
-
-      if (this.line && this.line.p1.x !== this.line.p0.x && this.line.p1.y !== this.line.p0.y) {
-
-        that.snapTo(this.line);
-        this.locked = this.prev = this.line;
-
-
-
-        if (!this.prev.polygonID) {
-
-          var xposition = localToWorld(e.offsetX, "x");
-          var yposition = localToWorld(e.offsetY, "y");
-
-          if (!checkBounds(this.line.p0, new vec2(xposition, yposition))) {
-
-
-
-            this.line = new EditorLine(new vec2(this.prev.p1.x, this.prev.p1.y), new vec2(xposition, yposition));
-
-            if (this.attemptSnap(this.line)) {         //true if we completed our polygon.
-              that.level.tempLines.push(line);
-            } else {
-              that.level.tempLines.push(line);
-            }
-          }
-        } else {
-
-
-          this.setNormals = this.line.adjacent1;
-          this.line = null;
-
-        }
-
-
-      }
-    } else {      // create initial line point. DEBUG WAIT REALLY IS THAT WHAT THIS DOES? 
-      var left = parseInt(that.ctx.canvas.style.left);
-      var top = parseInt(that.ctx.canvas.style.top);
-      if (e.offsetX > that.ctx.canvas.width + left || e.offsetX < left ||
-         e.offsetY > that.ctx.canvas.height + top || e.offsetX < top) {
-        if (!this.line) {
-          if (!this.prev || (this.prev && !this.prev.polygonID)) {
-            var xposition = localToWorld(e.offsetX, "x");
-            var yposition = localToWorld(e.offsetY, "y");
-
-            this.locked = this.line = new EditorLine(new vec2(xposition, yposition), new vec2(xposition, yposition));
-            that.level.tempLines.push(this.line);
-
-            button.isSelected = false;
-          }
-        }
-      }
-    }
-
-    if (completed) {
-      console.log("completed and selected normals for terrainLine polygon.");
-      that.level.addGoal(that.level.tempLines);
+      console.log("completed and selected point for checkl.");
+      that.level.addGoal(click, that.level.tempLines);
       that.resetCurrent();
-      that.level.modified = true;
-    }
+    } else {
+	    if (this.line) {
+	
+	
+	      if (this.line && this.line.p1.x !== this.line.p0.x && this.line.p1.y !== this.line.p0.y) {
+	
+	        that.snapTo(this.line);
+	        this.locked = this.prev = this.line;
+	
+	
+	
+	        if (!this.prev.polygonID) {
+	
+	          var xposition = localToWorld(e.offsetX, "x");
+	          var yposition = localToWorld(e.offsetY, "y");
+	
+	          if (!checkBounds(this.line.p0, new vec2(xposition, yposition))) {
+	
+	
+	
+	            this.line = new EditorLine(new vec2(this.prev.p1.x, this.prev.p1.y), new vec2(xposition, yposition));
+	
+	            if (this.attemptSnap(this.line)) {         //true if we completed our polygon.
+	              that.level.tempLines.push(line);
+	            } else {
+	              that.level.tempLines.push(line);
+	            }
+	          }
+	        } else {
+	
+	
+	          this.setNormals = this.line.adjacent1;
+	          this.line = null;
+	
+	        }
+	
+	
+	      }
+	    } else {      // create initial line point. DEBUG WAIT REALLY IS THAT WHAT THIS DOES? 
+	      var left = parseInt(that.ctx.canvas.style.left);
+	      var top = parseInt(that.ctx.canvas.style.top);
+	      if (e.offsetX > that.ctx.canvas.width + left || e.offsetX < left ||
+	         e.offsetY > that.ctx.canvas.height + top || e.offsetX < top) {
+	        if (!this.line) {
+	          if (!this.prev || (this.prev && !this.prev.polygonID)) {
+	            var xposition = localToWorld(e.offsetX, "x");
+	            var yposition = localToWorld(e.offsetY, "y");
+	
+	            this.locked = this.line = new EditorLine(new vec2(xposition, yposition), new vec2(xposition, yposition));
+	            that.level.tempLines.push(this.line);
+	
+	            button.isSelected = false;
+	          }
+	        }
+	      }
+	    }
+	
+	    if (completed) {
+	      console.log("completed and selected normals for terrainLine polygon.");
+	      that.level.addGoal(that.level.tempLines);
+	      that.resetCurrent();
+	      that.level.modified = true;
+	  }
+	}
   };
 
 
@@ -725,10 +736,88 @@ MapEditor.prototype.createGoalLineButton = function (ctx) {
 
 };
 
+MapEditor.prototype.createKillZoneButton = function (ctx) {
+  var killButton = new MapEditorButton("Add Killzone", 0, (buttonSize + 5) * 5, buttonSize * 2.5, buttonSize);
+  var that = this;
+  
+   killButton .onClick = function (e) {
+	if (this.completed) {                                     // DO SOMETHING AFTER CLICK AFTER POLYGON EXISTS
+      var click = getMousePos(e);
+      this.locked = this.prev = null;
+      this.completed = false;
 
+      console.log("completed and selected point for checkl.");
+      that.level.addGoal(click, that.level.tempLines);
+      that.resetCurrent();
+    } else {
+	    if (this.line) {
+	
+	
+	      if (this.line && this.line.p1.x !== this.line.p0.x && this.line.p1.y !== this.line.p0.y) {
+	
+	        that.snapTo(this.line);
+	        this.locked = this.prev = this.line;
+	
+	
+	
+	        if (!this.prev.polygonID) {
+	
+	          var xposition = localToWorld(e.offsetX, "x");
+	          var yposition = localToWorld(e.offsetY, "y");
+	
+	          if (!checkBounds(this.line.p0, new vec2(xposition, yposition))) {
+	
+	
+	
+	            this.line = new EditorLine(new vec2(this.prev.p1.x, this.prev.p1.y), new vec2(xposition, yposition));
+	
+	            if (this.attemptSnap(this.line)) {         //true if we completed our polygon.
+	              that.level.tempLines.push(line);
+	            } else {
+	              that.level.tempLines.push(line);
+	            }
+	          }
+	        } else {
+	
+	
+	          this.setNormals = this.line.adjacent1;
+	          this.line = null;
+	
+	        }
+	
+	
+	      }
+	    } else {      // create initial line point. DEBUG WAIT REALLY IS THAT WHAT THIS DOES? 
+	      var left = parseInt(that.ctx.canvas.style.left);
+	      var top = parseInt(that.ctx.canvas.style.top);
+	      if (e.offsetX > that.ctx.canvas.width + left || e.offsetX < left ||
+	         e.offsetY > that.ctx.canvas.height + top || e.offsetX < top) {
+	        if (!this.line) {
+	          if (!this.prev || (this.prev && !this.prev.polygonID)) {
+	            var xposition = localToWorld(e.offsetX, "x");
+	            var yposition = localToWorld(e.offsetY, "y");
+	
+	            this.locked = this.line = new EditorLine(new vec2(xposition, yposition), new vec2(xposition, yposition));
+	            that.level.tempLines.push(this.line);
+	
+	            button.isSelected = false;
+	          }
+	        }
+	      }
+	    }
+	
+	    if (completed) {
+	      console.log("completed and selected normals for terrainLine polygon.");
+	      that.level.addGoal(that.level.tempLines);
+	      that.resetCurrent();
+	      that.level.modified = true;
+	  }
+	}
+  };
+}
 
 MapEditor.prototype.createCollectibleButton = function (ctx) {
-  var collect = new MapEditorButton("Collectibles", 0, (buttonSize + 5) * 5, buttonSize * 2.5, buttonSize);
+  var collect = new MapEditorButton("Collectibles", 0, (buttonSize + 5) * 6, buttonSize * 2.5, buttonSize);
   var that = this;
 
   collect.onClick = function (e) {
@@ -751,7 +840,7 @@ MapEditor.prototype.createCollectibleButton = function (ctx) {
 
 
 MapEditor.prototype.createEraseButton = function () {
-  var erase = new MapEditorButton("Erase Lines", 0, (buttonSize + 5) * 6, buttonSize * 2.5, buttonSize);
+  var erase = new MapEditorButton("Erase Lines", 0, (buttonSize + 5) * 7, buttonSize * 2.5, buttonSize);
   var that = this;
 
   erase.onClick = function (e) {
@@ -765,7 +854,7 @@ MapEditor.prototype.createEraseButton = function () {
 
 
 MapEditor.prototype.createLoadButton = function (ctx) {
-  var erase = new MapEditorButton("Load Level", 0, (buttonSize + 5) * 7, buttonSize * 2.5, buttonSize);
+  var erase = new MapEditorButton("Load Level", 0, (buttonSize + 5) * 8, buttonSize * 2.5, buttonSize);
   var that = this;
   erase.onRelease = function (e) {
     //that.level.loadFromFile();
@@ -787,7 +876,7 @@ MapEditor.prototype.createLoadButton = function (ctx) {
 MapEditor.prototype.createSaveButton = function (ctx) {
 
 
-  var save = new MapEditorButton("Save Level", 0, (buttonSize + 5) * 8, buttonSize * 2.5, buttonSize);
+  var save = new MapEditorButton("Save Level", 0, (buttonSize + 5) * 9, buttonSize * 2.5, buttonSize);
   var that = this;
   save.onRelease = function (e) {
     console.log(e);
