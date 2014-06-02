@@ -44,6 +44,7 @@
         <script type="text/javascript" src="./controlDisplay.js"></script>
         <script type="text/javascript" src="./logInBoard.js"></script>
         <script type="text/javascript" src="./leaderBoard.js"></script>
+        <script type="text/javascript" src="./signUpBoard.js"></script>
     </head>
     <body>
         <!--       <div>
@@ -88,10 +89,10 @@
                 <div class="inner-body-container">
                     <div id="error-username-password"></div>
                     <div><span class="label"><label for="username">Username:</label></span>
-                        <span class="input"><input type="text" name="username" id="username" value="donkey"/></span>
+                        <span class="input"><input type="text" name="username" id="username" /></span>
                     </div>
                     <div><span class="label"><label for="password">Password:</label></span>
-                        <span class="input"><input type="password" name="password" id="password" value="ferter"/></span>
+                        <span class="input"><input type="password" name="password" id="password"/></span>
                     </div>                      
                 </div>
                 <div class="inner-button-container">
@@ -103,7 +104,7 @@
         <!--end of div for login-->
 
         <!--div for user sign up-->
-        <div class="outer-signup-container" id="sing-up-board" style= "display : none">
+        <div class="outer-signup-container" id="sing-up-board" style= "display : block">
             <div class="inner-header-container">
 
             </div>
@@ -120,14 +121,16 @@
                     <div><span class="label"><label for="lastname">Last Name:</label></span>
                         <span class="input"><input type="text" name="lastname" id="lastname" /></span>
                     </div>
+                    <div id ="error-username-exists"></div>
                     <div id="error-username"></div>
                     <div><span class="label"><label for="username">Username:</label></span>
-                        <span class="input"><input type="text" name="username" id="username" /></span>
+                        <span class="input"><input type="text" name="username" id="signupusername" /></span>
                     </div>
                     <div id="error-password"></div>
                     <div><span class="label"><label for="password">Password:</label></span>
-                        <span class="input"><input type="password" name="password" id="password" /></span>
+                        <span class="input"><input type="password" name="password" id="signuppassword" /></span>
                     </div>
+                    <div id ="error-email-exists"></div>
                     <div id="error-email"></div>
                     <div><span class="label"><label for="email">Email:</label></span>
                         <span class="input"><input type="email" name="email" id="email" /></span>
@@ -135,7 +138,7 @@
 
                 </div>
                 <div class="inner-button-container">
-                    <input type="button" id="submit-user-button" value="sign up!" onClick='signInButtonAction()'/>
+                    <input type="button" id="submit_user_button" value="sign up!" onClick='signInButtonAction()'/>
                 </div>
             </form>
 

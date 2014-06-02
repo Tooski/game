@@ -46,3 +46,9 @@
     text-align: center;
     padding-top:20px;
 }
+
+
+#error-fname, #error-lname, #error-password, #error-username, #error-email,#error-username-exists,#error-email-exists{
+    color:red;
+    text-align: center;
+}
