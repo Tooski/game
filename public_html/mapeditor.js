@@ -808,7 +808,7 @@ MapEditor.prototype.createKillZoneButton = function (ctx) {
 	
 	    if (completed) {
 	      console.log("completed and selected normals for terrainLine polygon.");
-	      that.level.addGoal(that.level.tempLines);
+	      that.level.addKillZone(that.level.tempLines);
 	      that.resetCurrent();
 	      that.level.modified = true;
 	  }
