@@ -211,8 +211,8 @@ function getSurfacesAtSoonestAngleTime(aState) {
 
   var states = [];
   var angles = [];
-  for (var i = 0; i < aState.arcTangentSurfaces.length; i++) {
-    angles[i] = aState.arcTangentSurfaces[i].normal.sangle();
+  for (var i = 0; i < aState.point.lines.length; i++) {
+    angles[i] = aState.point.lines[i].normal.sangle();
     states[i] = stepAngularStateToAngle(aState, angles[i]);
   }
 
@@ -220,9 +220,9 @@ function getSurfacesAtSoonestAngleTime(aState) {
   var earliestTime = 10000000000;
   var toReturn = {};
 
-  for (var i = 0; i < aState.arcTangentSurfaces.length; i++) {
+  for (var i = 0; i < aState.point.lines.length; i++) {
     if (states[i] && states[i].time < earliestTime) {
-      toReturn.nextSurface = aState.arcTangentSurfaces[i];
+      toReturn.nextSurface = aState.point.lines[i];
       toReturn.state = states[i];
       earliestTime = states[i].time;
     }
