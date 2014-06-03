@@ -15,6 +15,7 @@ function displayLogIN(){
         document.getElementById("sing-up-board").style.display = "none";
 	my_stage_board.reSetPoint();
 	document.getElementById("login_board").style.display = "block";
+        document.getElementById("choice_board").style.display = "none";
 }
 function displaySignUp(){
 	MY_STAGE_CANVAS.style.display = "none";
@@ -26,8 +27,20 @@ function displaySignUp(){
         //resetPoint() or nonDesplayGame?
 	my_stage_board.reSetPoint();
 	document.getElementById("sing-up-board").style.display = "block";
+        document.getElementById("choice_board").style.display = "none";
 }
-
+function displaySignUpLoginChoice(){
+    	MY_STAGE_CANVAS.style.display = "none";
+	MY_GAME_MANU_CANVAS.style.display = "none";
+	noneDisplayGame();
+	document.getElementById("leader_board").style.display = "none";
+	document.getElementById("about_board").style.display = "none";
+	document.getElementById('mapEditor').style.display = "none";
+        //resetPoint() or nonDesplayGame?
+	my_stage_board.reSetPoint();
+	document.getElementById("sing-up-board").style.display = "none";
+        document.getElementById("choice_board").style.display = "block";
+}
 function displayMainMenu(){
 	MY_STAGE_CANVAS.style.display = "none";
 	document.getElementById("login_board").style.display = "none";
@@ -36,6 +49,7 @@ function displayMainMenu(){
         document.getElementById("sing-up-board").style.display = "none";
 	noneDisplayGame();
 	document.getElementById('mapEditor').style.display = "none";
+        document.getElementById("choice_board").style.display = "none";
 	
 	my_g_stage_id = null;
 	my_g_position_id = null;
@@ -52,6 +66,7 @@ function displayWorldMap(){
 	document.getElementById("leader_board").style.display = "none";
 	document.getElementById("about_board").style.display = "none";
         document.getElementById("sing-up-board").style.display = "none";
+        document.getElementById("choice_board").style.display = "none";
 	noneDisplayGame();
 	//document.getElementById('mapEditor').style.display = "none";
 	if(my_g_stage_id){
@@ -75,6 +90,7 @@ function displayGame(id){
 	document.getElementById("about_board").style.display = "none";
 	document.getElementById('mapEditor').style.display = "none";
         document.getElementById("sing-up-board").style.display = "none";
+        document.getElementById("choice_board").style.display = "none";
 	
 	my_g_level_id = id;
 	//console.log(my_g_level_id);
@@ -90,7 +106,7 @@ function displayCustomGame(){
 	document.getElementById("leader_board").style.display = "none";
 	document.getElementById("about_board").style.display = "none";
         document.getElementById("sing-up-board").style.display = "none";
-	
+	document.getElementById("choice_board").style.display = "none";
 	document.getElementById('mapEditor').style.display = "block";
 	//--- this should be fix later... just showing 
 	currentLevel.loadFromFile(); 
@@ -109,6 +125,7 @@ function displayReplayGame(the_index){
 	document.getElementById("about_board").style.display = "none";
 	document.getElementById('mapEditor').style.display = "none";
         document.getElementById("sing-up-board").style.display = "none";
+        document.getElementById("choice_board").style.display = "none";
 	//console.log(my_jar_list[the_index]);
 	//console.log(the_index);
 	 //my_g_level_id= id;
@@ -127,6 +144,7 @@ function displayLeaderBoard(the_game_result){
 	document.getElementById("about_board").style.display = "none";
 	document.getElementById('mapEditor').style.display = "none";
         document.getElementById("sing-up-board").style.display = "none";
+        document.getElementById("choice_board").style.display = "none";
 	
 	leaderBoardUpdate(the_game_result);
 	document.getElementById("leader_board").style.display = "block";
@@ -141,6 +159,7 @@ function displayAboutBoard(){
 	document.getElementById("leader_board").style.display = "none";
 	document.getElementById('mapEditor').style.display = "none";
         document.getElementById("sing-up-board").style.display = "none";
+        document.getElementById("choice_board").style.display = "none";
 	
 	document.getElementById("about_board").style.display = "block";
 }

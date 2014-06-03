@@ -7,10 +7,15 @@
             canvas { display:block; } /* To remove the scrollbars */ 
             #eklipzConsole { margin-left: 200px; z-index: 9999; }
         </style>
+
+
         <link rel="stylesheet" type="text/css" href="css/login.css">
         <link rel="stylesheet" type="text/css" href="css/leaderboard.css">
         <link rel="stylesheet" type="text/css" href="css/about.css">
         <link rel="stylesheet" type="text/css" href="css/signup.css">
+        <link rel="stylesheet" type="text/css" href="css/login_signup.css">
+
+
         <meta charset="utf-8" />
         <title>Game Project Shell</title>
         <script type="text/javascript" src="./canvasinput.min.js"></script>
@@ -45,6 +50,7 @@
         <script type="text/javascript" src="./logInBoard.js"></script>
         <script type="text/javascript" src="./leaderBoard.js"></script>
         <script type="text/javascript" src="./signUpBoard.js"></script>
+        <script type="text/javascript" src="./choiceBoard.js"></script>
     </head>
     <body>
         <!--       <div>
@@ -70,6 +76,7 @@
         <canvas id="pause" style="display : none; position:absolute; z-index: 2; background: white; display: none" height="525" width="350"></canvas>
         <canvas id="remap" style="display : none; position:absolute; z-index: 3; background: white; display: none" height="550" width="375"></canvas>
 
+
         <div>
             <script src="classie.js"></script>
             <canvas id="gameWorld" style="border: 0px solid brown; background: white; display : none"></canvas>
@@ -77,6 +84,29 @@
             <canvas id="game_manu_board" style= "display : block; position: absolute; " width="400" height="350"></canvas>
             <canvas id="stage_board" style= "display : none; position: absolute; " width="400" height="350"></canvas>
         </div>
+
+        <!--div for initial choice to login or sign up-->
+        <div class="outer-signup-container" id="choice_board" style= "display : block">
+            <div class="inner-header-container">
+
+            </div>
+            <div class="inner-title-container">
+                <h2>Hamster Storm!</h2>
+            </div>
+
+            <div class="inner-body-container">
+                <div id="error-fname"></div>
+                <div class="button-holder">
+                    <span class="input"><input type="button" name="login" id="main_login" onClick= "logInChoiceButtonAction()" value="login "/></span>
+                </div>
+                <div id="error-lname"></div>
+                <div class="button-holder">
+                    <span class="input"><input type="button" name="sign up" id="main_sign_up" onClick= "signUpChoiceButtonAction()" value="sign up"/></span>
+                </div>                      
+            </div>
+        </div>
+        <!--div for initial choice to login or sign up-->
+        
         <!--div for login-->	
         <div class="outer-signup-container" id="login_board" style= "display : none">
             <div class="inner-header-container">

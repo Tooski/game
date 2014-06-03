@@ -1,0 +1,10 @@
+.inner-button-container{
+    text-align: center;
+    padding-top:20px;
+}
+.button-holder{
+    text-align: center;
+}
+.button-holder span{
+    margin: 10px;
+}
