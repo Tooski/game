@@ -62,18 +62,52 @@ vec2.prototype.normalize = function () { // normalizes a vector so that its leng
   return toReturn;
 }
 
-vec2.prototype.perp = function() { // returns the perpendicular vector to this vector.
+
+// returns the perpendicular vector to this vector.
+vec2.prototype.perp = function() { 
   return new vec2(this.y, -this.x, this.normalized);
 }
 
 
-vec2.prototype.angle = function () { // returns the perpendicular vector to this vector.
-  return Math.acos(this.normalize().dot(HORIZ_NORM));
+// returns the positive angle of this vector from the horizontal.
+vec2.prototype.angle = function () { 
+  if (this.y === 0) {    // horizontal line, so 0 if positive x or PI if negative x, or undefined if x is also 0.
+    if (this.x > 0) {
+      return 0;
+    } else if (this.x < 0) {
+      return Math.PI;
+    } else {
+      return undefined;
+    }
+  } else {
+    var angle = Math.acos(HORIZ_NORM.dot(this.normalize()));
+    if (this.y > 0) {   // greater than 0, just use angle
+      return angle;
+    } else {            // less than 0, subtract angle from 2PI
+      return TWO_PI - angle;
+    }
+  }
 }
 
 
-vec2.prototype.sangle = function () { // returns the perpendicular vector to this vector.
-  return getSignedAngleFromAToB(HORIZ_NORM, this);
+// returns the signed angle of this vector.
+vec2.prototype.sangle = function () {
+  if (this.y === 0) {    // horizontal line, so 0 if positive x or PI if negative x, or undefined if x is also 0.
+    if (this.x > 0) {
+      return 0;
+    } else if (this.x < 0) {
+      return Math.PI;
+    } else {
+      return undefined;
+    }
+  } else {
+    var angle = Math.acos(HORIZ_NORM.dot(this.normalize()));
+    if (this.y > 0) {   // greater than 0, just use angle
+      return angle;
+    } else {            // less than 0, negative angle.
+      return -angle;
+    }
+  }
 }
 
 

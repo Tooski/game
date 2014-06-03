@@ -26,77 +26,6 @@ function CollisionResults(collided, collisionList) {
 }
 
 
-/**
- * TerrainPoint object. Useful for collision data info.
- */
-function TerrainPoint(pos, line0, line1) {
-  this.x = pos.x;
-  this.y = pos.y
-  this.id = "" + (this.x * (this.x - this.y)) + " " + (this.y * (this.y - this.x));
-
-  this.line0 = line0;
-  this.line1 = line1;
-
-  this.angle0 = "";
-  this.angle1 = "";
-
-
-
-  if (line0) {
-    if (!line1) {   //Line 0 only
-
-
-
-    } else {        //Both lines
-
-
-      var p00 = line0.p0.subtract(pos);
-      var p01 = line0.p1.subtract(pos);
-      var v0 = p01.subtract(p00);
-      var p10 = line1.p0.subtract(pos);
-      var p11 = line1.p1.subtract(pos);
-      var v1 = p11.subtract(p10);
-
-      var perp0 = line0.normal;
-      var perp1 = line1.normal;
-
-      DEBUG_DRAW_RED.push(new DebugLine(pos, pos.add(perp0.multf(50))));
-      DEBUG_DRAW_RED.push(new DebugLine(pos, pos.add(perp1.multf(50))));
-
-      this.angle0 = getRadiansToHorizontal(perp0);
-      this.angle1 = getRadiansToHorizontal(perp1);
-
-      //if (line0.p0 === pos) {
-      //  if (line1.p0 === pos) {
-      //    throw "lines dont connect p0 to p1, might be allowable";
-      //  } else if (line1.p1 === pos) {
-
-      //  } else {
-      //    throw "isnt a point on line1";
-      //  }
-      //} else if (line0.p1 === pos) {
-      //  if (line1.p0 === pos) {
-
-      //  } else if (line1.p1 === pos) {
-
-      //    throw "lines dont connect p0 to p1, might be allowable";
-      //  } else {
-      //    throw "isnt a point on line1";
-      //  }
-      //} else {
-      //  throw "isnt a point on line0";
-      //}
-    }
-
-
-  } else if (line1) {//Line 1 only
-
-
-
-  } else {
-    throw "no line passed into TerrainPoint constructor.";
-  }
-}
 
 
 
@@ -114,16 +43,6 @@ function getCollisionsInList(ballState, collidersToCheck, doNotCheck) {
       if (data.collided) {
         stuffWeCollidedWith.push(data);
       }
-
-      //if (data.collidedP0) {
-      //  stuffWeCollidedWith.push(new TerrainPoint(collidersToCheck[i].p0, collidersToCheck[i].adjacent0, collidersToCheck[i]));
-      //}
-      //if (data.collidedP1) {
-      //  stuffWeCollidedWith.push(new TerrainPoint(collidersToCheck[i].p1, collidersToCheck[i], collidersToCheck[i].adjacent1));
-      //}
-      //if (data.collidedLine) {
-      //  stuffWeCollidedWith.push(collidersToCheck[i]);
-      //}
 
     } else {
       //console.log("doNotCheck contained colliders[i]: ", collidersToCheck[i]);
