@@ -656,6 +656,14 @@ GameEngine.prototype.update = function () {
   //ctx.fillText(min + ":" + add + sec,30,35);
   ctx2.textAlign = 'center';
   ctx2.fillText(format, x, y);
+  if (!editMode) {
+    var time = document.getElementById('time');
+    time.style.display = '';
+  }
+  else {
+    var time = document.getElementById('time');
+    time.style.display = 'none';
+  }
 
   x = canvas3.width / 2;
   y = (canvas3.height / 2) + 7;
