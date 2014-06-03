@@ -558,7 +558,7 @@ function TerrainLineCollisionEvent(gameTimeOfCollision, line, stateAtCollision, 
 
     if (this.allowLock && collisionForceVecLen < p.physParams.autoLockThreshold) {
       console.log(">>>> TerrainLineCollisionEvent auto locked!?!?");
-      var surfaceVecNorm = collisionVecNorm.perp();      //TODO OHGOD REFACTOR TO THIS METHOD TAKING A COLLISION OBJECT THAT STORES NORMALS AND THE SINGLE SURFACE TO LOCK TO
+      var surfaceVecNorm = collisionVecNorm.perp();  
 
       var surface = this.line;
 
@@ -578,7 +578,7 @@ function TerrainLineCollisionEvent(gameTimeOfCollision, line, stateAtCollision, 
       console.log(">>>> TerrainLineCollisionEvent locked!?!?");
 
       var surface = this.line;
-      p.lockTo(surface, surfaceVec.normalize());
+      p.lockTo(surface, this.surfaceVec.normalize());
       animationSetPlayerRunning(p, this.time);
     } else {
       // BOUNCE. TODO implement addition of normalVector * jumpVel to allow jump being held to bounce him higher?   perhaps just buffer jump events.      
