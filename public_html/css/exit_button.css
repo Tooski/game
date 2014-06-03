@@ -1,0 +1,28 @@
+
+#ex_button{
+
+	float:right;
+	margin-right : 10px;	
+	width: 30px;
+    height: 30px;
+	background: url(../img/exit1.png) no-repeat;
+    background-size: contain;
+}
+
+#ex_button:hover{
+	float:right;
+	margin-right : 10px;	
+	width: 30px;
+    height: 30px;
+	background: url(../img/exit2.png) no-repeat;
+    background-size: contain;
+}
+
+#ex_button:active{
+	float:right;
+	margin-right : 10px;	
+	width: 30px;
+    height: 30px;
+	background: url(../img/exit3.png) no-repeat;
+    background-size: contain;
+}

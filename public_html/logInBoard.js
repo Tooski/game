@@ -13,7 +13,7 @@ function logInButtonAction() {
             displayMainMenu();
         } else {
             document.getElementById('error-username-password').innerHTML = "invalid name or password";
-            displayLogIN();
+            //displayLogIN();
             
 
         }

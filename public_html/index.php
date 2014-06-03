@@ -14,8 +14,8 @@
         <link rel="stylesheet" type="text/css" href="css/about.css">
         <link rel="stylesheet" type="text/css" href="css/signup.css">
         <link rel="stylesheet" type="text/css" href="css/login_signup.css">
-
-
+		<link rel="stylesheet" type="text/css" href="css/exit_button.css">
+		<link rel="stylesheet" type="text/css" href="css/sign_up_button.css"
         <meta charset="utf-8" />
         <title>Game Project Shell</title>
         <script type="text/javascript" src="./canvasinput.min.js"></script>
@@ -81,8 +81,8 @@
             <script src="classie.js"></script>
             <canvas id="gameWorld" style="border: 0px solid brown; background: white; display : none"></canvas>
 
-            <canvas id="game_manu_board" style= "display : block; position: absolute; " width="400" height="350"></canvas>
-            <canvas id="stage_board" style= "display : none; position: absolute; " width="400" height="350"></canvas>
+            <canvas id="game_manu_board" style= "display : none; position: absolute; " width="400" height="350"></canvas>
+            <canvas id="stage_board" style= "display : block; position: absolute; " width="400" height="350"></canvas>
         </div>
 
         <!--div for initial choice to login or sign up-->
@@ -95,13 +95,13 @@
             </div>
 
             <div class="inner-body-container">
-                <div id="error-fname"></div>
+               <!-- <div id="error-fname"></div>-->
                 <div class="button-holder">
-                    <span class="input"><input type="button" name="login" id="main_login" onClick= "logInChoiceButtonAction()" value="login "/></span>
+                    <span class="input"><input type="button" name="login" id="login_button" onClick= "logInChoiceButtonAction()" value=" "/></span>
                 </div>
-                <div id="error-lname"></div>
+                <!-- <div id="error-lname"></div>-->
                 <div class="button-holder">
-                    <span class="input"><input type="button" name="sign up" id="main_sign_up" onClick= "signUpChoiceButtonAction()" value="sign up"/></span>
+                    <span class="input"><input type="button" name="sign up" id="sign_up_button" onClick= "signUpChoiceButtonAction()" value=" "/></span>
                 </div>                      
             </div>
         </div>
@@ -109,8 +109,11 @@
         
         <!--div for login-->	
         <div class="outer-signup-container" id="login_board" style= "display : none">
-            <div class="inner-header-container">
-
+            <div>
+				<input type="button" id="ex_button" onClick= "displaySignUpLoginChoice()" value=" "/>
+			</div>
+			<div class="inner-header-container">
+				
             </div>
             <div class="inner-title-container">
                 <h2>Hamster Storm!</h2>
@@ -135,6 +138,9 @@
 
         <!--div for user sign up-->
         <div class="outer-signup-container" id="sing-up-board" style= "display : none">
+		    <div>
+				<input type="button" id="ex_button" onClick= "displaySignUpLoginChoice()" value=" "/>
+			</div>
             <div class="inner-header-container">
 
             </div>
@@ -168,7 +174,7 @@
 
                 </div>
                 <div class="inner-button-container">
-                    <input type="button" id="submit_user_button" value="sign up!" onClick='signInButtonAction()'/>
+                    <input type="button" id="sign_up_button" value=" " onClick='signInButtonAction()'/>
                 </div>
             </form>
 
