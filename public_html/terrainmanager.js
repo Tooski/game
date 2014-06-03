@@ -56,6 +56,8 @@ function Collectible(id, x, y, pointValue, radius) {
     return { id: this.id, points: this.pointValue, x: this.x, y: this.y, radius: this.radius };
   }
 }
+Collectible.prototype = new vec2();
+Collectible.prototype.constructor = Collectible;
 Collectible.prototype.collidesWith = function (point, radius) {
   if (point.subtract(this).length() < radius + this.radius) {
     return true;
@@ -332,7 +334,7 @@ TerrainManager.prototype.eraseByPosition = function (position, distance) {
 
 //no touchy
 TerrainManager.prototype.removeFromTerrain = function (terrainLinesToRemove) {
-  var pointsToRemove = [];
+  console.group();
   if (terrainLinesToRemove) {
     for (var i = 0; i < terrainLinesToRemove.length; i++) {
       if (terrainLinesToRemove[i]) {
@@ -340,8 +342,17 @@ TerrainManager.prototype.removeFromTerrain = function (terrainLinesToRemove) {
         var itr = terrainLinesToRemove[i].surface;
         var start = itr;
         do {
-          pointsToRemove[itr.p0.id] = itr.p0;
-          pointsToRemove[itr.p1.id] = itr.p1;
+          itr.p0.removeLine(itr);
+          itr.p1.removeLine(itr);
+          console.log("p0.numLines " + itr.p0.numLines);
+          console.log("p1.numLines " + itr.p1.numLines);
+          if (itr.p0.numLines === 0) {
+            this.removePoint(itr.p0);
+          }
+          if (itr.p1.numLines === 0) {
+            this.removePoint(itr.p1);
+          }
+
           delete this.terrainLines[itr.id];
           itr = itr.adjacent0;
         } while (itr !== start);
@@ -349,22 +360,29 @@ TerrainManager.prototype.removeFromTerrain = function (terrainLinesToRemove) {
       }
     }
   }
-  this.attemptRemovePoints(pointsToRemove);
+  //this.attemptRemovePoints(pointsToRemove);
+  console.groupEnd();
 }
 
 
 
 //no touchy
 TerrainManager.prototype.removeFromGoals = function (goalLinesToRemove) {
-  var pointsToRemove = [];
   if (goalLinesToRemove) {
     for (var i = 0; i < goalLinesToRemove.length; i++) {
       if (goalLinesToRemove[i]) {
         var itr = goalLinesToRemove[i].surface;
         var start = itr;
         do {
-          pointsToRemove[itr.p0.id] = itr.p0;
-          pointsToRemove[itr.p1.id] = itr.p1;
+          itr.p0.removeLine(itr);
+          itr.p1.removeLine(itr);
+          if (itr.p0.numLines === 0) {
+            this.removePoint(itr.p0);
+          }
+          if (itr.p1.numLines === 0) {
+            this.removePoint(itr.p1);
+          }
+
           delete this.goalLines[itr.id];
           itr = itr.adjacent0;
         } while (itr !== start);
@@ -372,22 +390,28 @@ TerrainManager.prototype.removeFromGoals = function (goalLinesToRemove) {
       }
     }
   }
-  this.attemptRemovePoints(pointsToRemove);
+  //this.attemptRemovePoints(pointsToRemove);
 }
 
 
 
 //no touchy
 TerrainManager.prototype.removeFromCheckpoints = function (checkpointLinesToRemove) {
-  var pointsToRemove = [];
   if (checkpointLinesToRemove) {
     for (var i = 0; i < checkpointLinesToRemove.length; i++) {
       if (checkpointLinesToRemove[i]) {
         var itr = checkpointLinesToRemove[i].surface;
         var start = itr;
         do {
-          pointsToRemove[itr.p0.id] = itr.p0;
-          pointsToRemove[itr.p1.id] = itr.p1;
+          itr.p0.removeLine(itr);
+          itr.p1.removeLine(itr);
+          if (itr.p0.numLines === 0) {
+            this.removePoint(itr.p0);
+          }
+          if (itr.p1.numLines === 0) {
+            this.removePoint(itr.p1);
+          }
+
           delete this.checkpointLines[itr.id];
           itr = itr.adjacent0;
         } while (itr !== start);
@@ -398,22 +422,28 @@ TerrainManager.prototype.removeFromCheckpoints = function (checkpointLinesToRemo
       }
     }
   }
-  this.attemptRemovePoints(pointsToRemove);
+  //this.attemptRemovePoints(pointsToRemove);
 }
 
 
 
 //no touchy
 TerrainManager.prototype.removeFromKillZones = function (killZonesToRemove) {
-  var pointsToRemove = [];
   if (killZonesToRemove) {
     for (var i = 0; i < killZonesToRemove.length; i++) {
       if (killZonesToRemove[i]) {
         var itr = killZonesToRemove[i].surface;
         var start = itr;
         do {
-          pointsToRemove[itr.p0.id] = itr.p0;
-          pointsToRemove[itr.p1.id] = itr.p1;
+          itr.p0.removeLine(itr);
+          itr.p1.removeLine(itr);
+          if (itr.p0.numLines === 0) {
+            this.removePoint(itr.p0);
+          }
+          if (itr.p1.numLines === 0) {
+            this.removePoint(itr.p1);
+          }
+
           delete this.killLines[itr.id];
           itr = itr.adjacent0;
         } while (itr !== start);
@@ -421,7 +451,7 @@ TerrainManager.prototype.removeFromKillZones = function (killZonesToRemove) {
       }
     }
   }
-  this.attemptRemovePoints(pointsToRemove);
+  //this.attemptRemovePoints(pointsToRemove);
 }
 
 
@@ -438,58 +468,71 @@ TerrainManager.prototype.removeFromCollectibles = function (collectiblesToRemove
 }
 
 
-
-
-
-//no touchy
-TerrainManager.prototype.attemptRemovePoints = function (pointsToRemove) {
-  var that = this;
-
-  pointsToRemove.forEach(function (p) {
-    var keep = false;
-    var id = p.id;
-    for (var i = 0; i < that.terrainLines.length && !keep; i++) {
-      var t = that.terrainLines[i];
-      if (t) {
-        if (p.id === t.p0.id || p.id === t.p1.id) {
-          keep = true;
-        }
-      }
-    }
-    for (var i = 0; i < that.killLines.length && !keep; i++) {
-      var t = that.killLines[i];
-      if (t) {
-        if (p.id === t.p0.id || p.id === t.p1.id) {
-          keep = true;
-        }
-      }
-    }
-    for (var i = 0; i < that.checkpointLines.length && !keep; i++) {
-      var t = that.checkpointLines[i];
-      if (t) {
-        if (p.id === t.p0.id || p.id === t.p1.id) {
-          keep = true;
-        }
-      }
-    }
-    for (var i = 0; i < that.goalLines.length && !keep; i++) {
-      var t = that.goalLines[i];
-      if (t) {
-        if (p.id === t.p0.id || p.id === t.p1.id) {
-          keep = true;
-        }
-      }
-    }
-
-    if (!keep) {
-      console.log("deleting point ", p, " because !keep");
-      delete that.points[p.id];
-      delete that.pointMap[pointString(p)];
-    } else {
-      console.log("keep point " + p.id + " was true");
-    }
-  });
+/**
+ * removes a single point from the level. Should only be called when this points number of lines remaining is 0.
+ */
+TerrainManager.prototype.removePoint = function (pointToRemove) {
+  if (pointToRemove.numLines > 0) {
+    console.log(pointToRemove);
+    throw "why would you remove a point with lines left ???? ";
+  }
+  console.log("deleting point ", pointToRemove);
+  delete this.points[pointToRemove.id];
+  delete this.pointMap[pointString(pointToRemove)];
 }
+
+
+
+
+////no touchy
+//TerrainManager.prototype.attemptRemovePoints = function (pointsToRemove) {
+//  var that = this;
+
+//  pointsToRemove.forEach(function (p) {
+//    var keep = false;
+//    var id = p.id;
+//    for (var i = 0; i < that.terrainLines.length && !keep; i++) {
+//      var t = that.terrainLines[i];
+//      if (t) {
+//        if (p.id === t.p0.id || p.id === t.p1.id) {
+//          keep = true;
+//        }
+//      }
+//    }
+//    for (var i = 0; i < that.killLines.length && !keep; i++) {
+//      var t = that.killLines[i];
+//      if (t) {
+//        if (p.id === t.p0.id || p.id === t.p1.id) {
+//          keep = true;
+//        }
+//      }
+//    }
+//    for (var i = 0; i < that.checkpointLines.length && !keep; i++) {
+//      var t = that.checkpointLines[i];
+//      if (t) {
+//        if (p.id === t.p0.id || p.id === t.p1.id) {
+//          keep = true;
+//        }
+//      }
+//    }
+//    for (var i = 0; i < that.goalLines.length && !keep; i++) {
+//      var t = that.goalLines[i];
+//      if (t) {
+//        if (p.id === t.p0.id || p.id === t.p1.id) {
+//          keep = true;
+//        }
+//      }
+//    }
+
+//    if (!keep) {
+//      console.log("deleting point ", p, " because !keep");
+//      delete that.points[p.id];
+//      delete that.pointMap[pointString(p)];
+//    } else {
+//      console.log("keep point " + p.id + " was true");
+//    }
+//  });
+//}
 
 
 
@@ -520,7 +563,6 @@ TerrainManager.prototype.addCollectible = function (point, radius) {
  */
 TerrainManager.prototype.addTerrain = function (editorLineArray) {
   var lines = editorLineArray;
-
 
   var first = new TerrainLine(this.getNextTerrainLineNumber(), this.getNextPolygonNumber(), this.toLinePoint(lines[0].p0), this.toLinePoint(lines[0].p1), null, null, lines[0].normal);
   if (this.terrainLines[first.id]) {
@@ -1008,7 +1050,8 @@ TerrainManager.prototype.loadFromFile = function (id, init, callback) {
   game.settings.get({ "command": "getleveljson", "data": { "levelid": (id || 1) } },
     function (data) {
       var obj = $.parseJSON($.parseJSON(data));
-      if (!obj[0].id.toFixed) {      //Ducktyping check, is this an integer? if not this is an old level. 
+      console.log(obj);
+      if (obj[0]) {      //Ducktyping check, is this an integer? if not this is an old level. 
         that.loadOldLevelFromJSON(obj);
       }
 
@@ -1144,9 +1187,8 @@ TerrainManager.prototype.getGoalCollisions = function (ballstate) {
   return this.getCollisionsInList(ballstate, this.goalLines, []);
 }
 
-TerrainManager.prototype.getCheckpointCollisions = function (ballstate) {
+TerrainManager.prototype.getCheckpointCollisions = function (ballstate, alreadyReached) {
   return this.getCollisionsInList(ballstate, this.checkpointLines, []);
-
 }
 
 TerrainManager.prototype.getKillZoneCollisions = function (ballstate) {
@@ -1162,16 +1204,6 @@ TerrainManager.prototype.getCollectibleCollisions = function (ballstate, already
       if (this.collectibles[i].collidesWith(ballstate.pos, ballstate.radius)) {
         stuffWeCollidedWith.push(this.collectibles[i]);
       }
-
-      //if (data.collidedP0) {
-      //  stuffWeCollidedWith.push(new TerrainPoint(collidersToCheck[i].p0, collidersToCheck[i].adjacent0, collidersToCheck[i]));
-      //}
-      //if (data.collidedP1) {
-      //  stuffWeCollidedWith.push(new TerrainPoint(collidersToCheck[i].p1, collidersToCheck[i], collidersToCheck[i].adjacent1));
-      //}
-      //if (data.collidedLine) {
-      //  stuffWeCollidedWith.push(collidersToCheck[i]);
-      //}
     }
   }
   var didWeCollide = false;
@@ -1201,17 +1233,6 @@ TerrainManager.prototype.getCollisionsInList = function (ballstate, collidersToC
       if (data.collided) {
         stuffWeCollidedWith.push(data);
       }
-
-      //if (data.collidedP0) {
-      //  stuffWeCollidedWith.push(new TerrainPoint(collidersToCheck[i].p0, collidersToCheck[i].adjacent0, collidersToCheck[i]));
-      //}
-      //if (data.collidedP1) {
-      //  stuffWeCollidedWith.push(new TerrainPoint(collidersToCheck[i].p1, collidersToCheck[i], collidersToCheck[i].adjacent1));
-      //}
-      //if (data.collidedLine) {
-      //  stuffWeCollidedWith.push(collidersToCheck[i]);
-      //}
-
     } else {
       //console.log("doNotCheck contained colliders[i]: ", collidersToCheck[i]);
     }

@@ -84,7 +84,6 @@ function stepAngularStateToTime(aState, targetGameTime) {
 // Steps the angular state by the signed angle.
 // DONE???
 function stepAngularStateByAngle(aState, signedAngle) {
-
   //// this thing is just useful for storing potential angular movement states of an object.
   //function AngularState(time, radius, pointCircling, angle, angularVel, angularAccel) {
 
@@ -94,13 +93,6 @@ function stepAngularStateByAngle(aState, signedAngle) {
   //  this.a = angle;
   //  this.aVel = angularVel;
   //  this.aAccel = angularAccel;
-  //}
-
-
-
-  //var sign = 1;
-  //if (signedAngle < 0) {
-  //  sign = -1;
   //}
 
 
@@ -118,34 +110,35 @@ function stepAngularStateByAngle(aState, signedAngle) {
 
 
 
-  console.log(" * * * * * * * stepAngularStateByAngle, signedAngle " + signedAngle);
-  aState.print(" * * * * * * * ");
+  console.group();
+  console.log("stepAngularStateByAngle, signedAngle " + signedAngle);
+  aState.print("");
 
-  var circDist1 = signedAngle * aState.radius;
-  console.log(" * * * * * * * circDist1 " + circDist1);
-  var deltaTime1 = solveTimeToDist1D(circDist1, aState.aVel, aState.aAccel);
-
-  if (deltaTime1 === null) {
-    console.log("deltaTime1 was null " + deltaTime1);
-    //if (circDist < )
-    deltaTime1 = solveTimeToDist1D(circDist1, aState.aVel, aState.aAccel);
+  var circDist = signedAngle * aState.radius;
+  console.log("circDist " + circDist);
+  var deltaTime = solveTimeToDist1D(circDist, aState.aVel, aState.aAccel);
+  if (!deltaTime) {
+    console.log("bad time: ", deltaTime);
+    //throw "bad time returned in stepAngularStateByAngle";
+    console.groupEnd();
+    return;
+  } else if (deltaTime < 0) {
+    console.log("negative time: ", deltaTime);
+    console.groupEnd();
+    return;
   }
 
-  console.log(" * * * * * * * deltaTime " + deltaTime1);
+  console.log("deltaTime " + deltaTime);
 
   var endAngle = aState.a + signedAngle;
-  console.log(" * * * * * * * endAngle " + endAngle);
+  console.log("endAngle " + endAngle);
 
-  var endVel = aState.aVel + aState.aAccel * deltaTime1;
-  console.log(" * * * * * * * endVel " + endVel);
+  var endVel = aState.aVel + aState.aAccel * deltaTime;
+  console.log("endVel " + endVel);
+  console.groupEnd();
 
-  if (!(deltaTime1 > 0)) {
-    console.log("bad time: ", deltaTime1);
-    //throw "bad time returned in stepAngularStateByAngle";
-    return null;
-  }
 
-  return new AngularState(aState.time + deltaTime1, aState.radius, aState.point, endAngle, endVel, aState.aAccel);
+  return new AngularState(aState.time + deltaTime, aState.radius, aState.point, endAngle, endVel, aState.aAccel);
 }
 
 
@@ -158,6 +151,7 @@ function stepAngularStateToAngle(aState, targetSignedAngle) {
     console.log("targetSignedAngle " + targetSignedAngle);
     throw "not a signed angle";
   }
+  console.group("stepAngularStateToAngle");
 
   var startAngle = aState.a;
   var angleDelta = targetSignedAngle - startAngle;
@@ -178,12 +172,12 @@ function stepAngularStateToAngle(aState, targetSignedAngle) {
 
   var toReturn;
   if (angleDelta < ANGLE_EPSILON && angleDelta > -ANGLE_EPSILON) {  // its the same angle.
-    console.log("intentionally returning null???");
-    toReturn = null;
+    console.log("try to arc back down to starting angle?");
+    toReturn = stepAngularStateByAngle(aState, angleDelta);
   } else {
     toReturn = stepAngularStateByAngle(aState, angleDelta);
   }
-
+  console.groupEnd();
   return toReturn;
 }
 
@@ -210,77 +204,62 @@ function convertSignedAngleToUnsigned(signedAng) {
  * Helper function to get the surfaces corresponding to the closest endArc time.
  * returns { surface, nextSurface, state };
  */
-function getSurfacesAtSoonestAngleTime(aState, surface1, surface2) {
+function getSurfacesAtSoonestAngleTime(aState) {
   var startAngle = aState.a;
-  var angle1 = null;
-  var angle2 = null;
-  var state1 = null;
-  var state2 = null;
-
   console.log("      -_-_-_-_-    aState: ", aState);
-  console.log("      -_-_-_-_-    surface1: ", surface1);
-  console.log("      -_-_-_-_-    surface2: ", surface2);
-  var toReturn = null;
+  console.log("      -_-_-_-_-    surfaces: ", aState.arcTangentSurfaces);
 
-  if (surface1) {
-    if (surface2) {
-      console.log("      =-=-=-=-=-= both surfaces. ");
-      angle1 = surface1.normal.sangle();
-      angle2 = surface2.normal.sangle();
-      //angle1 = getSignedAngleFromAToB(surface1.normal, surface2.normal)
-      state1 = stepAngularStateToAngle(aState, angle1);
-      state2 = stepAngularStateToAngle(aState, angle2);
-      console.log("      =-=-=-=-=-= angle1 ", angle1);
-      console.log("      =-=-=-=-=-= angle2 ", angle2);
-      console.log("      =-=-=-=-=-= state1 ", state1);
-      console.log("      =-=-=-=-=-= state2 ", state2);
-      if (state1) {
-        if (state2) {
-          console.log("      =-=-=-=-=-= both states. ");
-
-          var earliest = closestPositive(state1.time, state2.time);
-          console.log("      =-=-=-=-=-= earliest ", earliest);
-
-          if (earliest > 0) {
-            if (earliest === state1.time) {
-              console.log("      =-=-=-=-=-= -= state1 ", state1);
-              toReturn = { surface: surface2, nextSurface: surface1, state: state1 };
-            } else {
-              console.log("      =-=-=-=-=-= -= state2 ", state2);
-              toReturn = { surface: surface1, nextSurface: surface2, state: state2 };
-            }
-          }
-        } else {    // no state2.
-          toReturn = { surface: surface2, nextSurface: surface1, state: state1 };
-        }
-      } else {        // no state1
-        if (state2) { // return state2
-          toReturn = { surface: surface1, nextSurface: surface2, state: state2 };
-        } else {
-          throw "what, neither state was good???";
-        }
-      }
-
-    }
-  //  else {    // no surface 2.
-  //    angle1 = surface1.normal.sangle();
-  //    state1 = stepAngularStateToAngle(aState, angle1);
-  //    if (state1.time > 0) {
-  //      console.log("      =-=-=-=-=-= -= state1 ", state1);
-  //      toReturn = { surface: surface2, nextSurface: surface1, state: state1 };
-  //    }
-  //  }
-  //} else {
-  //  if (surface2) {
-  //    angle2 = surface2.normal.sangle();
-  //    state2 = stepAngularStateToAngle(aState, angle2);
-  //    if (state2.time > 0) {
-  //      console.log("      =-=-=-=-=-= -= state2 ", state2);
-  //      toReturn = { surface: surface1, nextSurface: surface2, state: state2 };
-  //    }
-  //  } else {
-  //  }
+  var states = [];
+  var angles = [];
+  for (var i = 0; i < aState.arcTangentSurfaces.length; i++) {
+    angles[i] = aState.arcTangentSurfaces[i].normal.sangle();
+    states[i] = stepAngularStateToAngle(aState, angles[i]);
   }
+
+
+  var earliestTime = 10000000000;
+  var toReturn = {};
+
+  for (var i = 0; i < aState.arcTangentSurfaces.length; i++) {
+    if (states[i] && states[i].time < earliestTime) {
+      toReturn.nextSurface = aState.arcTangentSurfaces[i];
+      toReturn.state = states[i];
+      earliestTime = states[i].time;
+    }
+  }
+
+  //if (surface1) {
+  //  if (surface2) {
+
+  //    if (state1) {
+  //      if (state2) {
+  //        console.log("      =-=-=-=-=-= both states. ");
+
+  //        var earliest = closestPositive(state1.time, state2.time);
+  //        console.log("      =-=-=-=-=-= earliest ", earliest);
+
+  //        if (earliest > 0) {
+  //          if (earliest === state1.time) {
+  //            console.log("      =-=-=-=-=-= -= state1 ", state1);
+  //            toReturn = { surface: surface2, nextSurface: surface1, state: state1 };
+  //          } else {
+  //            console.log("      =-=-=-=-=-= -= state2 ", state2);
+  //            toReturn = { surface: surface1, nextSurface: surface2, state: state2 };
+  //          }
+  //        }
+  //      } else {    // no state2.
+  //        toReturn = { surface: surface2, nextSurface: surface1, state: state1 };
+  //      }
+  //    } else {        // no state1
+  //      if (state2) { // return state2
+  //        toReturn = { surface: surface1, nextSurface: surface2, state: state2 };
+  //      } else {
+  //        throw "what, neither state was good???";
+  //      }
+  //    }
+
+  //  }
+  //}
   console.log("      -_-_-_-_-    returning: ", toReturn);
   return toReturn;
 }
@@ -312,6 +291,88 @@ function convertAngularToNormalState(aState) {
 }
 
 
+
+
+
+function vecToRadial(angleDirVec, velVec, accelVec) {
+  var angle = angleDirVec.sangle();
+  var aVel;
+  var aAccel;
+
+
+  var d = angleDirVec;
+  var v = velVec;
+  var a = accelVec;
+
+
+  // so long as we have a vel, get aVel
+  if (velVec.lengthsq() > 0) {
+    // get vel angle
+    if (d.x > 0) {            // positive d.x
+      if (v.y >= 0) {           //positive aVel
+        aVel = v.length();
+      } else {                  //neg aVel
+        aVel = -v.length();
+      }
+    } else if (d.x < 0) {     // negative d.x
+      if (v.y <= 0) {           //positive aVel
+        aVel = v.length();
+      } else {                  //neg aVel
+        aVel = -v.length();
+      }
+    } else {                  //        0 d.x, use d.y and v.x
+      if (d.y > 0) {            // positive d.x
+        if (v.x < 0) {           //positive aVel
+          aVel = v.length();
+        } else {                  //neg aVel
+          aVel = -v.length();
+        }
+      } else if (d.y < 0) {     // negative d.x
+        if (v.x > 0) {           //positive aVel
+          aVel = v.length();
+        } else {                  //neg aVel
+          aVel = -v.length();
+        }
+      }
+    }
+  } else { aVel = 0; }                // vel length was 0, set this to 0.
+
+
+
+  // so long as we have an accel, get aAccel
+  if (accelVec.lengthsq() > 0) {
+    // get accel angle
+    if (d.x > 0) {            // positive d.x
+      if (a.y >= 0) {           // then positive aAccel
+        aAccel = a.length();
+      } else {                  // then neg aAccel
+        aAccel = -a.length();
+      }
+    } else if (d.x < 0) {     // negative d.x
+      if (a.y <= 0) {           // then positive aAccel
+        aAccel = a.length();
+      } else {                  // then neg aAccel
+        aAccel = -a.length();
+      }
+    } else {                  //        0 d.x, use d.y and a.x
+      if (d.y > 0) {            // positive d.y
+        if (a.x < 0) {           // then pos aAccel
+          aAccel = a.length();
+        } else {                  // then neg aAccel
+          aAccel = -a.length();
+        }
+      } else if (d.y < 0) {     // negative d.x
+        if (a.x > 0) {           // then positive aAccel
+          aAccel = a.length();
+        } else {                  // then neg aVel
+          aAccel = -a.length();
+        }
+      }
+    }
+  } else { aAccel = 0; }          // Accel length was 0, set this to 0.
+  
+  return { sAngle: angle, aVel: aVel, aAccel: aAccel };
+}
 
 
 
@@ -393,15 +454,16 @@ function solveEarliestSurfaceEndpoint(state, surface) {
   if (!state || !surface) {
     throw "missing params " + state + surface;
   }
-
-  //console.log("      solving earliest surface endpoint, ");
-  //console.log("        state ", state);
-  //console.log("        surface ", surface);
+  
+  console.log("solving earliest surface endpoint, ");
+  console.group();
+  console.log("state ", state);
+  console.log("surface ", surface);
 
   //return  { parallelVel,  perpVel,  parallelAccel,  perpAccel,  distancePerp,  distanceP0,  distanceP1 };
   //getStateAndDistancesAlignedWithLine(state, targetLine)
   var results = getStateAndDistancesAlignedWithLine(state, surface);
-  //console.log("        getStateAndDistancesAlignedWithLine results ", results);
+  console.log("getStateAndDistancesAlignedWithLine results ", results);
 
   //var distance0 = rotateResults.rotP0.y - rotated.pos.y;
   //var distance1 = rotateResults.rotP1.y - rotated.pos.y;
@@ -415,12 +477,13 @@ function solveEarliestSurfaceEndpoint(state, surface) {
 
   //console.log("rotated: ", rotated);
   //console.log("distance: ", distance);
-  //console.log("Solved time, time at: ", time);
+  console.log("time0 at: ", time0);
+  console.log("time1 at: ", time1);
   var closestPos = closestPositive(time0, time1);
-  var data = null;
+  console.log("closestPos", closestPos);
+  var data;
 
   if (closestPos === undefined || closestPos === null) {
-    //throw "yay null this might be okay but have an exception anyway!";
   } else if (closestPos === time0) {
     data = { pointNumber: 0, time: state.time + time0 };
   } else if (closestPos === time1) {
@@ -428,8 +491,8 @@ function solveEarliestSurfaceEndpoint(state, surface) {
   } else {
     throw "what the balls man, closest positive isnt time0, time1, or null???";
   }
-
-  //console.log("        solved earliest surface endpoint. results:  ", data);
+  console.log("solved earliest surface endpoint. results:  ", data);
+  console.groupEnd();
 
   return data;
 }
@@ -507,19 +570,20 @@ function getNextSurfaceData(state, surface) {
  * assumes the starting position is at 0.
  */
 function solveTimeToDist1D(targetDist, currentVelocity, acceleration) {
-  //console.log("        solving time to dist 1D, targetDist ", targetDist, ", currentVelocity ", currentVelocity, ", acceleration ", acceleration);
-  //throw "lol";
-  //console.log("        solved. Time at:  ", time);
+  console.log("solving time to dist 1D,");
+  console.group();
+  console.log("solveTimeToDist1D.  acceleration ", acceleration, ", currentVelocity ", currentVelocity, ", distanceToSurfaceEnd ", targetDist);
 
   targetDist = -targetDist;
 
-  var time = null;
+  var time;
 
   if (acceleration === 0) {
 
     time = -targetDist / currentVelocity;
     if (time <= 0) {
-      time = null;
+      console.groupEnd();
+      return time;
     }
 
   } else {
@@ -528,8 +592,9 @@ function solveTimeToDist1D(targetDist, currentVelocity, acceleration) {
     var z;
     if (x < 0) {
       // ROOTS ARE IMAGINARY!
-      console.log("          timeToDist1D: roots are imaginary, not gonna exit surface.");
-      console.log("          x ", x, ", acceleration ", acceleration, ", currentVelocity ", currentVelocity, ", distance ", -targetDist);
+      console.log("timeToDist1D: roots are imaginary, not gonna exit surface.");
+      console.groupEnd();
+      return time;
     } else {
       //calculate roots
       //console.log("x: ", x);
@@ -539,15 +604,55 @@ function solveTimeToDist1D(targetDist, currentVelocity, acceleration) {
       //console.log("t: ", t);
       y = (velNeg + t) / (acceleration);  //root 1
       z = (velNeg - t) / (acceleration);  //root 2
-      //console.log("solveTimeToDist1D.  acceleration ", acceleration, ", currentVelocity ", currentVelocity, ", distanceToSurfaceEnd ", targetDist);
-      //console.log("   possible time distances are ", y, ", ", z);
+      console.log("possible time distances are ", y, ", ", z);
 
       time = closestPositive(y, z);
     }
   }
-
+  console.groupEnd();
   //console.log("        solved time to dist 1D. Time at:  ", time);
   return time;
+}
+
+
+
+
+
+function getLineCollisionTime(state, line) {
+  console.log("getLineCollisionTime()");
+  console.group();
+  var futureTime = solveTimeToDistFromLine(state.pos, state.vel, state.accel, line, state.radius);
+  console.log("futureTime", futureTime);
+  console.log("state.time", state.time);
+  console.groupEnd();
+  if (!(futureTime >= 0)) {
+    if (futureTime <= 0) {
+      return state.time + futureTime;
+    } else return;
+  } else {
+    return state.time + futureTime;
+  }
+
+}
+
+
+
+function getCircleCollisionTime(state, circle) {
+  return solveTimeToDistFromPoint(state.pos, state.vel, state.accel, circle, circle.radius + state.radius);
+}
+
+
+
+function getPointCollisionTime(state, point) { //copy pasta from below.
+  var c = -(state.pos.subtract(point).length()) + state.radius;
+  var rootsArray = solveQuadratic(state.accel.length() / 2, state.vel.length(), c); //TODO DEBUG PRINT STATEMENTS AND VERIFY THIS IS CORRECT, PROBABLY WRONG. DOES THIS ACTUALLY WORK? WAS IT REALLY THIS EASYYYY????????
+
+  //console.log("solveTimeToDistFromPoint.   accel.length() ", accel.length(), ", curVel.length() ", curVel.length(), ", curPos ", curPos, ", targetPos ", targetPos, ", distanceGoal ", distanceGoal);
+  //console.log("   possible time distances are ", rootsArray[0], ", ", rootsArray[1]);
+  var time = (rootsArray === null ? null : closestPositive(rootsArray[0], rootsArray[1]));
+
+  //console.log("      solved time to dist from point. Time at:  ", time);
+  return state.time + time;
 }
 
 
@@ -613,10 +718,11 @@ function solveTimeToDistFromPoint(curPos, curVel, accel, targetPos, distanceGoal
  * Solves the time it will take a ball from curPos to reach the specified distance from the line.
  */
 function solveTimeToDistFromLine(curPos, curVel, accel, targetLine, distanceGoal) {
-  //console.log("      solving time to dist from line, ");
-  //console.log("        curPos {", curPos.x, curPos.y, "}   curVel {", curVel.x, curVel.y, "}   accel {", accel.x, accel.y, "}");
-  //console.log("        targetLine p0 {", targetLine.p0.x, targetLine.p0.y, "}  p1 {", targetLine.p1.x, targetLine.p1.y, (targetLine.normal.y > 0 ? "}  down" : "}  up"));
-  //console.log("        distanceGoal ", distanceGoal);
+  console.log("solving time to dist from line, ");
+  console.group();
+  console.log("curPos {", curPos.x, curPos.y, "}   curVel {", curVel.x, curVel.y, "}   accel {", accel.x, accel.y, "}");
+  console.log("targetLine p0 {", targetLine.p0.x, targetLine.p0.y, "}  p1 {", targetLine.p1.x, targetLine.p1.y, (targetLine.normal.y > 0 ? "}  down" : "}  up"));
+  console.log("distanceGoal ", distanceGoal);
 
   var tempState = new State(0.0, distanceGoal, curPos, curVel, accel);
 
@@ -624,15 +730,17 @@ function solveTimeToDistFromLine(curPos, curVel, accel, targetLine, distanceGoal
   //getStateAndDistancesAlignedWithLine(state, targetLine)
   var results = getStateAndDistancesAlignedWithLine(tempState, targetLine);
   //DEBUG_DRAW_LIGHTBLUE.push(new DebugLine(targetLine.p0, targetLine.p1, 5));
-  //console.log("        results: ", results);
+  console.log("results: ", results);
   var distance = (results.distancePerp > 0 ? results.distancePerp - distanceGoal : results.distancePerp + distanceGoal);
   var time = solveTimeToDist1D(distance, results.perpVel, results.perpAccel);
 
 
 
-  //console.log("      solved time to dist from line. Time at:  ", time);
+  console.log("solved time to dist from line. Time delta:  ", time);
+  console.groupEnd();
   return time;
 }
+
 
 
 
@@ -817,9 +925,9 @@ function closestPositive(value1, value2) {
   var toReturn = null;
 
   //console.log("            Closest positive, ", "value1:  ", value1, "value2:  ", value2);
-  if (value1 === null && value2 > TIME_EPSILON) {      //handle nulls.
+  if (value1 == null && value2 > TIME_EPSILON) {      //handle nulls.
     return value2;
-  } else if (value2 === null && value1 > TIME_EPSILON) {
+  } else if (value2 == null && value1 > TIME_EPSILON) {
     return value1;
   }
 
@@ -896,6 +1004,8 @@ function genNormal(surface, upOrDown) {
 
 
 function getLineLineConcavity(line0, line1, referencePos) {
+  console.log("start getLineLineConcavity");
+  console.group();
   var vec0;
   var vec1;
   var intersect;
@@ -992,6 +1102,7 @@ function getLineLineConcavity(line0, line1, referencePos) {
   if (toReturn.convex) {
     toReturn.angle = TWO_PI - toReturn.angle;
   }
+  console.groupEnd();
   // var result = { concave: t/f, convex: t/f, badConcavity: t/f, angle: angle extending from one normal to the other, or smallest angle in case of undefined concavity }
   return toReturn;
 }

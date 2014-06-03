@@ -11,7 +11,7 @@ var DEBUG_TERRAIN = false;
 // point class to make storing points less string intensive.
 // __EVERY POINT IN ANY LINE CLASS MUST BE REPLACED WITH THESE__  Use terrainManager.toLinePoint(point) to get a point converted to a LinePoint with an ID.
 // id = terrainmanager.nextPointNumber();      
-function LinePoint(id, x, y) {
+function LinePoint(id, x, y, connectedLines) {
   if (!id || id < 0) {
     console.log("_+_+_+_bad LinePoint id, id: " + id);
     throw "_+_+_+_bad id for LinePoint, see above";
@@ -23,24 +23,146 @@ function LinePoint(id, x, y) {
   vec2.apply(this, [x, y]); 		 // initializes this as a vec2 with parameters x and y.  this.x is now x, this.y is now y
   this.id = id;
 
+  this.lines = [];
+  this.numLines = 0;
 
-
-  this.collidesWith = function (point, radius) {
-    var toReturn = false;
-    var radSQ = radius * radius;
-    if (point.subtract(this).lengthsq() < radSQ) {
-      toReturn = true;
+  if (connectedLines) {
+    for (var i = 0; i < connectedLines.length; i++) {
+      if (connectedLines[i]) { this.lines.push(connectedLines[i]); this.numLines++; };
     }
-    return toReturn;
   }
 
 
-
-  this.toJSON = function () {
-    return { id: this.id, x: this.x, y: this.y };
-  }
+  
 }
 LinePoint.prototype = new vec2();
+LinePoint.constructor = LinePoint;
+
+LinePoint.prototype.toJSON = function () {
+  return { id: this.id, x: this.x, y: this.y };
+}
+
+LinePoint.prototype.collidesWith = function (point, radius) {
+  var toReturn = false;
+  var radSQ = radius * radius;
+  if (point.subtract(this).lengthsq() < radSQ) {
+    toReturn = true;
+  }
+  return toReturn;
+}
+
+
+/**
+ * adds a line to this LinePoint.
+ * /NOT TRACKED IN JSON, MUST BE REINITIALIZED EVERY START/
+ */
+LinePoint.prototype.connectLine = function (line) {
+  var contains = false;
+  for (var i = 0; i < this.lines.length; i++) {
+    if (this.lines[i] && this.lines[i] === line) { contains = true; break; };
+  }
+  if (!contains) {
+    this.numLines++;
+    this.lines.push(line);
+  }
+}
+
+
+/**
+ * removes a line from this LinePoint.
+ */
+LinePoint.prototype.removeLine = function (line) {
+  console.group();
+  console.log("trying a remove line, line", line);
+  for (var i = 0; i < this.lines.length; i++) {
+    if (this.lines[i]) {
+      console.log("checking against", this.lines[i]);
+      if (this.lines[i] === line) {
+        console.log("===, deleting");
+        delete this.lines[i];
+        this.numLines--;
+      } else {
+        console.log("not equal");
+      }
+    }
+  }
+  console.groupEnd();
+}
+
+
+
+
+///**
+// * TerrainPoint object. Useful for collision data info.
+// */
+//function TerrainPoint(pos, line0, line1, id) {
+
+//  vec2.apply(this, [pos.x, pos.y]);
+//  this.id = id || ("" + (this.x * (this.x - this.y)) + " " + (this.y * (this.y - this.x)));
+
+//  this.line0 = line0;
+//  this.line1 = line1;
+
+//  this.angle0 = "";
+//  this.angle1 = "";
+
+
+
+//  if (line0) {
+//    if (!line1) {   //Line 0 only
+
+
+
+//    } else {        //Both lines
+
+
+//      var p00 = line0.p0.subtract(pos);
+//      var p01 = line0.p1.subtract(pos);
+//      var v0 = p01.subtract(p00);
+//      var p10 = line1.p0.subtract(pos);
+//      var p11 = line1.p1.subtract(pos);
+//      var v1 = p11.subtract(p10);
+
+//      var perp0 = line0.normal;
+//      var perp1 = line1.normal;
+
+//      DEBUG_DRAW_RED.push(new DebugLine(pos, pos.add(perp0.multf(50))));
+//      DEBUG_DRAW_RED.push(new DebugLine(pos, pos.add(perp1.multf(50))));
+
+//      this.angle0 = getRadiansToHorizontal(perp0);
+//      this.angle1 = getRadiansToHorizontal(perp1);
+
+//      //if (line0.p0 === pos) {
+//      //  if (line1.p0 === pos) {
+//      //    throw "lines dont connect p0 to p1, might be allowable";
+//      //  } else if (line1.p1 === pos) {
+
+//      //  } else {
+//      //    throw "isnt a point on line1";
+//      //  }
+//      //} else if (line0.p1 === pos) {
+//      //  if (line1.p0 === pos) {
+
+//      //  } else if (line1.p1 === pos) {
+
+//      //    throw "lines dont connect p0 to p1, might be allowable";
+//      //  } else {
+//      //    throw "isnt a point on line1";
+//      //  }
+//      //} else {
+//      //  throw "isnt a point on line0";
+//      //}
+//    }
+
+
+//  } else if (line1) {//Line 1 only
+
+
+
+//  } else {
+//    throw "no line passed into TerrainPoint constructor.";
+//  }
+//}
 
 
 
@@ -60,8 +182,12 @@ function TerrainLine(id, polyID, point0, point1, adjacent0, adjacent1, normal) {
 
   this.id = id;
   this.polyID = polyID;
+  console.log(point0);
+  console.log(point1);
   this.p0 = point0;
+  this.p0.connectLine(this);
   this.p1 = point1;
+  this.p1.connectLine(this);
   this.adjacent0 = adjacent0;
   this.adjacent1 = adjacent1;
   this.normal = normal;//.normalize();
@@ -171,7 +297,9 @@ function GoalLine(id, goalID, point0, point1, adjacent0, adjacent1) {
     throw "All level objects must have a sequentially incremented numerical id.";
   }
   this.p0 = point0;
+  this.p0.connectLine(this);
   this.p1 = point1;
+  this.p1.connectLine(this);
   this.adjacent0 = adjacent0;
   this.adjacent1 = adjacent1;
 
@@ -231,7 +359,9 @@ function CheckpointLine(id, checkpointID, point0, point1, adjacent0, adjacent1) 
     throw "All level objects must have a sequentially incremented numerical id.";
   }
   this.p0 = point0;
+  this.p0.connectLine(this);
   this.p1 = point1;
+  this.p1.connectLine(this);
   this.adjacent0 = adjacent0;
   this.adjacent1 = adjacent1;
   this.id = id;
@@ -290,9 +420,11 @@ function CheckpointLine(id, checkpointID, point0, point1, adjacent0, adjacent1) 
 function KillLine(id, killZoneID, point0, point1, adjacent0, adjacent1) {
   if (!id.toFixed || !killZoneID.toFixed) { //id.toFixed is ducktyping to check if id is a number.
     throw "All level objects must have a sequentially incremented numerical id.";
-    }
+  }
   this.p0 = point0;
+  this.p0.connectLine(this);
   this.p1 = point1;
+  this.p1.connectLine(this);
   this.adjacent0 = adjacent0;
   this.adjacent1 = adjacent1;
   this.id = id;
@@ -354,7 +486,8 @@ function Polygon(polygon) {
   var i = 0;
   for (var item in polygon) {
     var temp = polygon[item];
-    this.polygon[i++] = this.polygon[temp.id] = (new TerrainLine(temp.id, this.polyID, temp.p0, temp.p1));
+    this.polygon[i++] = this.polygon[temp.id] = ({ id: temp.id, polyID: this.polyID, p0: temp.p0, p1: temp.p1 });
+    //this.polygon[i++] = this.polygon[temp.id] = (new TerrainLine(temp.id, this.polyID, temp.p0, temp.p1));
   }
 
   var poly = this.polygon[0];

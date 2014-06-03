@@ -345,11 +345,10 @@ MapEditor.prototype.createLineButton = function (ctx) {
       if (this.line) {
         var mousePos = getMousePos(e);
 
-        this.line.p1.x = mousePos.x;
-        this.line.p1.y = mousePos.y;
+        this.line.p1 = new vec2(mousePos.x, mousePos.y);
 
 
-        if (this.line && this.line.p1.x !== this.line.p0.x && this.line.p1.y !== this.line.p0.y) {
+        if (this.line && !(this.line.p1.x === this.line.p0.x && this.line.p1.y === this.line.p0.y)) {
 
           that.snapTo(this.line);
           this.polygon = that.attemptSnap(this.line);
