@@ -25,6 +25,10 @@ function Player(x, y, timer) {
     this.model = null;
     this.timer = timer;
 
+    this.airJumpImage = new Animation(ASSET_MANAGER.getAsset("img/airJump.png"),0,0,300,300);
+    this.boostImage = new Animation(ASSET_MANAGER.getAsset("img/boost.png"),0,0,300,300);
+    this.groundJumpImage = new Animation(ASSET_MANAGER.getAsset("img/groundJump.png"),0,0,300,300);
+    this.downBoostImage = new Animation(ASSET_MANAGER.getAsset("img/downBoost.png"),0,0,300,300);
 }
 ;
 
@@ -33,8 +37,8 @@ function Player(x, y, timer) {
 Player.prototype = new Entity();
 Player.prototype.update = function() {
 
-  //console.log(this.model.animationSpeed);
-  //console.log(this.model.animationAngle);
+    //console.log(this.model.animationSpeed);
+    //console.log(this.model.animationAngle);
     if (this.model.animationSpeed <= 0) {
         this.model.animationStanding = true;
     } else {
@@ -48,7 +52,7 @@ Player.prototype.update = function() {
         if (this.model.animationSpeed <= 1000) {
             this.model.animationWalking = true;
             this.model.animationRunning = false;
-        } 
+        }
         else {
             this.model.animationRunning = true;
             console.log(this.model.animationRunning);
@@ -60,11 +64,11 @@ Player.prototype.update = function() {
         this.model.animationStanding = false;
         this.model.animationFacing = "right";
         this.facing = true;
-        if (this.model.animationSpeed <= 3000) {
+        if (this.model.animationSpeed <= 1000) {
             this.model.animationWalking = true;
-            //this.model.animationRunning = false;
+            this.model.animationRunning = false;
         } else {
-            //this.model.animationRunning = true;
+            this.model.animationRunning = true;
             this.model.animationWalking = false;
         }
 
@@ -76,7 +80,7 @@ Player.prototype.update = function() {
         this.model.animationBoosting = true;
         this.model.animationWalking = false;
         this.model.animationStanding = false;
-        //this.model.animationRunning = false;
+        this.model.animationRunning = false;
 
         //boost durration
         if (this.boostTime > 2) {
@@ -84,7 +88,7 @@ Player.prototype.update = function() {
             this.groundBoostAnimation.elapsedTime = 0;
             this.model.animationBoosting = false;
             this.model.animationWalking = true;
-            //this.model.animationRunning = false;
+            this.model.animationRunning = false;
             this.model.animationStanding = false;
         }
     } else {
@@ -92,13 +96,13 @@ Player.prototype.update = function() {
         this.groundBoostAnimation.elapsedTime = 0;
         this.model.animationBoosting = false;
         this.model.animationWalking = true;
-        //this.model.animationRunning = false;
+        this.model.animationRunning = false;
         this.model.animationStanding = false;
 
 
     }
-        
-        
+
+
     if (this.inputs.jumpPressed) {
         console.log(this.inputs.jumpPressed);
         this.model.animationGroundJumping = true;
@@ -119,13 +123,13 @@ Player.prototype.update = function() {
         this.model.animationWalking = false;
         this.model.animationRunning = false;
     }
-    if(this.model.surface){
+    if (this.model.surface) {
         this.model.animationGroundJumping = false;
         this.model.animationWalking = true;
         falling = false;
-        //this.model.animationRunning = false;
+        this.model.animationRunning = false;
     }
-    
+
 };
 var falling = false;
 
@@ -143,7 +147,6 @@ Player.prototype.draw = function(ctx) {
 
     if (this.model.animationFacing === "left") {
         if (this.model.animationStanding) {
-
             this.idle(ctx, scaleFactor);
         } else if (this.model.animationGroundJumping) {
             this.groundJumping(ctx, scaleFactor);
@@ -191,7 +194,7 @@ Player.prototype.draw = function(ctx) {
 Player.prototype.walking = function(ctx, scaleFactor) {
 
     this.walkingAnimation.drawFrame(this.timer.gameDelta, ctx, this.model.pos.x - this.walkingAnimation.frameWidth / 2 * scaleFactor,
-            this.model.pos.y - this.walkingAnimation.frameHeight / 2 * scaleFactor, scaleFactor, this.facing,this.model.animationAngle);
+            this.model.pos.y - this.walkingAnimation.frameHeight / 2 * scaleFactor, scaleFactor, this.facing, this.model.animationAngle);
 };
 
 /**
@@ -203,7 +206,7 @@ Player.prototype.walking = function(ctx, scaleFactor) {
 Player.prototype.idle = function(ctx, scaleFactor) {
     this.idleAnimation.drawFrame(0
             , ctx, this.model.pos.x - this.idleAnimation.frameWidth / 2 * scaleFactor,
-            this.model.pos.y - this.idleAnimation.frameHeight / 2 * scaleFactor, scaleFactor, this.facing,this.model.animationAngle);
+            this.model.pos.y - this.idleAnimation.frameHeight / 2 * scaleFactor, scaleFactor, this.facing, this.model.animationAngle);
 };
 
 /**
@@ -226,7 +229,7 @@ Player.prototype.running = function(ctx, scaleFactor) {
 Player.prototype.groundBoost = function(ctx, scaleFactor) {
     //console.log(" start y" + this.groundBoostAnimation.startY +", start x" + this.groundBoostAnimation.startX);
     this.groundBoostAnimation.drawFrameFreeze(this.timer.gameDelta, ctx, this.model.pos.x - this.groundBoostAnimation.frameWidth / 2 * scaleFactor,
-            this.model.pos.y - this.groundBoostAnimation.frameHeight / 2 * scaleFactor, scaleFactor, this.facing,this.model.animationAngle);
+            this.model.pos.y - this.groundBoostAnimation.frameHeight / 2 * scaleFactor, scaleFactor, this.facing, this.model.animationAngle);
 };
 /**
  * player function to drwa frames for jumping from a surface animation.
@@ -236,13 +239,13 @@ Player.prototype.groundBoost = function(ctx, scaleFactor) {
  */
 Player.prototype.groundJumping = function(ctx, scaleFactor) {
     this.jumpingAnimation.drawFrame(this.timer.gameDelta, ctx, this.model.pos.x - this.jumpingAnimation.frameWidth / 2 * scaleFactor,
-            this.model.pos.y - this.jumpingAnimation.frameHeight / 2 * scaleFactor, scaleFactor, this.facing,this.model.animationAngle);
+            this.model.pos.y - this.jumpingAnimation.frameHeight / 2 * scaleFactor, scaleFactor, this.facing, this.model.animationAngle);
 };
 
 Player.prototype.freeFall = function(ctx, scaleFactor) {
 
     this.fallingAnimation.drawFrame(this.timer.gameDelta, ctx, this.model.pos.x - this.fallingAnimation.frameWidth / 2 * scaleFactor,
-            this.model.pos.y - this.fallingAnimation.frameHeight / 2 * scaleFactor, scaleFactor, this.facing,this.model.animationAngle);
+            this.model.pos.y - this.fallingAnimation.frameHeight / 2 * scaleFactor, scaleFactor, this.facing, this.model.animationAngle);
 };
 
 
@@ -251,5 +254,14 @@ Player.prototype.freeFall = function(ctx, scaleFactor) {
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-
+Player.prototype.checkSpeed = function() {
+    if (this.model.animationSpeed >= 1000) {
+        this.model.animationWalking = true;
+        this.model.animationRunning = false;
+    }
+    else {
+        this.model.animationWalking = false;
+        this.model.animationRunning = true;
+    }
+};
 
