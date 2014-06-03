@@ -42,7 +42,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             echo $result;
             break;
         case "dropTable":
-            $stmt = mysqli_query($db, "hamstergame drop database HamsterGame;"+
+            $stmt = mysqli_query($db,   "drop database HamsterGame;"+
                                         "create database if not exists HamsterGame;"+
                                         "use HamsterGame;"+
                                         "drop table if exists HamsterGame.Users;"+
