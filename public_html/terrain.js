@@ -180,10 +180,8 @@ function TerrainLine(id, polyID, point0, point1, adjacent0, adjacent1, normal) {
   //    throw "All level objects must have a sequentially incremented numerical id.";
   //  }
 
-  this.id = id;
+  this.id = parseInt(id);
   this.polyID = polyID;
-  console.log(point0);
-  console.log(point1);
   this.p0 = point0;
   this.p0.connectLine(this);
   this.p1 = point1;
@@ -293,22 +291,23 @@ function TerrainLine(id, polyID, point0, point1, adjacent0, adjacent1, normal) {
 // @param normal is a normalized vector representing the normal of this line. 
 // @param adjacents is an array of terrainObjects where adjacents[0] is connected by p0, and adjacent
 function GoalLine(id, goalID, point0, point1, adjacent0, adjacent1) {
-  if (!id.toFixed || !goalID.toFixed) { //id.toFixed is ducktyping to check if id is a number.
+  if (isNaN(parseInt(id)) || isNaN(parseInt(goalID))) { //id.toFixed is ducktyping to check if id is a number.
     throw "All level objects must have a sequentially incremented numerical id.";
   }
   this.p0 = point0;
-  this.p0.connectLine(this);
+  //this.p0.connectLine(this);
   this.p1 = point1;
-  this.p1.connectLine(this);
+  //this.p1.connectLine(this);
   this.adjacent0 = adjacent0;
   this.adjacent1 = adjacent1;
 
-  this.id = id;
+  this.id = parseInt(id);
   this.goalID = goalID;
 
   this.toJSON = function () {
     var formattedObj = { id: this.id, goalID: this.goalID };
-    formattedObj = formatLineToJSON(this, formattedObj);
+    formatLineToJSON(this, formattedObj);
+    console.log("formatted goalLine to json, formatted obj:", formattedObj);
     return formattedObj;
   }
 
@@ -355,23 +354,23 @@ function GoalLine(id, goalID, point0, point1, adjacent0, adjacent1) {
 // @param normal is a normalized vector representing the normal of this line. 
 // @param adjacents is an array of terrainObjects where adjacents[0] is connected by p0, and adjacent
 function CheckpointLine(id, checkpointID, point0, point1, adjacent0, adjacent1) {
-  if (!id.toFixed || !checkpointID.toFixed) { //id.toFixed is ducktyping to check if id is a number.
+  if (isNaN(parseInt(id)) || isNaN(parseInt(checkpointID))) { //id.toFixed is ducktyping to check if id is a number.
     throw "All level objects must have a sequentially incremented numerical id.";
   }
   this.p0 = point0;
-  this.p0.connectLine(this);
+  //this.p0.connectLine(this);
   this.p1 = point1;
-  this.p1.connectLine(this);
+  //this.p1.connectLine(this);
   this.adjacent0 = adjacent0;
   this.adjacent1 = adjacent1;
-  this.id = id;
+  this.id = parseInt(id);
   this.checkpointID = checkpointID;
 
 
 
   this.toJSON = function () {
     var formattedObj = { id: this.id, checkpointID: this.checkpointID };
-    formattedObj = formatLineToJSON(this, formattedObj);
+    formatLineToJSON(this, formattedObj);
     return formattedObj;
   }
   /**
@@ -418,23 +417,23 @@ function CheckpointLine(id, checkpointID, point0, point1, adjacent0, adjacent1) 
 // @param normal is a normalized vector representing the normal of this line. 
 // @param adjacents is an array of terrainObjects where adjacents[0] is connected by p0, and adjacent
 function KillLine(id, killZoneID, point0, point1, adjacent0, adjacent1) {
-  if (!id.toFixed || !killZoneID.toFixed) { //id.toFixed is ducktyping to check if id is a number.
+  if (isNaN(parseInt(id)) || isNaN(parseInt(killZoneID))) { //id.toFixed is ducktyping to check if id is a number.
     throw "All level objects must have a sequentially incremented numerical id.";
   }
   this.p0 = point0;
-  this.p0.connectLine(this);
+  //this.p0.connectLine(this);
   this.p1 = point1;
-  this.p1.connectLine(this);
+  //this.p1.connectLine(this);
   this.adjacent0 = adjacent0;
   this.adjacent1 = adjacent1;
-  this.id = id;
+  this.id = parseInt(id);
   this.killZoneID = killZoneID;
 
 
 
   this.toJSON = function () {
     var formattedObj = { id: this.id, killZoneID: this.killZoneID };
-    formattedObj = formatLineToJSON(this, formattedObj);
+    formatLineToJSON(this, formattedObj);
     return formattedObj;
   }
 
