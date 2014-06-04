@@ -18,7 +18,7 @@ var ANGLE_EPSILON = 0.000001;
 //DEFAULT PHYSICS VALS, TWEAK HERE
 // WIDTH  = 1920 UNITS
 // HEIGHT = 1080 UNITS
-var DFLT_gravity = 900;        // FORCE EXERTED BY GRAVITY IS 400 ADDITIONAL UNITS OF VELOCITY DOWNWARD PER SECOND. 
+var DFLT_gravity = 1200;        // FORCE EXERTED BY GRAVITY IS 400 ADDITIONAL UNITS OF VELOCITY DOWNWARD PER SECOND. 
 
 var DFLT_lockThreshold = 1600;
 var DFLT_autoLockThreshold = 1000;
@@ -43,9 +43,9 @@ var DFLT_aBoostLRvel = 1500;
 var DFLT_aBoostDownVel = 1500;
 
 // CONST PULSE INPUTS
-var DFLT_jumpVelNormPulse = 1000;
-var DFLT_doubleJumpVelYPulse = 800;
-var DFLT_doubleJumpVelYMin = 600;
+var DFLT_jumpVelNormPulse = 650;
+var DFLT_doubleJumpVelYPulse = 550;
+var DFLT_doubleJumpVelYMin = 400;
 
 // OTHER CHAR DEFAULTS
 var DFLT_numAirCharges = 1;

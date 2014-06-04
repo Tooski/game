@@ -877,8 +877,9 @@ MapEditor.prototype.createCollectibleButton = function (ctx) {
        e.offsetY > that.ctx.canvas.height + top || e.offsetX < top) {
       var xposition = localToWorld(e.offsetX, "x");
       var yposition = localToWorld(e.offsetY, "y");
+	  var pointVal = prompt("Please enter the point value for this collectible","0");
 
-      that.level.addCollectible(new vec2(xposition, yposition), that.collectibleRadius);
+      that.level.addCollectible(new vec2(xposition, yposition), pointVal, that.collectibleRadius);
 
       button.isSelected = false;
     }

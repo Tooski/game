@@ -499,8 +499,8 @@ TerrainManager.prototype.setStart = function (point) {
 /**
  * Adds a new collectible to the map at the specified point.
  */
-TerrainManager.prototype.addCollectible = function (point, radius) {
-  var collectible = new Collectible(this.getNextCollectibleNumber(), point.x, point.y, DFLT_collectibleValue, radius);
+TerrainManager.prototype.addCollectible = function (point, pointVal, radius) {
+  var collectible = new Collectible(this.getNextCollectibleNumber(), point.x, point.y, pointVal, radius); //DFLT_collectibleValue
   if (!this.collectibles[collectible.id]) { this.collectibles[collectible.id] = collectible; } else { throw "wtf yo collectible id already exists"; }
   this.modified = true;
 }
@@ -1311,7 +1311,7 @@ TerrainManager.prototype.getGoalCollisions = function (ballstate) {
 }
 
 TerrainManager.prototype.getCheckpointCollisions = function (ballstate, alreadyReached) {
-  return this.getCollisionsInList(ballstate, this.checkpointLines, []);
+  return this.getCollisionsInList(ballstate, this.checkpointLines, alreadyReached);
 }
 
 TerrainManager.prototype.getKillZoneCollisions = function (ballstate) {
