@@ -219,7 +219,7 @@ Animation.prototype.drawFrameBoost = function (tick, ctx, x, y, scaleBy, flip, r
         //loop is done and elapsed time >= to totaltime
     } else if (this.isDone()) {
        // return;
-       console.log(this.elapsedTime );
+      // console.log(this.elapsedTime );
   //     is_done = true;
       this.elapsedTime  = this.totalTime-tick;
     }
@@ -281,7 +281,7 @@ Animation.prototype.drawFrameDownBoost = function (tick, ctx, x, y, scaleBy, fli
         //loop is done and elapsed time >= to totaltime
     } else if (this.isDone()) {
        // return;
-       console.log(this.elapsedTime );
+      // console.log(this.elapsedTime );
   //     is_done = true;
       this.elapsedTime  = this.totalTime-tick;
     }
@@ -310,7 +310,7 @@ Animation.prototype.drawFrameDownBoost = function (tick, ctx, x, y, scaleBy, fli
 		ctx.scale(flip, 1);
 		//boost.
 		if(this.elapsedTime <= this.totalTime / 1.3 ){
-		        ctx.drawImage(ASSET_MANAGER.getAsset(IMPACT_DOWN_BOOST),  - this.frameWidth*scaleBy / 2  , - this.frameHeight* scaleBy / 2 +50,
+		        ctx.drawImage(ASSET_MANAGER.getAsset(IMPACT_DOWN_BOOST),  - this.frameWidth*scaleBy / 2  , - this.frameHeight* scaleBy / 2 -50,
                this.frameWidth * scaleBy,
                  this.frameHeight * scaleBy);
 		}
@@ -328,7 +328,7 @@ Animation.prototype.drawFrameDownBoost = function (tick, ctx, x, y, scaleBy, fli
 
 Animation.prototype.drawFrameGroundJump = function (tick, ctx, x, y, scaleBy, flip, rotateBy) {
     
-    var scaleBy = scaleBy || 1;
+ var scaleBy = scaleBy || 1;
     var flip = flip ? -1 : 1;
     //track each change in step
     this.elapsedTime += tick;
@@ -343,7 +343,7 @@ Animation.prototype.drawFrameGroundJump = function (tick, ctx, x, y, scaleBy, fl
         //loop is done and elapsed time >= to totaltime
     } else if (this.isDone()) {
        // return;
-       console.log(this.elapsedTime );
+    //   console.log(this.elapsedTime );
   //     is_done = true;
       this.elapsedTime  = this.totalTime-tick;
     }
@@ -372,7 +372,7 @@ Animation.prototype.drawFrameGroundJump = function (tick, ctx, x, y, scaleBy, fl
 		ctx.scale(flip, 1);
 		//boost.
 		if(this.elapsedTime <= this.totalTime / 1.3 ){
-		        ctx.drawImage(ASSET_MANAGER.getAsset(IMPACT_GROUND_JUMP),  - this.frameWidth*scaleBy / 2  , - this.frameHeight* scaleBy / 2 -50,
+		        ctx.drawImage(ASSET_MANAGER.getAsset(IMPACT_AIR_JUMP),  - this.frameWidth*scaleBy / 2 , - this.frameHeight* scaleBy / 2+50,
                this.frameWidth * scaleBy,
                  this.frameHeight * scaleBy);
 		}
@@ -405,7 +405,7 @@ Animation.prototype.drawFrameAirJump = function (tick, ctx, x, y, scaleBy, flip,
         //loop is done and elapsed time >= to totaltime
     } else if (this.isDone()) {
        // return;
-       console.log(this.elapsedTime );
+    //   console.log(this.elapsedTime );
   //     is_done = true;
       this.elapsedTime  = this.totalTime-tick;
     }
@@ -434,7 +434,7 @@ Animation.prototype.drawFrameAirJump = function (tick, ctx, x, y, scaleBy, flip,
 		ctx.scale(flip, 1);
 		//boost.
 		if(this.elapsedTime <= this.totalTime / 1.3 ){
-		        ctx.drawImage(ASSET_MANAGER.getAsset(IMPACT_AIR_JUMP),  - this.frameWidth*scaleBy / 2 , - this.frameHeight* scaleBy / 2-50,
+		        ctx.drawImage(ASSET_MANAGER.getAsset(IMPACT_AIR_JUMP),  - this.frameWidth*scaleBy / 2 , - this.frameHeight* scaleBy / 2+50,
                this.frameWidth * scaleBy,
                  this.frameHeight * scaleBy);
 		}
@@ -458,6 +458,11 @@ Animation.prototype.currentFrame = function () {
 Animation.prototype.isDone = function () {
     return (this.elapsedTime >= this.totalTime);
 };
+
+Animation.prototype.isWillDone= function (the_time) {
+    return (this.elapsedTime + the_time >= this.totalTime);
+};
+
 
 
 /*ending of the animation class*/
