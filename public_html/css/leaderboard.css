@@ -1,3 +1,4 @@
+
 .outer-leaderboard-container{
     border: 1px blue solid;
     min-width:425px;
@@ -15,15 +16,18 @@
     border-radius: 5px;
     overflow: hidden;
     display: none;
+   
 }
 .title-container{
     border: 1px blue solid;
     text-align: center;
     font-size: 2em;
     padding: 5px;
+
 }
 .sub-title-container{
     overflow: hidden;
+    
 }
 .left-sub-title{
     float: left;
@@ -127,3 +131,17 @@
     background-size: contain;
 
 }
+.inner-header-container{
+    background-image:url(../img/bolt.gif);
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: contain;
+    background-position-x: 132px;
+    background-color: #ffffff;
+    font-size: 24px;
+    font-family: Audiowide;
+    text-align: center;
+    overflow: hidden;
+    padding-top:8px;
+}
+
