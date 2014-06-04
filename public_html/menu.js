@@ -161,11 +161,33 @@ function MenuTable (name, x,y,w,h,padding,showName, ctx) {
     this.iw = this.w = w;
     this.ih = this.h = h;
     this.ipadding = this.padding = padding;
-    this.maxRows = 10;
+    this.rowHeight = 25;
     this.showName = showName;
     this.rows = [];
     this.columns = [];
     this.selected = null;
+    this.offsetY = 0;
+    var that = this;
+    
+    var tableHeight = this.h - this.iy - this.ipadding ;
+    $(ctx.canvas).bind('mousewheel', function (event) {
+      if (editMode) {
+        var tableRowMax = that.rowHeight * (that.rows.length-1) + (that.rows.length - 2);
+        var max = tableHeight - tableRowMax;
+
+        if (event.originalEvent.wheelDelta >= 0) {
+            that.offsetY += 10;
+            if(that.offsetY >= 0) that.offsetY = 0;
+        }
+        else {
+         
+            that.offsetY -= 10;
+             if(that.offsetY <= max) that.offsetY = max;
+
+        }
+
+      }
+    });
    // this.collider = new MouseCollideable("menubutton", x, y, w, h);
 }
 
@@ -213,35 +235,23 @@ MenuTable.prototype.draw = function(ctx) {
     this.w = this.iw  - this.padding*2;
     this.h = this.ih ;
     this.x = this.ix+ this.parent.x + this.padding - (this.columns.length-1);
-    this.y = this.iy+ this.parent.y;
+    this.y = this.iy+ this.parent.y ;
     
  
-
-    if(this.showName) {
-        for(var i = 0; i < this.columns.length; i++) {
-            ctx.beginPath();
-            ctx.fillStyle="white";
-            ctx.fillRect(this.x + (this.w/this.columns.length) * i + i,this.y, this.w/this.columns.length, this.h/this.maxRows );
-            ctx.stroke();
-            var size = 16;
-            ctx.fillStyle = "black";
-            ctx.font = "bold "+size+"px Arial";
-            ctx.textAlign="center"; 
-            ctx.fillText(this.columns[i], this.x + ((this.w/this.columns.length) * i + i) + (this.w/this.columns.length/2), this.y  + this.h/this.maxRows/2 + size/2);
-        }
-
-    }
+    var ty = this.y;
+ 
+    this.y += this.offsetY;
     
     for(var i = 0; i < this.rows.length; i++) {
         var x = this.x;
-        var y = this.y + (this.h/this.maxRows * (i + (this.showName ? 1 : 0))) + (i+1);
+        var y = this.y + (this.rowHeight * (i + (this.showName ? 1 : 0))) + (i+1);
         var w = this.w ;
-        var h = this.h/this.maxRows;
-
+        var h = this.rowHeight;
+        if(y >= this.iy) {
         this.rows[i].collider.w = w / initScale;
         this.rows[i].collider.h = h / initScale;
         this.rows[i].collider.x = x;
-        this.rows[i].collider.y = y;
+        this.rows[i].collider.y = y ;
         for(var j = 0; j < this.rows[i].items.length; j++) {
             if(this.rows[i].items[j] instanceof CanvasInput) {
                 this.rows[i].items[j].x(x + (this.w/this.columns.length) * j + j);
@@ -260,9 +270,24 @@ MenuTable.prototype.draw = function(ctx) {
                 ctx.font = "bold "+size+"px Arial";
                 ctx.textAlign="center"; 
                 var str = this.rows[i].items[j] ? this.rows[i].items[j] : "";
-                ctx.fillText(str, this.x + (this.w/this.columns.length) * j + j+ (this.w/this.columns.length/2),this.y + this.h/this.maxRows * (i + (this.showName ? 1 : 0))+ this.h/this.maxRows/2 + size/2 );
+                ctx.fillText(str, this.x + (this.w/this.columns.length) * j + j+ (this.w/this.columns.length/2),this.y + this.rowHeight * (i + (this.showName ? 1 : 0))+ this.rowHeight/2 + size/2 + i  - 1);
             }
         }
+    }
+    }
+       if(this.showName) {
+        for(var i = 0; i < this.columns.length; i++) {
+            ctx.beginPath();
+            ctx.fillStyle="white";
+            ctx.fillRect(this.x + (this.w/this.columns.length) * i + i,ty, this.w/this.columns.length, this.rowHeight );
+            ctx.stroke();
+            var size = 16;
+            ctx.fillStyle = "black";
+            ctx.font = "bold "+size+"px Arial";
+            ctx.textAlign="center"; 
+            ctx.fillText(this.columns[i], this.x + ((this.w/this.columns.length) * i + i) + (this.w/this.columns.length/2), ty  + this.rowHeight/2 + size/2);
+        }
+
     }
     
 }
