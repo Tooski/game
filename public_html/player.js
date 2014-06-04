@@ -43,8 +43,8 @@ Player.prototype.update = function() {
 	 	this.model.animationGroundJumping = false;
 		this.model.animationDoubleJumping = false;
 		this.model.animationFreefall = false;
-		this.model.animationBoosting = false;
-		
+		//this.model.animationBoosting = false;
+		this.model.animationDownBoosting = false;
 		
 	 }
     //console.log(this.model.animationSpeed);
@@ -83,8 +83,19 @@ Player.prototype.update = function() {
         }
 
     }
+	
+	// for down boosting...
+	if((this.model.animationGroundJumping || this.model.animationFreefall ||this.model.animationDoubleJumping) && this.inputs.boostPressed && !this.model.animationDownBoosting){
+		this.model.animationDownBoosting = true;
 
-    if (this.inputs.boostPressed || this.model.animationBoosting) {
+		this.model.animationBoosting = false;
+		this.model.animationWalking = false;
+		this.model.animationRunning = false;
+		
+		this.downBoostAnimation.elapsedTime = 0;
+		this.boostTime = 0;
+		
+	} else if (this.inputs.boostPressed || this.model.animationBoosting) {
         console.log("boostPressed " + this.inputs.boostPressed);
         this.boostTime += this.timer.gameDelta;
 
@@ -113,8 +124,9 @@ Player.prototype.update = function() {
 
 
     }
-
 	
+	
+
 	//----------------------------------- key event...----------------------------
 //console.log("jjjjjjjjjjjjjjjjjjjjjjjjj" +this.model.animationGroundJumping );
 //console.log("ffffffffffffffffffffffffff" +this.model.animationFreefall);
@@ -136,7 +148,15 @@ Player.prototype.update = function() {
     }
 	
 	//----------------------------------- event for when it done. (for jumping)----------------------------
-	if(this.model.animationDoubleJumping){
+	if(this.model.animationDownBoosting){
+	    this.boostTime += this.timer.gameDelta;
+		
+        //boost durration
+        if (this.boostTime > 2) {
+            this.model.animationDownBoosting = false;
+        }
+	
+	} else if(this.model.animationDoubleJumping){
 	    if (this.airJumpAnimation.isWillDone(this.timer.gameDelta)) {
 
             this.model.animationFreefall = true;
@@ -159,29 +179,6 @@ Player.prototype.update = function() {
 		this.model.animationRunning = false;
 	}
 
-   // if (this.model.animationGroundJumping) {
-	////	console.log("this.model.animationFreefall " +this.model.animationFreefall);
-   //     if (this.jumpingAnimation.isWillDone(this.timer.gameDelta)) {
-
-   //         this.model.animationFreefall = true;
-    //        this.jumpingAnimation.elapsedTime = 0;
-   //     }
-   // }
-  //  if ( this.model.animationFreefall) {
-	//	this.jumpingAnimation.elapsedTime = 0;
-  //      this.model.animationWalking = false;
-   //     this.model.animationRunning = false;
-  //  }
-   // if (this.model.surface) {
-       // this.model.animationGroundJumping = false;
-    //    this.model.animationWalking = true;
-		
-        // this.model.animationFreefall = false;
-   //     this.model.animationRunning = false;
-		
-	//	 this.jumpingAnimation.elapsedTime = 0;
-   // }
-
 };
 var falling = false;
 
@@ -200,7 +197,14 @@ Player.prototype.draw = function(ctx) {
     if (this.model.animationFacing === "left") {
         if (this.model.animationStanding) {
             this.idle(ctx, scaleFactor);
-        } else if (this.model.animationGroundJumping) {
+        } else if(this.model.animationDownBoosting){
+			this.downBoost(ctx, scaleFactor);
+		} else if ( this.model.animationFreefall) { //falling
+            this.freeFall(ctx, scaleFactor);
+
+        } else if( this.model.animationDoubleJumping){ //double jump
+			this.airJump(ctx, scaleFactor);
+		} else if (this.model.animationGroundJumping) { //jump
             this.groundJumping(ctx, scaleFactor);
         }
         else if (this.model.animationBoosting) {
@@ -209,28 +213,31 @@ Player.prototype.draw = function(ctx) {
             this.walking(ctx, scaleFactor);
         } else if (this.model.animationRunning) {
             this.running(ctx, scaleFactor);
-        } else if ( this.model.animationFreefall) {
-            this.freeFall(ctx, scaleFactor);
-
-        }
+        } 
 
     }
     //need to add falling flag
     if (this.model.animationFacing === "right") {
         if (this.model.animationStanding) {
             this.idle(ctx, scaleFactor);
-        } else if (this.model.animationGroundJumping) {
+        } else if(this.model.animationDownBoosting){
+			this.downBoost(ctx, scaleFactor);
+		} else if ( this.model.animationFreefall) { //falling
+            this.freeFall(ctx, scaleFactor);
+
+        } else if( this.model.animationDoubleJumping){ //double jump
+			this.airJump(ctx, scaleFactor);
+		} else if (this.model.animationGroundJumping) { //jump
             this.groundJumping(ctx, scaleFactor);
-        } else if (this.model.animationBoosting) {
+        }
+        else if (this.model.animationBoosting) {
             this.groundBoost(ctx, scaleFactor);
         } else if (this.model.animationWalking) {
             this.walking(ctx, scaleFactor);
         } else if (this.model.animationRunning) {
             this.running(ctx, scaleFactor);
-        } else if ( this.model.animationFreefall) {
-            this.freeFall(ctx, scaleFactor);
+        } 
 
-        }
 
     }
 
@@ -302,13 +309,13 @@ Player.prototype.freeFall = function(ctx, scaleFactor) {
 };
 
 //airjump
-Player.prototype.airJump = function(ctx, scalFactor){
+Player.prototype.airJump = function(ctx, scaleFactor){
     this.airJumpAnimation.drawFrameAirJump(this.timer.gameDelta, ctx, this.model.pos.x - this.airJumpAnimation.frameWidth / 2 * scaleFactor,
             this.model.pos.y - this.airJumpAnimation.frameHeight / 2 * scaleFactor, scaleFactor, this.facing, this.model.animationAngle);
 };
 
 //downboost
-Player.prototype.downBoost = function(ctx, scalFactor){
+Player.prototype.downBoost = function(ctx, scaleFactor){
     this.downBoostAnimation.drawFrameDownBoost(this.timer.gameDelta, ctx, this.model.pos.x - this.downBoostAnimation.frameWidth / 2 * scaleFactor,
             this.model.pos.y - this.downBoostAnimation.frameHeight / 2 * scaleFactor, scaleFactor, this.facing, this.model.animationAngle);
 };
