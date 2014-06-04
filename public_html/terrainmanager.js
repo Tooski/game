@@ -50,7 +50,7 @@ function Collectible(id, x, y, pointValue, radius) {
   this.pointValue = pointValue;	 // the value of this collectible? may not need
   this.id = id;
   this.radius = radius || DFLT_COLLECTIBLE_RADIUS;
-
+  this.collected = false;
 
   this.toJSON = function () {
     return { id: this.id, points: this.pointValue, x: this.x, y: this.y, radius: this.radius };
@@ -976,7 +976,7 @@ TerrainManager.prototype.drawCollectibles = function (ctx) {
   ctx.lineWidth = 6;
   ctx.beginPath();
   for (var i = 0; i < this.collectibles.length; i++) {
-    if (this.collectibles[i] && (editMode || !this.collected[i])) {
+    if (this.collectibles[i] && (editMode || !this.collectibles[i].collected)) {
       //console.log(this.collectibles[i]);
       ctx.moveTo(this.collectibles[i].x + this.collectibles[i].radius, this.collectibles[i].y)
       ctx.arc(this.collectibles[i].x, this.collectibles[i].y, this.collectibles[i].radius, 0, TWO_PI, false);
