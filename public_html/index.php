@@ -109,7 +109,7 @@
         <!--div for initial choice to login or sign up-->
 
         <!--div for login-->	
-        <div class="outer-signup-container" id="login_board" style= "display : block">
+        <div class="outer-signup-container" id="login_board" style= "display : none">
             <div>
                 <input type="button" id="ex_button" onClick= "displaySignUpLoginChoice()" value=" "/>
             </div>
@@ -143,10 +143,10 @@
                 <input type="button" id="ex_button" onClick= "displaySignUpLoginChoice()" value=" "/>
             </div>
             <div class="inner-header-container">
-
+                Hamster Storm!
             </div>
             <div class="inner-title-container">
-                <h2>Welcome to Hamster Storm!</h2>
+                <h3>Welcome!</h3>
             </div>
             <form name="sign-up-form" action="settings.php" method="post">
                 <div class="inner-body-container">
@@ -185,7 +185,7 @@
 
         <!--div for leader board-->
         <div class="outer-leaderboard-container" id="leader_board">
-            <div class="header">Good Job Carl!!</div>
+            <div class="header">Results!</div>
             <div class="results">
                 <div class="level-completed" id="level-completed"></div>
                 <div class="level-score" id="level-score"></div>
@@ -212,6 +212,7 @@
             </div>
         </div>
         <!--end of div for leader board-->
+        
         <!--div for about page-->
         <div class="outer-about-container" id="about_board"  style= "display : none">
             <div class="inner-about-title">
