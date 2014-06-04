@@ -109,15 +109,15 @@
         <!--div for initial choice to login or sign up-->
 
         <!--div for login-->	
-        <div class="outer-signup-container" id="login_board" style= "display : none">
+        <div class="outer-signup-container" id="login_board" style= "display : block">
             <div>
                 <input type="button" id="ex_button" onClick= "displaySignUpLoginChoice()" value=" "/>
             </div>
             <div class="inner-header-container">
-
+                Hamster Storm!
             </div>
             <div class="inner-title-container">
-                <h2>Hamster Storm!</h2>
+                <h3>login</h3>
             </div>
             <form name="sign-up-form" action="settings.php" method="post">
                 <div class="inner-body-container">
