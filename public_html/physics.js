@@ -931,6 +931,12 @@ function PhysEng(gameEngine, playerModel) {
 
   this.debugEventHeap = getNewDebugHeap();
 
+  //results = { finished: true or false, timeFinished: timeFinished, numCollectibles: number of collectibles collected, score: points acquired, numDeaths: number of respawns from checkpoints, replay: replay JSON string }
+  this.completionState = {};
+  this.completionState.finished = false;
+  this.completionState.inReplay = false;
+  this.completionState.timeFinished = 0;
+  
 
   ////The state events, such as time a dash will end. Modified at certain times.
   //this.stateEventHeap = new MinHeap(null, function (e1, e2) {
@@ -968,8 +974,9 @@ PhysEng.prototype.update = function (time, newEvents) {
     }
 
     //results = { finished: true or false, timeFinished: timeFinished, numCollectibles: number of collectibles collected, score: points acquired, numDeaths: number of respawns from checkpoints, replay: replay JSON string }
-    var fakeCompletion = { finished: (this.player.time > 5 ? true : false), timeFinished: 5, numCollectibles: 2, score: 150, numDeaths: 3, replayJSON: "Will be replay JSON data later on." };
-    this.completionState = fakeCompletion;
+    this.completionState.numCollectibles = this.player.alreadyCollected.length;
+    this.completionState.numDeaths = this.player.numDeaths;
+    this.completionState.score = this.player.score;
 
     return this.completionState;
   }

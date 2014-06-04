@@ -581,8 +581,10 @@ function GoalEvent(gameTimeOfCollision, stateAtCollision, goal) {
 
   this.handler = function (physEng) {
     var that = this;
-    physEng.player.respawn();
-    physEng.player.numDeaths++;
+    physEng.completionState.finished = true;
+    physEng.completionState.inReplay = false;
+    physEng.completionState.timeFinished = this.time;
+    physEng.completionState.replay = JSON.stringify(physEng.player.replay);
   }
 }
 GoalEvent.prototype = new CollisionEvent();
