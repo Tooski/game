@@ -513,6 +513,91 @@ CollisionEvent.handler = function (physEng) {
 
 
 
+// Checkpoint event.
+function CheckpointEvent(gameTimeOfCollision, stateAtCollision, checkpoint, checkpointLines) {
+  CollisionEvent.apply(this, [gameTimeOfCollision, stateAtCollision]);
+  this.mask += E_CHECKPOINT_MASK;
+  this.checkpoint = checkpoint;
+  this.lines = checkpointLines;
+  this.state = stateAtCollision;
+}
+CheckpointEvent.prototype = new CollisionEvent();
+CheckpointEvent.handler = function (physEng) {
+  var that = this;
+  physEng.player.reachedCheckpoints.push(this.checkpoint);
+  this.lines.forEach(function (cpl) {
+    physEng.player.reachedCheckpointLines.push(cpl);
+  });
+  physEng.player.lastCheckpoint = this.checkpoint;
+}
+//CheckpointEvent.prototype.constructor = CheckpointEvent;
+
+
+
+
+
+
+// Death event.
+function DeathEvent(gameTimeOfCollision, stateAtCollision, deathZone) {
+  CollisionEvent.apply(this, [gameTimeOfCollision, stateAtCollision]);
+  this.mask += E_DEATH_MASK;
+  this.deathZone = deathZone;
+  this.state = stateAtCollision;
+}
+DeathEvent.prototype = new CollisionEvent();
+DeathEvent.handler = function (physEng) {
+  var that = this;
+  physEng.player.respawn();
+  physEng.player.numDeaths++;
+}
+//DeathEvent.prototype.constructor = DeathEvent;
+
+
+
+
+
+
+// GoalEvent event.
+function GoalEvent(gameTimeOfCollision, stateAtCollision, goal) {
+  CollisionEvent.apply(this, [gameTimeOfCollision, stateAtCollision]);
+  this.mask += E_GOAL_MASK;
+  this.goal = goal;
+  this.state = stateAtCollision;
+}
+GoalEvent.prototype = new CollisionEvent();
+GoalEvent.handler = function (physEng) {
+  var that = this;
+  physEng.player.respawn();
+  physEng.player.numDeaths++;
+}
+//DeathEvent.prototype.constructor = DeathEvent;
+
+
+
+
+
+
+// Collectible event.
+function CollectibleEvent(gameTimeOfCollision, stateAtCollision, collectible) {
+  CollisionEvent.apply(this, [gameTimeOfCollision, stateAtCollision]);
+  this.mask += E_COLLECTIBLE_MASK;
+  this.collectible = collectible;
+  this.state = stateAtCollision;
+}
+CollectibleEvent.prototype = new CollisionEvent();
+CollectibleEvent.handler = function (physEng) {
+  var that = this;
+  physEng.player.alreadyCollected.push(this.collectible);
+  physEng.tm.collected.push(this.collectible);
+  physEng.player.score += this.collectible.pointValue;
+}
+//CollectibleEvent.prototype.constructor = CollectibleEvent;
+
+
+
+
+
+
 /**
  * Event class for the TerrainLineCollision Event when the player runs into a TerrainLine from the air. 
  */

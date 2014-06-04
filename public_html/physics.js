@@ -285,11 +285,12 @@ function PlayerModel(controlParams, physParams, time, radius, pos, vel, accel, s
   this.replayData = [];
 
 
-  this.lastCheckpoint = null;
+  this.lastCheckpoint = pos;
 
   this.score = 0;
-
+  this.numDeaths = 0;
   this.reachedCheckpoints = [];   // checkpoints reached
+  this.reachedCheckpointLines = []; // checkpointLines to ignore.
   this.alreadyCollected = [];     // collectibles gathered
 
 
@@ -341,7 +342,7 @@ function PlayerModel(controlParams, physParams, time, radius, pos, vel, accel, s
   this.a = null;               // angle around point.
   this.aVel = null;       // signed angular velocity.
   this.aAccel = null;   // signed angular accel.
-  this.arcTangentSurfaces = [];
+  //this.arcTangentSurfaces = [];
 	
   //console.log("controlParams.numAirCharges, ", controlParams.numAirCharges);
   this.airChargeCount = controlParams.numAirCharges; //number of boosts / double jumps left.
@@ -415,6 +416,14 @@ function PlayerModel(controlParams, physParams, time, radius, pos, vel, accel, s
     }
 
   }
+
+
+  this.respawn = function () {
+    this.pos = new vec2(this.lastCheckpoint.x, this.lastCheckpoint.y);
+    this.vel = new vec2(0, 0);
+    this.leaveGround();
+    this.updateVecs(this.inputState);
+  }
 	
 
   this.leaveGround = function () { // TODO write code to handle leaving the ground here.
@@ -454,6 +463,7 @@ function PlayerModel(controlParams, physParams, time, radius, pos, vel, accel, s
     //console.log("  in AccelState.updateGround(), setting accelVec. ");
 
     var baseForceVec = this.getBaseForceVecGround(inputState);
+    var baseForceVecAir = this.getBaseForceVecAir(inputState);
     if (!this.onSurface && !this.on) {
       console.log("surface ", this.surface);
       throw "why are we updating vecs for ground when we're not on a surface?";
@@ -461,7 +471,10 @@ function PlayerModel(controlParams, physParams, time, radius, pos, vel, accel, s
 
     var surface = this.surface;
     var baseForceNormalized = baseForceVec.normalize();
+    var baseForceAirNormalized = baseForceVecAir.normalize();
+
     var angleToNormal = Math.acos(surface.getNormalAt(this.pos, this.radius).dot(baseForceNormalized));
+    var angleToAirNormal = Math.acos(surface.getNormalAt(this.pos, this.radius).dot(baseForceAirNormalized));
 
 
 
@@ -475,7 +488,7 @@ function PlayerModel(controlParams, physParams, time, radius, pos, vel, accel, s
       this.accel = projectVec2(baseForceVec, surfaceDir);
       this.predictedDirty = true;
       
-    } else if (angleToNormal >= HALF_PI || angleToNormal <= -HALF_PI) {          // If the baseForceVec is pushing us towards the surface we're on:
+    } else if (angleToAirNormal >= HALF_PI || angleToAirNormal <= -HALF_PI) {          // If the baseForceVec is pushing us towards the surface we're on:
       //console.log("   we are being pushed TOWARDS the surface we are on.");
 
       // WE ASSUME PLAYER'S VELOCITY VECTOR IS ALREADY ALIGNED WITH THE SURFACE.
@@ -503,43 +516,15 @@ function PlayerModel(controlParams, physParams, time, radius, pos, vel, accel, s
       console.log("point", this.point);
       throw "why are we updating vecs for air when onSurface or onPoint is true?";
     }
+    this.accel = this.getBaseForceVecAir(inputState);
 
-    var baseForceX = 0.0;
-    var baseForceY = this.physParams.gravity;
-
-    if (inputState.up) {
-      //console.log("   inputState.up true");
-      baseForceY -= this.controlParams.aUaccel;
-    }
-    if (inputState.down) {
-      //console.log("   inputState.down true");
-      baseForceY += this.controlParams.aDaccel;
-    }
-
-    if (inputState.left) {
-      //console.log("   inputState.left true");
-      baseForceX -= this.controlParams.aLRaccel;
-    }
-    if (inputState.right) {
-      //console.log("   inputState.right true");
-      baseForceX += this.controlParams.aLRaccel;
-    }
-
-
-    var baseForceVec = new vec2(baseForceX, baseForceY);
-    if (inputState.additionalVecs) {                          // if theres an additional vector of force to consider
-      for (var i = 0; i < additionalVecs.length; i++) {
-        baseForceVec = baseForceVec.add(inputState.additionalVecs[i]);
-      }
-    }
-    this.accel = baseForceVec;
     //console.log(this.accel);
     //this.predictedDirty = true;
   }
 
 
   /**
-   * gets the base force vector.
+   * gets the base force vector for ground inputs.
    */
   this.getBaseForceVecGround = function (inputState) {
     var baseForceX = 0.0;
@@ -559,6 +544,44 @@ function PlayerModel(controlParams, physParams, time, radius, pos, vel, accel, s
     } else if (inputState.right) {
       //console.log("   inputState.right true");
       baseForceX += this.controlParams.gLRaccel;
+    }
+
+
+    var baseForceVec = new vec2(baseForceX, baseForceY);
+    if (inputState.additionalVecs) {                          // if theres an additional vector of force to consider
+      for (var i = 0; i < additionalVecs.length; i++) {
+        baseForceVec = baseForceVec.add(inputState.additionalVecs[i]);
+      }
+    }
+    return baseForceVec;
+  }
+
+
+
+
+  /**
+   * gets the base force vector for air inputs.
+   */
+  this.getBaseForceVecAir = function (inputState) {
+    var baseForceX = 0.0;
+    var baseForceY = this.physParams.gravity;
+
+    if (inputState.up) {
+      //console.log("   inputState.up true");
+      baseForceY -= this.controlParams.aUaccel;
+    }
+    if (inputState.down) {
+      //console.log("   inputState.down true");
+      baseForceY += this.controlParams.aDaccel;
+    }
+
+    if (inputState.left) {
+      //console.log("   inputState.left true");
+      baseForceX -= this.controlParams.aLRaccel;
+    }
+    if (inputState.right) {
+      //console.log("   inputState.right true");
+      baseForceX += this.controlParams.aLRaccel;
     }
 
 
@@ -1386,7 +1409,7 @@ PhysEng.prototype.attemptNormalStep = function (goalGameTime) {
     numCollisions += gCollisionList.length;
     kCollisionList = this.tm.getKillZoneCollisions(tempState);
     numCollisions += kCollisionList.length;
-    chCollisionList = this.tm.getCheckpointCollisions(tempState, this.player.reachedCheckpoints);
+    chCollisionList = this.tm.getCheckpointCollisions(tempState, this.player.reachedCheckpointLines);
     numCollisions += chCollisionList.length;
     colCollisionList = this.tm.getCollectibleCollisions(tempState, this.player.alreadyCollected);
     numCollisions += colCollisionList.length;
@@ -1881,7 +1904,11 @@ PhysEng.prototype.getNewDoNotCheck = function () {
       doNotCheck.push(this.player.surface.adjacent1);
     }
   } else if (this.player.onPoint) {
-
+    for (var i = 0; i < this.player.point.lines.length; i++) {
+      if (this.player.point.lines[i]) {
+        doNotCheck.push(this.player.point.lines[i]);
+      }
+    }
   }
 
   this.player.doNotCheckStepSurfaces = [];
@@ -1928,19 +1955,19 @@ PhysEng.prototype.findRealLineCollisions = function (collisionList, minTime, max
     var lineTime = getLineCollisionTime(this.player, collision.surface);
     console.log(i + " lineTime " + lineTime);
     if (lineTime || lineTime === 0) {
-      lineHeap.push({ time: lineTime, line: collision.surface, id: collision.surface.id });
+      lineHeap.push({ time: lineTime, line: collision.surface, id: collision.surface.id, surface: collision.surface });
       //var lineState = stepStateToTime(this.player, lineTime);
     }
     var point0Time = getPointCollisionTime(this.player, collision.surface.p0);
     console.log(i + " point0Time " + point0Time);
     if (point0Time || point0Time === 0) {
-      pointHeap.push({ time: point0Time, point: collision.surface.p0, id: collision.surface.p0.id });
+      pointHeap.push({ time: point0Time, point: collision.surface.p0, id: collision.surface.p0.id, surface: collision.surface });
       //var point0State = stepStateToTime(this.player, point0Time);
     }
     var point1Time = getPointCollisionTime(this.player, collision.surface.p1);
     console.log(i + " point1Time " + point1Time);
     if (point1Time || point1Time === 0) {
-      pointHeap.push({ time: point1Time, point: collision.surface.p1, id: collision.surface.p1.id });
+      pointHeap.push({ time: point1Time, point: collision.surface.p1, id: collision.surface.p1.id, surface: collision.surface });
       //var point1State = stepStateToTime(this.player, point1Time);
     }
   }
@@ -2172,7 +2199,7 @@ function nextHeapCollisions(heap) {
 
 
 /**
- * This method takes a list of collisions that occurred at the same time and decides what events need to happen.
+ * This method takes a list of valid, already time validatedcollisions that occurred at the same time and decides what events need to happen.
  * Collisions are TerrainPoints and TerrainLines.
  * TODO decide how to handle line and point same time collisions. Go with line for now???
  */
@@ -2185,8 +2212,8 @@ PhysEng.prototype.turnTerrainCollisionsIntoEvent = function (collisions) {
 
   var terrainLineCollisions = [];
   var terrainPointCollisions = [];
-                                    //{ time,      state,    line,        id }
-                                    //{ time,      state,    point,       id }
+  //{ time,      state,    line,        id }
+  //{ time,      state,    point,       id }
   for (var i = 0; i < collisions.length; i++) {
     if (collisions[i].line) {            //TODO replace with polymorphism that fucking works.
       if (!contains(terrainLineCollisions, collisions[i].collisionObj)) {
@@ -2196,7 +2223,7 @@ PhysEng.prototype.turnTerrainCollisionsIntoEvent = function (collisions) {
       if (!contains(terrainPointCollisions, collisions[i].collisionObj)) {
         terrainPointCollisions.push(collisions[i]);
       }
-    } 
+    }
   }
   console.log("terrainLineCollisions: ", terrainLineCollisions);
   console.log("terrainPointCollisions: ", terrainPointCollisions);
@@ -2248,6 +2275,28 @@ PhysEng.prototype.turnTerrainCollisionsIntoEvent = function (collisions) {
     throw "multiple terrainPointCollisions??? not bothering to deal with this yet." + terrainPointCollisions;
   }
 
+  console.groupEnd();
+  return event;
+}
+
+
+
+/**
+ * This method takes a list of valid, already time validated collisions that occurred at the same time and decides what events need to happen.
+ * Collisions are TerrainPoints and TerrainLines.
+ * TODO decide how to handle line and point same time collisions. Go with line for now???
+ */
+PhysEng.prototype.turnCheckpointCollisionsIntoEvent = function (collisions) {
+  console.log("turnCheckpointCollisionsIntoEvent");
+  console.group();
+  var event;
+  var allowLock = true; //TODO CRITICAL NEED TO ACTUALLY CHECK LOCKING SHIT.
+
+
+  var checkpoint = this.tm.checkpoints[collisions[0].surface.checkpointID];
+  var lines = getPolygonArrayFromLine(collisions[0].surface.checkpointID);
+  var event = new CheckpointEvent(collisions[0].time, collisions[0].state, checkpoint, lines);
+  
   console.groupEnd();
   return event;
 }

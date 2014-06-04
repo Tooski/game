@@ -1311,7 +1311,7 @@ TerrainManager.prototype.getGoalCollisions = function (ballstate) {
 }
 
 TerrainManager.prototype.getCheckpointCollisions = function (ballstate, alreadyReached) {
-  return this.getCollisionsInList(ballstate, this.checkpointLines, []);
+  return this.getCollisionsInList(ballstate, this.checkpointLines, alreadyReached);
 }
 
 TerrainManager.prototype.getKillZoneCollisions = function (ballstate) {

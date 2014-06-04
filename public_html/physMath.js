@@ -721,7 +721,7 @@ function solveTimeToDistFromLine(curPos, curVel, accel, targetLine, distanceGoal
   console.log("solving time to dist from line, ");
   console.group();
   console.log("curPos {", curPos.x, curPos.y, "}   curVel {", curVel.x, curVel.y, "}   accel {", accel.x, accel.y, "}");
-  console.log("targetLine p0 {", targetLine.p0.x, targetLine.p0.y, "}  p1 {", targetLine.p1.x, targetLine.p1.y, (targetLine.normal.y > 0 ? "}  down" : "}  up"));
+  console.log("targetLine", targetLine);
   console.log("distanceGoal ", distanceGoal);
 
   var tempState = new State(0.0, distanceGoal, curPos, curVel, accel);
@@ -1167,43 +1167,25 @@ function getLineLineIntersect(line0, line1) {
 
 
 
-// bunch of bs Lines
-var lines = [];
-var i = -1;
-i++;
-var rightU = lines[i] = new L(0, 0, 100, 0, U);           // 0
-i++;
-var urightU = lines[i] = new L(0, 0, 100, -100, U);       // 1
-i++;
-var uL = lines[i] = new L(0, 0, 0, -100, U);              // 2
-i++;
-var uleftU = lines[i] = new L(0, 0, -100, -100, U);       // 3
-i++;
-var leftU = lines[i] = new L(0, 0, -100, 0, U);           // 4
-i++;
-var dleftU = lines[i] = new L(0, 0, -100, 100, U);        // 5
-i++;
-var dL = lines[i] = new L(0, 0, 0, 100, U);               // 6
-i++;
-var drightU = lines[i] = new L(0, 0, 100, 100, U);        // 7
 
-i++;
-var rightD = lines[i] = new L(0, 0, 100, 0, D);           // 8
-i++;
-var urightD = lines[i] = new L(0, 0, 100, -100, D);       // 9
-i++;
-var uR = lines[i] = new L(0, 0, 0, -100, D);              // 10
-i++;
-var uleftD = lines[i] = new L(0, 0, -100, -100, D);       // 12
-i++;
-var leftD = lines[i] = new L(0, 0, -100, 0, D);           // 13
-i++;
-var dleftD = lines[i] = new L(0, 0, -100, 100, D);        // 14
-i++;
-var dR = lines[i] = new L(0, 0, 0, 100, D);               // 15
-i++;
-var drightD = lines[i] = new L(0, 0, 100, 100, D);        // 16
-i++;
+
+function getPolygonArrayFromLine(line) {
+
+  var start = line;
+  var itr = line;
+  var polygonArray = [];
+  var infiniteCheck = 2000;
+  do {
+    polygonArray.push(itr);
+    itr = itr.adjacent0;
+    infiniteCheck--;
+  } while (itr != start && infiniteCheck > 0);
+  if (infiniteCheck === 0) {
+    console.log(polygonArray);
+    throw "either we had 2000 lines in a polygon, or there is a cycle. ^";
+  }
+  return polygonArray;
+}
 
 
 
