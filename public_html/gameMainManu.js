@@ -228,7 +228,7 @@ GMImageButton.prototype.playButton = function () {
 			displayAboutBoard();
             break;
         case 4:  // log out.. so show log in....
-			displayLogIN();
+			displaySignUpLoginChoice();
             break;
     }
 
