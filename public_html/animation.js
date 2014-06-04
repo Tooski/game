@@ -372,7 +372,7 @@ Animation.prototype.drawFrameGroundJump = function (tick, ctx, x, y, scaleBy, fl
 		ctx.scale(flip, 1);
 		//boost.
 		if(this.elapsedTime <= this.totalTime / 1.3 ){
-		        ctx.drawImage(ASSET_MANAGER.getAsset(IMPACT_AIR_JUMP),  - this.frameWidth*scaleBy / 2 , - this.frameHeight* scaleBy / 2+50,
+		        ctx.drawImage(ASSET_MANAGER.getAsset(IMPACT_GROUND_JUMP),  - this.frameWidth*scaleBy / 2 , - this.frameHeight* scaleBy / 2+50,
                this.frameWidth * scaleBy,
                  this.frameHeight * scaleBy);
 		}
