@@ -924,30 +924,32 @@ function PhysEng(gameEngine, playerModel) {
  * Update function for physEng. If you want it to use browser time you need to add a renderEvent at the browser timestamp to newEvents before passing it into update.
  */
 PhysEng.prototype.update = function (time, newEvents) {
-  if (!DEBUG_STEP) {                                      //UPDATE RUNNING NORMALL
-    this.tm = currentLevel;
-    //console.log("time???, ", time);
-    //if (!this.isPaused) {
+  if (!editMode) {
+    if (!DEBUG_STEP) {                                      //UPDATE RUNNING NORMALL
+      this.tm = currentLevel;
+      //console.log("time???, ", time);
+      //if (!this.isPaused) {
       newEvents.push(new RenderEvent(time));
-    //}
-    
-
-    var gameState = this.updatePhys(newEvents, !DEBUG_EVENT_AT_A_TIME);
+      //}
 
 
-  } else {                                                // USING DEBUG STEPPING, 
-    for (var i = 0; i < newEvents.length; i++) {
-      newEvents[i].time = this.getTime();
-      newEvents[i].validTime = true;
-      this.debugInputs.push(newEvents[i]);
+      var gameState = this.updatePhys(newEvents, !DEBUG_EVENT_AT_A_TIME);
+
+
+    } else {                                                // USING DEBUG STEPPING, 
+      for (var i = 0; i < newEvents.length; i++) {
+        newEvents[i].time = this.getTime();
+        newEvents[i].validTime = true;
+        this.debugInputs.push(newEvents[i]);
+      }
     }
+
+    //results = { finished: true or false, timeFinished: timeFinished, numCollectibles: number of collectibles collected, score: points acquired, numDeaths: number of respawns from checkpoints, replay: replay JSON string }
+    var fakeCompletion = { finished: (this.player.time > 5 ? true : false), timeFinished: 5, numCollectibles: 2, score: 150, numDeaths: 3, replayJSON: "Will be replay JSON data later on." };
+    this.completionState = fakeCompletion;
+
+    return this.completionState;
   }
-
-  //results = { finished: true or false, timeFinished: timeFinished, numCollectibles: number of collectibles collected, score: points acquired, numDeaths: number of respawns from checkpoints, replay: replay JSON string }
-  var fakeCompletion = { finished: (this.player.time > 5 ? true : false), timeFinished: 5, numCollectibles: 2, score: 150, numDeaths: 3, replayJSON: "Will be replay JSON data later on." };
-  this.completionState = fakeCompletion;
-  return this.completionState;
-
   // return gameState;
 }
 

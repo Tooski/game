@@ -217,7 +217,7 @@ function TerrainManager() {
       nextCheckpointNo: this.nextCheckpointNo,
       nextCheckpointLineNo: this.nextCheckpointLineNo,
 
-      nextKillZoneNo: this.nextCheckpointNo,
+      nextKillZoneNo: this.nextKillZoneNo,
       nextKillLineNo: this.nextKillLineNo,
 
       nextPointNo: this.nextPointNo,
@@ -227,7 +227,7 @@ function TerrainManager() {
     };
 
 
-    JSONdata.pointMap = this.pointMap;
+    //JSONdata.pointMap = this.pointMap;
     JSONdata.points = this.points;
     JSONdata.goals = this.goals;
     JSONdata.killZones = this.killZones;
@@ -295,6 +295,7 @@ TerrainManager.prototype.reset = function () {
 
   this.startPoint = new vec2(1, 1);     // the player starting location.
 
+  this.modified = false;
   this.isReset = true;
 }
 
@@ -484,55 +485,6 @@ TerrainManager.prototype.removePoint = function (pointToRemove) {
 
 
 
-////no touchy
-//TerrainManager.prototype.attemptRemovePoints = function (pointsToRemove) {
-//  var that = this;
-
-//  pointsToRemove.forEach(function (p) {
-//    var keep = false;
-//    var id = p.id;
-//    for (var i = 0; i < that.terrainLines.length && !keep; i++) {
-//      var t = that.terrainLines[i];
-//      if (t) {
-//        if (p.id === t.p0.id || p.id === t.p1.id) {
-//          keep = true;
-//        }
-//      }
-//    }
-//    for (var i = 0; i < that.killLines.length && !keep; i++) {
-//      var t = that.killLines[i];
-//      if (t) {
-//        if (p.id === t.p0.id || p.id === t.p1.id) {
-//          keep = true;
-//        }
-//      }
-//    }
-//    for (var i = 0; i < that.checkpointLines.length && !keep; i++) {
-//      var t = that.checkpointLines[i];
-//      if (t) {
-//        if (p.id === t.p0.id || p.id === t.p1.id) {
-//          keep = true;
-//        }
-//      }
-//    }
-//    for (var i = 0; i < that.goalLines.length && !keep; i++) {
-//      var t = that.goalLines[i];
-//      if (t) {
-//        if (p.id === t.p0.id || p.id === t.p1.id) {
-//          keep = true;
-//        }
-//      }
-//    }
-
-//    if (!keep) {
-//      console.log("deleting point ", p, " because !keep");
-//      delete that.points[p.id];
-//      delete that.pointMap[pointString(p)];
-//    } else {
-//      console.log("keep point " + p.id + " was true");
-//    }
-//  });
-//}
 
 
 
@@ -606,7 +558,7 @@ TerrainManager.prototype.addCheckpoint = function (checkpointPos, editorLineArra
   var first = new CheckpointLine(this.getNextCheckpointLineNumber(), checkpoint.id, this.toLinePoint(lines[0].p0), this.toLinePoint(lines[0].p1), null, null);
 
   if (this.checkpointLines[first.id]) {
-    throw "what the hell, a TerrainLine already exists with this ID. Fix yo shit";
+    throw "what the hell, a CheckpointLine already exists with this ID. Fix yo shit";
   } else {
     this.checkpointLines[first.id] = first;
   }
@@ -616,7 +568,7 @@ TerrainManager.prototype.addCheckpoint = function (checkpointPos, editorLineArra
     var converted = new CheckpointLine(this.getNextCheckpointLineNumber(), checkpoint.id, this.toLinePoint(lines[i].p0), this.toLinePoint(lines[i].p1), prev, null);
     prev.adjacent1 = converted;
     if (this.checkpointLines[converted.id]) {
-      throw "what the hell, a TerrainLine already exists with this ID. Fix yo shit";
+      throw "what the hell, a CheckpointLine already exists with this ID. Fix yo shit";
     }
     this.checkpointLines[converted.id] = converted;
     prev = converted;
@@ -638,7 +590,7 @@ TerrainManager.prototype.addGoal = function (editorLineArray) {
   var goal = new Goal(this.getNextGoalNumber());
 
   if (this.goals[goal.id]) {
-    throw "what the hell, already a checkpoint with this id in checkpoints array";
+    throw "what the hell, already a goal with this id in goals array";
   } else {
     this.goals[goal.id] = goal;
   }
@@ -687,8 +639,8 @@ TerrainManager.prototype.addKillZone = function (editorLineArray) {
   }
 
   var first = new KillLine(this.getNextKillLineNumber(), killzone.id, this.toLinePoint(lines[0].p0), this.toLinePoint(lines[0].p1), null, null);
-  if (this.terrainLines[first.id]) {
-    throw "what the hell, a TerrainLine already exists with this ID. Fix yo shit";
+  if (this.killLines[first.id]) {
+    throw "what the hell, a Kill Line already exists with this ID. Fix yo shit";
   } else {
     this.killLines[first.id] = first;
   }
@@ -1093,9 +1045,54 @@ TerrainManager.prototype.loadOldLevelFromJSON = function (obj) {
  */
 TerrainManager.prototype.loadFromJSON = function (obj) {
   this.reset();
+  console.log("They see me loading, they hatin");
+  console.group();
 
-  
+  console.log("JSON obj to load:");
+  console.log(obj);
+  //var jsonPretty = JSON.stringify(this, null, 2);
+  //console.log(this);
+  //document.getElementById("eklipzConsole").innerHTML = jsonPretty;
+  this.levelName = obj.levelName;
+  this.startPoint = new vec2(obj.startPoint.x, obj.startPoint.y);
 
+  this.nextCollectibleNo = obj.nextCollectibleNo;
+
+  this.nextGoalNo = obj.nextGoalNo;
+  this.nextGoalLineNo = obj.nextGoalLineNo;
+
+  this.nextCheckpointNo = obj.nextCheckpointNo;
+  this.nextCheckpointLineNo = obj.nextCheckpointLineNo;
+
+  this.nextKillZoneNo = obj.nextKillZoneNo;
+  this.nextKillLineNo = obj.nextKillLineNo;
+
+  this.nextPointNo = obj.nextPointNo;
+
+  this.nextTerrainLineNo = obj.nextTerrainLineNo;
+  this.nextPolygonNo = obj.nextPolygonNo;
+
+
+  console.log("loading main data");
+  //this.loadPointMap(obj.pointMap);
+  this.loadPoints(obj.points);
+  this.loadCheckpoints(obj.checkpoints);
+  this.loadGoals(obj.goals);
+  this.loadKillZones(obj.killZones);
+  this.loadCollectibles(obj.collectibles);
+
+
+  console.log("loading line data");
+  this.loadTerrainLines(obj.terrainLines);
+  this.loadKillLines(obj.killLines);
+  this.loadCheckpointLines(obj.checkpointLines);
+  this.loadGoalLines(obj.goalLines);
+
+  //JSONdata.checkpointLines = this.checkpointLines;
+  //JSONdata.goalLines = this.goalLines;
+  //JSONdata.killLines = this.killLines;
+
+  console.groupEnd();
   //var jsonPretty = JSON.stringify(this, null, 2);
   //document.getElementById("eklipzConsole").innerHTML = jsonPretty;
 }
@@ -1104,13 +1101,39 @@ TerrainManager.prototype.loadFromJSON = function (obj) {
 
 
 
-TerrainManager.prototype.loadPoints = function (pointMap) {
-  pointMap.forEach(function (point) {
+///**
+// * Loads the pointMap from an array of saved JSON.
+// */
+//TerrainManager.prototype.loadPointMap = function (pointMap) {
+//  console.log("pointMap: ", pointMap);
+//  pointMap.forEach(function (mapPoint) {
+//    if (mapPoint) {
+//      var p = new vec2(mapPoint.x, mapPoint.y);
+//      this.pointMap[pointString(p)] = p;
+//    } else {
+//      console.log("!mapPoint???? ", mapPoint);
+//      throw "???";
+//    }
+//  });
+//}
+
+
+
+
+
+/**
+ * Loads the points from an array of saved JSON.
+ */
+TerrainManager.prototype.loadPoints = function (points) {
+  console.log("points: ", points);
+  var that = this;
+  points.forEach(function (point) {
     if (point) {
-      this.toLinePoint(point);
+      var p = new LinePoint(point.id, point.x, point.y);
+      that.points[p.id] = p;
+      that.pointMap[pointString(p)] = p;
     } else {
       console.log("!point???? ", point);
-      throw "???";
     }
   });
 }
@@ -1119,19 +1142,174 @@ TerrainManager.prototype.loadPoints = function (pointMap) {
 
 
 
-TerrainManager.prototype.loadTerrain = function (tList) {
-  var polygonsDiscovered = {};
+/**
+ * Loads the checkpoints from an array of saved JSON.
+ */
+TerrainManager.prototype.loadCheckpoints = function (checkpoints) {
+  console.log("checkpoints: ", checkpoints);
+  var that = this;
+  checkpoints.forEach(function (checkpoint) {
+    if (checkpoint) {
+      var cp = new Checkpoint(checkpoint.id, checkpoint.x, checkpoint.y);
+      that.checkpoints[cp.id] = cp;
+    } else {
+      console.log("!checkpoint???? ", checkpoint);
+    }
+  });
+}
 
-  tList.forEach(function (ter) {
+
+
+
+
+/**
+ * Loads the goals from an array of saved JSON.
+ */
+TerrainManager.prototype.loadGoals = function (goals) {
+  console.log("goals: ", goals);
+  var that = this;
+  goals.forEach(function (goal) {
+    if (goal) {
+      var g = new Goal(goal.id);
+      that.goals[g.id] = g;
+    } else {
+      console.log("!goal???? ", goal);
+    }
+  });
+}
+
+
+
+
+
+/**
+ * Loads the killZones from an array of saved JSON.
+ */
+TerrainManager.prototype.loadKillZones = function (killZones) {
+  console.log("killZones: ", killZones);
+  var that = this;
+  killZones.forEach(function (killZone) {
+    if (killZone) {
+      var k = new KillZone(killZone.id);
+      that.killZones[k.id] = k;
+    } else {
+      console.log("!killZone???? ", killZone);
+    }
+  });
+}
+
+
+
+
+/**
+ * Loads the collectibles from an array of saved JSON.
+ */
+TerrainManager.prototype.loadCollectibles = function (collectibles) {
+  console.log("collectibles: ", collectibles);
+  var that = this;
+  collectibles.forEach(function (collectible) {
+    if (collectible) {
+      var c = new Collectible(collectible.id, collectible.x, collectible.y, collectible.pointValue, collectible.radius);
+      that.collectibles[c.id] = c;
+    } else {
+      console.log("!collectible???? ", collectible);
+    }
+  });
+}
+
+
+
+
+
+TerrainManager.prototype.loadTerrainLines = function (tLines) {
+  console.log("tLines: ", tLines);
+  var polygonsDiscovered = {};
+  var that = this;
+  tLines.forEach(function (ter) {
     if (ter) {
-      this.terrainLines[ter.id] = new TerrainLine(ter.id, ter.polyID, this.points[ter.p0id], this.points[ter.p1id], null, null, new vec2(ter.normal.x, ter.normal.y));
+      that.terrainLines[ter.id] = new TerrainLine(ter.id, ter.polyID, that.points[ter.p0id], that.points[ter.p1id], null, null, new vec2(ter.normal.x, ter.normal.y));
+      that.terrainLines[ter.id].p0.connectLine(that.terrainLines[ter.id]);
+      that.terrainLines[ter.id].p1.connectLine(that.terrainLines[ter.id]);
     }
   });
 
-  tList.forEach(function (ter) {
+  tLines.forEach(function (ter) {
     if (ter) {
-      this.terrainLines[ter.id].adjacent0 = this.terrainLines[ter.adj0id];
-      this.terrainLines[ter.id].adjacent1 = this.terrainLines[ter.adj1id];
+      that.terrainLines[ter.id].adjacent0 = that.terrainLines[ter.adj0id];
+      that.terrainLines[ter.id].adjacent1 = that.terrainLines[ter.adj1id];
+    }
+  });
+}
+
+
+
+
+
+TerrainManager.prototype.loadKillLines = function (kLines) {
+  console.log("kLines: ", kLines);
+  var polygonsDiscovered = {};
+  var that = this;
+  kLines.forEach(function (kl) {
+    if (kl) {
+      that.killLines[kl.id] = new KillLine(kl.id, kl.killZoneID, that.points[kl.p0id], that.points[kl.p1id], null, null);
+      //that.terrainLines[kl.id].p0.connectLine(that.terrainLines[ter.id]);
+      //that.terrainLines[kl.id].p1.connectLine(that.terrainLines[ter.id]);
+    }
+  });
+
+  kLines.forEach(function (kl) {
+    if (kl) {
+      that.killLines[kl.id].adjacent0 = that.killLines[kl.adj0id];
+      that.killLines[kl.id].adjacent1 = that.killLines[kl.adj1id];
+    }
+  });
+}
+
+
+
+
+
+TerrainManager.prototype.loadGoalLines = function (gLines) {
+  console.log("gLines: ", gLines);
+  var polygonsDiscovered = {};
+  var that = this;
+  gLines.forEach(function (gl) {
+    if (gl) {
+      that.goalLines[gl.id] = new GoalLine(gl.id, gl.goalID, that.points[gl.p0id], that.points[gl.p1id], null, null);
+      //that.goalLines[gl.id].p0.connectLine(that.goalLines[gl.id]);
+      //that.goalLines[gl.id].p1.connectLine(that.goalLines[gl.id]);
+    }
+  });
+
+  gLines.forEach(function (gl) {
+    if (gl) {
+      that.goalLines[gl.id].adjacent0 = that.goalLines[gl.adj0id];
+      that.goalLines[gl.id].adjacent1 = that.goalLines[gl.adj1id];
+    }
+  });
+}
+
+
+
+
+
+
+TerrainManager.prototype.loadCheckpointLines = function (cpLines) {
+  console.log("cpLines: ", cpLines);
+  var polygonsDiscovered = {};
+  var that = this;
+  cpLines.forEach(function (cpl) {
+    if (cpl) {
+      that.checkpointLines[cpl.id] = new CheckpointLine(cpl.id, cpl.checkpointID, that.points[cpl.p0id], that.points[cpl.p1id], null, null);
+      //that.checkpointLines[cpl.id].p0.connectLine(that.checkpointLines[cpl.id]);
+      //that.checkpointLines[cpl.id].p1.connectLine(that.checkpointLines[cpl.id]);
+    }
+  });
+
+  cpLines.forEach(function (cpl) {
+    if (cpl) {
+      that.checkpointLines[cpl.id].adjacent0 = that.checkpointLines[cpl.adj0id];
+      that.checkpointLines[cpl.id].adjacent1 = that.checkpointLines[cpl.adj1id];
     }
   });
 }
