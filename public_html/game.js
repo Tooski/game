@@ -1095,11 +1095,11 @@ for (var i = 0; i < imagePaths.length; i++) {
   ASSET_MANAGER.queueDownload(imagePaths[i]);
 }
 
-var IMPACT_JUMP = "./img/airJump.png";
+var IMPACT_AIR_JUMP = "./img/airJump.png";
 var IMPACT_BOOST = "./img/boost.png";
 var IMPACT_DOWN_BOOST ="./img/downBoost.png";
 var IMPACT_GROUND_JUMP = "./img/groundJump.png";
-ASSET_MANAGER.queueDownload(IMPACT_JUMP);
+ASSET_MANAGER.queueDownload(IMPACT_AIR_JUMP);
 ASSET_MANAGER.queueDownload(IMPACT_BOOST);
 ASSET_MANAGER.queueDownload(IMPACT_DOWN_BOOST);
 ASSET_MANAGER.queueDownload(IMPACT_GROUND_JUMP);
