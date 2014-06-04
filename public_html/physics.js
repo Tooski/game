@@ -2811,7 +2811,7 @@ CHILD.prototype.method = function () {
 function animationSetPlayerDoubleJumping(p, time) {
   animationReset(p);
   p.animationFacing = (p.accel.x < 0 ? "left" : "right");
-  p.animationDoubleJumping = true;
+//  p.animationDoubleJumping = true;
   p.animationTimeInCurrentAnimation = 0.0;
   p.animationStartTime = time;
   p.animationSpeed = 1.0;
@@ -2820,7 +2820,7 @@ function animationSetPlayerDoubleJumping(p, time) {
 function animationSetPlayerJumping(p, time, surfaceVec) {
   animationReset(p);
   p.animationFacing = (p.accel.x < 0 ? "left" : "right");
-  p.animationGroundJumping = true;
+ // p.animationGroundJumping = true;
   p.animationTimeInCurrentAnimation = 0.0;
   p.animationStartTime = time;
   p.animationSpeed = 1.0;
@@ -2831,7 +2831,7 @@ function animationSetPlayerJumping(p, time, surfaceVec) {
 function animationSetPlayerWalking(p, time) {
   animationReset(p);
   p.animationFacing = (p.accel.x < 0 ? "left" : "right");
-  p.animationWalking = true;
+//  p.animationWalking = true;
   p.animationTimeInCurrentAnimation = 0.0;
   p.animationStartTime = time;
   p.animationSpeed = p.vel.length();
@@ -2840,7 +2840,7 @@ function animationSetPlayerWalking(p, time) {
 function animationSetPlayerRunning(p, time) {
   animationReset(p);
   p.animationFacing = (p.accel.x < 0 ? "left" : "right");
-  p.animationRunning = true;
+//  p.animationRunning = true;
   p.animationTimeInCurrentAnimation = 0.0;
   p.animationStartTime = time;
   p.animationSpeed = p.vel.length();
@@ -2849,7 +2849,7 @@ function animationSetPlayerRunning(p, time) {
 function animationSetPlayerBoosting(p, time) {
   animationReset(p);
   p.animationFacing = (p.accel.x < 0 ? "left" : "right");
-  p.animationBoosting = true;
+//  p.animationBoosting = true;
   p.animationTimeInCurrentAnimation = 0.0;
   p.animationStartTime = time;
 }
@@ -2857,7 +2857,7 @@ function animationSetPlayerBoosting(p, time) {
 function animationSetPlayerDownBoosting(p, time) {
   animationReset(p);
   p.animationFacing = (p.accel.x < 0 ? "left" : "right");
-  p.animationDownBoosting = true;
+ // p.animationDownBoosting = true;
   p.animationTimeInCurrentAnimation = 0.0;
   p.animationStartTime = time;
 }
@@ -2865,7 +2865,7 @@ function animationSetPlayerDownBoosting(p, time) {
 function animationSetPlayerColliding(p, time, surfaceVec) {
   animationReset(p);
   p.animationFacing = (p.accel.x < 0 ? "left" : "right");
-  p.animationColliding = true;
+ // p.animationColliding = true;
   p.animationTimeInCurrentAnimation = 0.0;
   p.animationStartTime = time;
   p.animationAngle = getRadiansToHorizontal(surfaceVec);
@@ -2875,7 +2875,7 @@ function animationSetPlayerColliding(p, time, surfaceVec) {
 function animationSetPlayerFreefall(p, time) {
   animationReset(p);
   p.animationFacing = (p.accel.x < 0 ? "left" : "right");
-  p.animationFreefall = true;
+//  p.animationFreefall = true;
   p.animationTimeInCurrentAnimation = 0.0;
   p.animationStartTime = time;
 }
@@ -2884,14 +2884,14 @@ function animationSetPlayerFreefall(p, time) {
 
 
 function animationReset(p) {
-  p.animationWalking = false;         // is the player in the walking state?
-  p.animationRunning = false;         // is the player in the running state?
-  p.animationBoosting = false;         // is the player in the boost state?
-  p.animationDownBoosting = false;         // is the player in the boost state?
-  p.animationGroundJumping = false;    // is the player jumping from the ground?
-  p.animationDoubleJumping = false;    // is the player air jumping?
-  p.animationColliding = false;        // is the player in the collision animation?
-  p.animationFreefall = false;         // is the player in the Freefall animation?
+ // p.animationWalking = false;         // is the player in the walking state?
+  //p.animationRunning = false;         // is the player in the running state?
+  //p.animationBoosting = false;         // is the player in the boost state?
+ // p.animationDownBoosting = false;         // is the player in the boost state?
+ // p.animationGroundJumping = false;    // is the player jumping from the ground?
+ // p.animationDoubleJumping = false;    // is the player air jumping?
+ // p.animationColliding = false;        // is the player in the collision animation?
+ // p.animationFreefall = false;         // is the player in the Freefall animation?
   p.animationAngle = 0.0;
 
   p.animationSpeed = null;
