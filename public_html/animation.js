@@ -44,8 +44,6 @@ function Animation(spriteSheet, startX, startY, frameWidth, frameHeight, frameDu
 //@param scaleBy - the scale of frame
 Animation.prototype.drawFrame = function (tick, ctx, x, y, scaleBy, flip, rotateBy) {
     
-    
-    
     var scaleBy = scaleBy || 1;
     var flip = flip ? -1 : 1;
     //track each change in step
@@ -96,8 +94,115 @@ Animation.prototype.drawFrame = function (tick, ctx, x, y, scaleBy, flip, rotate
 };
 
 Animation.prototype.drawFrameFreeze = function (tick, ctx, x, y, scaleBy, flip, rotateBy) {
+
+    var scaleBy = scaleBy || 1;
+    var flip = flip ? -1 : 1;
+    //track each change in step
+    this.elapsedTime += tick;
+    //var is_done = false;
+    //looping through the frames - true when pressing left or right key
+    if (this.loop) {
+        //when elapsed time >= to totaltime(frameDuration * # of frames)
+        //but loop is still running
+        if (this.isDone()) {
+            this.elapsedTime = 0;
+        }
+        //loop is done and elapsed time >= to totaltime
+    } else if (this.isDone()) {
+       // return;
+       console.log(this.elapsedTime );
+  //     is_done = true;
+      this.elapsedTime  = this.totalTime-tick;
+    }
+    //if reverse true then frames-currentFrame() else currentFrame()
+    var index = this.reverse ? this.frames - this.currentFrame() - 1 : this.currentFrame();
+    var vindex = 0;
+    //if framewidth + start is greater than width of spritesheet then dropdown to next row
+    if ((index+1) * this.frameWidth + this.startX > this.spriteSheet.width) {
+        index -= Math.floor((this.spriteSheet.width - this.startX) / this.frameWidth);
+        vindex++;
+    }
+    while ((index + 1) * this.frameWidth > this.spriteSheet.width) {
+        index -= Math.floor(this.spriteSheet.width / this.frameWidth);
+        vindex++;
+    }
+
+    var locX = x;
+    var locY = y;
+    var offset = vindex === 0 ? this.startX : 0;
+
+	ctx.save();
+	ctx.translate(locX  + this.frameWidth*scaleBy / 2, locY+ this.frameHeight* scaleBy / 2);
+    if(rotateBy) { 
+
+        ctx.rotate(rotateBy); }
+		ctx.scale(flip, 1);
+		//boost.
+    ctx.drawImage(this.spriteSheet,
+                 index * this.frameWidth  + offset , vindex*this.frameHeight + this.startY,  // source from sheet
+               this.frameWidth, this.frameHeight,
+               - this.frameWidth*scaleBy / 2 , - this.frameHeight* scaleBy / 2,
+               this.frameWidth * scaleBy,
+                 this.frameHeight * scaleBy);
+
+    ctx.restore();
+
+};
+
+
+
+Animation.prototype.drawFrameFalling = function (tick, ctx, x, y, scaleBy, flip, rotateBy) { 
+    var scaleBy = scaleBy || 1;
+    var flip = flip ? -1 : 1;
+    //track each change in step
+    this.elapsedTime += tick;
+    //var is_done = false;
+    //looping through the frames - true when pressing left or right key
+    if (this.loop) {
+        //when elapsed time >= to totaltime(frameDuration * # of frames)
+        //but loop is still running
+        if (this.isDone()) {
+            this.elapsedTime = 0;
+        }
+        //loop is done and elapsed time >= to totaltime
+    } else if (this.isDone()) {
+       // return;
+       console.log(this.elapsedTime );
+  //     is_done = true;
+      this.frameHeight2 = 900;
+      this.frameWidth2 = 600;
+      //this.elapsedTime  = this.totalTime;
+    }
+    //if reverse true then frames-currentFrame() else currentFrame()
+    //var index = this.reverse ? this.frames - this.currentFrame() - 1 : this.currentFrame();
     
-    
+
+
+    var locX = x;
+    var locY = y;
+
+
+	ctx.save();
+	ctx.translate(locX  + this.frameWidth*scaleBy / 2, locY+ this.frameHeight* scaleBy / 2);
+    if(rotateBy) { 
+        //ctx.translate(this.frameWidth, this.frameHeight);
+        ctx.rotate(rotateBy); }
+		ctx.scale(flip, 1);
+    ctx.drawImage(this.spriteSheet,
+                 index * this.frameWidth  + offset , vindex*this.frameHeight + this.startY,  // source from sheet
+               this.frameWidth, this.frameHeight,
+               - this.frameWidth*scaleBy / 2 , - this.frameHeight* scaleBy / 2,
+               this.frameWidth * scaleBy,
+                 this.frameHeight * scaleBy);
+
+    ctx.restore();
+//    if(is_done){
+//      this.elapsedTime  = this.totalTime;
+//    }
+
+};
+
+Animation.prototype.drawFrameBoost = function (tick, ctx, x, y, scaleBy, flip, rotateBy) {
     
     var scaleBy = scaleBy || 1;
     var flip = flip ? -1 : 1;
@@ -159,10 +264,7 @@ Animation.prototype.drawFrameFreeze = function (tick, ctx, x, y, scaleBy, flip, 
 };
 
 
-
-Animation.prototype.drawFrameFalling = function (tick, ctx, x, y, scaleBy, flip, rotateBy) {
-    
-    
+Animation.prototype.drawFrameDownBoost = function (tick, ctx, x, y, scaleBy, flip, rotateBy) {
     
     var scaleBy = scaleBy || 1;
     var flip = flip ? -1 : 1;
@@ -181,25 +283,37 @@ Animation.prototype.drawFrameFalling = function (tick, ctx, x, y, scaleBy, flip,
        // return;
        console.log(this.elapsedTime );
   //     is_done = true;
-      this.frameHeight2 = 900;
-      this.frameWidth2 = 600;
-      //this.elapsedTime  = this.totalTime;
+      this.elapsedTime  = this.totalTime-tick;
     }
     //if reverse true then frames-currentFrame() else currentFrame()
-    //var index = this.reverse ? this.frames - this.currentFrame() - 1 : this.currentFrame();
-    
-
+    var index = this.reverse ? this.frames - this.currentFrame() - 1 : this.currentFrame();
+    var vindex = 0;
+    //if framewidth + start is greater than width of spritesheet then dropdown to next row
+    if ((index+1) * this.frameWidth + this.startX > this.spriteSheet.width) {
+        index -= Math.floor((this.spriteSheet.width - this.startX) / this.frameWidth);
+        vindex++;
+    }
+    while ((index + 1) * this.frameWidth > this.spriteSheet.width) {
+        index -= Math.floor(this.spriteSheet.width / this.frameWidth);
+        vindex++;
+    }
 
     var locX = x;
     var locY = y;
-
+    var offset = vindex === 0 ? this.startX : 0;
 
 	ctx.save();
 	ctx.translate(locX  + this.frameWidth*scaleBy / 2, locY+ this.frameHeight* scaleBy / 2);
     if(rotateBy) { 
-        //ctx.translate(this.frameWidth, this.frameHeight);
+
         ctx.rotate(rotateBy); }
 		ctx.scale(flip, 1);
+		//boost.
+		if(this.elapsedTime <= this.totalTime / 1.3 ){
+		        ctx.drawImage(ASSET_MANAGER.getAsset(IMPACT_DOWN_BOOST),  - this.frameWidth*scaleBy / 2  , - this.frameHeight* scaleBy / 2 +50,
+               this.frameWidth * scaleBy,
+                 this.frameHeight * scaleBy);
+		}
     ctx.drawImage(this.spriteSheet,
                  index * this.frameWidth  + offset , vindex*this.frameHeight + this.startY,  // source from sheet
                this.frameWidth, this.frameHeight,
@@ -208,9 +322,130 @@ Animation.prototype.drawFrameFalling = function (tick, ctx, x, y, scaleBy, flip,
                  this.frameHeight * scaleBy);
 
     ctx.restore();
-//    if(is_done){
-//      this.elapsedTime  = this.totalTime;
-//    }
+
+};
+
+
+Animation.prototype.drawFrameGroundJump = function (tick, ctx, x, y, scaleBy, flip, rotateBy) {
+    
+    var scaleBy = scaleBy || 1;
+    var flip = flip ? -1 : 1;
+    //track each change in step
+    this.elapsedTime += tick;
+    //var is_done = false;
+    //looping through the frames - true when pressing left or right key
+    if (this.loop) {
+        //when elapsed time >= to totaltime(frameDuration * # of frames)
+        //but loop is still running
+        if (this.isDone()) {
+            this.elapsedTime = 0;
+        }
+        //loop is done and elapsed time >= to totaltime
+    } else if (this.isDone()) {
+       // return;
+       console.log(this.elapsedTime );
+  //     is_done = true;
+      this.elapsedTime  = this.totalTime-tick;
+    }
+    //if reverse true then frames-currentFrame() else currentFrame()
+    var index = this.reverse ? this.frames - this.currentFrame() - 1 : this.currentFrame();
+    var vindex = 0;
+    //if framewidth + start is greater than width of spritesheet then dropdown to next row
+    if ((index+1) * this.frameWidth + this.startX > this.spriteSheet.width) {
+        index -= Math.floor((this.spriteSheet.width - this.startX) / this.frameWidth);
+        vindex++;
+    }
+    while ((index + 1) * this.frameWidth > this.spriteSheet.width) {
+        index -= Math.floor(this.spriteSheet.width / this.frameWidth);
+        vindex++;
+    }
+
+    var locX = x;
+    var locY = y;
+    var offset = vindex === 0 ? this.startX : 0;
+
+	ctx.save();
+	ctx.translate(locX  + this.frameWidth*scaleBy / 2, locY+ this.frameHeight* scaleBy / 2);
+    if(rotateBy) { 
+
+        ctx.rotate(rotateBy); }
+		ctx.scale(flip, 1);
+		//boost.
+		if(this.elapsedTime <= this.totalTime / 1.3 ){
+		        ctx.drawImage(ASSET_MANAGER.getAsset(IMPACT_GROUND_JUMP),  - this.frameWidth*scaleBy / 2  , - this.frameHeight* scaleBy / 2 -50,
+               this.frameWidth * scaleBy,
+                 this.frameHeight * scaleBy);
+		}
+    ctx.drawImage(this.spriteSheet,
+                 index * this.frameWidth  + offset , vindex*this.frameHeight + this.startY,  // source from sheet
+               this.frameWidth, this.frameHeight,
+               - this.frameWidth*scaleBy / 2 , - this.frameHeight* scaleBy / 2,
+               this.frameWidth * scaleBy,
+                 this.frameHeight * scaleBy);
+
+    ctx.restore();
+
+};
+
+
+Animation.prototype.drawFrameAirJump = function (tick, ctx, x, y, scaleBy, flip, rotateBy) {
+    
+    var scaleBy = scaleBy || 1;
+    var flip = flip ? -1 : 1;
+    //track each change in step
+    this.elapsedTime += tick;
+    //var is_done = false;
+    //looping through the frames - true when pressing left or right key
+    if (this.loop) {
+        //when elapsed time >= to totaltime(frameDuration * # of frames)
+        //but loop is still running
+        if (this.isDone()) {
+            this.elapsedTime = 0;
+        }
+        //loop is done and elapsed time >= to totaltime
+    } else if (this.isDone()) {
+       // return;
+       console.log(this.elapsedTime );
+  //     is_done = true;
+      this.elapsedTime  = this.totalTime-tick;
+    }
+    //if reverse true then frames-currentFrame() else currentFrame()
+    var index = this.reverse ? this.frames - this.currentFrame() - 1 : this.currentFrame();
+    var vindex = 0;
+    //if framewidth + start is greater than width of spritesheet then dropdown to next row
+    if ((index+1) * this.frameWidth + this.startX > this.spriteSheet.width) {
+        index -= Math.floor((this.spriteSheet.width - this.startX) / this.frameWidth);
+        vindex++;
+    }
+    while ((index + 1) * this.frameWidth > this.spriteSheet.width) {
+        index -= Math.floor(this.spriteSheet.width / this.frameWidth);
+        vindex++;
+    }
+
+    var locX = x;
+    var locY = y;
+    var offset = vindex === 0 ? this.startX : 0;
+
+	ctx.save();
+	ctx.translate(locX  + this.frameWidth*scaleBy / 2, locY+ this.frameHeight* scaleBy / 2);
+    if(rotateBy) { 
+
+        ctx.rotate(rotateBy); }
+		ctx.scale(flip, 1);
+		//boost.
+		if(this.elapsedTime <= this.totalTime / 1.3 ){
+		        ctx.drawImage(ASSET_MANAGER.getAsset(IMPACT_AIR_JUMP),  - this.frameWidth*scaleBy / 2 , - this.frameHeight* scaleBy / 2-50,
+               this.frameWidth * scaleBy,
+                 this.frameHeight * scaleBy);
+		}
+    ctx.drawImage(this.spriteSheet,
+                 index * this.frameWidth  + offset , vindex*this.frameHeight + this.startY,  // source from sheet
+               this.frameWidth, this.frameHeight,
+               - this.frameWidth*scaleBy / 2 , - this.frameHeight* scaleBy / 2,
+               this.frameWidth * scaleBy,
+                 this.frameHeight * scaleBy);
+
+    ctx.restore();
 
 };
 
