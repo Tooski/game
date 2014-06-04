@@ -15,14 +15,14 @@ function Player(x, y, timer) {
     this.jumpSpeed = 0.7;
     this.idleAnimation = new Animation(ASSET_MANAGER.getAsset("assets/Spritesheet2.png"), 0, 0, 300, 300, 0.1, 1, true, false);
     this.walkingAnimation = new Animation(ASSET_MANAGER.getAsset("assets/Spritesheet2.png"), 0, 300, 300, 300, this.walkingSpeed, 11, true, false);
-    this.runningAnimation = new Animation(ASSET_MANAGER.getAsset("assets/HamsterSprites.png"), 0, 600, 300, 300, this.runningSpeed, 8, true, false);
-    this.groundBoostAnimation = new Animation(ASSET_MANAGER.getAsset("assets/HamsterSprites.png"), 0, 900, 300, 300, this.boostSpeed, 4, false, false);
-    this.jumpingAnimation = new Animation(ASSET_MANAGER.getAsset("assets/HamsterSprites.png"), 0, 1800, 300, 300, this.jumpSpeed, 2, false, false);
-    this.airJumpAnimation = new Animation(ASSET_MANAGER.getAsset("assets/HamsterSprites.png"), 0, 1800, 300, 300, this.jumpSpeed, 2, false, false);
-    this.downBoostAnimation = new Animation(ASSET_MANAGER.getAsset("assets/HamsterSprites.png"), 0, 1800, 300, 300, this.jumpSpeed, 2, false, false);
+    this.runningAnimation = new Animation(ASSET_MANAGER.getAsset("assets/Spritesheet2.png"), 0, 600, 300, 300, this.runningSpeed, 8, true, false);
+    this.groundBoostAnimation = new Animation(ASSET_MANAGER.getAsset("assets/Spritesheet2.png"), 0, 900, 300, 300, this.boostSpeed, 4, false, false);
+    this.jumpingAnimation = new Animation(ASSET_MANAGER.getAsset("assets/Spritesheet2.png"), 0, 1800, 300, 300, this.jumpSpeed, 2, false, false);
+    this.airJumpAnimation = new Animation(ASSET_MANAGER.getAsset("assets/Spritesheet2.png"), 0, 1800, 300, 300, this.jumpSpeed, 2, false, false);
+    this.downBoostAnimation = new Animation(ASSET_MANAGER.getAsset("assets/Spritesheet2.png"), 0, 1800, 300, 300, this.jumpSpeed, 2, false, false);
 
 
-    this.fallingAnimation = new Animation(ASSET_MANAGER.getAsset("assets/HamsterSprites.png"), 600, 900, 300, 300, 0.05, 1, true, false);
+    this.fallingAnimation = new Animation(ASSET_MANAGER.getAsset("assets/Spritesheet2.png"), 600, 900, 300, 300, 0.05, 1, true, false);
     this.boostTime = 0;
     this.facing = true;
     this.model = null;
