@@ -914,6 +914,7 @@ function PhysEng(gameEngine, playerModel) {
   // The level terrainManager.
   this.tm = currentLevel;
   this.player.pos = this.tm.startPoint;    //sets player position to the level starting position.
+  this.player.lastCheckpoint = this.tm.startPoint;
 
   this.timeMgr = new TimeManager(0.0, 0.0, 0.0, 1); // TODO DO THE THING
 
