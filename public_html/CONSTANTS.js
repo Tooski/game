@@ -45,7 +45,7 @@ var DFLT_aBoostDownVel = 1500;
 // CONST PULSE INPUTS
 var DFLT_jumpVelNormPulse = 650;
 var DFLT_doubleJumpVelYPulse = 550;
-var DFLT_doubleJumpVelYMin = 400;
+var DFLT_doubleJumpVelYMin = 550;
 
 // OTHER CHAR DEFAULTS
 var DFLT_numAirCharges = 1;

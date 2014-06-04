@@ -1077,14 +1077,11 @@ PhysEng.prototype.updatePhys = function (newEvents, stepToRender) {
       //console.log("ending loopthing");
       currentEvent = this.peekMostRecentEvent();
 
-      //console.log("before pop: ", this.primaryEventHeap.size());
-      //console.log("after pop: ", this.primaryEventHeap.size());
-      //console.log("stepResult: ", stepResult);
-      //console.log("currentEvent: ", currentEvent);
 
-      //console.log("  after attempt.");
-      //console.log("  most recent event: ", currentEvent);
-      //console.log("  stepResult: ", stepResult);
+
+      console.log("  after attempt.");
+      console.log("  most recent event: ", currentEvent);
+      console.log("  stepResult: ", stepResult);
 
 
 
@@ -1302,9 +1299,9 @@ PhysEng.prototype.attemptNormalStep = function (goalGameTime) {
   var startGameTime = this.player.time;
   var deltaTime = goalGameTime - startGameTime;
 
-  //console.log("  start of an attemptNormalStep. ");
-  //console.log("    attempting to step to goalGameTime: ", goalGameTime);
-  //console.log("    playerState: ", this.player);
+  console.log("  start of an attemptNormalStep. ");
+  console.log("    attempting to step to goalGameTime: ", goalGameTime);
+  console.log("    playerState: ", this.player);
   var debugState = new State(this.player.time, this.player.radius, this.player.pos, this.player.vel, this.player.accel);
 
   var velStep = new vec2(this.player.vel.x, this.player.vel.y);
@@ -1342,7 +1339,7 @@ PhysEng.prototype.attemptNormalStep = function (goalGameTime) {
     numCollisions += gCollisionList.length;
     kCollisionList = this.tm.getKillZoneCollisions(tempState);
     numCollisions += kCollisionList.length;
-    chCollisionList = this.tm.getCheckpointCollisions(tempState, this.player.reachedCheckpoints);
+    chCollisionList = this.tm.getCheckpointCollisions(tempState, this.player.reachedCheckpointLines);
     numCollisions += chCollisionList.length;
     colCollisionList = this.tm.getCollectibleCollisions(tempState, this.player.alreadyCollected);
     numCollisions += colCollisionList.length;
@@ -1358,28 +1355,28 @@ PhysEng.prototype.attemptNormalStep = function (goalGameTime) {
       tCollisions = this.findRealLineCollisions(tCollisionList, this.player.time, goalGameTime);         // a bunch of TerrainCollisions hopefully?
       console.log("tCollisions", tCollisions);
       if (tCollisions && tCollisions.length > 0) {
-        events.push(this.turnTerrainCollisionsIntoEvent(tCollisions));
+        events.push(this.turnTerrainLineCollisionsIntoEvent(tCollisions));
       }
     }
     if (gCollisionList.length > 0) {
       gCollisions = this.findRealLineCollisions(gCollisionList, this.player.time, goalGameTime);         // a bunch of GoalCollisions hopefully?
       console.log("gCollisions", gCollisions);
       if (gCollisions && gCollisions.length > 0) {
-        events.push(this.turnGoalCollisionsIntoEvent(gCollisions));
+        events.push(this.turnGoalLineCollisionsIntoEvent(gCollisions));
       }
     }
     if (kCollisionList.length > 0) {
       kCollisions = this.findRealLineCollisions(kCollisionList, this.player.time, goalGameTime);         // a bunch of KillZoneCollisions hopefully?
       console.log("kCollisions", kCollisions);
       if (kCollisions && kCollisions.length > 0) {
-        events.push(this.turnKillZoneCollisionsIntoEvent(kCollisions));
+        events.push(this.turnKillLineCollisionsIntoEvent(kCollisions));
       }
     }
     if (chCollisionList.length > 0) {
       chCollisions = this.findRealLineCollisions(chCollisionList, this.player.time, goalGameTime);         // a bunch of CheckpointCollisions hopefully?
       console.log("chCollisions", chCollisions);
       if (chCollisions && chCollisions.length > 0) {
-        events.push(this.turnCheckpointCollisionsIntoEvent(chCollisions));
+        events.push(this.turnCheckpointLineCollisionsIntoEvent(chCollisions));
       }
     }
     if (colCollisionList.length > 0) {
@@ -1421,28 +1418,28 @@ PhysEng.prototype.attemptNormalStep = function (goalGameTime) {
         tCollisions = this.findRealLineCollisions(tCollisionList, this.player.time, goalGameTime);         // a bunch of TerrainCollisions hopefully?
         console.log("tCollisions", tCollisions);
         if (tCollisions && tCollisions.length > 0) {
-          events.push(this.turnTerrainCollisionsIntoEvent(tCollisions));
+          events.push(this.turnTerrainLineCollisionsIntoEvent(tCollisions));
         }
       }
       if (gCollisionList.length > 0) {
         gCollisions = this.findRealLineCollisions(gCollisionList, this.player.time, goalGameTime);         // a bunch of GoalCollisions hopefully?
         console.log("gCollisions", gCollisions);
         if (gCollisions && gCollisions.length > 0) {
-          events.push(this.turnGoalCollisionsIntoEvent(gCollisions));
+          events.push(this.turnGoalLineCollisionsIntoEvent(gCollisions));
         }
       }
       if (kCollisionList.length > 0) {
         kCollisions = this.findRealLineCollisions(kCollisionList, this.player.time, goalGameTime);         // a bunch of KillZoneCollisions hopefully?
         console.log("kCollisions", kCollisions);
         if (kCollisions && kCollisions.length > 0) {
-          events.push(this.turnKillZoneCollisionsIntoEvent(kCollisions));
+          events.push(this.turnKillLineCollisionsIntoEvent(kCollisions));
         }
       }
       if (chCollisionList.length > 0) {
         chCollisions = this.findRealLineCollisions(chCollisionList, this.player.time, goalGameTime);         // a bunch of CheckpointCollisions hopefully?
         console.log("chCollisions", chCollisions);
         if (chCollisions && chCollisions.length > 0) {
-          events.push(this.turnCheckpointCollisionsIntoEvent(chCollisions));
+          events.push(this.turnCheckpointLineCollisionsIntoEvent(chCollisions));
         }
       }
       if (colCollisionList.length > 0) {
@@ -1461,13 +1458,17 @@ PhysEng.prototype.attemptNormalStep = function (goalGameTime) {
   }
 
   if (events[0]) {
-    tempState = events[0].state;
+    if (events[0].state) {
+      tempState = events[0].state;
+    } else {
+      tempState = stepStateToTime(this.player, events[0].time);
+    }
   }
 
   var results = new StepResult(tempState, events);
-  //console.log("End attemptNormalStep, results", results);
-  //console.log("Events", events);
-  //console.groupEnd();
+  console.log("End attemptNormalStep, results", results);
+  console.log("Events", events);
+  console.groupEnd();
   return results;
 }
 
@@ -1603,7 +1604,7 @@ PhysEng.prototype.getArcEndEvent = function () {
   var arcDependencyMask = 0;
 
   console.log("        results: ", results);
-  if (results) {
+  if (results && results.state) {
     var endState = results.state;
 
     endArcEvent = new EndArcEvent(endState.time, arcDependencyMask, results.nextSurface);    //EndArcEvent(predictedTime, dependencyMask, nextSurface). nextSurface null for early arc ends.
@@ -2118,7 +2119,7 @@ PhysEng.prototype.findRealCircleCollisions = function (collisionList, minTime, m
   console.log("findRealCircleCollisions");
   console.group();
   //heap of possible line collisions and their times. 
-  var circleHeap = new MinHeap(null, function (e1, e2) {     //WHAT THE FUCK IS THIS FOR? I DONT REMEMBER CODING THIS I WAS SICK AS HELL RIP IN PIECES
+  var circleHeap = new MinHeap(null, function (e1, e2) {   
     if (!(e1.time >= 0)) {
       throw e1.time + " e1.time not >= 0";
     }
@@ -2149,10 +2150,11 @@ PhysEng.prototype.findRealCircleCollisions = function (collisionList, minTime, m
     console.log(circleHeap.pop());
   }
 
-  console.log("sorting possible collisions");
+  console.log("sorting possible collisions, circleHeap.size()", circleHeap.size());
+  console.log("circleHeap", circleHeap);
+  console.log("circleCollisions", circleCollisions);
   var foundCollision = false;
   var circleCollisions = nextHeapCollisions(circleHeap);
-  console.log("circleHeap", circleHeap);
 
   console.groupEnd();
   return circleCollisions;
@@ -2166,11 +2168,12 @@ PhysEng.prototype.findRealCircleCollisions = function (collisionList, minTime, m
  */
 function nextHeapCollisions(heap) {
   if (heap.size() > 0) {
-
+    console.log("in nextHeapCollisions(heap)");
     console.group();
     var collision = heap.pop();
     var collisions = new Array();
     collisions.push(collision);
+    console.log("first collision", collision);
     while (collision && collision.time === collisions[0].time) {
       if (collision && (!contains(collisions, collision))) {
         console.log("not dupe, adding ", collision);
@@ -2203,8 +2206,8 @@ function nextHeapCollisions(heap) {
  * Collisions are TerrainPoints and TerrainLines.
  * TODO decide how to handle line and point same time collisions. Go with line for now???
  */
-PhysEng.prototype.turnTerrainCollisionsIntoEvent = function (collisions) {
-  console.log("turnTerrainCollisionsIntoEvent");
+PhysEng.prototype.turnTerrainLineCollisionsIntoEvent = function (collisions) {
+  console.log("turnTerrainLineCollisionsIntoEvent");
   console.group();
   var event;
   var allowLock = true; //TODO CRITICAL NEED TO ACTUALLY CHECK LOCKING SHIT.
@@ -2286,17 +2289,76 @@ PhysEng.prototype.turnTerrainCollisionsIntoEvent = function (collisions) {
  * Collisions are TerrainPoints and TerrainLines.
  * TODO decide how to handle line and point same time collisions. Go with line for now???
  */
-PhysEng.prototype.turnCheckpointCollisionsIntoEvent = function (collisions) {
-  console.log("turnCheckpointCollisionsIntoEvent");
+PhysEng.prototype.turnCheckpointLineCollisionsIntoEvent = function (collisions) {
+  console.log("turnCheckpointLineCollisionsIntoEvent");
   console.group();
   var event;
-  var allowLock = true; //TODO CRITICAL NEED TO ACTUALLY CHECK LOCKING SHIT.
 
 
   var checkpoint = this.tm.checkpoints[collisions[0].surface.checkpointID];
-  var lines = getPolygonArrayFromLine(collisions[0].surface.checkpointID);
+  var lines = getPolygonArrayFromLine(collisions[0].surface);
   var event = new CheckpointEvent(collisions[0].time, collisions[0].state, checkpoint, lines);
-  
+
+  console.groupEnd();
+  return event;
+}
+
+
+
+/**
+ * This method takes a list of valid, already time validated collisions that occurred at the same time and decides what events need to happen.
+ * Collisions are TerrainPoints and TerrainLines.
+ * TODO decide how to handle line and point same time collisions. Go with line for now???
+ */
+PhysEng.prototype.turnGoalLineCollisionsIntoEvent = function (collisions) {
+  console.log("turnGoalLineCollisionsIntoEvent");
+  console.group();
+  var event;
+
+
+  var goal = this.tm.goals[collisions[0].surface.goalID];
+  var event = new GoalEvent(collisions[0].time, collisions[0].state, goal);
+
+  console.groupEnd();
+  return event;
+}
+
+
+
+/**
+ * This method takes a list of valid, already time validated collisions that occurred at the same time and decides what events need to happen.
+ * Collisions are TerrainPoints and TerrainLines.
+ * TODO decide how to handle line and point same time collisions. Go with line for now???
+ */
+PhysEng.prototype.turnKillLineCollisionsIntoEvent = function (collisions) {
+  console.log("turnKillLineCollisionsIntoEvent");
+  console.group();
+  var event;
+
+
+  var killZone = this.tm.killZones[collisions[0].surface.killZoneID];
+  var event = new DeathEvent(collisions[0].time, collisions[0].state, killZone);
+
+  console.groupEnd();
+  return event;
+}
+
+
+
+/**
+ * This method takes a list of valid, already time validated collisions that occurred at the same time and decides what events need to happen.
+ * Collisions are TerrainPoints and TerrainLines.
+ * TODO decide how to handle line and point same time collisions. Go with line for now???
+ */
+PhysEng.prototype.turnCollectibleCollisionsIntoEvent = function (collisions) {
+  console.log("turnCollectibleCollisionsIntoEvent");
+  console.group();
+  var event;
+
+
+  var collectible = this.tm.collectibles[collisions[0].circle.id];
+  var event = new CollectibleEvent(collisions[0].time, collisions[0].state, collectible);
+
   console.groupEnd();
   return event;
 }
