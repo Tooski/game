@@ -179,7 +179,7 @@ function MapEditor(level) {
       button.onClick(e);
 
 
-    }
+    }canvas.focus();
 
   }, false);
   c.addEventListener("mousemove", function (e) {
@@ -187,6 +187,7 @@ function MapEditor(level) {
     if (button && !button.isSelected && button.onDrag) {
       button.onDrag(e);
     }
+    canvas.focus();
   }, false);
 
   c.addEventListener("mouseup", function (e) {
@@ -194,7 +195,7 @@ function MapEditor(level) {
     if (button && button.onRelease) {
       button.onRelease(e);
     }
-    
+    canvas.focus();
   }, false);
 
 
@@ -207,17 +208,20 @@ function MapEditor(level) {
       button.onClick(e);
 
     }
+    canvas.focus();
   }, false);
   canvas.addEventListener("mousemove", function (e) {
     if (button && button.onDrag) {
       button.onDrag(e);
     }
+    canvas.focus();
   }, false);
 
   canvas.addEventListener("mouseup", function (e) {
     if (button && button.onRelease) {
       button.onRelease(e);
     }
+    canvas.focus();
   }, false);
 
 
