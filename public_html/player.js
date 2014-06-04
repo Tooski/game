@@ -13,12 +13,15 @@ function Player(x, y, timer) {
     this.runningSpeed = 0.01;
     this.boostSpeed = 0.06;
     this.jumpSpeed = 0.7;
-    this.idleAnimation = new Animation(ASSET_MANAGER.getAsset("assets/HamsterSprites.png"), 0, 0, 300, 300, 0.1, 1, true, false);
-    this.walkingAnimation = new Animation(ASSET_MANAGER.getAsset("assets/HamsterSprites.png"), 0, 300, 300, 300, this.walkingSpeed, 11, true, false);
+    this.idleAnimation = new Animation(ASSET_MANAGER.getAsset("assets/Spritesheet2.png"), 0, 0, 300, 300, 0.1, 1, true, false);
+    this.walkingAnimation = new Animation(ASSET_MANAGER.getAsset("assets/Spritesheet2.png"), 0, 300, 300, 300, this.walkingSpeed, 11, true, false);
     this.runningAnimation = new Animation(ASSET_MANAGER.getAsset("assets/HamsterSprites.png"), 0, 600, 300, 300, this.runningSpeed, 8, true, false);
     this.groundBoostAnimation = new Animation(ASSET_MANAGER.getAsset("assets/HamsterSprites.png"), 0, 900, 300, 300, this.boostSpeed, 4, false, false);
     this.jumpingAnimation = new Animation(ASSET_MANAGER.getAsset("assets/HamsterSprites.png"), 0, 1800, 300, 300, this.jumpSpeed, 2, false, false);
-    this.doubleJumpingAnimation = new Animation(ASSET_MANAGER.getAsset("assets/HamsterSprites.png"), 0, 1800, 300, 300, 0.1, 2, true, false);
+    this.airJumpAnimation = new Animation(ASSET_MANAGER.getAsset("assets/HamsterSprites.png"), 0, 1800, 300, 300, this.jumpSpeed, 2, false, false);
+    this.downBoostAnimation = new Animation(ASSET_MANAGER.getAsset("assets/HamsterSprites.png"), 0, 1800, 300, 300, this.jumpSpeed, 2, false, false);
+
+
     this.fallingAnimation = new Animation(ASSET_MANAGER.getAsset("assets/HamsterSprites.png"), 600, 900, 300, 300, 0.05, 1, true, false);
     this.boostTime = 0;
     this.facing = true;
@@ -249,7 +252,17 @@ Player.prototype.freeFall = function(ctx, scaleFactor) {
             this.model.pos.y - this.fallingAnimation.frameHeight / 2 * scaleFactor, scaleFactor, this.facing, this.model.animationAngle);
 };
 
+//airjump
+Player.prototype.airJump = function(ctx, scalFactor){
+    this.airJumpAnimation.drawFrame(this.timer.gameDelta, ctx, this.model.pos.x - this.airJumpAnimation.frameWidth / 2 * scaleFactor,
+            this.model.pos.y - this.airJumpAnimation.frameHeight / 2 * scaleFactor, scaleFactor, this.facing, this.model.animationAngle);
+};
 
+//downboost
+Player.prototype.downBoost = function(ctx, scalFactor){
+    this.downBoostAnimation.drawFrame(this.timer.gameDelta, ctx, this.model.pos.x - this.downBoostAnimation.frameWidth / 2 * scaleFactor,
+            this.model.pos.y - this.downBoostAnimation.frameHeight / 2 * scaleFactor, scaleFactor, this.facing, this.model.animationAngle);
+};
 /* 
  * To change this license header, choose License Headers in Project Properties.
  * To change this template file, choose Tools | Templates

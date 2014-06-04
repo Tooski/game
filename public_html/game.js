@@ -1103,6 +1103,7 @@ ASSET_MANAGER.queueDownload(IMPACT_JUMP);
 ASSET_MANAGER.queueDownload(IMPACT_BOOST);
 ASSET_MANAGER.queueDownload(IMPACT_DOWN_BOOST);
 ASSET_MANAGER.queueDownload(IMPACT_GROUND_JUMP);
+ASSET_MANAGER.queueDownload("assets/Spritesheet2.png");
 
 // array of game canvas...
 var GameCanvas = [];
