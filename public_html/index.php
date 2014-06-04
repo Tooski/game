@@ -14,8 +14,9 @@
         <link rel="stylesheet" type="text/css" href="css/about.css">
         <link rel="stylesheet" type="text/css" href="css/signup.css">
         <link rel="stylesheet" type="text/css" href="css/login_signup.css">
-		<link rel="stylesheet" type="text/css" href="css/exit_button.css">
-		<link rel="stylesheet" type="text/css" href="css/sign_up_button.css"
+        <link rel="stylesheet" type="text/css" href="css/exit_button.css">
+        <link rel="stylesheet" type="text/css" href="css/sign_up_button.css">
+        <link href='http://fonts.googleapis.com/css?family=Audiowide' rel='stylesheet' type='text/css'>
         <meta charset="utf-8" />
         <title>Game Project Shell</title>
         <script type="text/javascript" src="./canvasinput.min.js"></script>
@@ -86,16 +87,16 @@
         </div>
 
         <!--div for initial choice to login or sign up-->
-        <div class="outer-signup-container" id="choice_board" style= "display : none">
+        <div class="outer-signup-container" id="choice_board" style= "display :none">
             <div class="inner-header-container">
-
+                Hamster Storm!
             </div>
             <div class="inner-title-container">
-                <h2>Hamster Storm!</h2>
+                <h3>let's get started</h3>
             </div>
 
             <div class="inner-body-container">
-               <!-- <div id="error-fname"></div>-->
+                <!-- <div id="error-fname"></div>-->
                 <div class="button-holder">
                     <span class="input"><input type="button" name="login" id="login_button" onClick= "logInChoiceButtonAction()" value=" "/></span>
                 </div>
@@ -106,14 +107,14 @@
             </div>
         </div>
         <!--div for initial choice to login or sign up-->
-        
+
         <!--div for login-->	
         <div class="outer-signup-container" id="login_board" style= "display : none">
             <div>
-				<input type="button" id="ex_button" onClick= "displaySignUpLoginChoice()" value=" "/>
-			</div>
-			<div class="inner-header-container">
-				
+                <input type="button" id="ex_button" onClick= "displaySignUpLoginChoice()" value=" "/>
+            </div>
+            <div class="inner-header-container">
+
             </div>
             <div class="inner-title-container">
                 <h2>Hamster Storm!</h2>
@@ -138,9 +139,9 @@
 
         <!--div for user sign up-->
         <div class="outer-signup-container" id="sing-up-board" style= "display : none">
-		    <div>
-				<input type="button" id="ex_button" onClick= "displaySignUpLoginChoice()" value=" "/>
-			</div>
+            <div>
+                <input type="button" id="ex_button" onClick= "displaySignUpLoginChoice()" value=" "/>
+            </div>
             <div class="inner-header-container">
 
             </div>
