@@ -85,7 +85,7 @@ Animation.prototype.drawFrame = function (tick, ctx, x, y, scaleBy, flip, rotate
         //ctx.translate(this.frameWidth, this.frameHeight);
         ctx.rotate(rotateBy); }
 		ctx.scale(flip, 1);
-    ctx.drawImage(this.spriteSheet,
+		ctx.drawImage(this.spriteSheet,
                  index * this.frameWidth  + offset , vindex*this.frameHeight + this.startY,  // source from sheet
                this.frameWidth, this.frameHeight,
                - this.frameWidth*scaleBy / 2 , - this.frameHeight* scaleBy / 2,
@@ -141,6 +141,12 @@ Animation.prototype.drawFrameFreeze = function (tick, ctx, x, y, scaleBy, flip, 
 
         ctx.rotate(rotateBy); }
 		ctx.scale(flip, 1);
+		//boost.
+		if(this.elapsedTime <= this.totalTime / 1.3 ){
+		        ctx.drawImage(ASSET_MANAGER.getAsset(IMPACT_BOOST),  - this.frameWidth*scaleBy / 2 +50 , - this.frameHeight* scaleBy / 2,
+               this.frameWidth * scaleBy,
+                 this.frameHeight * scaleBy);
+		}
     ctx.drawImage(this.spriteSheet,
                  index * this.frameWidth  + offset , vindex*this.frameHeight + this.startY,  // source from sheet
                this.frameWidth, this.frameHeight,
