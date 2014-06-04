@@ -41,13 +41,13 @@ function Collectible(id, x, y, pointValue, radius) {
     console.log("_+_+_+_bad Collectible x or y.  x " + x + ", y " + y);
     //throw "_+_+_+_bad x or y in Collectible, see above";
   }
-  if (!pointValue && !pointValue === 0) {
+  if (!(parseInt(pointValue))) {
 
     console.log("_+_+_+_bad Collectible pointValue, " + pointValue);
     //throw "_+_+_+_bad point value in Collectible, see above";
   }
   vec2.apply(this, [x, y]); 		 // initializes this as a vec2 with parameters x and y.  this.x is now x, this.y is now y
-  this.pointValue = pointValue;	 // the value of this collectible? may not need
+  this.pointValue = parseInt(pointValue);	 // the value of this collectible? may not need
   this.id = id;
   this.radius = radius || DFLT_COLLECTIBLE_RADIUS;
   this.collected = false;
