@@ -70,6 +70,12 @@ function stepAngularStateToTime(aState, targetGameTime) {
   var angleDelta = (aState.aVel * deltaTime + aState.aAccel * deltaTime * deltaTime / 2) / aState.radius;
 
   var endAngle = aState.a + angleDelta;
+  while (endAngle >= TWO_PI) {
+    endAngle = endAngle - TWO_PI;
+  }
+  while (endAngle < 0) {
+    endAngle = endAngle + TWO_PI;
+  }
 
   var endVel = aState.aVel + aState.aAccel * deltaTime;
 
@@ -638,7 +644,12 @@ function getLineCollisionTime(state, line) {
 
 
 function getCircleCollisionTime(state, circle) {
-  return solveTimeToDistFromPoint(state.pos, state.vel, state.accel, circle, circle.radius + state.radius);
+  var time = solveTimeToDistFromPoint(state.pos, state.vel, state.accel, circle, circle.radius + state.radius);
+  if (time) {
+    return state.time + time;
+  } else {
+    return null;
+  }
 }
 
 
@@ -652,7 +663,11 @@ function getPointCollisionTime(state, point) { //copy pasta from below.
   var time = (rootsArray === null ? null : closestPositive(rootsArray[0], rootsArray[1]));
 
   //console.log("      solved time to dist from point. Time at:  ", time);
-  return state.time + time;
+  if (time === null) {
+    return null;
+  } else {
+    return state.time + time;
+  }
 }
 
 
@@ -925,16 +940,16 @@ function closestPositive(value1, value2) {
   var toReturn = null;
 
   //console.log("            Closest positive, ", "value1:  ", value1, "value2:  ", value2);
-  if (value1 == null && value2 > TIME_EPSILON) {      //handle nulls.
+  if (value1 == null && value2 > 0) {      //handle nulls.
     return value2;
-  } else if (value2 == null && value1 > TIME_EPSILON) {
+  } else if (value2 == null && value1 > 0) {
     return value1;
   }
 
 
 
-  if (value1 <= TIME_EPSILON) {            // is value1 negative?     //hackey bullshit to stop infinite looping???? TODO ????
-    if (value2 <= TIME_EPSILON) {
+  if (value1 <= 0) {            // is value1 negative?     //hackey bullshit to stop infinite looping???? TODO ????
+    if (value2 <= 0) {
       toReturn = null;        // NO VALID ROOT, BOTH ARE BACKWARDS IN TIME
       console.log("         NO VALID ROOT, BOTH ARE BACKWARDS IN TIME, v1: ", value1, ", v2: ", value2);
     } else {

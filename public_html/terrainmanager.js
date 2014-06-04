@@ -41,16 +41,16 @@ function Collectible(id, x, y, pointValue, radius) {
     console.log("_+_+_+_bad Collectible x or y.  x " + x + ", y " + y);
     //throw "_+_+_+_bad x or y in Collectible, see above";
   }
-  if (!pointValue && !pointValue === 0) {
+  if (!(parseInt(pointValue))) {
 
     console.log("_+_+_+_bad Collectible pointValue, " + pointValue);
     //throw "_+_+_+_bad point value in Collectible, see above";
   }
   vec2.apply(this, [x, y]); 		 // initializes this as a vec2 with parameters x and y.  this.x is now x, this.y is now y
-  this.pointValue = pointValue;	 // the value of this collectible? may not need
+  this.pointValue = parseInt(pointValue);	 // the value of this collectible? may not need
   this.id = id;
   this.radius = radius || DFLT_COLLECTIBLE_RADIUS;
-
+  this.collected = false;
 
   this.toJSON = function () {
     return { id: this.id, points: this.pointValue, x: this.x, y: this.y, radius: this.radius };
@@ -683,7 +683,7 @@ var CURRENT_LINE_COLOR = "#888800";
 var TEMP_COLOR = "#222222";
 
 TerrainManager.prototype.draw = function (ctx) {
-
+drawnList = [];
   ctx.miterLimit = 3;
   //  drawLineArray(ctx, this.currentLines, CURRENT_LINE_COLOR, DrawLine.lineWidth, LINE_JOIN, LINE_CAP);
 
@@ -695,14 +695,19 @@ TerrainManager.prototype.draw = function (ctx) {
   }
 
   if (this.terrainList && this.terrainList.length) {
-    drawLineArray(ctx, this.terrainList, TERRAIN_LINE_COLOR, LINE_WIDTH, LINE_JOIN, LINE_CAP);
+        drawLineArray(ctx, this.terrainList, TERRAIN_LINE_COLOR, LINE_WIDTH, LINE_JOIN, LINE_CAP);
+    
   }
 
 
 
   drawLineArray(ctx, this.killLines, KILL_LINE_COLOR, LINE_WIDTH, LINE_JOIN, LINE_CAP);
   drawLineArray(ctx, this.goalLines, GOAL_LINE_COLOR, LINE_WIDTH, LINE_JOIN, LINE_CAP);
-  drawLineArray(ctx, this.terrainLines, TERRAIN_LINE_COLOR, LINE_WIDTH, LINE_JOIN, LINE_CAP);
+  if(editMode) {
+    drawLineArray(ctx, this.terrainLines, TERRAIN_LINE_COLOR, LINE_WIDTH, LINE_JOIN, LINE_CAP);
+  } else {
+    fillLineArray(ctx, this.terrainLines, "#B69768", LINE_WIDTH, LINE_JOIN, LINE_CAP);
+  };
   this.drawCollectibles(ctx);
 
   if (editMode) {
@@ -828,7 +833,30 @@ function drawPolygons(ctx, polygons, color, lineWidth, lineJoin, lineCap) {
 
 
 
+function fillLineArray(ctx, lineArray, color, lineWidth, lineJoin, lineCap) {
+      ctx.save();
 
+  ctx.beginPath();
+  ctx.lineWidth = lineWidth;
+
+  ctx.lineJoin = lineJoin;
+  ctx.lineCap = lineCap;
+  ctx.strokeStyle = color;
+
+  lineArray.forEach(function (line) {
+    var foundLine = false;
+    for(var i = 0; i < drawnList.length; i++) {
+        if(drawnList[i] === line) {
+            foundLine = true;
+        }
+    }
+    if(!foundLine) {
+      drawFiller(ctx, line);
+    }
+      
+    
+});
+};
 
 function drawLineArray(ctx, lineArray, color, lineWidth, lineJoin, lineCap) {
   ctx.save();
@@ -841,6 +869,7 @@ function drawLineArray(ctx, lineArray, color, lineWidth, lineJoin, lineCap) {
   ctx.strokeStyle = color;
 
   lineArray.forEach(function (line) {
+
 
     ctx.moveTo(line.p0.x, line.p0.y);
     ctx.lineTo(line.p1.x, line.p1.y);
@@ -871,15 +900,94 @@ function drawLineArray(ctx, lineArray, color, lineWidth, lineJoin, lineCap) {
       //line.p1edit.x = line.p1.x;
       //line.p1edit.y = line.p1.y;
     }
-    if (editMode) {
-
-    }
+       
+   
   });
 
   ctx.stroke();
 
   ctx.restore();
 }
+
+var drawnList = [];
+
+function drawFiller(ctx, polygon) {
+
+  var rect = new Rectangle(Number.MAX_VALUE, Number.MAX_VALUE, Number.MIN_VALUE, Number.MIN_VALUE);
+  ctx.save();
+  ctx.beginPath();
+  fillTerrain(ctx, polygon, {}, rect, {});
+  ctx.closePath();
+  ctx.clip();
+  var img = ASSET_MANAGER.cache["assets/dirt.jpg"];
+  for (var x = rect.x1 ; x < rect.x2; x += img.width) {
+    for (var y = rect.y1; y < rect.y2; y += img.height) {
+      ctx.drawImage(img, x, y);
+    }
+  }
+    ctx.stroke();
+  ctx.restore();
+
+};
+
+
+function fillTerrain (ctx, terrain, visited, rect, visitedLine) {
+    drawnList.push(terrain);
+  if (rect.x1 > terrain.p0.x) rect.x1 = terrain.p0.x;
+  if (rect.x2 < terrain.p0.x) rect.x2 = terrain.p0.x;
+  if (rect.y1 > terrain.p0.y) rect.y1 = terrain.p0.y;
+  if (rect.y2 < terrain.p0.y) rect.y2 = terrain.p0.y;
+  if (rect.x1 > terrain.p1.x) rect.x1 = terrain.p1.x;
+  if (rect.x2 < terrain.p1.x) rect.x2 = terrain.p1.x;
+  if (rect.y1 > terrain.p1.y) rect.y1 = terrain.p1.y;
+  if (rect.y2 < terrain.p1.y) rect.y2 = terrain.p1.y;
+
+
+  visitedLine[terrain.id] = true;
+
+  var t0 = JSON.stringify(terrain.p0);
+  var t1 = JSON.stringify(terrain.p1);
+
+
+  if (visited.length === 0) {
+    ctx.moveTo(terrain.p0.x, terrain.p0.y);
+    visited[t0] = true;
+  }
+
+  if (!visited[t0]) ctx.lineTo(terrain.p0.x, terrain.p0.y);
+  else if (!visited[t1]) ctx.lineTo(terrain.p1.x, terrain.p1.y);
+
+  if (terrain.adjacent0 && !visitedLine[terrain.adjacent0.id]) {
+    var o0 = JSON.stringify(terrain.adjacent0.p0);
+    var o1 = JSON.stringify(terrain.adjacent0.p1);
+    if (!visited[t0] || !visited[t1]) {
+
+      if (t0 === o0 || t0 === o1) visited[t0] = true;
+      else if (t1 === o0 || t1 === o1) visited[t1] = true;
+
+
+
+      fillTerrain(ctx, terrain.adjacent0, visited, rect, visitedLine);
+    }
+  }
+  if (terrain.adjacent1 && !visitedLine[terrain.adjacent1.id]) {
+
+    var o0 = JSON.stringify(terrain.adjacent1.p0);
+    var o1 = JSON.stringify(terrain.adjacent1.p1);
+    if (!visited[t0] || !visited[t1]) {
+      if (t0 === o0 || t0 === o1) visited[t0] = true;
+      else if (t1 === o0 || t1 === o1) visited[t1] = true;
+
+
+
+
+      fillTerrain(ctx, terrain.adjacent1, visited, rect, visitedLine);
+    }
+  }
+
+};
+
+
 
 
 
@@ -976,7 +1084,7 @@ TerrainManager.prototype.drawCollectibles = function (ctx) {
   ctx.lineWidth = 6;
   ctx.beginPath();
   for (var i = 0; i < this.collectibles.length; i++) {
-    if (this.collectibles[i] && (editMode || !this.collected[i])) {
+    if (this.collectibles[i] && (editMode || !this.collectibles[i].collected)) {
       //console.log(this.collectibles[i]);
       ctx.moveTo(this.collectibles[i].x + this.collectibles[i].radius, this.collectibles[i].y)
       ctx.arc(this.collectibles[i].x, this.collectibles[i].y, this.collectibles[i].radius, 0, TWO_PI, false);

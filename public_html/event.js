@@ -31,6 +31,18 @@ E_NEXT_BIT *= 2;
 var E_POINT_COLLISION_MASK = E_NEXT_BIT;
 E_NEXT_BIT *= 2;
 
+var E_CHECKPOINT_MASK = E_NEXT_BIT;
+E_NEXT_BIT *= 2;
+
+var E_DEATH_MASK = E_NEXT_BIT;
+E_NEXT_BIT *= 2;
+
+var E_GOAL_MASK = E_NEXT_BIT;
+E_NEXT_BIT *= 2;
+
+var E_COLLECTIBLE_MASK = E_NEXT_BIT;
+E_NEXT_BIT *= 2;
+
 var E_PREDICTED_MASK = E_NEXT_BIT;
 E_NEXT_BIT *= 2;
 
@@ -50,9 +62,6 @@ var E_INPUT_MASK = E_NEXT_BIT;
 E_NEXT_BIT *= 2;
 
 var E_COLLECTIBLE_MASK = E_NEXT_BIT;
-E_NEXT_BIT *= 2;
-
-var E_GOAL_MASK = E_NEXT_BIT;
 E_NEXT_BIT *= 2;
 
 
@@ -82,20 +91,20 @@ Event.prototype.handler = function (physEng) {   // NEEDS TO BE OVERRIDDEN IN CH
 
 
 
-// Event class for the Goal Event. TODO IMPLEMENT, NEEDS TO STORE WHICH GOAL AND ANY OTHER RELEVENT VICTORY INFORMATION.
-function GoalEvent(eventTime, goalObject) { // eventTime is gameTime at which the event occurs.
-  Event.apply(this, [eventTime])
-  this.mask += E_GOAL_MASK;
+//// Event class for the Goal Event. TODO IMPLEMENT, NEEDS TO STORE WHICH GOAL AND ANY OTHER RELEVENT VICTORY INFORMATION.
+//function GoalEvent(eventTime, goalObject) { // eventTime is gameTime at which the event occurs.
+//  Event.apply(this, [eventTime])
+//  this.mask += E_GOAL_MASK;
 
-  this.goalObject = goalObject;
+//  this.goalObject = goalObject;
 
-  this.handler = function (physEng) {
-    var p = physEng.player;
-    p.completionState = new CompletionState(p, this.time, new State(p.time, p.radius, p.pos, p.vel, p.accel), this.goalObject.goalNumber, p.replay);
-  }
-}
-GoalEvent.prototype = new Event();
-//GoalEvent.prototype.constructor = GoalEvent;
+//  this.handler = function (physEng) {
+//    var p = physEng.player;
+//    p.completionState = new CompletionState(p, this.time, new State(p.time, p.radius, p.pos, p.vel, p.accel), this.goalObject.goalNumber, p.replay);
+//  }
+//}
+//GoalEvent.prototype = new Event();
+////GoalEvent.prototype.constructor = GoalEvent;
 
 
 
@@ -476,19 +485,19 @@ UnpauseEvent.prototype = new Event();
 
 
 
-// Event class for the Collectible Event when the player runs into a collectible. 
-function CollectibleEvent(eventTime) { // eventTime is gameTime at which the event occurs.
-  Event.apply(this, [eventTime])
-  this.mask += E_COLLECTIBLE_MASK;
+//// Event class for the Collectible Event when the player runs into a collectible. 
+//function CollectibleEvent(eventTime) { // eventTime is gameTime at which the event occurs.
+//  Event.apply(this, [eventTime])
+//  this.mask += E_COLLECTIBLE_MASK;
 
-  this.handler = function (physEng) {
-    var p = physEng.player;
-    physEng.updatePredicted();
-    return;     //TODO IMPLEMENT
-  }
-}
-CollectibleEvent.prototype = new Event();
-//CollectibleEvent.prototype.constructor = CollectibleEvent;
+//  this.handler = function (physEng) {
+//    var p = physEng.player;
+//    physEng.updatePredicted();
+//    return;     //TODO IMPLEMENT
+//  }
+//}
+//CollectibleEvent.prototype = new Event();
+////CollectibleEvent.prototype.constructor = CollectibleEvent;
 
 
 
@@ -520,16 +529,19 @@ function CheckpointEvent(gameTimeOfCollision, stateAtCollision, checkpoint, chec
   this.checkpoint = checkpoint;
   this.lines = checkpointLines;
   this.state = stateAtCollision;
+
+
+  this.handler = function (physEng) {
+    var that = this;
+    physEng.player.reachedCheckpoints.push(this.checkpoint);
+    this.lines.forEach(function (cpl) {
+      physEng.player.reachedCheckpointLines.push(cpl);
+    });
+    physEng.player.lastCheckpoint = this.checkpoint;
+  }
 }
 CheckpointEvent.prototype = new CollisionEvent();
-CheckpointEvent.handler = function (physEng) {
-  var that = this;
-  physEng.player.reachedCheckpoints.push(this.checkpoint);
-  this.lines.forEach(function (cpl) {
-    physEng.player.reachedCheckpointLines.push(cpl);
-  });
-  physEng.player.lastCheckpoint = this.checkpoint;
-}
+
 //CheckpointEvent.prototype.constructor = CheckpointEvent;
 
 
@@ -543,13 +555,15 @@ function DeathEvent(gameTimeOfCollision, stateAtCollision, deathZone) {
   this.mask += E_DEATH_MASK;
   this.deathZone = deathZone;
   this.state = stateAtCollision;
+
+
+  this.handler = function (physEng) {
+    var that = this;
+    physEng.player.respawn();
+    physEng.player.numDeaths++;
+  }
 }
 DeathEvent.prototype = new CollisionEvent();
-DeathEvent.handler = function (physEng) {
-  var that = this;
-  physEng.player.respawn();
-  physEng.player.numDeaths++;
-}
 //DeathEvent.prototype.constructor = DeathEvent;
 
 
@@ -563,13 +577,17 @@ function GoalEvent(gameTimeOfCollision, stateAtCollision, goal) {
   this.mask += E_GOAL_MASK;
   this.goal = goal;
   this.state = stateAtCollision;
+
+
+  this.handler = function (physEng) {
+    var that = this;
+    physEng.completionState.finished = true;
+    physEng.completionState.inReplay = false;
+    physEng.completionState.timeFinished = this.time;
+    physEng.completionState.replay = JSON.stringify(physEng.player.replay);
+  }
 }
 GoalEvent.prototype = new CollisionEvent();
-GoalEvent.handler = function (physEng) {
-  var that = this;
-  physEng.player.respawn();
-  physEng.player.numDeaths++;
-}
 //DeathEvent.prototype.constructor = DeathEvent;
 
 
@@ -583,14 +601,16 @@ function CollectibleEvent(gameTimeOfCollision, stateAtCollision, collectible) {
   this.mask += E_COLLECTIBLE_MASK;
   this.collectible = collectible;
   this.state = stateAtCollision;
+
+  this.handler = function (physEng) {
+    var that = this;
+    physEng.player.alreadyCollected.push(this.collectible);
+    physEng.tm.collected.push(this.collectible);
+    this.collectible.collected = true;
+    physEng.player.score += this.collectible.pointValue;
+  }
 }
 CollectibleEvent.prototype = new CollisionEvent();
-CollectibleEvent.handler = function (physEng) {
-  var that = this;
-  physEng.player.alreadyCollected.push(this.collectible);
-  physEng.tm.collected.push(this.collectible);
-  physEng.player.score += this.collectible.pointValue;
-}
 //CollectibleEvent.prototype.constructor = CollectibleEvent;
 
 
@@ -880,7 +900,7 @@ function TerrainPointCollisionEvent(gameTimeOfCollision, terrainPointCollidedWit
     //console.log("this.tp.line1: ", this.tp.line1);
     for (var i = 0; i < this.terrainLines.length; i++) {
       if (this.terrainLines[i] && this.terrainLines[i] instanceof TerrainLine) {
-        p.arcTangentSurfaces.push(this.terrainLines[i]);
+        //p.arcTangentSurfaces.push(this.terrainLines[i]);
       }
     }
     p.startArc(this.tp, this.normalVec.angle(), this.normalVec);
