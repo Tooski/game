@@ -82,7 +82,7 @@ function Goal(id) {
 
   this.toJSON = function () {
     var formattedObj = { id: this.id };
-    return JSON.stringify(formattedObj);
+    return formattedObj;
   }
 }
 
@@ -188,14 +188,12 @@ function TerrainManager() {
     var ps = pointString(point);
     var mapPoint = this.pointMap[ps];
     if (mapPoint) {
-      console.log("mapPoint true ", mapPoint);
       return mapPoint;
     } else {
       var newID = this.getNextPointNumber();
       var linePoint = new LinePoint(newID, point.x, point.y);
       this.pointMap[ps] = linePoint;
       this.points[newID] = linePoint;
-      console.log("mapPoint false, creating and returning linepoint", linePoint);
       return linePoint;
     }
   }
@@ -1125,7 +1123,6 @@ TerrainManager.prototype.loadFromJSON = function (obj) {
  * Loads the points from an array of saved JSON.
  */
 TerrainManager.prototype.loadPoints = function (points) {
-  console.log("points: ", points);
   var that = this;
   points.forEach(function (point) {
     if (point) {
@@ -1133,7 +1130,6 @@ TerrainManager.prototype.loadPoints = function (points) {
       that.points[p.id] = p;
       that.pointMap[pointString(p)] = p;
     } else {
-      console.log("!point???? ", point);
     }
   });
 }
@@ -1146,14 +1142,12 @@ TerrainManager.prototype.loadPoints = function (points) {
  * Loads the checkpoints from an array of saved JSON.
  */
 TerrainManager.prototype.loadCheckpoints = function (checkpoints) {
-  console.log("checkpoints: ", checkpoints);
   var that = this;
   checkpoints.forEach(function (checkpoint) {
     if (checkpoint) {
       var cp = new Checkpoint(checkpoint.id, checkpoint.x, checkpoint.y);
       that.checkpoints[cp.id] = cp;
     } else {
-      console.log("!checkpoint???? ", checkpoint);
     }
   });
 }
@@ -1166,14 +1160,12 @@ TerrainManager.prototype.loadCheckpoints = function (checkpoints) {
  * Loads the goals from an array of saved JSON.
  */
 TerrainManager.prototype.loadGoals = function (goals) {
-  console.log("goals: ", goals);
   var that = this;
   goals.forEach(function (goal) {
     if (goal) {
       var g = new Goal(goal.id);
       that.goals[g.id] = g;
     } else {
-      console.log("!goal???? ", goal);
     }
   });
 }
@@ -1186,14 +1178,12 @@ TerrainManager.prototype.loadGoals = function (goals) {
  * Loads the killZones from an array of saved JSON.
  */
 TerrainManager.prototype.loadKillZones = function (killZones) {
-  console.log("killZones: ", killZones);
   var that = this;
   killZones.forEach(function (killZone) {
     if (killZone) {
       var k = new KillZone(killZone.id);
       that.killZones[k.id] = k;
     } else {
-      console.log("!killZone???? ", killZone);
     }
   });
 }
@@ -1205,14 +1195,12 @@ TerrainManager.prototype.loadKillZones = function (killZones) {
  * Loads the collectibles from an array of saved JSON.
  */
 TerrainManager.prototype.loadCollectibles = function (collectibles) {
-  console.log("collectibles: ", collectibles);
   var that = this;
   collectibles.forEach(function (collectible) {
     if (collectible) {
       var c = new Collectible(collectible.id, collectible.x, collectible.y, collectible.pointValue, collectible.radius);
       that.collectibles[c.id] = c;
     } else {
-      console.log("!collectible???? ", collectible);
     }
   });
 }
@@ -1222,7 +1210,6 @@ TerrainManager.prototype.loadCollectibles = function (collectibles) {
 
 
 TerrainManager.prototype.loadTerrainLines = function (tLines) {
-  console.log("tLines: ", tLines);
   var polygonsDiscovered = {};
   var that = this;
   tLines.forEach(function (ter) {
@@ -1246,7 +1233,6 @@ TerrainManager.prototype.loadTerrainLines = function (tLines) {
 
 
 TerrainManager.prototype.loadKillLines = function (kLines) {
-  console.log("kLines: ", kLines);
   var polygonsDiscovered = {};
   var that = this;
   kLines.forEach(function (kl) {
@@ -1270,7 +1256,6 @@ TerrainManager.prototype.loadKillLines = function (kLines) {
 
 
 TerrainManager.prototype.loadGoalLines = function (gLines) {
-  console.log("gLines: ", gLines);
   var polygonsDiscovered = {};
   var that = this;
   gLines.forEach(function (gl) {
@@ -1295,7 +1280,6 @@ TerrainManager.prototype.loadGoalLines = function (gLines) {
 
 
 TerrainManager.prototype.loadCheckpointLines = function (cpLines) {
-  console.log("cpLines: ", cpLines);
   var polygonsDiscovered = {};
   var that = this;
   cpLines.forEach(function (cpl) {
@@ -1316,45 +1300,6 @@ TerrainManager.prototype.loadCheckpointLines = function (cpLines) {
 
 
 
-//TerrainManager.prototype.loadTerrain = function (tList) {
-
-//}
-
-
-
-//TerrainManager.prototype.loadTerrain = function (tList) {
-
-//}
-
-
-
-//TerrainManager.prototype.loadTerrain = function (tList) {
-
-//}
-
-
-
-//TerrainManager.prototype.loadTerrain = function (tList) {
-
-//}
-
-
-
-//TerrainManager.prototype.loadTerrain = function (tList) {
-
-//}
-
-
-
-//TerrainManager.prototype.loadTerrain = function (tList) {
-
-//}
-
-
-
-//TerrainManager.prototype.loadTerrain = function (tList) {
-
-//}
 
 
 TerrainManager.prototype.getTerrainCollisions = function (ballstate, doNotCheck) {
