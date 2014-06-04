@@ -15,7 +15,7 @@ function Player(x, y, timer) {
     this.jumpSpeed = 0.7;
     this.idleAnimation = new Animation(ASSET_MANAGER.getAsset("assets/HamsterSprites.png"), 0, 0, 300, 300, 0.1, 1, true, false);
     this.walkingAnimation = new Animation(ASSET_MANAGER.getAsset("assets/HamsterSprites.png"), 0, 300, 300, 300, this.walkingSpeed, 11, true, false);
-    this.runningAnimation = new Animation(ASSET_MANAGER.getAsset("assets/HamsterSprites.png"), 0, 600, 300, 300, this.runningSpeed, 11, true, false);
+    this.runningAnimation = new Animation(ASSET_MANAGER.getAsset("assets/HamsterSprites.png"), 0, 600, 300, 300, this.runningSpeed, 8, true, false);
     this.groundBoostAnimation = new Animation(ASSET_MANAGER.getAsset("assets/HamsterSprites.png"), 0, 900, 300, 300, this.boostSpeed, 4, false, false);
     this.jumpingAnimation = new Animation(ASSET_MANAGER.getAsset("assets/HamsterSprites.png"), 0, 1800, 300, 300, this.jumpSpeed, 2, false, false);
     this.doubleJumpingAnimation = new Animation(ASSET_MANAGER.getAsset("assets/HamsterSprites.png"), 0, 1800, 300, 300, 0.1, 2, true, false);
@@ -25,10 +25,10 @@ function Player(x, y, timer) {
     this.model = null;
     this.timer = timer;
 
-    this.airJumpImage = new Animation(ASSET_MANAGER.getAsset("img/airJump.png"),0,0,300,300);
-    this.boostImage = new Animation(ASSET_MANAGER.getAsset("img/boost.png"),0,0,300,300);
-    this.groundJumpImage = new Animation(ASSET_MANAGER.getAsset("img/groundJump.png"),0,0,300,300);
-    this.downBoostImage = new Animation(ASSET_MANAGER.getAsset("img/downBoost.png"),0,0,300,300);
+  //  this.airJumpImage = new Animation(ASSET_MANAGER.getAsset("img/airJump.png"),0,0,300,300);
+ //   this.boostImage = new Animation(ASSET_MANAGER.getAsset("img/boost.png"),0,0,300,300);
+ //   this.groundJumpImage = new Animation(ASSET_MANAGER.getAsset("img/groundJump.png"),0,0,300,300);
+ //   this.downBoostImage = new Animation(ASSET_MANAGER.getAsset("img/downBoost.png"),0,0,300,300);
 }
 ;
 
@@ -230,6 +230,7 @@ Player.prototype.groundBoost = function(ctx, scaleFactor) {
     //console.log(" start y" + this.groundBoostAnimation.startY +", start x" + this.groundBoostAnimation.startX);
     this.groundBoostAnimation.drawFrameFreeze(this.timer.gameDelta, ctx, this.model.pos.x - this.groundBoostAnimation.frameWidth / 2 * scaleFactor,
             this.model.pos.y - this.groundBoostAnimation.frameHeight / 2 * scaleFactor, scaleFactor, this.facing, this.model.animationAngle);
+	
 };
 /**
  * player function to drwa frames for jumping from a surface animation.
