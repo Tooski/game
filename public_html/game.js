@@ -940,6 +940,7 @@ function pauseClicked(e) {
   } else if (restartButton.checkClicked()) {
     // written by Min -----
     currentLevel.loadFromFile(my_g_level_id);
+	gameEngine.initializePhysEng();
     canvas3.style.display = "none";
     canvas4.style.display = "none";
     //---------------
