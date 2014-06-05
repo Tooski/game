@@ -24,9 +24,9 @@ function displaySignUpLoginChoice(){
 
 function displayLogIN(){
 	document.getElementById('error-username-password').innerHTML = "";
-	document.getElementById('username').value = "";
+	//document.getElementById('username').value = "";
 	document.getElementById('password').value = "";
-	
+	document.getElementById('password').focus();
 	MY_STAGE_CANVAS.style.display = "none";
 	MY_GAME_MANU_CANVAS.style.display = "none";
 	document.getElementById("choice_board").style.display = "none";
