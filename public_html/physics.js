@@ -14,7 +14,7 @@ console.log('%c Oh my heavens! ', 'background: #222; color: #bada55');
 
 
 //IF FALSE, RUN NORMALLY
-var DEBUG_STEP =                                    false;
+var DEBUG_STEP =                                    true;
 
 //IF FALSE ONLY STEPS TO RENDEREVENTS
 var DEBUG_EVENT_AT_A_TIME =                         false && DEBUG_STEP; //only true if debug step is also true. Saves me the time of changing 2 variables to switch between normal state and debug state.
@@ -1768,7 +1768,7 @@ PhysEng.prototype.getSurfaceEndEvent = function () {
   if (nextSurfaceEvent) {
     //throw "lol";
   }
-  console.log("returning surfaceEvent", surfaceEvent);
+  console.log("returning nextSurfaceEvent", nextSurfaceEvent);
   console.groupEnd();
   return nextSurfaceEvent;
 }
