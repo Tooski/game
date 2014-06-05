@@ -1,5 +1,5 @@
 
-var my_user_name = null;
+var my_user_id = null || 1004;
 
 function logInButtonAction() {
     var input_user_name = document.getElementById("username").value;
@@ -8,8 +8,8 @@ function logInButtonAction() {
     game.settings.get({"command": "login",
         "data": {"username": input_user_name, "password": input_user_pass}}, function(callback) {
         console.log(callback);
-        if (callback === "1") {
-            my_user_name = input_user_name;
+        if (callback !== null) {
+            my_user_id = callback;
             displayMainMenu();
         } else {
             document.getElementById('error-username-password').innerHTML = "invalid name or password";

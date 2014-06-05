@@ -31,7 +31,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             break;
         case "insertScore":
             $stmt = mysqli_prepare($db, "INSERT INTO Scores VALUES(null, ?,?, ?, ?,?);");
-            mysqli_stmt_bind_param($stmt, "iiii", $_POST["data"]["userID"], $_POST["data"]["levelID"], $_POST["data"]["score"], $_POST["data"]["completetime"], $_POST["data"]["replay"]);
+            mysqli_stmt_bind_param($stmt, "iiiii", $_POST["data"]["userID"], $_POST["data"]["levelID"], $_POST["data"]["score"], $_POST["data"]["completetime"], $_POST["data"]["replay"]);
             //boolean result
             $result = mysqli_stmt_execute($stmt);
             echo $result;
@@ -43,67 +43,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $result = mysqli_stmt_execute($stmt);
             echo $result;
             break;
-        case "dropTable":
-            $stmt = mysqli_query($db,   "drop database HamsterGame;"+
-                                        "create database if not exists HamsterGame;"+
-                                        "use HamsterGame;"+
-                                        "drop table if exists HamsterGame.Users;"+
-                                        "create table if not exists HamsterGame.Users("+
-                                        "userID int auto_increment not null,"+
-                                        "lastname varchar(255) not null,"+
-                                        "firstname varchar(255) not null,"+
-                                        "username varchar(255) not null,"+
-                                        "password varchar(255) not null,"+
-                                        "email varchar(255) not null,"+
-                                        "primary key(userID)"+
-                                        ");"+
-                                        "drop table if exists HamsterGame.Stages;"+
-                                        "create table if not exists HamsterGame.Stages("+
-                                        "stageID int auto_increment not null,"+
-                                        "name varchar(255) not null,"+
-                                        "timestamp	datetime,"+
-                                        "primary key (stageID)"+
-                                        ");"+
-                                        "drop table if exists HamsterGame.Levels;"+
-                                        "create table if not exists HamsterGame.Levels("+
-                                        "levelID	int auto_increment not null,"+
-                                        "jsonstring text,"+
-                                        "levelname	varchar(255),"+
-                                        "timestamp	datetime,"+
-                                        "primary key(levelID)"+
-                                        ");"+
-                                        "drop table if exists HamsterGame.StageLevels;"+
-                                        "create table if not exists HamsterGame.StageLevels("+
-                                        "stageID int not null,"+
-                                        "levelID int not null, "+
-                                        "position int not null, "+
-                                        "foreign key (stageID) references Stages(stageID),"+
-                                        "foreign key (levelID) references Levels(levelID),"+
-                                        "primary key (stageID, levelID)"+
-                                        ");"+
-                                        "drop table if exists HamsterGame.Scores;"+
-                                        "create table if not exists HamsterGame.Scores("+
-                                        "scoreID int auto_increment not null,"+
-                                        "userID  int not null, "+
-                                        "levelID  int not null,"+
-                                        "score	int not null,"+
-                                        "completetime	time not null,"+
-                                        "replay	text,"+
-                                        "foreign key (userID) REFERENCES Users(userID),"+
-                                        "foreign key (levelID) REFERENCES Levels(levelID),"+
-                                        "primary key (scoreID)"+
-                                        ");"+
-                                        "drop table if exists HamsterGame.UserLevels;"+
-                                        "create table if not exists HamsterGame.UserLevels("+
-                                        "userlevelID	int	auto_increment not null,"+
-                                        "userID	int not null,"+
-                                        "jsonstring text not null,"+
-                                        "rating	int,"+
-                                        "popularity	int,"+
-                                        "foreign key (userID) REFERENCES Users(userID),"+
-                                        "primary key (userlevelID)"+
-                                        ");");
-
 
     }
 } else if ($_SERVER['REQUEST_METHOD'] === 'GET') {
@@ -127,16 +66,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 echo json_encode(stripslashes($str));
             }
             break;
+
+
         case "login":
-            $stmt = mysqli_prepare($db, "SELECT EXISTS(select * from Users where username = ? and password = ?);");
+            $stmt = mysqli_prepare($db, "SELECT Users.userID from Users where username = ? and password = ?;");
             mysqli_stmt_bind_param($stmt, "ss", $_GET["data"]["username"], $_GET["data"]["password"]);
             mysqli_stmt_execute($stmt);
 
             mysqli_stmt_bind_result($stmt, $rslt);
+            /* fetch values */
             while ($stmt->fetch()) {
                 echo $rslt;
             }
             break;
+
+
         case "checkEmail":
             $stmt = mysqli_prepare($db, "SELECT EXISTS(select * from Users where email = ?);");
             mysqli_stmt_bind_param($stmt, "s", $_GET["data"]["email"]);
