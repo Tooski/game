@@ -487,7 +487,7 @@ function getNextSurfaceData(state, surface) {
   var data = null;
   var time0 = null;
   var time1 = null;
-
+  console.group("getNextSurfaceData, pay attention to me you fucker");
   // concave result { concave: t / f, angle } where angle in radians from this surface to next surface surface. the closer to Math.PI the less the angle of change between surfaces.
   var concRes0 = getLineLineConcavity(surface, surface.adjacent0, state.position);
   var concRes1 = getLineLineConcavity(surface, surface.adjacent1, state.position);
@@ -508,19 +508,19 @@ function getNextSurfaceData(state, surface) {
   if (closestPos === undefined || closestPos === null) {
     //throw "yay null this might be okay but have an exception anyway!";
   } else if (closestPos === time0) {
-    //console.log("closestPos: ", closestPos);
-    //console.log("concRes0: ", concRes0);
-    //console.log("time0: ", time0);
+    console.log("closestPos: ", closestPos);
+    console.log("concRes0: ", concRes0);
+    console.log("time0: ", time0);
     data = { adjNumber: 0, time: state.time + time0, angle: concRes0.angle };
   } else if (closestPos === time1) {
-    //console.log("closestPos: ", closestPos);
-    //console.log("concRes1: ", concRes1);
-    //console.log("time1: ", time1);
+    console.log("closestPos: ", closestPos);
+    console.log("concRes1: ", concRes1);
+    console.log("time1: ", time1);
     data = { adjNumber: 1, time: state.time + time1, angle: concRes1.angle };
   } else {
     throw "what the balls man, closest positive isnt time0, time1, or null???";
   }
-
+  console.groupEnd();
   return data;
 }
 
@@ -688,8 +688,7 @@ function solveTimeToDistFromPoint(curPos, curVel, accel, targetPos, distanceGoal
  * Solves the time it will take a ball from curPos to reach the specified distance from the line.
  */
 function solveTimeToDistFromLine(curPos, curVel, accel, targetLine, distanceGoal) {
-  console.log("solving time to dist from line, ");
-  console.group();
+  console.group("solving time to dist from line, ");
   console.log("curPos {", curPos.x, curPos.y, "}   curVel {", curVel.x, curVel.y, "}   accel {", accel.x, accel.y, "}");
   console.log("targetLine", targetLine);
   console.log("distanceGoal ", distanceGoal);

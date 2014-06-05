@@ -785,7 +785,7 @@ PlayerModel.prototype.arcTo = function (surface) {
   console.log("ACCELERATING???", isAccelerating);
   console.log("player ang", this.a);
   console.log("surface norm ang", surface.normal.sangle());
-  console.log("difference", this.a - surface.normal.sangle());
+  console.log("difference", this.a - surface.normal.sangle(), "should be near 0 :|");
   //console.log(" / / / /        difference", this.a - surface.normal.sangle());
   console.log(" ");
   //var cartesianState = convertAngularToNormalState(this);
@@ -1521,15 +1521,16 @@ PhysEng.prototype.updatePredicted = function () {           //TODO FINISH
   if (this.player.onPoint) {
     // we know player is currently rounding point.
     //console.log("!i!i!i!i!i!i    this.player.onPoint evaluates true, this.player: ", this.player);
-    console.log("!i!i!i!i!i!i    this.player.onPoint evaluates true, this.player.point: ", this.player.point);
+    console.log("this.player.onPoint evaluates true, this.player.point: ", this.player.point);
     var endArcEvent = this.getArcEndEvent();    
-    console.log("!i!i!i!i!i!i    pushing new endArcEvent: ", endArcEvent);
+    console.log("pushing new endArcEvent: ", endArcEvent);
 
     this.predictedEventHeap.push(endArcEvent);
   } else if (this.player.onSurface) {
+    console.log("this.player.onSurface evaluates to true, this.player.surface", this.player.surface);
     var surfaceEndEvent = this.getSurfaceEndEvent();
     if (surfaceEndEvent) {
-      console.log("!i!i!i!i!i!i    adding surfaceEndEvent to predictedEvents. Event: ", surfaceEndEvent);
+      console.log("adding surfaceEndEvent to predictedEvents. Event: ", surfaceEndEvent);
       this.predictedEventHeap.push(surfaceEndEvent);
     }
   }
@@ -1632,11 +1633,12 @@ PhysEng.prototype.getSurfaceEndEvent = function () {
   if (this.player.onPoint) {
     throw "shouldnt be in getSurfaceEndEvent when locked to a point.";
   }
+  console.group("getSurfaceEndEvent");
   /* returns { adjNumber: 0 or 1, time, angle } where angle in radians from this surface to next surface surface. the closer to Math.PI the less the angle of change between surfaces.
    * null if none in positive time or both not concave.*/
   var adjData = getNextSurfaceData(this.player, this.player.surface);
   var adjDependencyMask = 0;
-
+  console.log(" == == == == == == == adjData", adjData);
 
   //second, find the time that we will reach the end of the surface.
   //returns { pointNumber: 0 or 1, time }
@@ -1653,28 +1655,28 @@ PhysEng.prototype.getSurfaceEndEvent = function () {
 
   if (adjData && (adjData.time || adjData.time === 0)) {
     if (endPointData && (endPointData.time || endPointData.time === 0)) {
-      console.log("-=-=-=-=-=-=  endpointData AND adjData. Should be adjData, but testing shit below to ensure nothing is wrong. ");
+      console.group("endpointData AND adjData. Should be adjData, but testing shit below to ensure nothing is wrong. ");
 
       var endPointState = stepStateToTime(this.player, endPointData.time);
       var adjDataState = stepStateToTime(this.player, adjData.time);
 
-      this.player.print("- =-= - =-= - =-=  ");
+      this.player.print("");
 
       console.log("");
-      console.log("-=-=-=-=-=-=  endPointData ", endPointData);
-      console.log("-=-=-=-=-=-=  endPointAngle ", endPointAngle);
-      console.log("-=-=-=-=-=-=  adjData ", adjData);
+      console.log("endPointData ", endPointData);
+      console.log("endPointAngle ", endPointAngle);
+      console.log("adjData ", adjData);
 
 
       console.log("");
-      console.log("- =-= - =-= - =-=  adjDataState");
-      adjDataState.print("- =-= - =-= - =-=  ");
-      console.log("- =-= - =-= - =-=  endPointState");
-      endPointState.print("- =-= - =-= - =-=  ");
+      console.log("adjDataState");
+      adjDataState.print("");
+      console.log("endPointState");
+      endPointState.print("");
 
       console.log("");
       var isAccelerating = ((this.player.onSurface && this.player.vel.length() > 0) || (this.player.onPoint && this.player.aVel !== 0));
-      console.log("-=-=-=-=-=-=  ACCELERATING???", isAccelerating);
+      console.log("ACCELERATING???", isAccelerating);
       console.log("distance from current surface when collision happens with adjacent line: " + getDistFromLine(adjDataState.pos, this.player.surface));
       console.log("distance from adj line when collision happens with adjacent line: " + getDistFromLine(adjDataState.pos, (adjData.adjNumber === 0 ? this.player.surface.adjacent0 : this.player.surface.adjacent1)));
       console.log("distance from current surface when collision happens with point: " + getDistFromLine(endPointState.pos, this.player.surface));
@@ -1684,12 +1686,12 @@ PhysEng.prototype.getSurfaceEndEvent = function () {
 
 
       if (adjData.adjNumber === endPointData.pointNumber) {
-        // use the adjacent surface for the event. It was concave, doesnt matter what time it supposedly comes at.
+        console.group("use the adjacent surface for the event. It was concave, doesnt matter what time it supposedly comes at.");
         if (adjData.time > endPointData.time) {
           //console.log("adjData.time, ", adjData.time, "endPointData.time, ", endPointData.time);
           //DEBUG_DRAW_GREEN.push(new DebugCircle(adjDataState.pos, this.player.radius, 5));
 
-          console.log("- =-= - =-= - =-=  gray thing");
+          console.log("gray thing");
           if (this.player.onPoint) {
             throw "bullshit"
           }
@@ -1699,21 +1701,18 @@ PhysEng.prototype.getSurfaceEndEvent = function () {
         //handle me.
         nextSurfaceEvent = new SurfaceToSurfaceEvent(adjData.time, adjDependencyMask, this.player.surface, (adjData.adjNumber === 0 ? this.player.surface.adjacent0 : this.player.surface.adjacent1), adjData.angle, true);
         //DEBUG_DRAW_GREEN.push(new DebugCircle(adjDataState.pos, this.player.radius, 5));
+        console.groupEnd();
       } else {
-        console.log("");
-        console.log("");
-        console.log("");
-        console.log(" ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ");
-        console.log("-=-=-=-=-=-=   endpoint and adjSurface are on opposite ends. Event whichever is soonest. ");
+        console.group("endpoint and adjSurface are on opposite ends. Event whichever is soonest. ");
         // endpoint and adjSurface are on opposite ends. Event whichever is soonest.
         if (adjData.time < endPointData.time) {
           // use adjacent.
-          console.log("-=-=-=-=-=-=-=   using adjacent");
+          console.log("using adjacent");
           nextSurfaceEvent = new SurfaceToSurfaceEvent(adjData.time, adjDependencyMask, this.player.surface, (adjData.adjNumber === 0 ? this.player.surface.adjacent0 : this.player.surface.adjacent1), adjData.angle, true);
           //DEBUG_DRAW_GREEN.push(new DebugCircle(adjDataState.pos, this.player.radius, 5));
         } else {
           // use endpoint.
-          console.log("-=-=-=-=-=-=-=   using endpoint");
+          console.log("using endpoint");
           if (this.player.onPoint) {
             throw "bullshit"
           }                         //(adjData.time, adjDependencyMask, this.player.surface, (adjData.adjNumber === 0 ? this.player.surface.adjacent0 : this.player.surface.adjacent1), adjData.angle, true);
@@ -1725,75 +1724,52 @@ PhysEng.prototype.getSurfaceEndEvent = function () {
         console.log("");
         console.log("");
         console.log("");
+        console.groupEnd();
       }
 
       console.log("");
       console.log("");
       console.log("");
+      console.groupEnd();
     } else {
       // no endPointData, use adjacent.
       throw "did we ever get here?";
-      console.log("  ??   ??   ??   ??   ??   ??   ??   ??   ??   ??   ??   ??   ??   ??   ??   ??   ??   ??   ??   ??   ??   ??   ??   ??  ");
-      console.log("  ??   ??   ??   ??   ??   ??   ??   ??   ??   ??   ??   ??   ??   ??   ??   ??   ??   ??   ??   ??   ??   ??   ??   ??  ");
-      console.log("-=-=-=-=-=-=  no endpoint data, using adjacent ");
 
-      var adjDataState = stepStateToTime(this.player, adjData.time);
-
-      this.player.print("- =-= - =-= - =-=  ");
-
-      console.log("");
-      console.log("-=-=-=-=-=-=  adjData ", adjData);
-
-
-      console.log("");
-      console.log("- =-= - =-= - =-=  adjDataState");
-      adjDataState.print("- =-= - =-= - =-=  ");
-
-      console.log("");
-      var isAccelerating = ((this.player.onSurface && this.player.vel.length() > 0) || (this.player.onPoint && this.player.aVel !== 0));
-      console.log("-=-=-=-=-=-=  ACCELERATING???", isAccelerating);
-      console.log("distance from current surface when collision happens with adjacent line: " + getDistFromLine(adjDataState.pos, this.player.surface));
-      console.log("distance from adj line when collision happens with adjacent line: " + getDistFromLine(adjDataState.pos, (adjData.adjNumber === 0 ? this.player.surface.adjacent0 : this.player.surface.adjacent1)));
-
-      console.log("");
-
-      nextSurfaceEvent = new SurfaceToSurfaceEvent(adjData.time, adjDependencyMask, this.player.surface, (adjData.adjNumber === 0 ? this.player.surface.adjacent0 : this.player.surface.adjacent1), adjData.angle, true);
-      //DEBUG_DRAW_GREEN.push(new DebugCircle(adjDataState.pos, this.player.radius, 5));
     }
   } else if (endPointData && (endPointData.time || endPointData.time === 0)) {
-    // no adjData, use endPointData.
+    console.group("no adjData, use endPointData.");
 
     var endPointState = stepStateToTime(this.player, endPointData.time);
-    console.log("-=-=-=-=-=-=  no adjData, using endPoint ");
+    console.log("no adjData, using endPoint ");
 
     this.player.print("- =-= - =-= - =-=  ");
 
     console.log("");
-    console.log("-=-=-=-=-=-=  endPointData ", endPointData);
-    console.log("-=-=-=-=-=-=  endPointAngle ", endPointAngle);
+    console.log("endPointData ", endPointData);
+    console.log("endPointAngle ", endPointAngle);
 
 
-    console.log("- =-= - =-= - =-=  endPointState");
-    endPointState.print("- =-= - =-= - =-=  ");
+    console.log("endPointState");
+    endPointState.print("");
 
     console.log("");
     var isAccelerating = ((this.player.onSurface && this.player.vel.length() > 0) || (this.player.onPoint && this.player.aVel !== 0));
-    console.log("-=-=-=-=-=-=  ACCELERATING???", isAccelerating);
+    console.log("ACCELERATING???", isAccelerating);
     console.log("distance from current surface when collision happens with point: " + getDistFromLine(endPointState.pos, this.player.surface));
 
     console.log("");
 
-    console.log("- =-= - =-= - =-=  gray thing");
-    console.log("- =-= - =-= - =-=  endPointState", endPointState);
     nextSurfaceEvent = new SurfaceEndEvent(endPointData.time, endPointDependencyMask, this.player.surface, (endPointData.pointNumber === 0 ? this.player.surface.adjacent0 : this.player.surface.adjacent1), (endPointData.pointNumber === 0 ? this.player.surface.p0 : this.player.surface.p1), endPointAngle, true)
     //DEBUG_DRAW_GRAY.push(new DebugCircle(endPointState.pos, this.player.radius, 5));
+    console.groupEnd();
   } else {
     throw "hi, no valid surface event???";
   }
   if (nextSurfaceEvent) {
     //throw "lol";
   }
-
+  console.log("returning surfaceEvent", surfaceEvent);
+  console.groupEnd();
   return nextSurfaceEvent;
 }
 
@@ -2534,7 +2510,7 @@ PhysEng.prototype.drawDebug = function (ctx) {
     for (var i = 0; i < this.predictedEventHeap.size() ; i++) {
       //throw "balls";
       var event = this.predictedEventHeap.heap[i];
-      console.log("predictedEventHeap.heap[" + i + "]: ", event);
+      //console.log("predictedEventHeap.heap[" + i + "]: ", event);
       var tempState = stepStateToTime(this.player, event.time);
       if (tempState instanceof AngularState) {
         tempState = convertAngularToNormalState(tempState);

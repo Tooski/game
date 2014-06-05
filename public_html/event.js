@@ -897,10 +897,10 @@ TerrainPointCollisionEvent.prototype.constructor = TerrainPointCollisionEvent;
  * @param predictedTime     the gametime at which the event will occur.
  * @param dependencyMask    used to bitwise and shit for predictions that are only affected by specific things. MAY NOT USE?
  */
-function SurfaceToSurfaceEvent(predictedTime, dependencyMask, surface, nextSurface, angle, allowLock) { // predictedTime should be gameTime since last frame, the time the physics engine should complete up to before rendering.
+function SurfaceToSurfaceEvent(predictedTime, dependencyMask, surfaceOn, nextSurface, angle, allowLock) { // predictedTime should be gameTime since last frame, the time the physics engine should complete up to before rendering.
   PredictedEvent.apply(this, [predictedTime, dependencyMask]);
-
-  this.surface = surface;
+  console.log("SurfaceToSurfaceEvent constructor!");
+  this.surface = surfaceOn;
   this.nextSurface = nextSurface;
   this.angle = angle;
   this.allowLock = allowLock;
@@ -1019,7 +1019,7 @@ function SurfaceEndEvent(predictedTime, dependencyMask, surface, nextSurface, en
 
 
     p.startArc(this.point, this.arcAngle, this.surface.normal);
-    p.arcTangentSurfaces.push(this.nextSurface);
+    //p.arcTangentSurfaces.push(this.nextSurface);
     return;
   }
 }
@@ -1042,7 +1042,7 @@ function EndArcEvent(predictedTime, dependencyMask, nextSurface) { // predictedT
     var p = physEng.player;
 
     if (this.nextSurface) {
-      console.log("  ++++++++  p.arcTo(this.nextSurface)         ++++");
+      console.log("  ++++++++  p.arcTo(this.nextSurface), this.nextSurface", this.nextSurface);
       p.arcTo(this.nextSurface);
     } else {
       console.log("  ++++++++  p.arcTo(null)     ++++++++");

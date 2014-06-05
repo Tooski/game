@@ -10,9 +10,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         case "updatelevel":
             echo "poop";
             $stmt = mysqli_prepare($db, "UPDATE Levels SET jsonstring = ? WHERE levelID = ?;");
+            $stmt2 = mysqli_prepare($db, "DELETE FROM Scores WHERE levelID = ?;");
             mysqli_stmt_bind_param($stmt, "ss", $_POST["data"]["jsonstring"], $_POST["data"]["levelid"]);
             mysqli_stmt_execute($stmt);
-
+            mysqli_stmt_bind_param($stmt2, "s", $_POST["data"]["levelid"]);
+            mysqli_stmt_execute($stmt2);
             break;
         case "savelevel":
             $stmt = mysqli_prepare($db, "INSERT INTO Levels (jsonstring, levelname) VALUES (?, ?);");
