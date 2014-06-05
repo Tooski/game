@@ -610,7 +610,8 @@ GameEngine.prototype.update = function () {
         console.log("Finished level!!!! results", results);
         this.gameOver = true;
 
-
+ 
+        gameOver(results.score, results.timeFinished, results.replay, results.cnumCollectibles, results.deaths);
 
       }
     }
