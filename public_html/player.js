@@ -36,7 +36,7 @@ function Player(x, y, timer) {
 ;
 
 
-
+var can_double_jump = false;
 Player.prototype = new Entity();
 Player.prototype.update = function() {
 	
@@ -56,7 +56,7 @@ Player.prototype.update = function() {
 		this.model.animationDoubleJumping = false;
 		this.model.animationFreefall = false;
 		this.model.animationDownBoosting = false;
-		
+		can_double_jump  = false;
 		this.model.animationWalking = true;
 		
 		
@@ -81,7 +81,7 @@ Player.prototype.update = function() {
 			this.model.animationBoosting = true;
 			this.groundBoostAnimation.elapsedTime = 0;
 			this.boostTime = 0;
-		} else if (this.inputs.jumpPressed) {
+		} else if (this.inputs.jumpPressed && !this.model.animationGroundJumping) {
 			// first jump
 		
 				this.model.animationBoosting = false;
@@ -112,7 +112,7 @@ Player.prototype.update = function() {
 		this.model.animationRunning = false;
 		this.model.animationStanding = false;
 		
-		console.log("000000000000000000000000000000000000" + this.inputs.jumpPressed);
+		//console.log("000000000000000000000000000000000000" + this.inputs.jumpPressed);
 		if(this.inputs.boostPressed && !this.model.animationDownBoosting){	 // for down boost....
 		//console.log("eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee");
 			this.model.animationDownBoosting = true;
@@ -132,8 +132,8 @@ Player.prototype.update = function() {
 				this.model.animationGroundJumping = true;
 				this.jumpingAnimation.elapsedTime = 0;
 				this.airJumpAnimation.elapsedTime = 0;
-			}else if(!this.model.animationDoubleJumping){
-			//console.log("jjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjj");
+			}else if(!this.model.animationDoubleJumping && can_double_jump ){
+			console.log("jjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjj");
 				this.model.animationDoubleJumping = true;
 				this.model.animationFreefall = false;
 				this.airJumpAnimation.elapsedTime = 0;
@@ -143,7 +143,7 @@ Player.prototype.update = function() {
 
 		if(this.model.animationDoubleJumping){
 			if (this.airJumpAnimation.isWillDone(this.timer.gameDelta)) {
-
+				can_double_jump  = false;
 				this.model.animationFreefall = true;
 				this.fallingAnimation.elapsedTime = 0;
 			}
@@ -151,7 +151,7 @@ Player.prototype.update = function() {
 		if (this.model.animationGroundJumping) {
 	
 			if (this.jumpingAnimation.isWillDone(this.timer.gameDelta)) {
-
+				can_double_jump  = false;
 				this.model.animationFreefall = true;
 				this.fallingAnimation.elapsedTime = 0;
             

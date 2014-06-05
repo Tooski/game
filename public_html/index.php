@@ -51,7 +51,8 @@
         <script type="text/javascript" src="./logInBoard.js"></script>
         <script type="text/javascript" src="./leaderBoard.js"></script>
         <script type="text/javascript" src="./signUpBoard.js"></script>
-        <script type="text/javascript" src="./choiceBoard.js"></script>
+		<script type="text/javascript" src="./choiceBoard.js"></script>
+		<script type="text/javascript" src="./gameOver.js"></script>
     </head>
     <body>
         <!--       <div>
