@@ -53,7 +53,7 @@ function Collectible(id, x, y, pointValue, radius) {
   this.collected = false;
 
   this.toJSON = function () {
-    return { id: this.id, points: this.pointValue, x: this.x, y: this.y, radius: this.radius };
+    return { id: this.id, pointValue: this.pointValue, x: this.x, y: this.y, radius: this.radius };
   }
 }
 Collectible.prototype = new vec2();
