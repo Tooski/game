@@ -916,7 +916,7 @@ function PhysEng(gameEngine, playerModel) {
   this.player.pos = this.tm.startPoint;    //sets player position to the level starting position.
   this.player.lastCheckpoint = this.tm.startPoint;
 
-  this.timeMgr = new TimeManager(0.0, 0.0, 0.0, 0.1); // TODO DO THE THING
+  this.timeMgr = new TimeManager(0.0, 0.0, 0.0, DFLT_game_speed); // TODO DO THE THING
 
   //The events that will need to be handled.
   this.primaryEventHeap = getNewPrimaryHeap();
