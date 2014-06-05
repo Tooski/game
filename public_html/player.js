@@ -12,7 +12,7 @@ function Player(x, y, timer) {
     this.walkingSpeed = 0.10;
     this.runningSpeed = 0.01;
     this.boostSpeed = 0.06;
-    this.jumpSpeed = 0.2;
+    this.jumpSpeed = 0.1;
     this.idleAnimation = new Animation(ASSET_MANAGER.getAsset("assets/Spritesheet2.png"), 0, 0, 300, 300, 0.1, 1, true, false);
     this.walkingAnimation = new Animation(ASSET_MANAGER.getAsset("assets/Spritesheet2.png"), 0, 300, 300, 300, this.walkingSpeed, 11, true, false);
     this.runningAnimation = new Animation(ASSET_MANAGER.getAsset("assets/Spritesheet2.png"), 0, 600, 300, 300, this.runningSpeed, 8, true, false);
@@ -37,6 +37,7 @@ function Player(x, y, timer) {
 
 
 var can_double_jump = false;
+var doing_jump = false;
 Player.prototype = new Entity();
 Player.prototype.update = function() {
 	
@@ -56,9 +57,8 @@ Player.prototype.update = function() {
 		this.model.animationDoubleJumping = false;
 		this.model.animationFreefall = false;
 		this.model.animationDownBoosting = false;
-		can_double_jump  = false;
 		this.model.animationWalking = true;
-		
+		doing_jump = false;
 		
 		if(this.model.animationWalking|| this.model.animationRunning){
 			if (this.model.animationSpeed <= 0) {
@@ -90,7 +90,7 @@ Player.prototype.update = function() {
 				
 				this.model.animationDoubleJumping = false;
 				this.model.animationFreefall = false;
-				
+				doing_jump = true;
 				this.model.animationGroundJumping = true;
 				this.jumpingAnimation.elapsedTime = 0;
 				this.airJumpAnimation.elapsedTime = 0;
@@ -128,7 +128,7 @@ Player.prototype.update = function() {
 				
 				this.model.animationDoubleJumping = false;
 				this.model.animationFreefall = false;
-				
+				doing_jump = true;
 				this.model.animationGroundJumping = true;
 				this.jumpingAnimation.elapsedTime = 0;
 				this.airJumpAnimation.elapsedTime = 0;
@@ -137,23 +137,24 @@ Player.prototype.update = function() {
 				this.model.animationDoubleJumping = true;
 				this.model.animationFreefall = false;
 				this.airJumpAnimation.elapsedTime = 0;
+                                can_double_jump = false;
 
 			} 
 		}
 
 		if(this.model.animationDoubleJumping){
 			if (this.airJumpAnimation.isWillDone(this.timer.gameDelta)) {
-				can_double_jump  = false;
 				this.model.animationFreefall = true;
 				this.fallingAnimation.elapsedTime = 0;
+                                doing_jump = false;
 			}
 		}
 		if (this.model.animationGroundJumping) {
 	
 			if (this.jumpingAnimation.isWillDone(this.timer.gameDelta)) {
-				can_double_jump  = false;
 				this.model.animationFreefall = true;
 				this.fallingAnimation.elapsedTime = 0;
+                                doing_jump = false;
             
 			}
 		}
@@ -169,6 +170,7 @@ Player.prototype.update = function() {
 		}
 		if(!this.model.animationGroundJumping && !this.model.animationDoubleJumping){
 			this.model.animationFreefall = true;
+                        doing_jump = false;
 		}
 		
 		

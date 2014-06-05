@@ -260,6 +260,7 @@ GameEngine.prototype.startInput = function () {
         //console.log("Down pressed");
       } else if (e.keyCode === gameEngine.input.jumpKey && gameEngine.input.jumpPressed === false) {
         gameEngine.setJump(true, performance.now());
+        console.log("kkkkkkkkkkkkkkkkkkkkkkkkkkkk key down");
         //console.log("Jump pressed");
       } else if (e.keyCode === gameEngine.input.boostKey && gameEngine.input.boostPressed === false) {
         gameEngine.setBoost(true, performance.now());
@@ -290,6 +291,7 @@ GameEngine.prototype.startInput = function () {
   }, false);
 
   this.ctx.canvas.addEventListener("keyup", function (e) {
+      
     if (e.keyCode === DEBUG_KEY) {
       e.preventDefault();
       gameEngine.physEng.stepDebug();
@@ -303,10 +305,14 @@ GameEngine.prototype.startInput = function () {
       gameEngine.setDown(false, performance.now());
     } else if (e.keyCode === gameEngine.input.jumpKey && gameEngine.input.jumpPressed === true) {
       gameEngine.setJump(false, performance.now());
-	  if(this.model.animationGroundJumping){
+      console.log("kkkkkkkkkkkkkkkkkkkkkkkkkkkeeeeeeekey up");
+	  if(doing_jump){
+              
 			can_double_jump = true;
+                        console.log("kkkkkkkkkkkkkkkkkkkkkkkkkkkk key up");
+
 		} else {
-			can_double_jump = false;
+			//can_double_jump = false;
 	  }
     } else if (e.keyCode === gameEngine.input.boostKey && gameEngine.input.boostPressed === true) {
       gameEngine.setBoost(false, performance.now());
