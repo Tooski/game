@@ -18,8 +18,8 @@ function gameOver(the_score, the_time, the_jason, the_collect, the_num_death) {
 
     });
     //display..it.
-
-    displayLeaderBoard(game_result);
+    leaderBoardUpdate(game_result);
+    displayLeaderBoard();
 
 
 

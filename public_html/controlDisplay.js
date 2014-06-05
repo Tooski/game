@@ -191,7 +191,7 @@ function displayReplayGame(the_index){
 }
 
 
-function displayLeaderBoard(the_game_result){
+function displayLeaderBoard(){
 	MY_STAGE_CANVAS.style.display = "none";
 	MY_GAME_MANU_CANVAS.style.display = "none";
 	document.getElementById("choice_board").style.display = "none";
@@ -201,8 +201,7 @@ function displayLeaderBoard(the_game_result){
 	document.getElementById("mapEditor").style.display = "none";
 	document.getElementById("about_board").style.display = "none";
 	noneDisplayGame();
-	
-	leaderBoardUpdate(the_game_result);
+
 	document.getElementById("leader_board").style.display = "block";
 }
 
