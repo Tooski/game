@@ -214,7 +214,7 @@
         <!--end of div for leader board-->
         
         <!--div for about page-->
-        <div class="outer-about-container" id="about_board"  style= "display : block">
+        <div class="outer-about-container" id="about_board"  style= "display : none">
             <div class="inner-about-title">
                 About Hamster Storm
             </div>
