@@ -88,7 +88,7 @@
         </div>
 
         <!--div for initial choice to login or sign up-->
-        <div class="outer-signup-container" id="choice_board" style= "display :none">
+        <div class="outer-signup-container" id="choice_board" style= "display :block">
             <div class="inner-header-container">
                 Hamster Storm!
             </div>
@@ -110,7 +110,7 @@
         <!--div for initial choice to login or sign up-->
 
         <!--div for login-->	
-        <div class="outer-signup-container" id="login_board" style= "display : block">
+        <div class="outer-signup-container" id="login_board" style= "display : none">
             <div>
                 <input type="button" id="ex_button" onClick= "displaySignUpLoginChoice()" value=" "/>
             </div>
