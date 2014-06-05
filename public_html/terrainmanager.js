@@ -235,7 +235,18 @@ function TerrainManager() {
     JSONdata.checkpointLines = this.checkpointLines;
     JSONdata.goalLines = this.goalLines;
     JSONdata.killLines = this.killLines;
-
+    JSONdata.polyData = {};
+    for(var key in this.polyData) {
+        var obj = this.polyData[key];
+        JSONdata.polyData[key] = {
+            initID : obj.init.id,
+            image:  obj.image,
+            polyID : obj.polyID,
+            fill : obj.fill
+        };
+    }
+    
+    console.log(JSONdata.polyData);
     return JSONdata;
   }
 }
@@ -840,7 +851,6 @@ function drawPolygons(ctx, polygons, color, lineWidth, lineJoin, lineCap) {
 function fillLineArray(ctx, lineArray, color, lineWidth, lineJoin, lineCap, polyData) {
       ctx.save();
 
-  ctx.beginPath();
   ctx.lineWidth = lineWidth;
 
   ctx.lineJoin = lineJoin;
@@ -854,8 +864,19 @@ function fillLineArray(ctx, lineArray, color, lineWidth, lineJoin, lineCap, poly
             foundLine = true;
         }
     }
+    
     if(!foundLine) {
-      drawFiller(ctx, line, polyData[line.polyID]);
+    if(polyData[line.polyID] && polyData[line.polyID].fill) {
+        drawFiller(ctx, line, polyData[line.polyID]);
+    } else if (!line.polyID) {
+        drawFiller(ctx, line, {image : "assets/dirt.jpg"});
+
+    } else {
+        ctx.beginPath();
+        fillTerrain(ctx, line, {},  new Rectangle(Number.MAX_VALUE, Number.MAX_VALUE, Number.MIN_VALUE, Number.MIN_VALUE), {});
+        ctx.closePath();
+        ctx.stroke();
+    }
     }
       
     
@@ -923,7 +944,7 @@ function drawFiller(ctx, polygon, polyData) {
   fillTerrain(ctx, polygon, {}, rect, {});
   ctx.closePath();
   ctx.clip();
-  var img = polyData.image; 
+  var img = ASSET_MANAGER.cache[polyData.image]; 
   for (var x = rect.x1 ; x < rect.x2; x += img.width) {
     for (var y = rect.y1; y < rect.y2; y += img.height) {
       ctx.drawImage(img, x, y);
@@ -1147,16 +1168,17 @@ TerrainManager.prototype.checkConvex = function(first) {
         } while (itr2 !== first);
         itr1 = itr1.adjacent1;
     } while (itr1 !== first);
-    
-    if(convex > concave) {
-        // Create new polygon.
-        var poly = new Polygon(itr1, ASSET_MANAGER.cache["assets/dirt.jpg"]);
-        itr1 = first; 
-        do {
-             this.polyData[itr1.polyID] = poly;
-        } while (itr1 !== first)        
+        var poly = new Polygon(first,"assets/dirt.jpg" );
+        poly.polyID = first.polyID;
+        poly.fill = (convex > concave);
+        if(first.polyID)this.polyData[first.polyID] = poly;
+
+//        itr1 = first; 
+//        do {
+//             this.polyData[itr1.polyID] = poly;
+//        } while (itr1 !== first)        
 //            console.log(convex, concave);
-    }
+   // }
 };
 
 
@@ -1219,12 +1241,12 @@ TerrainManager.prototype.loadFromJSON = function (obj) {
   this.loadKillZones(obj.killZones);
   this.loadCollectibles(obj.collectibles);
 
-
   console.log("loading line data");
   this.loadTerrainLines(obj.terrainLines);
   this.loadKillLines(obj.killLines);
   this.loadCheckpointLines(obj.checkpointLines);
   this.loadGoalLines(obj.goalLines);
+  this.loadPolygons(obj.polyData); // DO this nlatersdfvdfioghifdgion
 
   //JSONdata.checkpointLines = this.checkpointLines;
   //JSONdata.goalLines = this.goalLines;
@@ -1274,6 +1296,25 @@ TerrainManager.prototype.loadPoints = function (points) {
   });
 }
 
+
+
+/**
+ * Loads the points from an array of saved JSON.
+ */
+TerrainManager.prototype.loadPolygons = function (polygons) {
+  var that = this;
+      
+  if(polygons)
+    for(var key in polygons) {
+        if(key && polygons[key]) {
+              var polygon = polygons[key];
+              var p = new Polygon(that.terrainLines[polygon.initID], polygon.image);
+              p.polyID = polygon.polyID;
+              p.fill = polygon.fill;
+              that.polyData[p.polyID] = p;
+        }
+    }
+};
 
 
 
@@ -1368,11 +1409,11 @@ TerrainManager.prototype.loadTerrainLines = function (tLines) {
   });
   
   
-  that.terrainLines.forEach(function(ter) {
-     if(ter) {
-         that.checkConvex(ter);
-     } 
-  });
+//  that.terrainLines.forEach(function(ter) {
+//     if(ter) {
+//         that.checkConvex(ter);
+//     } 
+//  });
 }
 
 

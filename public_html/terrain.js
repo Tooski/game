@@ -194,7 +194,7 @@ function TerrainLine(id, polyID, point0, point1, adjacent0, adjacent1, normal) {
 
   this.toJSON = function () {
     var formattedObj = { id: this.id, polyID: this.polyID, normal: this.normal };
-    console.log("this ", this);
+   // console.log("this ", this);
     formatLineToJSON(this, formattedObj);
     return formattedObj;
   }
@@ -479,9 +479,10 @@ function KillLine(id, killZoneID, point0, point1, adjacent0, adjacent1) {
  */
 function Polygon(init, image) {
   //Entity.call();
-  this.polyID = generateID();
+  this.polyID = true;
   this.init = init;
   this.image = image;
+  this.fill = false;
   //  
   //  
 //  this.polygon = {};
@@ -505,111 +506,111 @@ function Polygon(init, image) {
 
 
   this.toJSON = function () {
-    return { polyID: this.polyID };
+    return { polyID: this.polyID, init : this.init, image : this.image };
   }
 }
-
-
-Polygon.prototype = new Entity();
-
-Polygon.prototype.draw = function (ctx) {
-
-  var rect = new Rectangle(Number.MAX_VALUE, Number.MAX_VALUE, Number.MIN_VALUE, Number.MIN_VALUE);
-  ctx.save();
-  ctx.beginPath();
-
-  for (var k in this.polygon) {
-    this.fillTerrain(ctx, this.polygon[k], {}, rect, {});
-
-    break;
-  }
-
-
-
-  ctx.closePath();
-  ctx.clip();
-  var img = ASSET_MANAGER.cache["assets/dirt.jpg"];
-  for (var x = rect.x1 ; x < rect.x2; x += img.width) {
-    for (var y = rect.y1; y < rect.y2; y += img.height) {
-      ctx.drawImage(img, x, y);
-    }
-  }
-  ctx.restore();
-  ctx.lineWidth = this.polygon[k].lineWidth;
-  ctx.stroke();
-
-
-  for (var item in this.polygon) {
-    var midPoint = this.polygon[item].p0.add(this.polygon[item].p1).divf(2.0);
-    var pNormalPosEnd = midPoint.add(this.polygon[item].normal.multf(20));
-    this.polygon[item].normalPosCol.x = pNormalPosEnd.x - this.polygon[item].normalPosCol.w / 2;
-    this.polygon[item].normalPosCol.y = pNormalPosEnd.y - this.polygon[item].normalPosCol.h / 2;
-    this.polygon[item].p0edit.x = this.polygon[item].p0.x;
-    this.polygon[item].p0edit.y = this.polygon[item].p0.y;
-    this.polygon[item].p1edit.x = this.polygon[item].p1.x;
-    this.polygon[item].p1edit.y = this.polygon[item].p1.y;
-    ctx.moveTo(midPoint.x, midPoint.y);
-    ctx.lineTo(pNormalPosEnd.x, pNormalPosEnd.y);
-    ctx.stroke();
-  }
-};
-
-
-Polygon.prototype.fillTerrain = function (ctx, terrain, visited, rect, visitedLine) {
-  if (rect.x1 > terrain.p0.x) rect.x1 = terrain.p0.x;
-  if (rect.x2 < terrain.p0.x) rect.x2 = terrain.p0.x;
-  if (rect.y1 > terrain.p0.y) rect.y1 = terrain.p0.y;
-  if (rect.y2 < terrain.p0.y) rect.y2 = terrain.p0.y;
-  if (rect.x1 > terrain.p1.x) rect.x1 = terrain.p1.x;
-  if (rect.x2 < terrain.p1.x) rect.x2 = terrain.p1.x;
-  if (rect.y1 > terrain.p1.y) rect.y1 = terrain.p1.y;
-  if (rect.y2 < terrain.p1.y) rect.y2 = terrain.p1.y;
-
-
-  visitedLine[terrain.id] = true;
-
-  var t0 = JSON.stringify(terrain.p0);
-  var t1 = JSON.stringify(terrain.p1);
-
-
-  if (visited.length === 0) {
-    ctx.moveTo(terrain.p0.x, terrain.p0.y);
-    visited[t0] = true;
-  }
-
-  if (!visited[t0]) ctx.lineTo(terrain.p0.x, terrain.p0.y);
-  else if (!visited[t1]) ctx.lineTo(terrain.p1.x, terrain.p1.y);
-
-  if (terrain.adjacent0 && !visitedLine[terrain.adjacent0.id]) {
-    var o0 = JSON.stringify(terrain.adjacent0.p0);
-    var o1 = JSON.stringify(terrain.adjacent0.p1);
-    if (!visited[t0] || !visited[t1]) {
-
-      if (t0 === o0 || t0 === o1) visited[t0] = true;
-      else if (t1 === o0 || t1 === o1) visited[t1] = true;
-
-
-
-      this.fillTerrain(ctx, terrain.adjacent0, visited, rect, visitedLine);
-    }
-  }
-  if (terrain.adjacent1 && !visitedLine[terrain.adjacent1.id]) {
-
-    var o0 = JSON.stringify(terrain.adjacent1.p0);
-    var o1 = JSON.stringify(terrain.adjacent1.p1);
-    if (!visited[t0] || !visited[t1]) {
-      if (t0 === o0 || t0 === o1) visited[t0] = true;
-      else if (t1 === o0 || t1 === o1) visited[t1] = true;
-
-
-
-
-      this.fillTerrain(ctx, terrain.adjacent1, visited, rect, visitedLine);
-    }
-  }
-
-};
-
+//
+//
+//Polygon.prototype = new Entity();
+//
+//Polygon.prototype.draw = function (ctx) {
+//
+//  var rect = new Rectangle(Number.MAX_VALUE, Number.MAX_VALUE, Number.MIN_VALUE, Number.MIN_VALUE);
+//  ctx.save();
+//  ctx.beginPath();
+//
+//  for (var k in this.polygon) {
+//    this.fillTerrain(ctx, this.polygon[k], {}, rect, {});
+//
+//    break;
+//  }
+//
+//
+//
+//  ctx.closePath();
+//  ctx.clip();
+//  var img = ASSET_MANAGER.cache["assets/dirt.jpg"];
+//  for (var x = rect.x1 ; x < rect.x2; x += img.width) {
+//    for (var y = rect.y1; y < rect.y2; y += img.height) {
+//      ctx.drawImage(img, x, y);
+//    }
+//  }
+//  ctx.restore();
+//  ctx.lineWidth = this.polygon[k].lineWidth;
+//  ctx.stroke();
+//
+//
+//  for (var item in this.polygon) {
+//    var midPoint = this.polygon[item].p0.add(this.polygon[item].p1).divf(2.0);
+//    var pNormalPosEnd = midPoint.add(this.polygon[item].normal.multf(20));
+//    this.polygon[item].normalPosCol.x = pNormalPosEnd.x - this.polygon[item].normalPosCol.w / 2;
+//    this.polygon[item].normalPosCol.y = pNormalPosEnd.y - this.polygon[item].normalPosCol.h / 2;
+//    this.polygon[item].p0edit.x = this.polygon[item].p0.x;
+//    this.polygon[item].p0edit.y = this.polygon[item].p0.y;
+//    this.polygon[item].p1edit.x = this.polygon[item].p1.x;
+//    this.polygon[item].p1edit.y = this.polygon[item].p1.y;
+//    ctx.moveTo(midPoint.x, midPoint.y);
+//    ctx.lineTo(pNormalPosEnd.x, pNormalPosEnd.y);
+//    ctx.stroke();
+//  }
+//};
+//
+//
+//Polygon.prototype.fillTerrain = function (ctx, terrain, visited, rect, visitedLine) {
+//  if (rect.x1 > terrain.p0.x) rect.x1 = terrain.p0.x;
+//  if (rect.x2 < terrain.p0.x) rect.x2 = terrain.p0.x;
+//  if (rect.y1 > terrain.p0.y) rect.y1 = terrain.p0.y;
+//  if (rect.y2 < terrain.p0.y) rect.y2 = terrain.p0.y;
+//  if (rect.x1 > terrain.p1.x) rect.x1 = terrain.p1.x;
+//  if (rect.x2 < terrain.p1.x) rect.x2 = terrain.p1.x;
+//  if (rect.y1 > terrain.p1.y) rect.y1 = terrain.p1.y;
+//  if (rect.y2 < terrain.p1.y) rect.y2 = terrain.p1.y;
+//
+//
+//  visitedLine[terrain.id] = true;
+//
+//  var t0 = JSON.stringify(terrain.p0);
+//  var t1 = JSON.stringify(terrain.p1);
+//
+//
+//  if (visited.length === 0) {
+//    ctx.moveTo(terrain.p0.x, terrain.p0.y);
+//    visited[t0] = true;
+//  }
+//
+//  if (!visited[t0]) ctx.lineTo(terrain.p0.x, terrain.p0.y);
+//  else if (!visited[t1]) ctx.lineTo(terrain.p1.x, terrain.p1.y);
+//
+//  if (terrain.adjacent0 && !visitedLine[terrain.adjacent0.id]) {
+//    var o0 = JSON.stringify(terrain.adjacent0.p0);
+//    var o1 = JSON.stringify(terrain.adjacent0.p1);
+//    if (!visited[t0] || !visited[t1]) {
+//
+//      if (t0 === o0 || t0 === o1) visited[t0] = true;
+//      else if (t1 === o0 || t1 === o1) visited[t1] = true;
+//
+//
+//
+//      this.fillTerrain(ctx, terrain.adjacent0, visited, rect, visitedLine);
+//    }
+//  }
+//  if (terrain.adjacent1 && !visitedLine[terrain.adjacent1.id]) {
+//
+//    var o0 = JSON.stringify(terrain.adjacent1.p0);
+//    var o1 = JSON.stringify(terrain.adjacent1.p1);
+//    if (!visited[t0] || !visited[t1]) {
+//      if (t0 === o0 || t0 === o1) visited[t0] = true;
+//      else if (t1 === o0 || t1 === o1) visited[t1] = true;
+//
+//
+//
+//
+//      this.fillTerrain(ctx, terrain.adjacent1, visited, rect, visitedLine);
+//    }
+//  }
+//
+//};
+//
 
 
 
