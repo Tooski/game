@@ -151,8 +151,8 @@ Player.prototype.update = function() {
 		}
 		if (this.model.animationGroundJumping) {
 	
-			if (this.jumpingAnimation.elapsedTime + .1 >= this.jumpAnimation.totalTime) {
-                            console.log("is the time greater "+this.jumpingAnimation.elapsedTime + .1 >= this.jumpAnimation.totalTime);
+			if (this.jumpingAnimation.elapsedTime + .1 >= this.jumpingAnimation.totalTime) {
+                            console.log("is the time greater "+this.jumpingAnimation.elapsedTime + .1 >= this.jumpingAnimation.totalTime);
 				this.model.animationFreefall = true;
 				this.fallingAnimation.elapsedTime = 0;
                                 doing_jump = false;
