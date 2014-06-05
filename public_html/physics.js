@@ -1650,7 +1650,7 @@ PhysEng.prototype.getSurfacePredictedEvent = function () {
   var endPointData = solveEarliestSurfaceEndpoint(this.player, this.player.surface);
   var endPointDependencyMask = 0;
   var surface = this.player.surface;
-  var endPointAngle = (endPointData.pointNumber !== 0 ? getSignedAngleFromAToB(surface.normal, surface.adjacent1.normal) : getSignedAngleFromAToB(surface.normal, surface.adjacent0.normal));
+  var endPointAngle = (endPointData ? (endPointData.pointNumber !== 0 ? getSignedAngleFromAToB(surface.normal, surface.adjacent1.normal) : getSignedAngleFromAToB(surface.normal, surface.adjacent0.normal)) : null);
 
 
   console.log("");

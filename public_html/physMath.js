@@ -605,7 +605,7 @@
     console.log("state.time", state.time);
     console.groupEnd();
     if (!(futureTime >= 0)) {
-      if (futureTime <= 0) {
+      if (futureTime === null) {
         return state.time + futureTime;
       } else return;
     } else {

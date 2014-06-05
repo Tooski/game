@@ -832,7 +832,7 @@ function TerrainPointCollisionEvent(gameTimeOfCollision, terrainPointCollidedWit
     var collisionForceVecLen = collisionForceVec.length();
 
 
-    if (this.allowLock && collisionForceVecLen < p.physParams.autoLockThreshold) {
+    if (this.allowLock && collisionForceVecLen < p.physParams.autoLockThreshold && normalVec.y > 0) {
       console.log("<<<< TerrainPointCollisionEvent auto locked!?!?");
 
       this.lockTo(physEng);     //TODO USE A SNAP INSTEAD
