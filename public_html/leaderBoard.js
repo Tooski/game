@@ -16,7 +16,7 @@ function leaderBoardUpdate(the_result) {
 
    document.getElementById('level-completed').innerHTML = "Level completed: "+my_g_stage_id;
    document.getElementById('level-score').innerHTML = "Level score: "+the_result[0];
-   document.getElementById('level-time').innerHTML = "Level time: "+Math.round(the_result[1]*Math.pow(10,2))/Math.pow(10,2);
+   document.getElementById('level-time').innerHTML = "Level time: "+Math.round(the_result[1]*Math.pow(10,3))/Math.pow(10,3);
    var collectables = the_result[2] || 0;
    document.getElementById('level-collectables').innerHTML = "Level collectables: "+ collectables;
    var deaths = the_result[3] || 0;
