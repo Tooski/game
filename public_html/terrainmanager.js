@@ -53,7 +53,7 @@ function Collectible(id, x, y, pointValue, radius) {
   this.collected = false;
 
   this.toJSON = function () {
-    return { id: this.id, points: this.pointValue, x: this.x, y: this.y, radius: this.radius };
+    return { id: this.id, pointValue: this.pointValue, x: this.x, y: this.y, radius: this.radius };
   }
 }
 Collectible.prototype = new vec2();
@@ -157,7 +157,7 @@ function TerrainManager() {
   this.terrainLines;
   this.nextPolygonNo;
   this.polygons = [];
-
+  this.polyData = {};
   this.startPoint;
 
 
@@ -533,7 +533,11 @@ TerrainManager.prototype.addTerrain = function (editorLineArray) {
   }
   first.adjacent0 = prev;
   prev.adjacent1 = first;
+  
+  
   this.modified = true;
+  
+  this.checkConvex(first);
 }
 
 
@@ -706,7 +710,7 @@ drawnList = [];
   if(editMode) {
     drawLineArray(ctx, this.terrainLines, TERRAIN_LINE_COLOR, LINE_WIDTH, LINE_JOIN, LINE_CAP);
   } else {
-    fillLineArray(ctx, this.terrainLines, "#B69768", LINE_WIDTH, LINE_JOIN, LINE_CAP);
+    fillLineArray(ctx, this.terrainLines, "#B69768", LINE_WIDTH, LINE_JOIN, LINE_CAP, this.polyData);
   };
   this.drawCollectibles(ctx);
 
@@ -833,7 +837,7 @@ function drawPolygons(ctx, polygons, color, lineWidth, lineJoin, lineCap) {
 
 
 
-function fillLineArray(ctx, lineArray, color, lineWidth, lineJoin, lineCap) {
+function fillLineArray(ctx, lineArray, color, lineWidth, lineJoin, lineCap, polyData) {
       ctx.save();
 
   ctx.beginPath();
@@ -851,7 +855,7 @@ function fillLineArray(ctx, lineArray, color, lineWidth, lineJoin, lineCap) {
         }
     }
     if(!foundLine) {
-      drawFiller(ctx, line);
+      drawFiller(ctx, line, polyData[line.polyID]);
     }
       
     
@@ -911,7 +915,7 @@ function drawLineArray(ctx, lineArray, color, lineWidth, lineJoin, lineCap) {
 
 var drawnList = [];
 
-function drawFiller(ctx, polygon) {
+function drawFiller(ctx, polygon, polyData) {
 
   var rect = new Rectangle(Number.MAX_VALUE, Number.MAX_VALUE, Number.MIN_VALUE, Number.MIN_VALUE);
   ctx.save();
@@ -919,7 +923,7 @@ function drawFiller(ctx, polygon) {
   fillTerrain(ctx, polygon, {}, rect, {});
   ctx.closePath();
   ctx.clip();
-  var img = ASSET_MANAGER.cache["assets/dirt.jpg"];
+  var img = polyData.image; 
   for (var x = rect.x1 ; x < rect.x2; x += img.width) {
     for (var y = rect.y1; y < rect.y2; y += img.height) {
       ctx.drawImage(img, x, y);
@@ -1127,6 +1131,34 @@ TerrainManager.prototype.loadFromFile = function (id, init, callback) {
 };
 
 
+TerrainManager.prototype.checkConvex = function(first) {
+    var itr1 = first;
+    var itr2 = first.adjacent1;
+    var convex = 0;
+    var concave = 0;
+    do {
+        itr2 = itr1.adjacent1;
+        do {
+            var con = getLineLineConcavity(itr1, itr2, ORIGIN);
+            if(con.convex) convex ++;
+            if(con.concave) concave ++;
+
+            itr2 = itr2.adjacent1;
+        } while (itr2 !== first);
+        itr1 = itr1.adjacent1;
+    } while (itr1 !== first);
+    
+    if(convex > concave) {
+        // Create new polygon.
+        var poly = new Polygon(itr1, ASSET_MANAGER.cache["assets/dirt.jpg"]);
+        itr1 = first; 
+        do {
+             this.polyData[itr1.polyID] = poly;
+        } while (itr1 !== first)        
+//            console.log(convex, concave);
+    }
+};
+
 
 
 
@@ -1333,6 +1365,13 @@ TerrainManager.prototype.loadTerrainLines = function (tLines) {
       that.terrainLines[ter.id].adjacent0 = that.terrainLines[ter.adj0id];
       that.terrainLines[ter.id].adjacent1 = that.terrainLines[ter.adj1id];
     }
+  });
+  
+  
+  that.terrainLines.forEach(function(ter) {
+     if(ter) {
+         that.checkConvex(ter);
+     } 
   });
 }
 
