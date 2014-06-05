@@ -8,13 +8,12 @@ function logInButtonAction() {
     game.settings.get({"command": "login",
         "data": {"username": input_user_name, "password": input_user_pass}}, function(callback) {
         console.log(callback);
-        if (callback !== null) {
+        if (callback === "") {           
+            document.getElementById('error-username-password').innerHTML = "invalid name or password";           
+        } else {
+            console.log("the callback " + callback);
             my_user_id = callback;
             displayMainMenu();
-        } else {
-            document.getElementById('error-username-password').innerHTML = "invalid name or password";
-            //displayLogIN();
-            
 
         }
     });
