@@ -910,7 +910,7 @@ function SurfaceToSurfaceEvent(predictedTime, dependencyMask, surfaceOn, nextSur
   this.handler = function (physEng) {
     var p = physEng.player;
     var input = p.inputState;
-
+    console.group("SurfaceToSurfaceEvent handler!");
     var normalBallVel = p.vel.normalize();
     var collisionVecNorm = this.nextSurface.normal;
 
@@ -920,11 +920,11 @@ function SurfaceToSurfaceEvent(predictedTime, dependencyMask, surfaceOn, nextSur
     var collisionForceVecLen = collisionForceVec.length();
     var surfaceVecNorm = collisionVecNorm.perp();
 
-    console.log("          in SurfaceToSurfaceEvent handler. Angle ", this.angle, " p.physParams.surfaceSnapAngle ", p.physParams.surfaceSnapAngle);
+    console.log("in SurfaceToSurfaceEvent handler. Angle ", this.angle, " p.physParams.surfaceSnapAngle ", p.physParams.surfaceSnapAngle);
 
     if (this.allowLock && p.physParams.surfaceSnapAngle <= this.angle && (!this.upsideDown || input.lock)) {        
       // if we should snap to the surface without losing momentum.
-      console.log("            SurfaceToSurfaceEvent surface snap!?!?");
+      console.log("SurfaceToSurfaceEvent surface snap!?!?");
 
 
       //var velocityMag = ballState.vel.length();                     // DISABLED FOR REALISTIC PHYSICS
@@ -941,20 +941,20 @@ function SurfaceToSurfaceEvent(predictedTime, dependencyMask, surfaceOn, nextSur
 
     } else if (input.lock && this.allowLock && collisionForceVecLen < p.physParams.lockThreshold) {
       // if we should lock to the surface and lose momentum.
-      console.log("            SurfaceToSurfaceEvent locking!?!?");
+      console.log("SurfaceToSurfaceEvent locking!?!?");
 
 
       p.lockTo(this.nextSurface, surfaceVecNorm);
       animationSetPlayerRunning(p, this.time);
 
     } else {
-      console.log("            SurfaceToSurfaceEvent Bouncing!?!?");
+      console.log("SurfaceToSurfaceEvent Bouncing!?!?");
       // BOUNCE. 
       p.vel = getReflectionVector(p.vel, collisionVecNorm).multf(p.physParams.bounceSpeedLossRatio); //TODO REFACTOR TO USE NEW COLLISION OBJECT
     
       p.leaveGround();
     }
-    console.log("          fin SurfaceToSurfaceEvent");
+    console.groupEnd();
     physEng.updatePredicted();
   }
 }
