@@ -1297,6 +1297,17 @@ PhysEng.prototype.attemptNormalStep = function (goalGameTime) {
 
   //console.groupCollapsed();
 
+  var tempEventHeap = new MinHeap(null, function (e1, e2) {
+    if (!(e1.time >= 0)) {
+      throw e1.time + " e1.time not >= 0";
+    }
+    if (!(e2.time >= 0)) {
+      throw e2.time + " e2.time not >= 0";
+    }
+    return e1.time == e2.time ? 0 : e1.time < e2.time ? -1 : 1;
+  });
+
+
   var stepCount = 1;
   var startGameTime = this.player.time;
   var deltaTime = goalGameTime - startGameTime;
@@ -1350,42 +1361,41 @@ PhysEng.prototype.attemptNormalStep = function (goalGameTime) {
   }
 
 
-  var events = [];
   if (numCollisions > 0) {   // WE COLLIDED WITH STUFF AND EXITED THE LOOP EARLY, handle.
     console.log("numCollisions", numCollisions);
     if (tCollisionList.length > 0) {
       tCollisions = this.findRealLineCollisions(tCollisionList, this.player.time, goalGameTime);         // a bunch of TerrainCollisions hopefully?
       console.log("tCollisions", tCollisions);
       if (tCollisions && tCollisions.length > 0) {
-        events.push(this.turnTerrainLineCollisionsIntoEvent(tCollisions));
+        tempEventHeap.push(this.turnTerrainLineCollisionsIntoEvent(tCollisions));
       }
     }
     if (gCollisionList.length > 0) {
       gCollisions = this.findRealLineCollisions(gCollisionList, this.player.time, goalGameTime);         // a bunch of GoalCollisions hopefully?
       console.log("gCollisions", gCollisions);
       if (gCollisions && gCollisions.length > 0) {
-        events.push(this.turnGoalLineCollisionsIntoEvent(gCollisions));
+        tempEventHeap.push(this.turnGoalLineCollisionsIntoEvent(gCollisions));
       }
     }
     if (kCollisionList.length > 0) {
       kCollisions = this.findRealLineCollisions(kCollisionList, this.player.time, goalGameTime);         // a bunch of KillZoneCollisions hopefully?
       console.log("kCollisions", kCollisions);
       if (kCollisions && kCollisions.length > 0) {
-        events.push(this.turnKillLineCollisionsIntoEvent(kCollisions));
+        tempEventHeap.push(this.turnKillLineCollisionsIntoEvent(kCollisions));
       }
     }
     if (chCollisionList.length > 0) {
       chCollisions = this.findRealLineCollisions(chCollisionList, this.player.time, goalGameTime);         // a bunch of CheckpointCollisions hopefully?
       console.log("chCollisions", chCollisions);
       if (chCollisions && chCollisions.length > 0) {
-        events.push(this.turnCheckpointLineCollisionsIntoEvent(chCollisions));
+        tempEventHeap.push(this.turnCheckpointLineCollisionsIntoEvent(chCollisions));
       }
     }
     if (colCollisionList.length > 0) {
       colCollisions = this.findRealCircleCollisions(colCollisionList, this.player.time, goalGameTime);         // a bunch of CollectibleCollisions hopefully?
       console.log("colCollisions", colCollisions);
       if (colCollisions && colCollisions.length > 0) {
-        events.push(this.turnCollectibleCollisionsIntoEvent(colCollisions));
+        tempEventHeap.push(this.turnCollectibleCollisionsIntoEvent(colCollisions));
       }
     }
     //this.resetPredicted();
@@ -1420,35 +1430,35 @@ PhysEng.prototype.attemptNormalStep = function (goalGameTime) {
         tCollisions = this.findRealLineCollisions(tCollisionList, this.player.time, goalGameTime);         // a bunch of TerrainCollisions hopefully?
         console.log("tCollisions", tCollisions);
         if (tCollisions && tCollisions.length > 0) {
-          events.push(this.turnTerrainLineCollisionsIntoEvent(tCollisions));
+          tempEventHeap.push(this.turnTerrainLineCollisionsIntoEvent(tCollisions));
         }
       }
       if (gCollisionList.length > 0) {
         gCollisions = this.findRealLineCollisions(gCollisionList, this.player.time, goalGameTime);         // a bunch of GoalCollisions hopefully?
         console.log("gCollisions", gCollisions);
         if (gCollisions && gCollisions.length > 0) {
-          events.push(this.turnGoalLineCollisionsIntoEvent(gCollisions));
+          tempEventHeap.push(this.turnGoalLineCollisionsIntoEvent(gCollisions));
         }
       }
       if (kCollisionList.length > 0) {
         kCollisions = this.findRealLineCollisions(kCollisionList, this.player.time, goalGameTime);         // a bunch of KillZoneCollisions hopefully?
         console.log("kCollisions", kCollisions);
         if (kCollisions && kCollisions.length > 0) {
-          events.push(this.turnKillLineCollisionsIntoEvent(kCollisions));
+          tempEventHeap.push(this.turnKillLineCollisionsIntoEvent(kCollisions));
         }
       }
       if (chCollisionList.length > 0) {
         chCollisions = this.findRealLineCollisions(chCollisionList, this.player.time, goalGameTime);         // a bunch of CheckpointCollisions hopefully?
         console.log("chCollisions", chCollisions);
         if (chCollisions && chCollisions.length > 0) {
-          events.push(this.turnCheckpointLineCollisionsIntoEvent(chCollisions));
+          tempEventHeap.push(this.turnCheckpointLineCollisionsIntoEvent(chCollisions));
         }
       }
       if (colCollisionList.length > 0) {
         colCollisions = this.findRealCircleCollisions(colCollisionList, this.player.time, goalGameTime);         // a bunch of CollectibleCollisions hopefully?
         console.log("colCollisions", colCollisions);
         if (colCollisions && colCollisions.length > 0) {
-          events.push(this.turnCollectibleCollisionsIntoEvent(colCollisions));
+          tempEventHeap.push(this.turnCollectibleCollisionsIntoEvent(colCollisions));
         }
       }
       //this.resetPredicted();
@@ -1459,16 +1469,20 @@ PhysEng.prototype.attemptNormalStep = function (goalGameTime) {
     }
   }
 
-  if (events[0]) {
-    if (events[0].state) {
-      tempState = events[0].state;
+  if (tempEventHeap.size()) {
+    if (tempEventHeap.peek().state) {
+      tempState = tempEventHeap.peek().state;
     } else {
-      tempState = stepStateToTime(this.player, events[0].time);
+      tempState = stepStateToTime(this.player, tempEventHeap.peek().time);
     }
+  }
+  var events = [];
+  if (tempEventHeap.peek()) {
+    events.push(tempEventHeap.pop());
   }
 
   var results = new StepResult(tempState, events);
-  if (events.length > 0) {
+  if (tempEventHeap.size()) {
     console.log("End attemptNormalStep, results", results);
     console.log("Events", events);
   }
