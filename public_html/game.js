@@ -303,6 +303,11 @@ GameEngine.prototype.startInput = function () {
       gameEngine.setDown(false, performance.now());
     } else if (e.keyCode === gameEngine.input.jumpKey && gameEngine.input.jumpPressed === true) {
       gameEngine.setJump(false, performance.now());
+	  if(this.model.animationGroundJumping){
+			can_double_jump = true;
+		} else {
+			can_double_jump = false;
+	  }
     } else if (e.keyCode === gameEngine.input.boostKey && gameEngine.input.boostPressed === true) {
       gameEngine.setBoost(false, performance.now());
     } else if (e.keyCode === gameEngine.input.lockKey && gameEngine.input.lockPressed === true) {
