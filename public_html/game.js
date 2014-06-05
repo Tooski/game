@@ -923,6 +923,7 @@ function pauseClicked(e) {
     canvas3.style.display = "none";
     canvas4.style.display = "none";
     //---------------
+	showPause = false;
     console.log("Restart!");
   } else if (quitButton.checkClicked()) {
     // written by Min -----
@@ -931,6 +932,7 @@ function pauseClicked(e) {
     canvas3.style.display = "none";
     canvas4.style.display = "none";
     //---------------
+	showPause = false;
     console.log("Quit!");
   }
 }
