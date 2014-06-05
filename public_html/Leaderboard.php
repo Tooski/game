@@ -6,6 +6,25 @@
             html, body { width:100%; height:100%; } /* just to be sure these are full screen*/ 
             canvas { display:block; } /* To remove the scrollbars */ 
             #eklipzConsole { margin-left: 200px; z-index: 9999; }
+			#leader_board { display:block;
+							border: 5px blue solid;
+							min-width:425px;
+							display: block;
+							position:absolute;
+							z-index:15;
+							top:50%;
+							left:50%;
+							margin:-250px 0 0 -200px;
+							overflow: hidden;
+							padding-right: 10px;
+							padding-left: 10px;
+							padding-top: 40px;
+							padding-bottom: 10px;
+							border-radius: 5px;
+							background: -webkit-linear-gradient(#3498db, #8ac6ed,#8ac6ed,#3498db,blue); /* For Safari 5.1 to 6.0 */
+							background: -o-linear-gradient(#3498db, #8ac6ed,#8ac6ed,#3498db,blue); /* For Opera 11.1 to 12.0 */
+							background: -moz-linear-gradient(#3498db, #8ac6ed,#8ac6ed,#3498db,blue); /* For Firefox 3.6 to 15 */
+							background: linear-gradient(#3498db, #8ac6ed, #8ac6ed,#3498db,blue); /* Standard syntax */}
         </style>
 
 
@@ -31,39 +50,19 @@
         <script type="text/javascript" src="./CONSTANTS.js"></script>
         <script type="text/javascript" src="./mousecollision.js"></script>
         <script type="text/javascript" src="./menu.js"></script>
-        <script type="text/javascript" src="./event.js"></script>
-        <script type="text/javascript" src="./collision.js"></script>
-        <script type="text/javascript" src="./terrain.js"></script>
-        <script type="text/javascript" src="./terrainmanager.js"></script>
-        <script type="text/javascript" src="./physMath.js"></script>
-        <script type="text/javascript" src="./physics.js"></script>
         <script type="text/javascript" src="./gamepad.js"></script>
         <script type="text/javascript" src="./unit.js"></script>
         <script type="text/javascript" src="./player.js"></script>
         <script type="text/javascript" src="./save.js"></script>
         <script type="text/javascript" src="./load.js"></script>
-        <script type="text/javascript" src="./mapeditor.js"></script>
         <script type="text/javascript" src="./remapping.js"></script>
-        <script type="text/javascript" src="./game.js"></script>
-        <script type="text/javascript" src="./stageBoard.js"></script>
-        <script type="text/javascript" src="./gameMainManu.js"></script>
         <script type="text/javascript" src="./controlDisplay.js"></script>
-        <script type="text/javascript" src="./logInBoard.js"></script>
         <script type="text/javascript" src="./leaderBoard.js"></script>
         <script type="text/javascript" src="./signUpBoard.js"></script>
 		<script type="text/javascript" src="./choiceBoard.js"></script>
 		<script type="text/javascript" src="./gameOver.js"></script>
     </head>
     <body>
-        <!--       <div>
-                    <form action="result.php" method="post">
-                        <label for="username">User name</label>
-                        <input type="text" name="username" id="username" value="username"/>
-                        <label for="password">Password</label>
-                        <input type="text" name="password" id="password" value="password"/>
-                        <input type="submit" value="submit"/>
-                    </form>
-                </div>-->
         <pre id="eklipzConsole"></pre>
 <!--<canvas id="gameWorld" style="position:absolute; display : block; border: 0px solid brown; z-index: 1; background: white"></canvas>
 <canvas id="time" style="position:absolute; z-index: 2;  left:1150px; top:25px; background: white" height="50px" width="100px"></canvas>
@@ -73,127 +72,11 @@
 <!--<canvas id="time" style="z-index: 2; background: red"></canvas> -->
 
 
-        <canvas id="time" style= "display : none; position:absolute; z-index: 2;  left:1150px; top:25px; background: white" height="50px" width="100px"></canvas>
-        <canvas id="score" style="display : none; position:absolute; z-index: 2;  left:1150px; top:100px; background: white" height="50px" width="100px"></canvas>
-        <canvas id="pause" style="display : none; position:absolute; z-index: 2; background: white; display: none" height="525" width="350"></canvas>
-        <canvas id="remap" style="display : none; position:absolute; z-index: 3; background: white; display: none" height="550" width="375"></canvas>
 
-
-        <div>
-            <script src="classie.js"></script>
-            <canvas id="gameWorld" style="border: 0px solid brown; background: white; display : none"></canvas>
-
-            <canvas id="game_manu_board" style= "display : none; position: absolute; " width="400" height="350"></canvas>
-            <canvas id="stage_board" style= "display : block; position: absolute; " width="400" height="350"></canvas>
-        </div>
-
-        <!--div for initial choice to login or sign up-->
-        <div class="outer-signup-container" id="choice_board" style= "display :none">
-            <div class="inner-header-container">
-                Hamster Storm!
-            </div>
-            <div class="inner-title-container">
-                <h3>let's get started</h3>
-            </div>
-
-            <div class="inner-body-container">
-                <!-- <div id="error-fname"></div>-->
-                <div class="button-holder">
-                    <span class="input"><input type="button" name="login" id="login_button" onClick= "logInChoiceButtonAction()" value=" "/></span>
-                </div>
-                <!-- <div id="error-lname"></div>-->
-                <div class="button-holder">
-                    <span class="input"><input type="button" name="sign up" id="sign_up_button" onClick= "signUpChoiceButtonAction()" value=" "/></span>
-                </div>                      
-            </div>
-        </div>
-        <!--div for initial choice to login or sign up-->
-
-        <!--div for login-->	
-        <div class="outer-signup-container" id="login_board" style= "display : none">
-            <div>
-                <input type="button" id="ex_button" onClick= "displaySignUpLoginChoice()" value=" "/>
-            </div>
-            <div class="inner-header-container">
-                Hamster Storm!
-            </div>
-            <div class="inner-title-container">
-                <h3>login</h3>
-            </div>
-            <form name="sign-up-form" action="settings.php" method="post">
-                <div class="inner-body-container">
-                    <div id="error-username-password"></div>
-                    <div><span class="label"><label for="username">Username:</label></span>
-                        <span class="input"><input type="text" name="username" id="username" /></span>
-                    </div>
-                    <div><span class="label"><label for="password">Password:</label></span>
-                        <span class="input"><input type="password" name="password" id="password"/></span>
-                    </div>                      
-                </div>
-                <div class="inner-button-container">
-                    <input type="button" id="login_button" onClick= "logInButtonAction()" value=" "/>
-                </div>
-            </form>
-
-        </div>
-        <!--end of div for login-->
-
-        <!--div for user sign up-->
-        <div class="outer-signup-container" id="sing-up-board" style= "display : none">
-            <div>
-                <input type="button" id="ex_button" onClick= "displaySignUpLoginChoice()" value=" "/>
-            </div>
-            <div class="inner-header-container">
-                Hamster Storm!
-            </div>
-            <div class="inner-title-container">
-                <h3>Welcome!</h3>
-            </div>
-            <form name="sign-up-form" action="settings.php" method="post">
-                <div class="inner-body-container">
-                    <div id="error-fname"></div>
-                    <div><span class="label"><label for="firstname">First Name:</label></span>
-                        <span class="input"><input type="text" name="firstname" id="firstname" /></span>
-                    </div>
-                    <div id="error-lname"></div>
-                    <div><span class="label"><label for="lastname">Last Name:</label></span>
-                        <span class="input"><input type="text" name="lastname" id="lastname" /></span>
-                    </div>
-                    <div id ="error-username-exists"></div>
-                    <div id="error-username"></div>
-                    <div><span class="label"><label for="username">Username:</label></span>
-                        <span class="input"><input type="text" name="username" id="signupusername" /></span>
-                    </div>
-                    <div id="error-password"></div>
-                    <div><span class="label"><label for="password">Password:</label></span>
-                        <span class="input"><input type="password" name="password" id="signuppassword" /></span>
-                    </div>
-                    <div id ="error-email-exists"></div>
-                    <div id="error-email"></div>
-                    <div><span class="label"><label for="email">Email:</label></span>
-                        <span class="input"><input type="email" name="email" id="email" /></span>
-                    </div>                       
-
-                </div>
-                <div class="inner-button-container">
-                    <input type="button" id="sign_up_button" value=" " onClick='signInButtonAction()'/>
-                </div>
-            </form>
-
-        </div>
-        <!--end of div for user sign up-->
 
 
         <!--div for leader board-->
-        <div class="outer-leaderboard-container" id="leader_board">
-            <div class="header">Results!</div>
-            <div class="results">
-                <div class="level-completed" id="level-completed"></div>
-                <div class="level-score" id="level-score"></div>
-                <div class="level-time" id="level-time"></div>
-                <div class="level-collectables" id="level-collectables"></div>
-                <div class ="level-deaths" id="level-deaths"></div>
-            </div>
+        <div id="leader_board">
             <div class="title-container" id="title_container">
             </div>
             <div class="sub-title-container" id="sub-title-container">
@@ -208,24 +91,9 @@
                 <div class="right-box" id="right-box">
                 </div>
             </div>
-            <div class="footer-container">
-                <button type="button" id="exit_button" onClick= "leaderBoardButtonAction()" ></button>             
-            </div>
         </div>
         <!--end of div for leader board-->
         
-        <!--div for about page-->
-        <div class="outer-about-container" id="about_board"  style= "display : none">
-            <div class="inner-about-title">
-                About Hamster Storm
-            </div>
-            <div class ="inner-about-container">
-
-            </div>
-            <div class="inner-about-footer">
-                <button type="button" id="exit_about_button" onClick= "displayMainMenu()"></button>
-            </div>
-        </div>
-        <!--end of div for about page-->
+     
     </body>
 </html>
