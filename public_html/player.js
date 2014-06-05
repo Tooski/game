@@ -12,7 +12,7 @@ function Player(x, y, timer) {
     this.walkingSpeed = 0.10;
     this.runningSpeed = 0.01;
     this.boostSpeed = 0.06;
-    this.jumpSpeed = 0.1;
+    this.jumpSpeed = 0.2;
     this.idleAnimation = new Animation(ASSET_MANAGER.getAsset("assets/Spritesheet2.png"), 0, 0, 300, 300, 0.1, 1, true, false);
     this.walkingAnimation = new Animation(ASSET_MANAGER.getAsset("assets/Spritesheet2.png"), 0, 300, 300, 300, this.walkingSpeed, 11, true, false);
     this.runningAnimation = new Animation(ASSET_MANAGER.getAsset("assets/Spritesheet2.png"), 0, 600, 300, 300, this.runningSpeed, 8, true, false);
@@ -104,6 +104,7 @@ Player.prototype.update = function() {
 			}
 		
 		}
+
 	} else { // at not serface....
 		this.model.animationFreefall = false ;
 		this.model.animationBoosting = false;
@@ -111,14 +112,14 @@ Player.prototype.update = function() {
 		this.model.animationRunning = false;
 		this.model.animationStanding = false;
 		
-		
+		console.log("000000000000000000000000000000000000" + this.inputs.jumpPressed);
 		if(this.inputs.boostPressed && !this.model.animationDownBoosting){	 // for down boost....
 		//console.log("eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee");
 			this.model.animationDownBoosting = true;
 			this.downBoostAnimation.elapsedTime = 0;
 			this.boostTime = 0;
 		
-		} else if (this.inputs.jumpPressed) {
+		} else if (this.inputs.jumpPressed && my_key_pressing <= 1) {
 			// first jump
 			if(!this.model.animationGroundJumping){
 				this.model.animationBoosting = false;
@@ -146,7 +147,8 @@ Player.prototype.update = function() {
 				this.model.animationFreefall = true;
 				this.fallingAnimation.elapsedTime = 0;
 			}
-		} else if (this.model.animationGroundJumping) {
+		}
+		if (this.model.animationGroundJumping) {
 	
 			if (this.jumpingAnimation.isWillDone(this.timer.gameDelta)) {
 
@@ -197,16 +199,16 @@ Player.prototype.draw = function(ctx) {
     if (this.model.animationFacing === "left") {
         if(this.model.animationDownBoosting){
 			this.downBoost(ctx, scaleFactor);
-		} else if ( this.model.animationFreefall) { //falling
-            this.freeFall(ctx, scaleFactor);
-
-        } else if( this.model.animationDoubleJumping){ //double jump
+		} else if( this.model.animationDoubleJumping){ //double jump
 		//console.log("jjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjj");
 			this.airJump(ctx, scaleFactor);
 		} else if (this.model.animationGroundJumping) { //jump
             this.groundJumping(ctx, scaleFactor);
         }
-        else if (this.model.animationBoosting) {
+        else  if ( this.model.animationFreefall) { //falling
+            this.freeFall(ctx, scaleFactor);
+
+        } else if (this.model.animationBoosting) {
             this.groundBoost(ctx, scaleFactor);
         } else if (this.model.animationWalking) {
             this.walking(ctx, scaleFactor);
@@ -221,16 +223,16 @@ Player.prototype.draw = function(ctx) {
     if (this.model.animationFacing === "right") {
         if(this.model.animationDownBoosting){
 			this.downBoost(ctx, scaleFactor);
-		} else if ( this.model.animationFreefall) { //falling
-            this.freeFall(ctx, scaleFactor);
-
-        } else if( this.model.animationDoubleJumping){ //double jump
+		} else  if( this.model.animationDoubleJumping){ //double jump
 		//console.log("jjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjj");
 			this.airJump(ctx, scaleFactor);
 		} else if (this.model.animationGroundJumping) { //jump
             this.groundJumping(ctx, scaleFactor);
         }
-        else if (this.model.animationBoosting) {
+        else if ( this.model.animationFreefall) { //falling
+            this.freeFall(ctx, scaleFactor);
+
+        } else if (this.model.animationBoosting) {
             this.groundBoost(ctx, scaleFactor);
         } else if (this.model.animationWalking) {
             this.walking(ctx, scaleFactor);
