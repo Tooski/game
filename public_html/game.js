@@ -602,9 +602,10 @@ GameEngine.prototype.update = function () {
     if (this.eventsSinceLastFrame.length > 0) {
       //console.log("we have events");
     }
+    var results;
     if (!this.gameOver) {
       //results = { finished: true or false, timeFinished: timeFinished, numCollectibles: number of collectibles collected, score: points acquired, numDeaths: number of respawns from checkpoints, replay: replay JSON string }
-      var results = this.physEng.update(thisFrameTime / 1000, this.eventsSinceLastFrame);
+      results = this.physEng.update(thisFrameTime / 1000, this.eventsSinceLastFrame);
       if (results.finished) {
         this.gameOver = true;  
         gameOver(results.score, results.timeFinished, results.replay, results.cnumCollectibles, results.deaths);

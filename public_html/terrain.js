@@ -193,7 +193,7 @@ function TerrainLine(id, polyID, point0, point1, adjacent0, adjacent1, normal) {
 
 
   this.toJSON = function () {
-    var formattedObj = { id: this.id, normal: this.normal };
+    var formattedObj = { id: this.id, polyID: this.polyID, normal: this.normal };
     console.log("this ", this);
     formatLineToJSON(this, formattedObj);
     return formattedObj;
