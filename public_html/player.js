@@ -170,7 +170,7 @@ Player.prototype.update = function() {
 		}
 		if(!this.model.animationGroundJumping && !this.model.animationDoubleJumping){
 			this.model.animationFreefall = true;
-                        doing_jump = false;
+                        //doing_jump = false;
 		}
 		
 		
@@ -201,13 +201,12 @@ Player.prototype.draw = function(ctx) {
     if (this.model.animationFacing === "left") {
         if(this.model.animationDownBoosting){
 			this.downBoost(ctx, scaleFactor);
-		} else if( this.model.animationDoubleJumping){ //double jump
+	} else if( this.model.animationDoubleJumping){ //double jump
 		//console.log("jjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjj");
-			this.airJump(ctx, scaleFactor);
-		} else if (this.model.animationGroundJumping) { //jump
+            this.airJump(ctx, scaleFactor);
+	} else if (this.model.animationGroundJumping) { //jump
             this.groundJumping(ctx, scaleFactor);
-        }
-        else  if ( this.model.animationFreefall) { //falling
+        } else  if ( this.model.animationFreefall) { //falling
             this.freeFall(ctx, scaleFactor);
 
         } else if (this.model.animationBoosting) {

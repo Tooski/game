@@ -305,14 +305,14 @@ GameEngine.prototype.startInput = function () {
       gameEngine.setDown(false, performance.now());
     } else if (e.keyCode === gameEngine.input.jumpKey && gameEngine.input.jumpPressed === true) {
       gameEngine.setJump(false, performance.now());
-      console.log("kkkkkkkkkkkkkkkkkkkkkkkkkkkeeeeeeekey up");
+      //console.log("kkkkkkkkkkkkkkkkkkkkkkkkkkkeeeeeeekey up");
 	  if(doing_jump){
               
 			can_double_jump = true;
-                        console.log("kkkkkkkkkkkkkkkkkkkkkkkkkkkk key up");
+                        //console.log("kkkkkkkkkkkkkkkkkkkkkkkkkkkk key up");
 
 		} else {
-			//can_double_jump = false;
+			can_double_jump = false;
 	  }
     } else if (e.keyCode === gameEngine.input.boostKey && gameEngine.input.boostPressed === true) {
       gameEngine.setBoost(false, performance.now());
@@ -947,10 +947,10 @@ function pauseClicked(e) {
     console.log("Restart!");
   } else if (quitButton.checkClicked()) {
     // written by Min -----
-    var array = [1234, 5.34, 12, 3];
-    displayLeaderBoard(array);
-    canvas3.style.display = "none";
-    canvas4.style.display = "none";
+//    var array = [1234, 5.34, 12, 3];
+//    displayLeaderBoard(array);
+//    canvas3.style.display = "none";
+//    canvas4.style.display = "none";
     //---------------
 	showPause = false;
     console.log("Quit!");
