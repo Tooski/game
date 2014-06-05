@@ -31,7 +31,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             break;
         case "insertScore":
             $stmt = mysqli_prepare($db, "INSERT INTO Scores VALUES(null, ?,?, ?, ?,?);");
-            mysqli_stmt_bind_param($stmt, "iiiii", $_POST["data"]["userID"], $_POST["data"]["levelID"], $_POST["data"]["score"], $_POST["data"]["completetime"], $_POST["data"]["replay"]);
+            mysqli_stmt_bind_param($stmt, "iiids", $_POST["data"]["userID"], $_POST["data"]["levelID"], $_POST["data"]["score"], $_POST["data"]["completetime"], $_POST["data"]["replay"]);
             //boolean result
             $result = mysqli_stmt_execute($stmt);
             echo $result;
