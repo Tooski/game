@@ -916,7 +916,7 @@ function PhysEng(gameEngine, playerModel) {
   this.player.pos = this.tm.startPoint;    //sets player position to the level starting position.
   this.player.lastCheckpoint = this.tm.startPoint;
 
-  this.timeMgr = new TimeManager(0.0, 0.0, 0.0, 1); // TODO DO THE THING
+  this.timeMgr = new TimeManager(0.0, 0.0, 0.0, 0.1); // TODO DO THE THING
 
   //The events that will need to be handled.
   this.primaryEventHeap = getNewPrimaryHeap();
@@ -1603,7 +1603,8 @@ PhysEng.prototype.getArcEndEvent = function () {
   //var startAngle = this.player.a;
   //var endAngle1 = this.player.nextSurface.normal.angle();
   //var endAngle2 = this.player.surface.normal.angle();
-
+  console.log("getArcEndEvent");
+  console.group();
         //returns { nextSurface, state };
         //getSurfacesAtSoonestAngleTime(aState, surface1, surface2) {
 
@@ -1611,13 +1612,14 @@ PhysEng.prototype.getArcEndEvent = function () {
   var endArcEvent = null;
   var arcDependencyMask = 0;
 
-  console.log("        results: ", results);
+  console.log("results: ", results);
   if (results && results.state) {
     var endState = results.state;
 
     endArcEvent = new EndArcEvent(endState.time, arcDependencyMask, results.nextSurface);    //EndArcEvent(predictedTime, dependencyMask, nextSurface). nextSurface null for early arc ends.
   }
-
+  console.log("returning endArcEvent: ", endArcEvent);
+  console.groupEnd();
   return endArcEvent;
 }
 

@@ -93,31 +93,8 @@ function stepAngularStateByAngle(aState, signedAngle) {
   //// this thing is just useful for storing potential angular movement states of an object.
   //function AngularState(time, radius, pointCircling, angle, angularVel, angularAccel) {
 
-  //  this.time = time;
-  //  this.radius = radius;
-  //  this.point = pointCircling;
-  //  this.a = angle;
-  //  this.aVel = angularVel;
-  //  this.aAccel = angularAccel;
-  //}
-
-
-  //console.log(" * * * * * * * stepAngularStateByAngle, signedAngle " + signedAngle);
-  //aState.print(" * * * * * * * ");
-  //var circDist = signedAngle * aState.radius;
-  //console.log(" * * * * * * * circDist " + circDist);
-
-  //var distToCheck = circDist * sign;
-  //var velToCheck = aState.aVel * sign;
-  //var accelToCheck = aState.aAccel * sign;
-
-  //var deltaTime1 = solveTimeToDist1D(circDist, aState.aVel, aState.aAccel);
-  //var deltaTime2 = solveTimeToDist1D(circDist, aState.aVel, aState.aAccel);
-
-
-
-  console.group();
-  console.log("stepAngularStateByAngle, signedAngle " + signedAngle);
+  console.group("stepAngularStateByAngle, signedAngle " + signedAngle);
+  console.log("<<<<<<<<<<<<<<< above angle should be > NEG_PI and < PI???");
   aState.print("");
 
   var circDist = signedAngle * aState.radius;
@@ -157,7 +134,7 @@ function stepAngularStateToAngle(aState, targetSignedAngle) {
     console.log("targetSignedAngle " + targetSignedAngle);
     throw "not a signed angle";
   }
-  console.group("stepAngularStateToAngle");
+  console.group("stepAngularStateToAngle, CHECK ME");
 
   var startAngle = aState.a;
   var angleDelta = targetSignedAngle - startAngle;
@@ -178,7 +155,7 @@ function stepAngularStateToAngle(aState, targetSignedAngle) {
 
   var toReturn;
   if (angleDelta < ANGLE_EPSILON && angleDelta > -ANGLE_EPSILON) {  // its the same angle.
-    console.log("try to arc back down to starting angle?");
+    console.log("its the same angle as starting angle. Should we try to arc back down to starting angle?");
     toReturn = stepAngularStateByAngle(aState, angleDelta);
   } else {
     toReturn = stepAngularStateByAngle(aState, angleDelta);
@@ -212,14 +189,22 @@ function convertSignedAngleToUnsigned(signedAng) {
  */
 function getSurfacesAtSoonestAngleTime(aState) {
   var startAngle = aState.a;
-  console.log("      -_-_-_-_-    aState: ", aState);
-  console.log("      -_-_-_-_-    surfaces: ", aState.arcTangentSurfaces);
+  console.log("getSurfacesAtSoonestAngleTime");
+  console.group();
+  console.log("aState: ", aState);
+  console.log("aState.point.lines: ", aState.point.lines);
 
   var states = [];
   var angles = [];
+  if (aState.point.lines.length < 2) {
+
+    throw "not enough lines in aState.point.lines????";
+  }
   for (var i = 0; i < aState.point.lines.length; i++) {
     angles[i] = aState.point.lines[i].normal.sangle();
+    console.log("attempting to step aState to angles[i]: ", angles[i]);
     states[i] = stepAngularStateToAngle(aState, angles[i]);
+    console.log("resulting in state: ", states[i]);
   }
 
 
@@ -234,39 +219,9 @@ function getSurfacesAtSoonestAngleTime(aState) {
     }
   }
 
-  //if (surface1) {
-  //  if (surface2) {
 
-  //    if (state1) {
-  //      if (state2) {
-  //        console.log("      =-=-=-=-=-= both states. ");
-
-  //        var earliest = closestPositive(state1.time, state2.time);
-  //        console.log("      =-=-=-=-=-= earliest ", earliest);
-
-  //        if (earliest > 0) {
-  //          if (earliest === state1.time) {
-  //            console.log("      =-=-=-=-=-= -= state1 ", state1);
-  //            toReturn = { surface: surface2, nextSurface: surface1, state: state1 };
-  //          } else {
-  //            console.log("      =-=-=-=-=-= -= state2 ", state2);
-  //            toReturn = { surface: surface1, nextSurface: surface2, state: state2 };
-  //          }
-  //        }
-  //      } else {    // no state2.
-  //        toReturn = { surface: surface2, nextSurface: surface1, state: state1 };
-  //      }
-  //    } else {        // no state1
-  //      if (state2) { // return state2
-  //        toReturn = { surface: surface1, nextSurface: surface2, state: state2 };
-  //      } else {
-  //        throw "what, neither state was good???";
-  //      }
-  //    }
-
-  //  }
-  //}
-  console.log("      -_-_-_-_-    returning: ", toReturn);
+  console.log("returning: ", toReturn);
+  console.groupEnd();
   return toReturn;
 }
 

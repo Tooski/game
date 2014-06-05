@@ -28,7 +28,7 @@ function LinePoint(id, x, y, connectedLines) {
 
   if (connectedLines) {
     for (var i = 0; i < connectedLines.length; i++) {
-      if (connectedLines[i]) { this.lines.push(connectedLines[i]); this.numLines++; };
+      if (connectedLines[i]) { this.connectLine(connectedLines[i]); this.numLines++; };
     }
   }
 
@@ -59,7 +59,7 @@ LinePoint.prototype.collidesWith = function (point, radius) {
 LinePoint.prototype.connectLine = function (line) {
   var contains = false;
   for (var i = 0; i < this.lines.length; i++) {
-    if (this.lines[i] && this.lines[i] === line) { contains = true; break; };
+    if (this.lines[i].id && this.lines[i].id === line.id) { contains = true; break; };
   }
   if (!contains) {
     this.numLines++;

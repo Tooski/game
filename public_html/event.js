@@ -580,15 +580,14 @@ function GoalEvent(gameTimeOfCollision, stateAtCollision, goal) {
 
 
   this.handler = function (physEng) {
-    var that = this;
     physEng.completionState.finished = true;
-    physEng.completionState.inReplay = false;
+    physEng.completionState.inReplay = physEng.inReplay;
     physEng.completionState.timeFinished = this.time;
     physEng.completionState.replay = JSON.stringify(physEng.player.replay);
   }
 }
 GoalEvent.prototype = new CollisionEvent();
-//DeathEvent.prototype.constructor = DeathEvent;
+GoalEvent.prototype.constructor = GoalEvent;
 
 
 
@@ -611,7 +610,7 @@ function CollectibleEvent(gameTimeOfCollision, stateAtCollision, collectible) {
   }
 }
 CollectibleEvent.prototype = new CollisionEvent();
-//CollectibleEvent.prototype.constructor = CollectibleEvent;
+CollectibleEvent.prototype.constructor = CollectibleEvent;
 
 
 
@@ -645,7 +644,7 @@ function TerrainLineCollisionEvent(gameTimeOfCollision, line, stateAtCollision, 
 
 
   this.handler = function (physEng) {
-    console.group();
+    console.group("TerrainLineCollisionEvent handler");
     var p = physEng.player;
     var input = p.inputState;
 
@@ -698,7 +697,7 @@ function TerrainLineCollisionEvent(gameTimeOfCollision, line, stateAtCollision, 
   }
 }
 TerrainLineCollisionEvent.prototype = new CollisionEvent();
-//TerrainLineCollisionEvent.prototype.constructor = TerrainLineCollisionEvent;
+TerrainLineCollisionEvent.prototype.constructor = TerrainLineCollisionEvent;
 
 
 
@@ -741,7 +740,7 @@ function MultiTerrainLineCollisionEvent(gameTimeOfCollision, collidedWithList, s
 
 
   this.handler = function (physEng) {
-    console.group();
+    console.group("MultiTerrainLineCollisionEvent handler");
     var p = physEng.player;
     var input = p.inputState;
 
@@ -799,7 +798,7 @@ function MultiTerrainLineCollisionEvent(gameTimeOfCollision, collidedWithList, s
   }
 }
 MultiTerrainLineCollisionEvent.prototype = new CollisionEvent();
-//MultiTerrainLineCollisionEvent.prototype.constructor = MultiTerrainLineCollisionEvent;
+MultiTerrainLineCollisionEvent.prototype.constructor = MultiTerrainLineCollisionEvent;
 
 
 
@@ -816,7 +815,7 @@ MultiTerrainLineCollisionEvent.prototype = new CollisionEvent();
  */
 function TerrainPointCollisionEvent(gameTimeOfCollision, terrainPointCollidedWith, stateAtCollision, surfaceVec, normalVec, allowLock, terrainLines) {
   CollisionEvent.apply(this, [gameTimeOfCollision, stateAtCollision]);
-  if (!((gameTimeOfCollision || gameTimeOfCollision === 0) &&
+  if (!((gameTimeOfCollision) &&
         (terrainPointCollidedWith) &&
         (terrainPointCollidedWith.lines) &&
         (terrainPointCollidedWith.id) &&
@@ -844,8 +843,7 @@ function TerrainPointCollisionEvent(gameTimeOfCollision, terrainPointCollidedWit
 
 
   this.handler = function (physEng) {
-    console.log("<<<< TerrainPointCollisionEvent handler");
-    console.group();
+    console.group("TerrainPointCollisionEvent handler");
     var p = physEng.player;
     var input = p.inputState;
 
@@ -909,7 +907,7 @@ function TerrainPointCollisionEvent(gameTimeOfCollision, terrainPointCollidedWit
   }
 }
 TerrainPointCollisionEvent.prototype = new CollisionEvent();
-//TerrainPointCollisionEvent.prototype.constructor = TerrainPointCollisionEvent;
+TerrainPointCollisionEvent.prototype.constructor = TerrainPointCollisionEvent;
 
 
 
