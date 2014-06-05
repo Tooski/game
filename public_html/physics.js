@@ -1081,9 +1081,9 @@ PhysEng.prototype.updatePhys = function (newEvents, stepToRender) {
 
 
 
-      console.log("  after attempt.");
-      console.log("  most recent event: ", currentEvent);
-      console.log("  stepResult: ", stepResult);
+      console.log("after attempt.");
+      console.log("most recent event: ", currentEvent);
+      console.log("stepResult: ", stepResult);
 
 
 
@@ -1136,7 +1136,7 @@ PhysEng.prototype.updatePhys = function (newEvents, stepToRender) {
 
 
     if (!(currentEvent.mask & E_RENDER_MASK)) {
-      console.log("    handling non-render event. Event: ", currentEvent);
+      console.log("handling non-render event. Event: ", currentEvent);
 
     }
 
@@ -1154,8 +1154,8 @@ PhysEng.prototype.updatePhys = function (newEvents, stepToRender) {
   //console.log(currentEvent);
   //console.log("(!(currentEvent.mask & E_RENDER_MASK))", (!(currentEvent.mask & E_RENDER_MASK)));
   if (currentEvent.time != this.timeMgr.time && !this.isPaused) {
-    console.log("  times dont match. Current events time: ", currentEvent.time);
-    console.log("  this.timeMgr.time: ", this.timeMgr.time);
+    console.log("times dont match. Current events time: ", currentEvent.time);
+    console.log("this.timeMgr.time: ", this.timeMgr.time);
     throw "see above";
   }
   //console.log("after while: ", this.primaryEventHeap);
@@ -1511,10 +1511,10 @@ PhysEng.prototype.trySync = function () {
  * updates the predicted events.
  */
 PhysEng.prototype.updatePredicted = function () {           //TODO FINISH
-  console.groupCollapsed("updatePredicted!");
   this.resetPredicted();
   this.player.predictedDirty = false;
   if (this.player.onPoint) {
+    console.groupCollapsed("updatePredicted!");
     // we know player is currently rounding point.
     //console.log("!i!i!i!i!i!i    this.player.onPoint evaluates true, this.player: ", this.player);
     console.log("this.player.onPoint evaluates true, this.player.point: ", this.player.point);
@@ -1522,15 +1522,17 @@ PhysEng.prototype.updatePredicted = function () {           //TODO FINISH
     console.log("pushing new endArcEvent: ", endArcEvent);
 
     this.predictedEventHeap.push(endArcEvent);
+    console.groupEnd();
   } else if (this.player.onSurface) {
+    console.groupCollapsed("updatePredicted!");
     console.log("this.player.onSurface evaluates to true, this.player.surface", this.player.surface);
-    var surfaceEndEvent = this.getSurfaceEndEvent();
-    if (surfaceEndEvent) {
-      console.log("adding surfaceEndEvent to predictedEvents. Event: ", surfaceEndEvent);
-      this.predictedEventHeap.push(surfaceEndEvent);
+    var SurfaceEndPointEvent = this.getSurfacePredictedEvent();
+    if (SurfaceEndPointEvent) {
+      console.log("adding SurfaceEndPointEvent to predictedEvents. Event: ", SurfaceEndPointEvent);
+      this.predictedEventHeap.push(SurfaceEndPointEvent);
     }
+    console.groupEnd();
   }
-  console.groupEnd();
 }
 
 
@@ -1621,14 +1623,22 @@ PhysEng.prototype.getArcEndEvent = function () {
 
 
 /**
- * Gets the SurfaceEndEvent for a particular surface, if it exists.
+ * Gets the Surface Predicted Event for a particular surface.
  */
-PhysEng.prototype.getSurfaceEndEvent = function () {
+PhysEng.prototype.getSurfacePredictedEvent = function () {
 
   if (this.player.onPoint) {
-    throw "shouldnt be in getSurfaceEndEvent when locked to a point.";
+    throw "shouldnt be in getSurfacePredictedEvent when locked to a point.";
   }
-  console.groupCollapsed("getSurfaceEndEvent");
+  if (this.player.onSurface && this.player.vel.length() === 0 && this.player.accel.length === 0) {
+    console.log("nothing predicted because no velocity or acceleration.");
+    return null;
+  }
+  if (this.player.onPoint && this.player.aVel === 0 && this.player.aAccel === 0) {
+    console.log("nothing predicted because no angular velocity or acceleration.");
+    return null;
+  }
+  console.groupCollapsed("getSurfacePredictedEvent");
   /* returns { adjNumber: 0 or 1, time, angle } where angle in radians from this surface to next surface surface. the closer to Math.PI the less the angle of change between surfaces.
    * null if none in positive time or both not concave.*/
   var adjData = getNextSurfaceData(this.player, this.player.surface);
@@ -1711,7 +1721,7 @@ PhysEng.prototype.getSurfaceEndEvent = function () {
           if (this.player.onPoint) {
             throw "bullshit"
           }                         //(adjData.time, adjDependencyMask, this.player.surface, (adjData.adjNumber === 0 ? this.player.surface.adjacent0 : this.player.surface.adjacent1), adjData.angle, true);
-          nextSurfaceEvent = new SurfaceEndEvent(endPointData.time, endPointDependencyMask, this.player.surface, (endPointData.pointNumber === 0 ? this.player.surface.adjacent0 : this.player.surface.adjacent1), (endPointData.pointNumber === 0 ? this.player.surface.p0 : this.player.surface.p1), endPointAngle, true)
+          nextSurfaceEvent = new SurfaceEndPointEvent(endPointData.time, endPointDependencyMask, this.player.surface, (endPointData.pointNumber === 0 ? this.player.surface.adjacent0 : this.player.surface.adjacent1), (endPointData.pointNumber === 0 ? this.player.surface.p0 : this.player.surface.p1), endPointAngle, true)
           //DEBUG_DRAW_GRAY.push(new DebugCircle(endPointState.pos, this.player.radius, 5));
         }
 
@@ -1754,7 +1764,7 @@ PhysEng.prototype.getSurfaceEndEvent = function () {
 
     console.log("");
 
-    nextSurfaceEvent = new SurfaceEndEvent(endPointData.time, endPointDependencyMask, this.player.surface, (endPointData.pointNumber === 0 ? this.player.surface.adjacent0 : this.player.surface.adjacent1), (endPointData.pointNumber === 0 ? this.player.surface.p0 : this.player.surface.p1), endPointAngle, true)
+    nextSurfaceEvent = new SurfaceEndPointEvent(endPointData.time, endPointDependencyMask, this.player.surface, (endPointData.pointNumber === 0 ? this.player.surface.adjacent0 : this.player.surface.adjacent1), (endPointData.pointNumber === 0 ? this.player.surface.p0 : this.player.surface.p1), endPointAngle, true)
     //DEBUG_DRAW_GRAY.push(new DebugCircle(endPointState.pos, this.player.radius, 5));
     console.groupEnd();
   } else {

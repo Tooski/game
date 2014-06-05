@@ -970,7 +970,7 @@ SurfaceToSurfaceEvent.prototype = new PredictedEvent();
  * @param predictedTime     the gametime at which the event will occur.
  * @param dependencyMask    used to bitwise and shit for predictions that are only affected by specific things. MAY NOT USE?
  */
-function SurfaceEndEvent(predictedTime, dependencyMask, surface, nextSurface, endpoint, arcAngle, allowLock) { // predictedTime should be gameTime since last frame, the time the physics engine should complete up to before rendering.
+function SurfaceEndPointEvent(predictedTime, dependencyMask, surface, nextSurface, endpoint, arcAngle, allowLock) { // predictedTime should be gameTime since last frame, the time the physics engine should complete up to before rendering.
   PredictedEvent.apply(this, [predictedTime, dependencyMask]);
 
   this.surface = surface;
@@ -1023,8 +1023,8 @@ function SurfaceEndEvent(predictedTime, dependencyMask, surface, nextSurface, en
     return;
   }
 }
-SurfaceEndEvent.prototype = new PredictedEvent();
-//SurfaceEndEvent.prototype.constructor = SurfaceEndEvent;
+SurfaceEndPointEvent.prototype = new PredictedEvent();
+//SurfaceEndPointEvent.prototype.constructor = SurfaceEndPointEvent;
 
 
 

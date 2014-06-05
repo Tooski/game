@@ -1159,13 +1159,13 @@ TerrainManager.prototype.checkConvex = function(first) {
     var concave = 0;
     do {
         itr2 = itr1.adjacent1;
-        do {
-            var con = getLineLineConcavity(itr1, itr2, ORIGIN);
+        while (itr2 !== first) {
+            var con = getLineLineConcavity(itr1, itr2, new State(0.0, 60, ORIGIN, ORIGIN, ORIGIN));
             if(con.convex) convex ++;
             if(con.concave) concave ++;
 
             itr2 = itr2.adjacent1;
-        } while (itr2 !== first);
+        }
         itr1 = itr1.adjacent1;
     } while (itr1 !== first);
         var poly = new Polygon(first,"assets/dirt.jpg" );
