@@ -2,7 +2,8 @@
 
 
 function leaderBoardButtonAction() {
-
+    //set the GameOver to false
+    gameEngine.GameOver = true;
     displayWorldMap();
 
 }
