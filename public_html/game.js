@@ -607,6 +607,7 @@ GameEngine.prototype.update = function () {
       //results = { finished: true or false, timeFinished: timeFinished, numCollectibles: number of collectibles collected, score: points acquired, numDeaths: number of respawns from checkpoints, replay: replay JSON string }
       results = this.physEng.update(thisFrameTime / 1000, this.eventsSinceLastFrame);
       if (results.finished) {
+        console.log("Finished level!!!! results", results);
         this.gameOver = true;
 
 

@@ -755,7 +755,6 @@ PlayerModel.prototype.startArc = function (point, arcAngle, pointToPosVec) {    
   var ang = radial.sAngle;
   var angVel = radial.aVel; 
   var angAccel = radial.aAccel;
-  this.arcTangentSurfaces = point.lines;
 
   var angState = new AngularState(this.time, this.radius, point, ang, angVel, angAccel);
 
@@ -823,7 +822,6 @@ PlayerModel.prototype.leaveArc = function () {
   this.a = null;
   this.aVel = null;
   this.aAccel = null;
-  this.arcTangentSurfaces = [];
 }
 
 
@@ -978,11 +976,11 @@ PhysEng.prototype.update = function (time, newEvents) {
     this.completionState.numCollectibles = this.player.alreadyCollected.length;
     this.completionState.numDeaths = this.player.numDeaths;
     this.completionState.score = this.player.score;
-    console.log(this.completionState);
+    this.completionState.replay = JSON.stringify(this.player.replayData);
     //if (this.completionState.finished) { throw "finished" };
-    return this.completionState;
   }
   // return gameState;
+  return this.completionState;
 }
 
 
@@ -1545,7 +1543,7 @@ PhysEng.prototype.willContinueLocking = function () {
   var baseForceVec = this.player.getBaseForceVecGround(this.player.inputState);
 
 
-  var surface = this.player.arcTangentSurfaces[0];   // TODO OHGOD DEBUG NEED SOMETHING BETTER
+  //var surface = this.player.arcTangentSurfaces[0];   // TODO OHGOD DEBUG NEED SOMETHING BETTER
   var baseForceNormalized = baseForceVec.normalize();
   //console.log("");
   //console.log("");
@@ -1815,9 +1813,11 @@ PhysEng.prototype.addNewEventsToEventHeap = function (newEvents) {
         }
         //console.log("convertEventBrowserTime for a renderEvent");
         this.convertEventBrowserTime(newEvents[i]);
-      } else {
+      } else if (newEvents[i].mask & E_REPLAY_EVENT_MASK) {
         this.convertEventBrowserTime(newEvents[i]);
         this.player.replayData.push(newEvents[i]);
+      } else {
+        this.convertEventBrowserTime(newEvents[i]);
       }
     } else if ((newEvents[i].mask & E_RENDER_MASK) && !newEvents[i].validTime) {
       renderEventCount++;
