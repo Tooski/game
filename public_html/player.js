@@ -112,7 +112,7 @@ Player.prototype.update = function() {
 		this.model.animationRunning = false;
 		this.model.animationStanding = false;
 		
-		console.log("000000000000000000000000000000000000" + this.inputs.jumpPressed);
+		//console.log("000000000000000000000000000000000000" + this.inputs.jumpPressed);
 		if(this.inputs.boostPressed && !this.model.animationDownBoosting){	 // for down boost....
 		//console.log("eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee");
 			this.model.animationDownBoosting = true;
