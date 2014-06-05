@@ -1,6 +1,6 @@
 
 .outer-leaderboard-container{
-    border: 1px blue solid;
+    border: 5px blue solid;
     min-width:425px;
     display: block;
     position:absolute;
@@ -22,42 +22,68 @@
     background: linear-gradient(#3498db, #8ac6ed, #8ac6ed,#3498db,blue); /* Standard syntax */
 
 }
-.title-container{
-    border: 1px blue solid;
+
+.header{
+    padding-top:10px;
+    padding-bottom: 10px;
+    border: 3px #d35400 solid;
     text-align: center;
-    font-size: 2em;
-    padding: 5px;
+    color:white;
+    background-color: #f39c12;
+    font-family: Audiowide;
+    font-size:1.75em;
+}
+.results{
+    padding-left:40px;
+    font-family: Audiowide;
+    background-color: white;
+    border-right: 3px #d35400 solid;
+    border-left: 3px #d35400 solid;
+}
+.results div{
+    margin-top:5px;
+}
+.title-container{
+    padding-top:10px;
+    padding-bottom: 10px;
+    border: 3px #d35400 solid;
+    text-align: center;
+    color:white;
+    background-color: #f39c12;
+    font-family: Audiowide;
+    font-size: 1.75em;
 
 }
 .sub-title-container{
     overflow: hidden;
-
+    background-color: blue;
+    padding: 5px;
+    font-size: 1.25em;
+    text-align: center;
+    color: white;
+    border-right: 3px #d35400 solid;
+    border-left: 3px #d35400 solid;
 }
 .left-sub-title{
     float: left;
     width:200px;
-    border: 1px red solid; 
-    padding: 5px;
-    font-size: 1.25em;
-    text-align: center;  
+
 }
 
 .right-sub-title{
     float: right;
     width:200px;
-    border: 1px green solid; 
-    padding: 5px;
-    font-size: 1.25em;
-    text-align: center;
 }
 .body-container{
     overflow: hidden;
+    border-right: 3px #d35400 solid;
+    border-left: 3px #d35400 solid;
+    background-color: white;
 }
 .left-box{
     float: left;
     width:200px;
-    max-height: 300px;
-    border: 1px red solid; 
+    max-height: 300px; 
     overflow: scroll;
     padding: 5px;
     text-align: center;
@@ -83,7 +109,6 @@
     float: right;
     width:200px;
     max-height: 300px;
-    border: 1px green solid; 
     overflow: scroll;
     padding: 5px;
     text-align: center;
@@ -112,6 +137,8 @@
     padding: 20px;
     overflow: hidden;
     margin-bottom: 40px;
+    background-color: #f39c12;
+    border: 3px #d35400 solid;
 }
 #exit_button{
     width: 95px;

@@ -14,28 +14,40 @@
     padding-bottom: 10px;
     border-radius: 5px;
     overflow: hidden;
+    background: -webkit-linear-gradient(#3498db, #8ac6ed,#8ac6ed,#3498db,blue); /* For Safari 5.1 to 6.0 */
+    background: -o-linear-gradient(#3498db, #8ac6ed,#8ac6ed,#3498db,blue); /* For Opera 11.1 to 12.0 */
+    background: -moz-linear-gradient(#3498db, #8ac6ed,#8ac6ed,#3498db,blue); /* For Firefox 3.6 to 15 */
+    background: linear-gradient(#3498db, #8ac6ed, #8ac6ed,#3498db,blue); /* Standard syntax */
 }
 .inner-about-title{
     text-align: center;
     font-size: 2em;
     padding:10px;
     border-radius: 4px;
-    border: 1px red solid;
-    margin-bottom: 10px;
+    margin-bottom: 10px;  
+    border: 3px #d35400 solid;
+    color:white;
+    background-color: #f39c12;
+    font-family: Audiowide;
 }
 .inner-about-container{
     border: 1px red solid;
     min-height: 350px;
     min-width:325px;
     border-radius: 4px;
+    background-color: white;
+    border: 3px #d35400 solid;
 }
 .inner-about-footer{
     text-align: center;
     font-size: 2em;
     padding:10px;
     border-radius: 4px;
-    border: 1px red solid;
     margin-top: 10px;
+    border: 3px #d35400 solid;
+    color:white;
+    background-color: #f39c12;
+    font-family: Audiowide;
 }
 
 #exit_about_button{
