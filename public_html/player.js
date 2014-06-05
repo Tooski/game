@@ -39,151 +39,148 @@ function Player(x, y, timer) {
 
 Player.prototype = new Entity();
 Player.prototype.update = function() {
-	 if (this.model.surface) {
-	 	this.model.animationGroundJumping = false;
+	
+	if(this.inputs.leftPressed){
+		this.model.animationStanding = false;
+        this.model.animationFacing = "left";
+		this.facing = false;
+	} else if(this.inputs.rightPressed){
+	    this.model.animationStanding = false;
+        this.model.animationFacing = "right";
+		this.facing = true;
+	}
+
+
+	 if (this.model.surface) { // at the serface
+		this.model.animationGroundJumping = false;
 		this.model.animationDoubleJumping = false;
 		this.model.animationFreefall = false;
-		//this.model.animationBoosting = false;
 		this.model.animationDownBoosting = false;
 		
-	 }
-    //console.log(this.model.animationSpeed);
-    //console.log(this.model.animationAngle);
-    if (this.model.animationSpeed <= 0) {
-        this.model.animationStanding = true;
-    } else {
-        this.model.animationStanding = false;
-    }
+		this.model.animationWalking = true;
+		
+		
+		if(this.model.animationWalking|| this.model.animationRunning){
+			if (this.model.animationSpeed <= 0) {
+				this.model.animationStanding = true;
+			} else {
+			this.model.animationStanding = false;
 
-    if (this.inputs.leftPressed) {
-
-        this.model.animationStanding = false;
-        this.facing = false;
-        if (this.model.animationSpeed <= 1000) {
-            this.model.animationWalking = true;
-            this.model.animationRunning = false;
-        }
-        else {
-            this.model.animationRunning = true;
-            console.log(this.model.animationRunning);
-            this.model.animationWalking = false;
-        }
-    }
-
-    if (this.inputs.rightPressed) {
-        this.model.animationStanding = false;
-        this.model.animationFacing = "right";
-        this.facing = true;
-        if (this.model.animationSpeed <= 1000) {
-            this.model.animationWalking = true;
-            this.model.animationRunning = false;
-        } else {
-            this.model.animationRunning = true;
-            this.model.animationWalking = false;
-        }
-
-    }
+			}	
 	
-	// for down boosting...
-	if((this.model.animationGroundJumping || this.model.animationFreefall ||this.model.animationDoubleJumping) && this.inputs.boostPressed && !this.model.animationDownBoosting){	
+			if (this.model.animationSpeed <= 1000) { //walking
+				this.model.animationWalking = true;
+				this.model.animationRunning = false;
+			} else { //running.
+				this.model.animationRunning = true;
+				this.model.animationWalking = false;
+			}
+		}
+		
+		if (this.inputs.boostPressed && !this.model.animationBoosting) { //start boost...
+			this.model.animationBoosting = true;
+			this.groundBoostAnimation.elapsedTime = 0;
+			this.boostTime = 0;
+		} else if (this.inputs.jumpPressed) {
+			// first jump
+		
+				this.model.animationBoosting = false;
+				this.model.animationWalking = false;
+				this.model.animationRunning = false;
+				
+				this.model.animationDoubleJumping = false;
+				this.model.animationFreefall = false;
+				
+				this.model.animationGroundJumping = true;
+				this.jumpingAnimation.elapsedTime = 0;
+				this.airJumpAnimation.elapsedTime = 0;
+			
+		}
+		
+		if(this.model.animationBoosting){
+	        this.boostTime += this.timer.gameDelta;
+			if (this.boostTime > 1) {
+				this.model.animationBoosting = false;
+			}
+		
+		}
+	} else { // at not serface....
+		this.model.animationFreefall = false ;
+		this.model.animationBoosting = false;
+		this.model.animationWalking = false;
+		this.model.animationRunning = false;
+		this.model.animationStanding = false;
+		
+		
+		if(this.inputs.boostPressed && !this.model.animationDownBoosting){	 // for down boost....
 		//console.log("eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee");
-		this.model.animationDownBoosting = true;
-
-		this.model.animationBoosting = false;
-		this.model.animationWalking = false;
-		this.model.animationRunning = false;
+			this.model.animationDownBoosting = true;
+			this.downBoostAnimation.elapsedTime = 0;
+			this.boostTime = 0;
 		
-		this.downBoostAnimation.elapsedTime = 0;
-		this.boostTime = 0;
-		
-	} else if (this.inputs.boostPressed || this.model.animationBoosting) {
-       // console.log("boostPressed " + this.inputs.boostPressed);
-        this.boostTime += this.timer.gameDelta;
-
-		
-        this.model.animationBoosting = true;
-        this.model.animationWalking = false;
-        this.model.animationStanding = false;
-        this.model.animationRunning = false;
-
-        //boost durration
-        if (this.boostTime > 1) {
-            this.boostTime = 0;
-            this.groundBoostAnimation.elapsedTime = 0;
-            this.model.animationBoosting = false;
-            this.model.animationWalking = true;
-            this.model.animationRunning = false;
-            this.model.animationStanding = false;
-        }
-    } else {
-        //so it returns to walking and not standing
-       // this.groundBoostAnimation.elapsedTime = 0;
-        //this.model.animationBoosting = false;
-        this.model.animationWalking = true;
-        this.model.animationRunning = false;
-        this.model.animationStanding = false;
-
-
-    }
-	
-	
-
-	//----------------------------------- key event...----------------------------
-//console.log("jjjjjjjjjjjjjjjjjjjjjjjjj" +this.model.animationGroundJumping );
-//console.log("ffffffffffffffffffffffffff" +this.model.animationFreefall);
-    if (this.inputs.jumpPressed) {
-		if(!this.model.animationGroundJumping){ // first ju
-		//console.log("jjjjjjjjjjjjjjjjjjjjjjjjeeeeejjjjjjjjjjjjj");
-			this.model.animationGroundJumping = true;
-			this.model.animationBoosting = false;
-			this.model.animationWalking = false;
-			this.model.animationRunning = false;
-			this.model.animationDoubleJumping = false;
-			this.model.animationFreefall = false;
-			this.jumpingAnimation.elapsedTime = 0;
-		} else if(!this.model.animationDoubleJumping){
+		} else if (this.inputs.jumpPressed) {
+			// first jump
+			if(!this.model.animationGroundJumping){
+				this.model.animationBoosting = false;
+				this.model.animationWalking = false;
+				this.model.animationRunning = false;
+				
+				this.model.animationDoubleJumping = false;
+				this.model.animationFreefall = false;
+				
+				this.model.animationGroundJumping = true;
+				this.jumpingAnimation.elapsedTime = 0;
+				this.airJumpAnimation.elapsedTime = 0;
+			}else if(!this.model.animationDoubleJumping){
 			//console.log("jjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjj");
-			this.model.animationDoubleJumping = true;
-			this.model.animationFreefall = false;
-			this.airJumpAnimation.elapsedTime = 0;
+				this.model.animationDoubleJumping = true;
+				this.model.animationFreefall = false;
+				this.airJumpAnimation.elapsedTime = 0;
 
-		} 
-    }
+			} 
+		}
+
+		if(this.model.animationDoubleJumping){
+			if (this.airJumpAnimation.isWillDone(this.timer.gameDelta)) {
+
+				this.model.animationFreefall = true;
+				this.fallingAnimation.elapsedTime = 0;
+			}
+		} else if (this.model.animationGroundJumping) {
 	
-	//----------------------------------- event for when it done. (for jumping)----------------------------
-	if(this.model.animationDownBoosting){
-	    this.boostTime += this.timer.gameDelta;
+			if (this.jumpingAnimation.isWillDone(this.timer.gameDelta)) {
+
+				this.model.animationFreefall = true;
+				this.fallingAnimation.elapsedTime = 0;
+            
+			}
+		}
+		
+		if(this.model.animationDownBoosting){
+			this.boostTime += this.timer.gameDelta;
 		
         //boost durration
-        if (this.boostTime > 1) {
-            this.model.animationDownBoosting = false;
-        }
+			if (this.boostTime > 1) {
+				this.model.animationDownBoosting = false;
+			}
 	
-	} else if(this.model.animationDoubleJumping){
-	    if (this.airJumpAnimation.isWillDone(this.timer.gameDelta)) {
-
-            this.model.animationFreefall = true;
-			this.fallingAnimation.elapsedTime = 0;
-        }
-	} else if (this.model.animationGroundJumping) {
-	
-	    if (this.jumpingAnimation.isWillDone(this.timer.gameDelta)) {
-
-            this.model.animationFreefall = true;
-			this.fallingAnimation.elapsedTime = 0;
-            
-        }
+		}
+		if(!this.model.animationGroundJumping && !this.model.animationDoubleJumping){
+			this.model.animationFreefall = true;
+		}
+		
+		
 	}
+	 
 	
-	if( this.model.animationFreefall) {
 	
-		this.model.animationBoosting = false;
-		this.model.animationWalking = false;
-		this.model.animationRunning = false;
-	}
+
+	
+
+	
+
 
 };
-var falling = false;
 
 var SPRITE_WIDTH_AND_HEIGHT_IN_PX = 300;
 Player.prototype.draw = function(ctx) {
@@ -198,9 +195,7 @@ Player.prototype.draw = function(ctx) {
     ctx.stroke();
 
     if (this.model.animationFacing === "left") {
-        if (this.model.animationStanding) {
-            this.idle(ctx, scaleFactor);
-        } else if(this.model.animationDownBoosting){
+        if(this.model.animationDownBoosting){
 			this.downBoost(ctx, scaleFactor);
 		} else if ( this.model.animationFreefall) { //falling
             this.freeFall(ctx, scaleFactor);
@@ -217,14 +212,14 @@ Player.prototype.draw = function(ctx) {
             this.walking(ctx, scaleFactor);
         } else if (this.model.animationRunning) {
             this.running(ctx, scaleFactor);
-        } 
+        } else if (this.model.animationStanding) {
+            this.idle(ctx, scaleFactor);
+        }
 
     }
     //need to add falling flag
     if (this.model.animationFacing === "right") {
-        if (this.model.animationStanding) {
-            this.idle(ctx, scaleFactor);
-        } else if(this.model.animationDownBoosting){
+        if(this.model.animationDownBoosting){
 			this.downBoost(ctx, scaleFactor);
 		} else if ( this.model.animationFreefall) { //falling
             this.freeFall(ctx, scaleFactor);
@@ -241,7 +236,9 @@ Player.prototype.draw = function(ctx) {
             this.walking(ctx, scaleFactor);
         } else if (this.model.animationRunning) {
             this.running(ctx, scaleFactor);
-        } 
+        } else if (this.model.animationStanding) {
+            this.idle(ctx, scaleFactor);
+        }
 
 
     }
