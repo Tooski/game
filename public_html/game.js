@@ -622,7 +622,7 @@ GameEngine.prototype.update = function () {
         this.gameOver = true;
 
  
-        gameOver(results.score, results.timeFinished, results.replay, results.cnumCollectibles, results.deaths);
+        gameOver(results.score, results.timeFinished, results.replay, results.numCollectibles, results.numDeaths);
 
       }
     }
