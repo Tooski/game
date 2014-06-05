@@ -119,7 +119,7 @@ Player.prototype.update = function() {
 			this.downBoostAnimation.elapsedTime = 0;
 			this.boostTime = 0;
 		
-		} else if (this.inputs.jumpPressed && my_key_pressing <= 1) {
+		} else if (this.inputs.jumpPressed) {
 			// first jump
 			if(!this.model.animationGroundJumping){
 				this.model.animationBoosting = false;
