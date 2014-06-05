@@ -1019,7 +1019,7 @@ function SurfaceEndEvent(predictedTime, dependencyMask, surface, nextSurface, en
 
 
     p.startArc(this.point, this.arcAngle, this.surface.normal);
-    p.arcTangentSurfaces.push(this.nextSurface);
+    //p.arcTangentSurfaces.push(this.nextSurface);
     return;
   }
 }
