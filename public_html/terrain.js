@@ -72,7 +72,7 @@ LinePoint.prototype.connectLine = function (line) {
  * removes a line from this LinePoint.
  */
 LinePoint.prototype.removeLine = function (line) {
-  console.group();
+  console.groupCollapsed("LinePoint.removeLine");
   console.log("trying a remove line, line", line);
   for (var i = 0; i < this.lines.length; i++) {
     if (this.lines[i]) {

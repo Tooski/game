@@ -622,7 +622,7 @@ function TerrainLineCollisionEvent(gameTimeOfCollision, line, stateAtCollision, 
 
 
   this.handler = function (physEng) {
-    console.group("TerrainLineCollisionEvent handler");
+    console.groupCollapsed("TerrainLineCollisionEvent handler");
     var p = physEng.player;
     var input = p.inputState;
 
@@ -718,7 +718,7 @@ function MultiTerrainLineCollisionEvent(gameTimeOfCollision, collidedWithList, s
 
 
   this.handler = function (physEng) {
-    console.group("MultiTerrainLineCollisionEvent handler");
+    console.groupCollapsed("MultiTerrainLineCollisionEvent handler");
     var p = physEng.player;
     var input = p.inputState;
 
@@ -821,7 +821,7 @@ function TerrainPointCollisionEvent(gameTimeOfCollision, terrainPointCollidedWit
 
 
   this.handler = function (physEng) {
-    console.group("TerrainPointCollisionEvent handler");
+    console.groupCollapsed("TerrainPointCollisionEvent handler");
     var p = physEng.player;
     var input = p.inputState;
 
@@ -910,7 +910,7 @@ function SurfaceToSurfaceEvent(predictedTime, dependencyMask, surfaceOn, nextSur
   this.handler = function (physEng) {
     var p = physEng.player;
     var input = p.inputState;
-    console.group("SurfaceToSurfaceEvent handler!");
+    console.groupCollapsed("SurfaceToSurfaceEvent handler!");
     var normalBallVel = p.vel.normalize();
     var collisionVecNorm = this.nextSurface.normal;
 
@@ -983,8 +983,8 @@ function SurfaceEndEvent(predictedTime, dependencyMask, surface, nextSurface, en
 
   console.log("|-|-|-|-|-|  endpoint " + endpoint.x + ", " + endpoint.y);
   console.log("|-|-|-|-|-|  arcAngle ", this.arcAngle);
-  console.log("|-|-|-|-|-|  surface.normal ", "" + surface.normal.x, ", " + surface.normal.y);
-  console.log("|-|-|-|-|-|  nextSurface.normal ", "" + nextSurface.normal.x, ", " + nextSurface.normal.y);
+  console.log("|-|-|-|-|-|  surface.normal angle ", surface.normal.angle());
+  console.log("|-|-|-|-|-|  nextSurface.normal angle ", nextSurface.normal.angle());
 
 
   this.handler = function (physEng) {

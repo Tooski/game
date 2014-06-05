@@ -344,7 +344,7 @@ TerrainManager.prototype.eraseByPosition = function (position, distance) {
 
 //no touchy
 TerrainManager.prototype.removeFromTerrain = function (terrainLinesToRemove) {
-  console.group();
+  console.groupCollapsed("removeFromTerrain");
   if (terrainLinesToRemove) {
     for (var i = 0; i < terrainLinesToRemove.length; i++) {
       if (terrainLinesToRemove[i]) {
@@ -1205,8 +1205,7 @@ TerrainManager.prototype.loadOldLevelFromJSON = function (obj) {
  */
 TerrainManager.prototype.loadFromJSON = function (obj) {
   this.reset();
-  console.log("They see me loading, they hatin");
-  console.group();
+  console.groupCollapsed("They see me loading, they hatin");
 
   console.log("JSON obj to load:");
   console.log(obj);

@@ -744,8 +744,7 @@ PlayerModel.prototype.surfaceLock = function (surface) {
  * starts the player arcing.
  */
 PlayerModel.prototype.startArc = function (point, arcAngle, pointToPosVec) {    // GET RID OF ARCANGLE
-  console.log("startArc");
-  console.group();
+  console.groupCollapsed("startArc");
   if (!point.id || !point.lines) {
     throw "bad point, ", point;
   }
@@ -778,29 +777,26 @@ PlayerModel.prototype.startArc = function (point, arcAngle, pointToPosVec) {    
  * Function that deals with arking the player to a surface.
  */
 PlayerModel.prototype.arcTo = function (surface) {
-  console.log("arcTo");
-  console.group();
+  console.groupCollapsed("arcTo");
 
   var isAccelerating = ((this.onSurface && this.vel.length() > 0) || (this.onPoint && this.aVel !== 0));
   console.log("ACCELERATING???", isAccelerating);
   console.log("player ang", this.a);
   console.log("surface norm ang", surface.normal.sangle());
   console.log("difference", this.a - surface.normal.sangle(), "should be near 0 :|");
-  //console.log(" / / / /        difference", this.a - surface.normal.sangle());
-  console.log(" ");
   //var cartesianState = convertAngularToNormalState(this);
   //var accel = this.accel;
   //this.updateToState(cartesianState);
   //this.accel = accel;             // TODO better way to keep from changing accel to the angular accel???? Do we even care?
   if (surface) {
     // didnt end arc early
-    console.log(" +++++++++ arcTo: didnt end arc early. surface ", surface);
+    console.log("arcTo: didnt end arc early. surface ", surface);
     var surfaceVecNorm = surface.p1.subtract(surface.p0).normalize();
     this.lockTo(surface, surfaceVecNorm);
     this.leaveArc();
   } else {
     // ended arc early, in the air.
-    console.log(" +++++++++ arcTo: ended arc early, in the air.");
+    console.log("arcTo: ended arc early, in the air.");
     this.updateToState(convertAngularToNormalState(this));
     this.leaveArc();
     this.leaveGround();
@@ -842,8 +838,7 @@ PlayerModel.prototype.snapTo = function (surface, surfaceVecNorm) {
  * Prints the state of the player with a prefix
  */
 PlayerModel.prototype.print = function () {
-  console.log("PlayerModel print");
-  console.group();
+  console.groupCollapsed("PlayerModel print");
   var pl = this.PRINT_LENGTH;
   console.log("time      " + rl(this.time, pl) + "    --   radius " + this.radius);
 
@@ -1025,7 +1020,7 @@ PhysEng.prototype.updatePhys = function (newEvents, stepToRender) {
   }
 
   //console.log("starting update");
-  //console.group();
+  //console.groupCollapsed();
   
 
   //var gameTime = this.timeMgr.convertBrowserTime(targetBrowserTime);
@@ -1063,14 +1058,14 @@ PhysEng.prototype.updatePhys = function (newEvents, stepToRender) {
     
     if (!this.isPaused) {
       //console.log("starting attemptNextStep");
-      //console.group();
+      //console.groupCollapsed();
       var stepResult = this.attemptNextStep(targetTime); //stepResult .state .success .events
       //console.groupEnd();
       //console.log("ending attemptNextStep, stepResult: ", stepResult);
 
 
       //console.log("loopthing");
-      //console.group();
+      //console.groupCollapsed();
       //if stepResult has new events
       for (var i = 0; stepResult.events && i < stepResult.events.length; i++) {
         //add new events events to eventHeap
@@ -1300,15 +1295,15 @@ PhysEng.prototype.attemptAngularStep = function (goalGameTime) {
  */
 PhysEng.prototype.attemptNormalStep = function (goalGameTime) {
 
-  //console.group();
+  //console.groupCollapsed();
 
   var stepCount = 1;
   var startGameTime = this.player.time;
   var deltaTime = goalGameTime - startGameTime;
 
-  console.log("  start of an attemptNormalStep. ");
-  console.log("    attempting to step to goalGameTime: ", goalGameTime);
-  console.log("    playerState: ", this.player);
+  //console.groupCollapsed("start of an attemptNormalStep. ");
+  //console.log("attempting to step to goalGameTime: ", goalGameTime);
+  //console.log("playerState: ", this.player);
   var debugState = new State(this.player.time, this.player.radius, this.player.pos, this.player.vel, this.player.accel);
 
   var velStep = new vec2(this.player.vel.x, this.player.vel.y);
@@ -1332,7 +1327,7 @@ PhysEng.prototype.attemptNormalStep = function (goalGameTime) {
   var kCollisionList = [];
   var chCollisionList = [];
   var colCollisionList = [];
-  //console.log("   CollisionList.length: ", collisionList.length, " stepCount: ", stepCount);
+  //console.log("CollisionList.length: ", collisionList.length, " stepCount: ", stepCount);
   for (var i = 1; i < stepCount && numCollisions === 0; i++) {     // DO check steps.
     var doNotCheck = this.getNewDoNotCheck();
     stepFraction = i / stepCount;
@@ -1351,7 +1346,7 @@ PhysEng.prototype.attemptNormalStep = function (goalGameTime) {
     colCollisionList = this.tm.getCollectibleCollisions(tempState, this.player.alreadyCollected);
     numCollisions += colCollisionList.length;
 
-    //console.log("      tweenStepping, i: ", i, " tweenTime: ", tweenTime);
+    //console.log("tweenStepping, i: ", i, " tweenTime: ", tweenTime);
   }
 
 
@@ -1473,9 +1468,11 @@ PhysEng.prototype.attemptNormalStep = function (goalGameTime) {
   }
 
   var results = new StepResult(tempState, events);
-  console.log("End attemptNormalStep, results", results);
-  console.log("Events", events);
-  console.groupEnd();
+  if (events.length > 0) {
+    console.log("End attemptNormalStep, results", results);
+    console.log("Events", events);
+  }
+  //console.groupEnd();
   return results;
 }
 
@@ -1514,8 +1511,7 @@ PhysEng.prototype.trySync = function () {
  * updates the predicted events.
  */
 PhysEng.prototype.updatePredicted = function () {           //TODO FINISH
-  console.group();
-  console.log("updatePredicted!");
+  console.groupCollapsed("updatePredicted!");
   this.resetPredicted();
   this.player.predictedDirty = false;
   if (this.player.onPoint) {
@@ -1603,8 +1599,7 @@ PhysEng.prototype.getArcEndEvent = function () {
   //var startAngle = this.player.a;
   //var endAngle1 = this.player.nextSurface.normal.angle();
   //var endAngle2 = this.player.surface.normal.angle();
-  console.log("getArcEndEvent");
-  console.group();
+  console.groupCollapsed("getArcEndEvent");
         //returns { nextSurface, state };
         //getSurfacesAtSoonestAngleTime(aState, surface1, surface2) {
 
@@ -1633,7 +1628,7 @@ PhysEng.prototype.getSurfaceEndEvent = function () {
   if (this.player.onPoint) {
     throw "shouldnt be in getSurfaceEndEvent when locked to a point.";
   }
-  console.group("getSurfaceEndEvent");
+  console.groupCollapsed("getSurfaceEndEvent");
   /* returns { adjNumber: 0 or 1, time, angle } where angle in radians from this surface to next surface surface. the closer to Math.PI the less the angle of change between surfaces.
    * null if none in positive time or both not concave.*/
   var adjData = getNextSurfaceData(this.player, this.player.surface);
@@ -1655,7 +1650,7 @@ PhysEng.prototype.getSurfaceEndEvent = function () {
 
   if (adjData && (adjData.time || adjData.time === 0)) {
     if (endPointData && (endPointData.time || endPointData.time === 0)) {
-      console.group("endpointData AND adjData. Should be adjData, but testing shit below to ensure nothing is wrong. ");
+      console.groupCollapsed("endpointData AND adjData. Should be adjData, but testing shit below to ensure nothing is wrong. ");
 
       var endPointState = stepStateToTime(this.player, endPointData.time);
       var adjDataState = stepStateToTime(this.player, adjData.time);
@@ -1686,7 +1681,7 @@ PhysEng.prototype.getSurfaceEndEvent = function () {
 
 
       if (adjData.adjNumber === endPointData.pointNumber) {
-        console.group("use the adjacent surface for the event. It was concave, doesnt matter what time it supposedly comes at.");
+        console.groupCollapsed("use the adjacent surface for the event. It was concave, doesnt matter what time it supposedly comes at.");
         if (adjData.time > endPointData.time) {
           //console.log("adjData.time, ", adjData.time, "endPointData.time, ", endPointData.time);
           //DEBUG_DRAW_GREEN.push(new DebugCircle(adjDataState.pos, this.player.radius, 5));
@@ -1703,7 +1698,7 @@ PhysEng.prototype.getSurfaceEndEvent = function () {
         //DEBUG_DRAW_GREEN.push(new DebugCircle(adjDataState.pos, this.player.radius, 5));
         console.groupEnd();
       } else {
-        console.group("endpoint and adjSurface are on opposite ends. Event whichever is soonest. ");
+        console.groupCollapsed("endpoint and adjSurface are on opposite ends. Event whichever is soonest. ");
         // endpoint and adjSurface are on opposite ends. Event whichever is soonest.
         if (adjData.time < endPointData.time) {
           // use adjacent.
@@ -1737,7 +1732,7 @@ PhysEng.prototype.getSurfaceEndEvent = function () {
 
     }
   } else if (endPointData && (endPointData.time || endPointData.time === 0)) {
-    console.group("no adjData, use endPointData.");
+    console.groupCollapsed("no adjData, use endPointData.");
 
     var endPointState = stepStateToTime(this.player, endPointData.time);
     console.log("no adjData, using endPoint ");
@@ -1910,8 +1905,7 @@ PhysEng.prototype.getNewDoNotCheck = function () {
  * Determines the time of the collisions and then return the earliest, those that tie for the earliest.
  */
 PhysEng.prototype.findRealLineCollisions = function (collisionList, minTime, maxTime) {
-  console.log("findRealLineCollisions");
-  console.group();
+  console.groupCollapsed("findRealLineCollisions");
   //heap of possible line collisions and their times. 
   var lineHeap = new MinHeap(null, function (e1, e2) {     //WHAT THE FUCK IS THIS FOR? I DONT REMEMBER CODING THIS I WAS SICK AS HELL RIP IN PIECES
     if (!(e1.time >= 0)) {
@@ -1933,8 +1927,7 @@ PhysEng.prototype.findRealLineCollisions = function (collisionList, minTime, max
   });
 
 
-  console.log("time loop");
-  console.group();
+  console.groupCollapsed("time loop");
   for (var i = 0; i < collisionList.length; i++) {
     var collision = collisionList[i];
     // collisoin: { collision,   collidedLine,  collidedP0,  collidedP1,  surface,  perpendicularIntersect }
@@ -1976,8 +1969,7 @@ PhysEng.prototype.findRealLineCollisions = function (collisionList, minTime, max
   console.log("pointCollisions", pointCollisions);
 
   var finalCollisions;
-  console.log("while");
-  console.group();
+  console.groupCollapsed("while");
   while (!foundCollision) {                                   // find earliest valid collisions.
     var collisionTime;
     if (!lineCollisions && !pointCollisions) {
@@ -2103,8 +2095,7 @@ PhysEng.prototype.findRealLineCollisions = function (collisionList, minTime, max
  * Verifies the occurrance of and returns the time of the verified circle collisions.
  */
 PhysEng.prototype.findRealCircleCollisions = function (collisionList, minTime, maxTime) {
-  console.log("findRealCircleCollisions");
-  console.group();
+  console.groupCollapsed("findRealCircleCollisions");
   //heap of possible line collisions and their times. 
   var circleHeap = new MinHeap(null, function (e1, e2) {   
     if (!(e1.time >= 0)) {
@@ -2118,8 +2109,7 @@ PhysEng.prototype.findRealCircleCollisions = function (collisionList, minTime, m
 
 
 
-  console.log("circle time loop");
-  console.group();
+  console.groupCollapsed("circle time loop");
   for (var i = 0; i < collisionList.length; i++) {
     var collision = collisionList[i];
     // collisoin: { collision,   collidedLine,  collidedP0,  collidedP1,  surface,  perpendicularIntersect }
@@ -2155,8 +2145,7 @@ PhysEng.prototype.findRealCircleCollisions = function (collisionList, minTime, m
  */
 function nextHeapCollisions(heap) {
   if (heap.size() > 0) {
-    console.log("in nextHeapCollisions(heap)");
-    console.group();
+    console.groupCollapsed("in nextHeapCollisions(heap)");
     var collision = heap.pop();
     var collisions = new Array();
     collisions.push(collision);
@@ -2194,8 +2183,7 @@ function nextHeapCollisions(heap) {
  * TODO decide how to handle line and point same time collisions. Go with line for now???
  */
 PhysEng.prototype.turnTerrainLineCollisionsIntoEvent = function (collisions) {
-  console.log("turnTerrainLineCollisionsIntoEvent");
-  console.group();
+  console.groupCollapsed("turnTerrainLineCollisionsIntoEvent");
   var event;
   var allowLock = true; //TODO CRITICAL NEED TO ACTUALLY CHECK LOCKING SHIT.
 
@@ -2277,8 +2265,7 @@ PhysEng.prototype.turnTerrainLineCollisionsIntoEvent = function (collisions) {
  * TODO decide how to handle line and point same time collisions. Go with line for now???
  */
 PhysEng.prototype.turnCheckpointLineCollisionsIntoEvent = function (collisions) {
-  console.log("turnCheckpointLineCollisionsIntoEvent");
-  console.group();
+  console.groupCollapsed("turnCheckpointLineCollisionsIntoEvent");
   var event;
 
 
@@ -2298,8 +2285,7 @@ PhysEng.prototype.turnCheckpointLineCollisionsIntoEvent = function (collisions) 
  * TODO decide how to handle line and point same time collisions. Go with line for now???
  */
 PhysEng.prototype.turnGoalLineCollisionsIntoEvent = function (collisions) {
-  console.log("turnGoalLineCollisionsIntoEvent");
-  console.group();
+  console.groupCollapsed("turnGoalLineCollisionsIntoEvent");
   var event;
 
 
@@ -2318,8 +2304,7 @@ PhysEng.prototype.turnGoalLineCollisionsIntoEvent = function (collisions) {
  * TODO decide how to handle line and point same time collisions. Go with line for now???
  */
 PhysEng.prototype.turnKillLineCollisionsIntoEvent = function (collisions) {
-  console.log("turnKillLineCollisionsIntoEvent");
-  console.group();
+  console.groupCollapsed("turnKillLineCollisionsIntoEvent");
   var event;
 
 
@@ -2338,8 +2323,7 @@ PhysEng.prototype.turnKillLineCollisionsIntoEvent = function (collisions) {
  * TODO decide how to handle line and point same time collisions. Go with line for now???
  */
 PhysEng.prototype.turnCollectibleCollisionsIntoEvent = function (collisions) {
-  console.log("turnCollectibleCollisionsIntoEvent");
-  console.group();
+  console.groupCollapsed("turnCollectibleCollisionsIntoEvent");
   var event;
 
 

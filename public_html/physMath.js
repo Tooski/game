@@ -93,7 +93,7 @@ function stepAngularStateByAngle(aState, signedAngle) {
   //// this thing is just useful for storing potential angular movement states of an object.
   //function AngularState(time, radius, pointCircling, angle, angularVel, angularAccel) {
 
-  console.group("stepAngularStateByAngle, signedAngle " + signedAngle);
+  console.groupCollapsed("stepAngularStateByAngle, signedAngle " + signedAngle);
   console.log("<<<<<<<<<<<<<<< above angle should be > NEG_PI and < PI???");
   aState.print("");
 
@@ -134,7 +134,7 @@ function stepAngularStateToAngle(aState, targetSignedAngle) {
     console.log("targetSignedAngle " + targetSignedAngle);
     throw "not a signed angle";
   }
-  console.group("stepAngularStateToAngle, CHECK ME");
+  console.groupCollapsed("stepAngularStateToAngle, CHECK ME");
 
   var startAngle = aState.a;
   var angleDelta = targetSignedAngle - startAngle;
@@ -190,7 +190,7 @@ function convertSignedAngleToUnsigned(signedAng) {
 function getSurfacesAtSoonestAngleTime(aState) {
   var startAngle = aState.a;
   console.log("getSurfacesAtSoonestAngleTime");
-  console.group();
+  console.groupCollapsed();
   console.log("aState: ", aState);
   console.log("aState.point.lines: ", aState.point.lines);
 
@@ -416,8 +416,7 @@ function solveEarliestSurfaceEndpoint(state, surface) {
     throw "missing params " + state + surface;
   }
   
-  console.log("solving earliest surface endpoint, ");
-  console.group();
+  console.groupCollapsed("solving earliest surface endpoint, ");
   console.log("state ", state);
   console.log("surface ", surface);
 
@@ -465,19 +464,6 @@ function solveEarliestSurfaceEndpoint(state, surface) {
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
 /**
  * Solves the time that it will take the provided state to reach the next surface, if it will.
  * returns { adjNumber: 0 or 1, time, angle } where angle in radians from this surface to next surface surface. the closer to Math.PI the less the angle of change between surfaces.
@@ -487,7 +473,7 @@ function getNextSurfaceData(state, surface) {
   var data = null;
   var time0 = null;
   var time1 = null;
-  console.group("getNextSurfaceData, pay attention to me you fucker");
+  console.groupCollapsed("getNextSurfaceData, pay attention to me you fucker");
   // concave result { concave: t / f, angle } where angle in radians from this surface to next surface surface. the closer to Math.PI the less the angle of change between surfaces.
   var concRes0 = getLineLineConcavity(surface, surface.adjacent0, state.position);
   var concRes1 = getLineLineConcavity(surface, surface.adjacent1, state.position);
@@ -526,13 +512,14 @@ function getNextSurfaceData(state, surface) {
 
 
 
+
+
 /*
  * Gets the amount of time taken to travel the specified distance at the current velocity and acceleration. 1 dimensional.
  * assumes the starting position is at 0.
  */
 function solveTimeToDist1D(targetDist, currentVelocity, acceleration) {
-  console.log("solving time to dist 1D,");
-  console.group();
+  console.groupCollapsed("solving time to dist 1D,");
   console.log("solveTimeToDist1D.  acceleration ", acceleration, ", currentVelocity ", currentVelocity, ", distanceToSurfaceEnd ", targetDist);
 
   targetDist = -targetDist;
@@ -581,7 +568,7 @@ function solveTimeToDist1D(targetDist, currentVelocity, acceleration) {
 
 function getLineCollisionTime(state, line) {
   console.log("getLineCollisionTime()");
-  console.group();
+  console.groupCollapsed();
   var futureTime = solveTimeToDistFromLine(state.pos, state.vel, state.accel, line, state.radius);
   console.log("futureTime", futureTime);
   console.log("state.time", state.time);
@@ -688,7 +675,7 @@ function solveTimeToDistFromPoint(curPos, curVel, accel, targetPos, distanceGoal
  * Solves the time it will take a ball from curPos to reach the specified distance from the line.
  */
 function solveTimeToDistFromLine(curPos, curVel, accel, targetLine, distanceGoal) {
-  console.group("solving time to dist from line, ");
+  console.groupCollapsed("solving time to dist from line, ");
   console.log("curPos {", curPos.x, curPos.y, "}   curVel {", curVel.x, curVel.y, "}   accel {", accel.x, accel.y, "}");
   console.log("targetLine", targetLine);
   console.log("distanceGoal ", distanceGoal);
@@ -973,19 +960,18 @@ function genNormal(surface, upOrDown) {
 
 
 function getLineLineConcavity(line0, line1, referencePos) {
-//  console.log("start getLineLineConcavity");
-//  console.group();
+  //console.groupCollapsed("start getLineLineConcavity");
   var vec0;
   var vec1;
   var intersect;
 
   if (pointsEqual(line0.p0, line1.p1)) {
-//    console.log("line0.p0 and line1.p1 shared");
+    //console.log("line0.p0 and line1.p1 shared");
     intersect = line0.p0;
     vec0 = line0.p1.subtract(intersect);
     vec1 = line1.p0.subtract(intersect);
   } else if (pointsEqual(line0.p1, line1.p0)) {
-//    console.log("line0.p1 and line1.p0 shared");
+    //console.log("line0.p1 and line1.p0 shared");
     intersect = line0.p1;
     vec0 = line0.p0.subtract(intersect);
     vec1 = line1.p1.subtract(intersect);
@@ -1006,30 +992,29 @@ function getLineLineConcavity(line0, line1, referencePos) {
     throw "wrong points equal????";
 
   } else {                                                // the serious one
-//    console.log("no shared points, find intersect");
+    //console.log("no shared points, find intersect");
     intersect = getLineLineIntersect(line0, line1);
     vec0 = line0.p1.subtract(intersect);
     vec1 = line1.p0.subtract(intersect);
     if (bisects(intersect, line0)) {
-//      console.log("bisects line0, projecting pos");      
+      //console.log("bisects line0, projecting pos");      
       vec0 = projectVec2(referencePos.subtract(intersect), vec0);
     } 
     if (bisects(intersect, line1)) {
-//      console.log("bisects line1, projecting pos");
+      //console.log("bisects line1, projecting pos");
       vec1 = projectVec2(referencePos.subtract(intersect), vec1);
     } 
   }
-//  console.log("intersect ", intersect);
-//
-//
-//  console.log("vec0 ", vec0);
-//  console.log("vec1 ", vec1);
+
 
   var vec0n = vec0.normalize();
   var vec1n = vec1.normalize();
-//
-//  console.log("vec0n ", vec0n);
-//  console.log("vec1n ", vec1n);
+  //console.log("intersect ", intersect);
+
+  //console.log("vec0 ", vec0);
+  //console.log("vec1 ", vec1);
+  //console.log("vec0n ", vec0n);
+  //console.log("vec1n ", vec1n);
 
 
 
@@ -1038,7 +1023,7 @@ function getLineLineConcavity(line0, line1, referencePos) {
   var normTestLine2 = new L(vec1n.x, vec1n.y, vec1n.x + line1.normal.x, vec1n.y + line1.normal.y);
   var normTestIntersect = getLineLineIntersect(normTestLine1, normTestLine2);
 
-//  console.log("normTestIntersect ", normTestIntersect);
+  //console.log("normTestIntersect ", normTestIntersect);
 
   var intVec0 = normTestIntersect.subtract(vec0n);
   var intVec1 = normTestIntersect.subtract(vec1n);
@@ -1049,8 +1034,8 @@ function getLineLineConcavity(line0, line1, referencePos) {
                  ((intVec0.y > 0 && line0.normal.y > 0) || (intVec0.y <= 0 && line0.normal.y <= 0)));
   var sameDir1 = (((intVec1.x > 0 && line1.normal.x > 0) || (intVec1.x <= 0 && line1.normal.x <= 0)) && 
                  ((intVec1.y > 0 && line1.normal.y > 0) || (intVec1.y <= 0 && line1.normal.y <= 0)));
-//  console.log("sameDir0 " + sameDir0);
-//  console.log("sameDir1 " + sameDir1);
+  //console.log("sameDir0 " + sameDir0);
+  //console.log("sameDir1 " + sameDir1);
   var toReturn = {};
 
   if (sameDir0 && sameDir1) {           // nigga we concave
@@ -1067,11 +1052,15 @@ function getLineLineConcavity(line0, line1, referencePos) {
     toReturn.badConcavity = true;
   }
 
-  toReturn.angle = Math.acos(vec0.dot(vec1));
+  toReturn.angle = Math.acos(vec0n.dot(vec1n));
+  //console.log("vec0n", vec0n);
+  //console.log("vec1n", vec1n);
+  //console.log("vec0n.dot(vec1n)", vec0n.dot(vec1n));
+  //console.log("toReturn.angle", toReturn.angle);
   if (toReturn.convex) {
     toReturn.angle = TWO_PI - toReturn.angle;
   }
-  console.groupEnd();
+  //console.groupEnd();
   // var result = { concave: t/f, convex: t/f, badConcavity: t/f, angle: angle extending from one normal to the other, or smallest angle in case of undefined concavity }
   return toReturn;
 }
