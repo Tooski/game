@@ -1,6 +1,7 @@
 /**
  * Jesus, Joe comment your code please for the love of all things holy this has been ridiculous to overhaul
- *
+ * I'm sorry I didn't mean to have shitty coding practices. I'm a monster.
+ * 
  * mapeditor.js
  *
  * Original author Joe
@@ -67,6 +68,7 @@ function MapEditorButton(name, x, y, w, h) {
     that.gamecanvas.focus();
   };
 
+    // Sets the x and y position based on the shortest X, Y and longest X, Y
   if (buttonListStart.x > this.x) buttonListStart.x = this.x;
   if (buttonListEnd.x < this.x + this.w) buttonListEnd.x = this.x + this.w;
   if (buttonListStart.y > this.y) buttonListStart.y = this.y;

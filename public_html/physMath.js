@@ -974,19 +974,19 @@ function genNormal(surface, upOrDown) {
 
 
 function getLineLineConcavity(line0, line1, referencePos) {
-  console.log("start getLineLineConcavity");
-  console.group();
+//  console.log("start getLineLineConcavity");
+//  console.group();
   var vec0;
   var vec1;
   var intersect;
 
   if (pointsEqual(line0.p0, line1.p1)) {
-    console.log("line0.p0 and line1.p1 shared");
+//    console.log("line0.p0 and line1.p1 shared");
     intersect = line0.p0;
     vec0 = line0.p1.subtract(intersect);
     vec1 = line1.p0.subtract(intersect);
   } else if (pointsEqual(line0.p1, line1.p0)) {
-    console.log("line0.p1 and line1.p0 shared");
+//    console.log("line0.p1 and line1.p0 shared");
     intersect = line0.p1;
     vec0 = line0.p0.subtract(intersect);
     vec1 = line1.p1.subtract(intersect);
@@ -995,8 +995,8 @@ function getLineLineConcavity(line0, line1, referencePos) {
     vec0 = line0.p0.subtract(intersect);
     vec1 = line1.p0.subtract(intersect);
 
-    console.log(line0, line1);
-    throw "wrong points equal????";
+//    console.log(line0, line1);
+//    throw "wrong points equal????";
 
   } else if (pointsEqual(line0.p0, line1.p0)) {   // BAD CASE
     intersect = line0.p0;
@@ -1007,30 +1007,30 @@ function getLineLineConcavity(line0, line1, referencePos) {
     throw "wrong points equal????";
 
   } else {                                                // the serious one
-    console.log("no shared points, find intersect");
+//    console.log("no shared points, find intersect");
     intersect = getLineLineIntersect(line0, line1);
     vec0 = line0.p1.subtract(intersect);
     vec1 = line1.p0.subtract(intersect);
     if (bisects(intersect, line0)) {
-      console.log("bisects line0, projecting pos");      
+//      console.log("bisects line0, projecting pos");      
       vec0 = projectVec2(referencePos.subtract(intersect), vec0);
     } 
     if (bisects(intersect, line1)) {
-      console.log("bisects line1, projecting pos");
+//      console.log("bisects line1, projecting pos");
       vec1 = projectVec2(referencePos.subtract(intersect), vec1);
     } 
   }
-  console.log("intersect ", intersect);
-
-
-  console.log("vec0 ", vec0);
-  console.log("vec1 ", vec1);
+//  console.log("intersect ", intersect);
+//
+//
+//  console.log("vec0 ", vec0);
+//  console.log("vec1 ", vec1);
 
   var vec0n = vec0.normalize();
   var vec1n = vec1.normalize();
-
-  console.log("vec0n ", vec0n);
-  console.log("vec1n ", vec1n);
+//
+//  console.log("vec0n ", vec0n);
+//  console.log("vec1n ", vec1n);
 
 
 
@@ -1039,19 +1039,19 @@ function getLineLineConcavity(line0, line1, referencePos) {
   var normTestLine2 = new L(vec1n.x, vec1n.y, vec1n.x + line1.normal.x, vec1n.y + line1.normal.y);
   var normTestIntersect = getLineLineIntersect(normTestLine1, normTestLine2);
 
-  console.log("normTestIntersect ", normTestIntersect);
+//  console.log("normTestIntersect ", normTestIntersect);
 
   var intVec0 = normTestIntersect.subtract(vec0n);
   var intVec1 = normTestIntersect.subtract(vec1n);
-  console.log("intVec0 ", intVec0);
-  console.log("intVec1 ", intVec1);
+//  console.log("intVec0 ", intVec0);
+//  console.log("intVec1 ", intVec1);
   
   var sameDir0 = (((intVec0.x > 0 && line0.normal.x > 0) || (intVec0.x <= 0 && line0.normal.x <= 0)) && 
                  ((intVec0.y > 0 && line0.normal.y > 0) || (intVec0.y <= 0 && line0.normal.y <= 0)));
   var sameDir1 = (((intVec1.x > 0 && line1.normal.x > 0) || (intVec1.x <= 0 && line1.normal.x <= 0)) && 
                  ((intVec1.y > 0 && line1.normal.y > 0) || (intVec1.y <= 0 && line1.normal.y <= 0)));
-  console.log("sameDir0 " + sameDir0);
-  console.log("sameDir1 " + sameDir1);
+//  console.log("sameDir0 " + sameDir0);
+//  console.log("sameDir1 " + sameDir1);
   var toReturn = {};
 
   if (sameDir0 && sameDir1) {           // nigga we concave

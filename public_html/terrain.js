@@ -477,27 +477,31 @@ function KillLine(id, killZoneID, point0, point1, adjacent0, adjacent1) {
 /**
  * 
  */
-function Polygon(polygon) {
+function Polygon(init, image) {
   //Entity.call();
   this.polyID = generateID();
-  this.polygon = {};
-
-  var i = 0;
-  for (var item in polygon) {
-    var temp = polygon[item];
-    this.polygon[i++] = this.polygon[temp.id] = ({ id: temp.id, polyID: this.polyID, p0: temp.p0, p1: temp.p1 });
-    //this.polygon[i++] = this.polygon[temp.id] = (new TerrainLine(temp.id, this.polyID, temp.p0, temp.p1));
-  }
-
-  var poly = this.polygon[0];
-  var itr = poly;
-  while (itr.adjacent1 !== poly) {
-    itr.adjacent0 = this.polygon[polygon[itr.id].adjacent0.id];
-    itr.adjacent1 = this.polygon[polygon[itr.id].adjacent1.id];
-    itr = itr.adjacent1;
-  }
-  itr.adjacent0 = this.polygon[polygon[itr.id].adjacent0.id];
-  itr.adjacent1 = this.polygon[polygon[itr.id].adjacent1.id];
+  this.init = init;
+  this.image = image;
+  //  
+  //  
+//  this.polygon = {};
+//
+//  var i = 0;
+//  for (var item in polygon) {
+//    var temp = polygon[item];
+//    this.polygon[i++] = this.polygon[temp.id] = ({ id: temp.id, polyID: this.polyID, p0: temp.p0, p1: temp.p1 });
+//    //this.polygon[i++] = this.polygon[temp.id] = (new TerrainLine(temp.id, this.polyID, temp.p0, temp.p1));
+//  }
+//
+//  var poly = this.polygon[0];
+//  var itr = poly;
+//  while (itr.adjacent1 !== poly) {
+//    itr.adjacent0 = this.polygon[polygon[itr.id].adjacent0.id];
+//    itr.adjacent1 = this.polygon[polygon[itr.id].adjacent1.id];
+//    itr = itr.adjacent1;
+//  }
+//  itr.adjacent0 = this.polygon[polygon[itr.id].adjacent0.id];
+//  itr.adjacent1 = this.polygon[polygon[itr.id].adjacent1.id];
 
 
   this.toJSON = function () {
