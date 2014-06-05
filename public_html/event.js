@@ -88,28 +88,6 @@ Event.prototype.handler = function (physEng) {   // NEEDS TO BE OVERRIDDEN IN CH
 
 
 
-
-
-
-//// Event class for the Goal Event. TODO IMPLEMENT, NEEDS TO STORE WHICH GOAL AND ANY OTHER RELEVENT VICTORY INFORMATION.
-//function GoalEvent(eventTime, goalObject) { // eventTime is gameTime at which the event occurs.
-//  Event.apply(this, [eventTime])
-//  this.mask += E_GOAL_MASK;
-
-//  this.goalObject = goalObject;
-
-//  this.handler = function (physEng) {
-//    var p = physEng.player;
-//    p.completionState = new CompletionState(p, this.time, new State(p.time, p.radius, p.pos, p.vel, p.accel), this.goalObject.goalNumber, p.replay);
-//  }
-//}
-//GoalEvent.prototype = new Event();
-////GoalEvent.prototype.constructor = GoalEvent;
-
-
-
-
-
 // Event class for the render event. One of these should be the last event in the eventList array passed to update. NOT STORED IN REPLAYS.
 function RenderEvent(browserTime, eventTime) {   //
   Event.apply(this, [eventTime])

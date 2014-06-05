@@ -30,7 +30,8 @@ function leaderBoardUpdate(the_result) {
     document.getElementById('right-box').innerHTML = null;
 
     game.settings.get({"command": "topTenHighScore",
-        "data": {"levelID": "14"}}, //my_g_level_id
+      "data": { "levelID": my_g_level_id || "14"}
+    }, //my_g_level_id
     function(callback) {
 
         var mySplitResult = callback.split("-");
@@ -48,7 +49,7 @@ function leaderBoardUpdate(the_result) {
 //physEng.loadReplay(str) will need to be implemented in the controlDisplay when real json is passed
 
     game.settings.get({"command": "topTenTime",
-        "data": {"levelID": "14"}}, //my_g_level_id
+      "data": {"levelID": my_g_level_id || "14"}}, //my_g_level_id
     function(callback) {
         var mySplitResult = callback.split("-");
 

@@ -978,7 +978,8 @@ PhysEng.prototype.update = function (time, newEvents) {
     this.completionState.numCollectibles = this.player.alreadyCollected.length;
     this.completionState.numDeaths = this.player.numDeaths;
     this.completionState.score = this.player.score;
-
+    console.log(this.completionState);
+    //if (this.completionState.finished) { throw "finished" };
     return this.completionState;
   }
   // return gameState;
@@ -1156,7 +1157,7 @@ PhysEng.prototype.updatePhys = function (newEvents, stepToRender) {
     this.trySync();
 
  
-  } while ((stepToRender && (!(currentEvent.mask & E_RENDER_MASK))) || (this.isPaused && this.peekMostRecentEvent()));
+  } while ((stepToRender && (!(currentEvent.mask & E_RENDER_MASK))) && !(this.completionState.finished));
   //console.log(currentEvent);
   //console.log("(!(currentEvent.mask & E_RENDER_MASK))", (!(currentEvent.mask & E_RENDER_MASK)));
   if (currentEvent.time != this.timeMgr.time && !this.isPaused) {
