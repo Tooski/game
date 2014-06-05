@@ -174,6 +174,7 @@ GameEngine.prototype.initializePhysEng = function () {
 
   this.eventsSinceLastFrame = [];
 
+  this.gameOver = false;
   this.start();
 };
 
