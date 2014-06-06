@@ -2463,7 +2463,9 @@ PhysEng.prototype.loadReplay = function(jsonString) {
   //});
   //this.inReplay = true;
   console.log("Awesome, trying to load a replay!");
-  console.log("recieved replay JSON: ", JSON.parse(jsonString));
+  console.log("recieved replay JSON: ", jsonString);
+  document.getElementById("eklipzConsole").innerHTML = jsonString;
+  //console.log("recieved replay JSON: ", JSON.parse(jsonString));
 }
 	
 
