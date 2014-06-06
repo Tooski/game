@@ -1,4 +1,4 @@
-﻿/*
+/*
 	Minkwan Choi
 	last updated : 5/20/2014
 	stage board(world map).....
