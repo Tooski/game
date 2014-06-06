@@ -951,10 +951,11 @@ function pauseClicked(e) {
     // written by Min -----
 //    var array = [1234, 5.34, 12, 3];
 //    displayLeaderBoard(array);
-//    canvas3.style.display = "none";
-//    canvas4.style.display = "none";
+    canvas3.style.display = "none";
+    canvas4.style.display = "none";
     //---------------
 	showPause = false;
+	displayWorldMap();
     console.log("Quit!");
   }
 }
