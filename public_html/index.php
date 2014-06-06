@@ -83,8 +83,8 @@
             <script src="classie.js"></script>
             <canvas id="gameWorld" style="border: 0px solid brown; background: white; display : none"></canvas>
 
-            <canvas id="game_manu_board" style= "display : none; position: absolute; " width="400" height="350"></canvas>
-            <canvas id="stage_board" style= "display : block; position: absolute; " width="400" height="350"></canvas>
+            <canvas id="game_manu_board" style= "display : none; position: absolute; display: none" width="400" height="350"></canvas>
+            <canvas id="stage_board" style= "display : block; position: absolute; display: none" width="400" height="350"></canvas>
         </div>
 
         <!--div for initial choice to login or sign up-->
